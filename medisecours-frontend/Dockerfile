@@ -13,14 +13,11 @@ RUN apk add --no-cache git python3 make g++
 
 WORKDIR /app
 
-# Force dev-dependency resolution in the builder stage. Coolify (and other
-# PaaS) inject NODE_ENV=production into the build, which makes `npm ci` skip
-# devDependencies (notably @tailwindcss/postcss). Next.js needs those to build.
-ENV NODE_ENV=development
-
-# Install dependencies (respects overrides in package.json)
+# Install all dependencies (including devDeps needed for build: @tailwindcss/postcss, typescript, etc.)
+# --include=dev ensures devDependencies install even when Coolify sets NODE_ENV=production.
+# Do NOT set NODE_ENV=development here — Next.js requires NODE_ENV=production at build time.
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts \
+RUN npm ci --ignore-scripts --include=dev \
     && npm rebuild sharp --ignore-scripts=false
 
 # NOTE: `--webpack` avoids a Turbopack prerender bug ("useContext null" during
