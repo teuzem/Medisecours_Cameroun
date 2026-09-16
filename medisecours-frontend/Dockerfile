@@ -23,6 +23,10 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts \
     && npm rebuild sharp --ignore-scripts=false
 
+# NOTE: `--webpack` avoids a Turbopack prerender bug ("useContext null" during
+# prerender of /medecin). Next.js 16 defaults to Turbopack for `next build`;
+# forcing the webpack bundler fixes the runtime while we wait for the fix.
+
 # Copy application source
 COPY . .
 
@@ -37,7 +41,7 @@ ENV API_BASE_URL=${API_BASE_URL} \
     NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID} \
     NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+RUN npm run build -- --webpack
 
 # ── Stage 2: production ──────────────────────────────────────────────────
 FROM node:22-alpine AS runner
