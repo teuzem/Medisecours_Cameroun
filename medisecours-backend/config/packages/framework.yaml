@@ -1,0 +1,80 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+    trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
+    trusted_headers:
+        - 'x-forwarded-for'
+        - 'x-forwarded-host'
+        - 'x-forwarded-proto'
+        - 'x-forwarded-port'
+
+    # Note that the session will be started ONLY if you read or write from it.
+    session: true
+
+    # Rate limiter — protège les endpoints d'authentification contre le brute force
+    # et les endpoints publics contre le scraping pour 200k+ utilisateurs.
+    rate_limiter:
+        # Login : 10 tentatives par minute par IP
+        auth_login:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 minute'
+        # Inscription : 5 créations de compte par heure par IP (anti mass-registration)
+        auth_register:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 hour'
+        # Google auth : 20 par minute par IP
+        auth_google:
+            policy: 'sliding_window'
+            limit: 20
+            interval: '1 minute'
+        # Réinitialisation mot de passe : 3 demandes par heure par IP
+        password_reset:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'
+        account_sensitive:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '10 minutes'
+        # API publique (catalogue, centres) : 120 req/min par IP
+        api_public:
+            policy: 'sliding_window'
+            limit: 120
+            interval: '1 minute'
+        # API publique premiers gestes : 50 req/min par IP (anti-scraping ciblé)
+        api_first_aid:
+            policy: 'sliding_window'
+            limit: 50
+            interval: '1 minute'
+        media_upload:
+            policy: 'token_bucket'
+            limit: 20
+            rate:
+                interval: '1 minute'
+                amount: 10
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file
+        # Rate limiters désactivés en test pour éviter les 429 entre les cas de test
+        rate_limiter:
+            auth_login:
+                policy: 'no_limit'
+            auth_register:
+                policy: 'no_limit'
+            auth_google:
+                policy: 'no_limit'
+            password_reset:
+                policy: 'no_limit'
+            account_sensitive:
+                policy: 'no_limit'
+            api_public:
+                policy: 'no_limit'
+            api_first_aid:
+                policy: 'no_limit'
+            media_upload:
+                policy: 'no_limit'

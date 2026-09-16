@@ -1,0 +1,27 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+  environment = { NODE_VERSION = "22" }
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Production environment variables — set these in the Netlify UI.
+# The Netlify plugin for Next.js handles API rewrites, image optimization,
+# and ISR automatically.
+#
+# API_BASE_URL  -> Set to https://api.medisecours.batirlepays.com
+# NEXT_PUBLIC_WS_URL -> wss://ws.medisecours.batirlepays.com/ws
+# NEXT_PUBLIC_GOOGLE_CLIENT_ID -> your OAuth client ID
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(self), geolocation=(self)"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# Netlify Functions / ISR are automatically wired by the plugin.
+# No custom _redirects or _headers needed.

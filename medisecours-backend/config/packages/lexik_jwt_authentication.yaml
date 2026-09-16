@@ -1,0 +1,16 @@
+lexik_jwt_authentication:
+    secret_key:  '%env(resolve:JWT_SECRET_KEY)%'
+    public_key:  '%env(resolve:JWT_PUBLIC_KEY)%'
+    pass_phrase: '%env(JWT_PASSPHRASE)%'
+    # Durée de vie du token JWT — configurable via JWT_TTL dans .env
+    # Par défaut 3600s (1h). En production, 7200s (2h) est raisonnable.
+    # Ne pas dépasser 86400s (24h) sans mécanisme de révocation.
+    token_ttl:   '%env(int:JWT_TTL)%'
+    token_extractors:
+        authorization_header:
+            enabled: true
+            prefix: Bearer
+            name: Authorization
+        cookie:
+            enabled: true
+            name: medisecours_access

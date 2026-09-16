@@ -1,0 +1,8 @@
+api_platform:
+    title: MediSecours API
+    version: 1.0.0
+    description: API pour l'application MediSecours - Gestion des urgences médicales et premiers secours
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']

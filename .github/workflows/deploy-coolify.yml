@@ -1,0 +1,46 @@
+name: Deploy to Coolify
+
+# Optional CI-driven deployment. Coolify's native GitHub integration
+# (pull on push) is the simplest option; use this workflow instead if you
+# prefer to trigger deployments by firing Coolify's webhook URLs.
+#
+# Set repository secrets before first use:
+#   COOLIFY_WEBHOOK_BACKEND  -> Coolify deploy webhook URL for the backend app
+#   COOLIFY_WEBHOOK_FRONTEND -> Coolify deploy webhook URL for the frontend app
+#   COOLIFY_WEBHOOK_WS       -> Coolify deploy webhook URL for the WS app
+#
+# In Coolify, each Application has a "Webhooks" tab that exposes the URL.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Trigger Coolify deployments
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backend
+        if: ${{ secrets.COOLIFY_WEBHOOK_BACKEND != '' }}
+        run: |
+          curl -sS --fail --max-time 60 \
+            --retry 3 --retry-delay 5 \
+            -X GET "${{ secrets.COOLIFY_WEBHOOK_BACKEND }}" || exit 1
+
+      - name: Frontend
+        if: ${{ secrets.COOLIFY_WEBHOOK_FRONTEND != '' }}
+        run: |
+          curl -sS --fail --max-time 60 \
+            --retry 3 --retry-delay 5 \
+            -X GET "${{ secrets.COOLIFY_WEBHOOK_FRONTEND }}" || exit 1
+
+      - name: WebSocket
+        if: ${{ secrets.COOLIFY_WEBHOOK_WS != '' }}
+        run: |
+          curl -sS --fail --max-time 60 \
+            --retry 3 --retry-delay 5 \
+            -X GET "${{ secrets.COOLIFY_WEBHOOK_WS }}" || exit 1

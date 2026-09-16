@@ -1,0 +1,110 @@
+# ============================================================================
+# MediSecours+ — full production stack (OPTION B / reference compose)
+# ============================================================================
+# Use this if you prefer a single `docker compose up -d` on the VPS instead of
+# multiple Coolify applications. With Coolify, the RECOMMENDED path is the
+# four Coolify resources described in DEPLOYMENT.md (this file can also be
+# pasted into Coolify as a "Docker Compose" resource).
+#
+#   cp .env.production.example .env
+#   # fill .env, then:
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Reverse proxy: Coolify's Traefik handles TLS for all public domains, so
+# the ports below only need to be reachable on the VPS (or proxied).
+# ============================================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: medisecours-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medisecours}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-medisecours}
+    volumes:
+      - medisecours_pgdata:/var/lib/postgresql/data
+      # Optional: apply schema+seed SQL on first boot instead of migrations.
+      # - ./database/schema.sql:/docker-entrypoint-initdb.d/10-schema.sql:ro
+      # - ./database/seed.sql:/docker-entrypoint-initdb.d/20-seed.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medisecours} -d ${POSTGRES_DB:-medisecours}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./medisecours-backend
+    container_name: medisecours-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: "0"
+      APP_SECRET: ${APP_SECRET:?set in .env}
+      APP_SHARE_DIR: /app/var
+      TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
+      DEFAULT_URI: ${DEFAULT_URI:-https://api.medisecours.batirlepays.com}
+      DATABASE_URL: ${DATABASE_URL:?set in .env}
+      BOOTSTRAP_REFERENCE_DATA: ${BOOTSTRAP_REFERENCE_DATA:-1}
+      REFERENCE_DATA_VERSION: ${REFERENCE_DATA_VERSION:-2026-08-07.1}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?set in .env}
+      FRONTEND_URL: ${FRONTEND_URL:-https://medisecours.batirlepays.com}
+      JWT_SECRET_KEY: /app/config/jwt/private.pem
+      JWT_PUBLIC_KEY: /app/config/jwt/public.pem
+      JWT_PRIVATE_KEY_BASE64: ${JWT_PRIVATE_KEY_BASE64:?set in .env}
+      JWT_PUBLIC_KEY_BASE64: ${JWT_PUBLIC_KEY_BASE64:?set in .env}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?set in .env}
+      JWT_TTL: ${JWT_TTL:-7200}
+      WS_PUBLISH_URL: ${WS_PUBLISH_URL:-http://ws:8081/publish}
+      WS_PUBLISH_SECRET: ${WS_PUBLISH_SECRET:?set in .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      MAILER_DSN: ${MAILER_DSN:?set in .env}
+      MAILER_SENDER_EMAIL: ${MAILER_SENDER_EMAIL:-no-reply@medisecours.batirlepays.com}
+      MAILER_SENDER_NAME: ${MAILER_SENDER_NAME:-MediSecours}
+      CREATE_ADMIN_EMAIL: ${CREATE_ADMIN_EMAIL:-}
+      CREATE_ADMIN_PASSWORD: ${CREATE_ADMIN_PASSWORD:-}
+    ports:
+      - "10000:10000"
+    volumes:
+      - medisecours_uploads:/app/var/uploads
+
+  ws:
+    build: ./medisecours-frontend/server
+    container_name: medisecours-ws
+    restart: unless-stopped
+    environment:
+      PORT: "8081"
+      HOST: 0.0.0.0
+      WS_PUBLISH_SECRET: ${WS_PUBLISH_SECRET:?set in .env}
+      WS_ALLOWED_ORIGINS: ${WS_ALLOWED_ORIGINS:-https://medisecours.batirlepays.com,https://www.medisecours.batirlepays.com}
+      JWT_PUBLIC_KEY_BASE64: ${JWT_PUBLIC_KEY_BASE64:?set in .env}
+      JWT_ISSUER: medisecours-api
+      JWT_AUDIENCE: medisecours-websocket
+    ports:
+      - "8081:8081"
+
+  frontend:
+    build:
+      context: ./medisecours-frontend
+      args:
+        API_BASE_URL: ${API_BASE_URL:-http://backend:10000}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-wss://ws.medisecours.batirlepays.com/ws}
+    container_name: medisecours-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      API_BASE_URL: ${API_BASE_URL:-http://backend:10000}
+    ports:
+      - "3000:3000"
+
+volumes:
+  medisecours_pgdata:
+  medisecours_uploads:

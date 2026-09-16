@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; background: #fff; }
+
+  .table-wrapper { width: 100%; border-collapse: collapse; }
+  .table-wrapper td { vertical-align: top; }
+
+  /* Header */
+  .header { background: #F8F9FA; border-bottom: 3px solid #0A4A5C; }
+  .header td { padding: 32px 40px; }
+  .header-left h1 { color: #2B838A; font-size: 28px; margin-bottom: 8px; font-weight: bold; }
+  .header-left h2 { color: #0A4A5C; font-size: 24px; margin-bottom: 4px; }
+  .header-left .specialite { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #888; margin-bottom: 2px; }
+  .header-left .reg-no { font-size: 12px; color: #555; }
+  .header-right { text-align: right; }
+
+  .brand-table { float: right; border-collapse: collapse; }
+  .brand-table td { vertical-align: middle; }
+  .logo-circle {
+    width: 56px; height: 56px; border-radius: 16px; background: #206277;
+    text-align: center; color: #fff;
+  }
+  .brand-name { font-size: 24px; font-weight: bold; color: #0A4A5C; padding-left: 12px; }
+
+  /* Body */
+  .corps { height: 860px; } /* Fixed height to push footer down */
+  .col-gauche {
+    width: 25%; background: #E5EFEF; border-right: 1px solid #0A4A5C;
+    text-align: center; padding-top: 40px;
+  }
+  .col-gauche-text { font-size: 64px; font-weight: bold; color: #206277; }
+
+  .col-droite { width: 75%; position: relative; }
+
+  /* Patient Info */
+  .patient-info { padding: 24px 32px; border-bottom: 1px solid #e5e7eb; }
+  .patient-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .patient-table td { vertical-align: bottom; }
+  .label { font-size: 11px; font-weight: bold; color: #555; padding-right: 8px; white-space: nowrap; }
+  .value { border-bottom: 1px solid #999; font-size: 13px; font-weight: 500; padding-bottom: 3px; }
+
+  /* Content */
+  .content { padding: 24px 32px; }
+  .section-title {
+    font-size: 18px; font-weight: bold; color: #0A4A5C; border-bottom: 2px solid #0A4A5C;
+    display: inline-block; padding-bottom: 3px; margin-bottom: 12px;
+  }
+  .diagnostic-text { font-size: 13px; color: #333; line-height: 1.6; font-weight: 500; margin-bottom: 24px; }
+
+  /* Medications */
+  .med-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  .med-number-td { width: 32px; vertical-align: top; padding-top: 2px; }
+  .med-number {
+    width: 24px; height: 24px; border-radius: 12px; background: #206277; color: #fff;
+    text-align: center; line-height: 24px; font-size: 11px; font-weight: bold;
+    display: inline-block;
+  }
+  .med-content-td { vertical-align: top; }
+  .med-name { font-size: 14px; font-weight: bold; color: #111; display: block; margin-bottom: 4px; }
+  .med-details { font-size: 12px; color: #555; }
+  .f-semi { font-weight: bold; color: #666; }
+
+  .reco-text { font-size: 13px; color: #333; line-height: 1.6; font-weight: 500; margin-top: 8px; }
+
+  /* Signature */
+  .signature-table { width: 100%; margin-top: 60px; }
+  .signature-cell { text-align: right; padding-right: 32px; }
+  .signature-line { width: 160px; border-top: 1px solid #333; margin-bottom: 4px; display: inline-block; }
+  .signature-label { font-size: 11px; font-weight: bold; color: #555; }
+
+  /* Footer */
+  .footer { background: #0A4A5C; color: #fff; padding: 20px 24px; position: absolute; bottom: 0; width: 100%; height: 80px; }
+  .footer-table { width: 100%; border-collapse: collapse; }
+  .footer-table td { width: 33.33%; vertical-align: middle; }
+
+  .footer-item { border-collapse: collapse; margin: 0 auto; }
+  .footer-item td { vertical-align: middle; }
+  .footer-icon-td { padding-right: 12px; }
+  .footer-icon {
+    width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 8px;
+    text-align: center; line-height: 38px; display: inline-block;
+  }
+  .footer-text { font-size: 11px; line-height: 1.4; }
+  .footer-text div { display: block; }
+</style>
+</head>
+<body>
+
+  <!-- Header -->
+  <table class="table-wrapper header">
+    <tr>
+      <td class="header-left" style="width: 50%;">
+        <h1>MediSecours Clinic</h1>
+        <h2>Dr. {{ medecinPrenom }} {{ medecinNom }}</h2>
+        <div class="specialite">{{ specialite }}</div>
+        <div class="reg-no">Registration No: MS-{{ medecinId|default(0) }}</div>
+      </td>
+      <td class="header-right" style="width: 50%;">
+        <table class="brand-table">
+          <tr>
+            <td>
+              <div class="logo-circle">
+                <!-- SVG Icon sized properly -->
+                <svg width="32" height="32" viewBox="0 0 24 24" style="margin-top:12px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/></svg>
+              </div>
+            </td>
+            <td class="brand-name">MediSecours+</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Body -->
+  <table class="table-wrapper corps">
+    <tr>
+      <!-- Left Column -->
+      <td class="col-gauche">
+        <div class="col-gauche-text">Rx</div>
+      </td>
+
+      <!-- Right Column -->
+      <td class="col-droite" style="background-image: url('data:image/svg+xml;utf8,<svg width=\"24\" height=\"24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M 24 0 L 24 24 0 24\" fill=\"none\" stroke=\"%23e5e7eb\" stroke-width=\"1\"/></svg>'); background-repeat: repeat;">
+
+        <!-- Patient Info -->
+        <div class="patient-info">
+          <table class="patient-table">
+            <tr>
+              <td class="label" style="width: 1%;">Patient Name:</td>
+              <td class="value" style="width: 60%; padding-right: 20px;">{{ patientPrenom }} {{ patientNom }}</td>
+              <td class="label" style="width: 1%;">Age:</td>
+              <td class="value" style="width: 38%; text-align: center;">{{ patientAge ? patientAge ~ ' ans' : '-' }}</td>
+            </tr>
+          </table>
+          <table class="patient-table" style="margin-bottom: 0;">
+            <tr>
+              <td class="label" style="width: 1%;">Address:</td>
+              <td class="value" style="width: 60%; padding-right: 20px;">{{ patientAdresse }}</td>
+              <td class="label" style="width: 1%;">Date:</td>
+              <td class="value" style="width: 38%; text-align: center;">{{ date }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="content">
+          <!-- Diagnostic -->
+          <div style="margin-bottom:24px;">
+            <div class="section-title">Diagnostic</div>
+            <div class="diagnostic-text">{{ diagnostic }}</div>
+          </div>
+
+          <!-- Medications -->
+          <div style="margin-bottom:24px;">
+            <div class="section-title">Médicaments Prescrits</div>
+            {% for med in medicaments %}
+            <table class="med-table">
+              <tr>
+                <td class="med-number-td">
+                  <div class="med-number">{{ loop.index }}</div>
+                </td>
+                <td class="med-content-td">
+                  <div class="med-name">{{ med.nom }}</div>
+                  <div class="med-details">
+                    <span style="display:inline-block; width: 180px;"><span class="f-semi">Posologie:</span> {{ med.posologie }}</span>
+                    <span><span class="f-semi">Durée:</span> {{ med.duree }}</span>
+                  </div>
+                </td>
+              </tr>
+            </table>
+            {% endfor %}
+          </div>
+
+          <!-- Recommendations -->
+          {% if recommandations %}
+          <div>
+            <div class="section-title">Recommandations</div>
+            <div class="reco-text">{{ recommandations }}</div>
+          </div>
+          {% endif %}
+
+          <!-- Signature -->
+          <table class="signature-table">
+            <tr>
+              <td class="signature-cell">
+                <div class="signature-line"></div><br>
+                <span class="signature-label">Signature du Médecin</span>
+              </td>
+            </tr>
+          </table>
+
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="footer">
+    <table class="footer-table">
+      <tr>
+        <!-- Phone -->
+        <td>
+          <table class="footer-item">
+            <tr>
+              <td class="footer-icon-td">
+                <div class="footer-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" style="margin-top: 8px;"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.58.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.58 1 1 0 01-.25 1.01l-2.2 2.2z" fill="white"/></svg>
+                </div>
+              </td>
+              <td class="footer-text">
+                <div>{{ telephone }}</div>
+                <div>{{ telephoneUrgences }}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+
+        <!-- Email/Web -->
+        <td>
+          <table class="footer-item">
+            <tr>
+              <td class="footer-icon-td">
+                <div class="footer-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" style="margin-top: 8px;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="white"/></svg>
+                </div>
+              </td>
+              <td class="footer-text">
+                <div>{{ email }}</div>
+                <div>www.medisecours.com</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+
+        <!-- Address -->
+        <td>
+          <table class="footer-item" style="float: right;">
+            <tr>
+              <td class="footer-icon-td">
+                <div class="footer-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" style="margin-top: 8px;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="white"/></svg>
+                </div>
+              </td>
+              <td class="footer-text">
+                <div>{{ hopital }}</div>
+                <div>{{ quartier }}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</body>
+</html>

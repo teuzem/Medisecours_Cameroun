@@ -1,0 +1,47 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local coding-agent metadata
+.zcode/
+.agents/
+.claude/
+.continue/
+.junie/
+.kiro/
+.qoder/
+.qwen/
+.trae/
+.windsurf/
+
+# Environment — real env files are never committed
+.env
+.env.local
+.env.*.local
+.env.prod
+.env.production
+*.pem
+
+# Node / Next (applies anywhere in the tree, incl. server/node_modules)
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Archives / temp
+src.zip
+~$*
+*.log
+
+# Python
+__pycache__/
+*.pyc

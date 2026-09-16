@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+.env.dev
+.env.test
+.env.local
+.env.prod
+.env.*.local
+.env.*.example
+config/jwt/*.pem
+vendor
+var
+tests
+phpunit.xml
+phpunit.xml.dist
+render.yaml

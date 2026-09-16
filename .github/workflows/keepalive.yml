@@ -1,0 +1,31 @@
+name: Keepalive MediSecours
+
+on:
+  schedule:
+    - cron: '*/12 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    name: Ping production services
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping frontend (rewrites to API)
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 120 "https://medisecours.batirlepays.com/api/health" || echo 000)
+          echo "frontend: $(date -u +%H:%M:%S) HTTP $code"
+          case "$code" in
+            2*) echo "frontend OK" ;;
+            *) echo "frontend down (HTTP $code)"; exit 1 ;;
+          esac
+      - name: Ping websocket
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 120 "https://ws.medisecours.batirlepays.com/health" || echo 000)
+          echo "websocket: $(date -u +%H:%M:%S) HTTP $code"
+          case "$code" in
+            2*) echo "websocket OK" ;;
+            *) echo "websocket down (HTTP $code)"; exit 1 ;;
+          esac

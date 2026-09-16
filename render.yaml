@@ -1,0 +1,95 @@
+envVarGroups:
+  - name: medisecours-realtime
+    envVars:
+      - key: WS_PUBLISH_SECRET
+        generateValue: true
+
+services:
+  - type: web
+    name: medisecours-backend
+    runtime: docker
+    rootDir: medisecours-backend
+    dockerfilePath: ./medisecours-backend/Dockerfile
+    dockerContext: ./medisecours-backend
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    disk:
+      name: medisecours-uploads
+      mountPath: /app/var/uploads
+      sizeGB: 1
+    envVars:
+      - fromGroup: medisecours-realtime
+      - key: APP_ENV
+        value: prod
+      - key: APP_DEBUG
+        value: "0"
+      - key: APP_SECRET
+        generateValue: true
+      - key: APP_SHARE_DIR
+        value: /app/var
+      - key: TRUSTED_PROXIES
+        value: 127.0.0.1,REMOTE_ADDR
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        sync: false
+      - key: BOOTSTRAP_REFERENCE_DATA
+        value: "1"
+      - key: REFERENCE_DATA_VERSION
+        value: "2026-08-07.1"
+      - key: JWT_SECRET_KEY
+        value: /app/config/jwt/private.pem
+      - key: JWT_PUBLIC_KEY
+        value: /app/config/jwt/public.pem
+      - key: JWT_PRIVATE_KEY_BASE64
+        sync: false
+      - key: JWT_PUBLIC_KEY_BASE64
+        sync: false
+      - key: JWT_PASSPHRASE
+        sync: false
+      - key: JWT_TTL
+        value: "7200"
+      - key: WS_PUBLISH_URL
+        fromService:
+          type: web
+          name: medisecours-websocket
+          property: hostport
+      - key: FRONTEND_URL
+        sync: false
+      - key: DEFAULT_URI
+        sync: false
+      - key: CORS_ALLOW_ORIGIN
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: MAILER_DSN
+        sync: false
+      - key: MAILER_SENDER_EMAIL
+        sync: false
+      - key: MAILER_SENDER_NAME
+        value: MediSecours
+
+  - type: web
+    name: medisecours-websocket
+    runtime: node
+    rootDir: medisecours-frontend/server
+    region: frankfurt
+    plan: starter
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: medisecours-realtime
+      - key: NODE_ENV
+        value: production
+      - key: JWT_PUBLIC_KEY_BASE64
+        sync: false
+      - key: WS_ALLOWED_ORIGINS
+        sync: false
+      - key: JWT_ISSUER
+        value: medisecours-api
+      - key: JWT_AUDIENCE
+        value: medisecours-websocket

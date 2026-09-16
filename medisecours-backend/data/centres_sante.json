@@ -1,0 +1,5736 @@
+[
+  {
+    "nom": "Hôpital Central de Yaoundé",
+    "type": "chu",
+    "adresse": "Rue de l'Hôpital, Centre Administratif",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8714,
+    "longitude": 11.5104,
+    "telephone": "+237 222 23 20 22",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie",
+      "Cardiologie",
+      "Urgences"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Radiologie",
+      "Pharmacie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Général de Yaoundé",
+    "type": "hopital_general",
+    "adresse": "Bastos, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.9066,
+    "longitude": 11.5414,
+    "telephone": "+237 694 00 49 92",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Cardiologie",
+      "Pneumologie"
+    ],
+    "services": [
+      "Urgences",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e9/H%C3%B4pital_G%C3%A9n%C3%A9ral_de_Yaound%C3%A9.jpg"
+  },
+  {
+    "nom": "Centre Hospitalier Universitaire de Yaoundé (CHUY)",
+    "type": "chu",
+    "adresse": "Melen, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8627,
+    "longitude": 11.4966,
+    "telephone": "+237 22 31 21 03",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Cardiologie",
+      "Neurologie",
+      "Oncologie",
+      "Néphrologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Radiologie",
+      "Pharmacie",
+      "Bloc opératoire",
+      "Réanimation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1b/University_Teaching_Hospital_of_Yaounde_%28CHU%29_2014_from_behind.jpg"
+  },
+  {
+    "nom": "Hôpital Gynéco-Obstétrique et Pédiatrique de Yaoundé (HGOPY)",
+    "type": "centre_specialise",
+    "adresse": "Melen, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8752,
+    "longitude": 11.5299,
+    "telephone": "+237 242 05 92 94 / +237 222 21 24 31 / +237 222 21 24 33",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Gynécologie",
+      "Obstétrique",
+      "Pédiatrie",
+      "Néonatologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Consultations pédiatriques",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Jamot de Yaoundé",
+    "type": "hopital_general",
+    "adresse": "Melen, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.86,
+    "longitude": 11.5,
+    "telephone": "+237 222 20 31 65 / +237 222 21 53 09 / +237 222 20 43 90",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Maladies infectieuses",
+      "Dermatologie"
+    ],
+    "services": [
+      "Consultations",
+      "Hospitalisation",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Centre des Urgences de Yaoundé (CURY)",
+    "type": "hopital_general",
+    "adresse": "Rue de la République, Centre-ville",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.865,
+    "longitude": 11.515,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine d'urgence",
+      "Traumatologie",
+      "Réanimation"
+    ],
+    "services": [
+      "Urgences",
+      "Réanimation",
+      "Bloc opératoire",
+      "Imagerie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Biyem-Assi",
+    "type": "hopital_de_district",
+    "adresse": "Biyem-Assi, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8263,
+    "longitude": 11.4874,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Djoungolo",
+    "type": "hopital_de_district",
+    "adresse": "Djoungolo, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8851,
+    "longitude": 11.5331,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Efoulan",
+    "type": "hopital_de_district",
+    "adresse": "Efoulan, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8295,
+    "longitude": 11.511,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nkolndongo",
+    "type": "hopital_de_district",
+    "adresse": "Nkolndongo, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8554,
+    "longitude": 11.5346,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Olembé",
+    "type": "hopital_de_district",
+    "adresse": "Olembé, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8425,
+    "longitude": 11.5573,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de la Cité Verte",
+    "type": "hopital_de_district",
+    "adresse": "Cité Verte, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8707,
+    "longitude": 11.4926,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mvog-Ada",
+    "type": "hopital_de_district",
+    "adresse": "Mvog-Ada, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.848,
+    "longitude": 11.52,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nkolbisson",
+    "type": "hopital_de_district",
+    "adresse": "Nkolbisson, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.88,
+    "longitude": 11.48,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mfou",
+    "type": "hopital_de_district",
+    "adresse": "Mfou, Yaoundé",
+    "ville": "Mfou",
+    "region": "Centre",
+    "latitude": 3.7172,
+    "longitude": 11.6462,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Soa",
+    "type": "hopital_de_district",
+    "adresse": "Soa",
+    "ville": "Soa",
+    "region": "Centre",
+    "latitude": 3.9167,
+    "longitude": 11.5846,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ntui",
+    "type": "hopital_de_district",
+    "adresse": "Ntui",
+    "ville": "Ntui",
+    "region": "Centre",
+    "latitude": 4.4363,
+    "longitude": 11.6323,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Obala",
+    "type": "hopital_de_district",
+    "adresse": "Obala",
+    "ville": "Obala",
+    "region": "Centre",
+    "latitude": 4.1562,
+    "longitude": 11.5378,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbalmayo",
+    "type": "hopital_de_district",
+    "adresse": "Mbalmayo",
+    "ville": "Mbalmayo",
+    "region": "Centre",
+    "latitude": 3.5145,
+    "longitude": 11.5089,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bafia",
+    "type": "hopital_de_district",
+    "adresse": "Bafia",
+    "ville": "Bafia",
+    "region": "Centre",
+    "latitude": 4.7406,
+    "longitude": 11.2354,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Eséka",
+    "type": "hopital_de_district",
+    "adresse": "Eséka",
+    "ville": "Eséka",
+    "region": "Centre",
+    "latitude": 3.6395,
+    "longitude": 10.7753,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Akonolinga",
+    "type": "hopital_de_district",
+    "adresse": "Akonolinga",
+    "ville": "Akonolinga",
+    "region": "Centre",
+    "latitude": 3.7778,
+    "longitude": 12.2559,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nanga Eboko",
+    "type": "hopital_de_district",
+    "adresse": "Nanga Eboko",
+    "ville": "Nanga Eboko",
+    "region": "Centre",
+    "latitude": 4.6578,
+    "longitude": 12.3708,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Essos (CNPS)",
+    "type": "hopital_de_district",
+    "adresse": "Essos, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.874,
+    "longitude": 11.5409,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-17h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Gynécologie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Awaé",
+    "type": "hopital_de_district",
+    "adresse": "Awaé",
+    "ville": "Awaé",
+    "region": "Centre",
+    "latitude": 3.9039,
+    "longitude": 11.881,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Evodoula",
+    "type": "hopital_de_district",
+    "adresse": "Evodoula",
+    "ville": "Evodoula",
+    "region": "Centre",
+    "latitude": 4.0923,
+    "longitude": 11.2001,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Elig-Mfomo",
+    "type": "hopital_de_district",
+    "adresse": "Elig-Mfomo",
+    "ville": "Elig-Mfomo",
+    "region": "Centre",
+    "latitude": 4.277,
+    "longitude": 11.1201,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Ebebda",
+    "type": "hopital_de_district",
+    "adresse": "Ebebda",
+    "ville": "Ebebda",
+    "region": "Centre",
+    "latitude": 4.3499,
+    "longitude": 11.3002,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Monatélé",
+    "type": "hopital_de_district",
+    "adresse": "Monatélé",
+    "ville": "Monatélé",
+    "region": "Centre",
+    "latitude": 4.2502,
+    "longitude": 11.2028,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbandjock",
+    "type": "hopital_de_district",
+    "adresse": "Mbandjock",
+    "ville": "Mbandjock",
+    "region": "Centre",
+    "latitude": 4.4428,
+    "longitude": 11.9079,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbankomo",
+    "type": "hopital_de_district",
+    "adresse": "Mbankomo",
+    "ville": "Mbankomo",
+    "region": "Centre",
+    "latitude": 3.78,
+    "longitude": 11.4,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ngoumou",
+    "type": "hopital_de_district",
+    "adresse": "Ngoumou",
+    "ville": "Ngoumou",
+    "region": "Centre",
+    "latitude": 3.5917,
+    "longitude": 11.3072,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ngog-Mapubi",
+    "type": "hopital_de_district",
+    "adresse": "Ngog-Mapubi",
+    "ville": "Ngog-Mapubi",
+    "region": "Centre",
+    "latitude": 3.9425,
+    "longitude": 10.8404,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ndikiniméki",
+    "type": "hopital_de_district",
+    "adresse": "Ndikiniméki",
+    "ville": "Ndikiniméki",
+    "region": "Centre",
+    "latitude": 4.7508,
+    "longitude": 10.8276,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Sa'a",
+    "type": "hopital_de_district",
+    "adresse": "Sa'a",
+    "ville": "Sa'a",
+    "region": "Centre",
+    "latitude": 4.3564,
+    "longitude": 11.448,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Yoko",
+    "type": "hopital_de_district",
+    "adresse": "Yoko",
+    "ville": "Yoko",
+    "region": "Centre",
+    "latitude": 5.5391,
+    "longitude": 12.3203,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional Annexe d'Ayos",
+    "type": "hopital_general",
+    "adresse": "Ayos",
+    "ville": "Ayos",
+    "region": "Centre",
+    "latitude": 3.8976,
+    "longitude": 12.5299,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Clinique Notre Dame de l'Espérance",
+    "type": "clinique_privee",
+    "adresse": "Mvan, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.85,
+    "longitude": 11.5,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "prive",
+    "specialites": [
+      "Médecine générale",
+      "Gynécologie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Clinique du Bon Pasteur",
+    "type": "clinique_privee",
+    "adresse": "Bonapriso, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.055,
+    "longitude": 9.715,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-20h",
+    "statut": "prive",
+    "specialites": [
+      "Médecine générale",
+      "Gynécologie",
+      "Cardiologie"
+    ],
+    "services": [
+      "Consultations",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Clinique de l'Espoir",
+    "type": "clinique_privee",
+    "adresse": "Melen, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.86,
+    "longitude": 11.495,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "prive",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Petite chirurgie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Protestant de Djoungolo",
+    "type": "clinique_privee",
+    "adresse": "Djoungolo, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.884,
+    "longitude": 11.533,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Ophtalmologie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Centre Hospitalier d'Essos (CHE) - CNPS",
+    "type": "clinique_privee",
+    "adresse": "Essos, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.874,
+    "longitude": 11.541,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-17h30",
+    "statut": "prive",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Gynécologie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Marie Wyss de Yaoundé",
+    "type": "clinique_privee",
+    "adresse": "Mendong, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.835,
+    "longitude": 11.475,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Gynécologie",
+      "Ophtalmologie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Pharmacie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA Yaoundé I",
+    "type": "cma",
+    "adresse": "Centre-ville, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.865,
+    "longitude": 11.515,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Vaccination",
+      "Maternité"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA Nkolbisson",
+    "type": "cma",
+    "adresse": "Nkolbisson, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.88,
+    "longitude": 11.48,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Vaccination",
+      "Maternité",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CSI Nkolbisson",
+    "type": "csi",
+    "adresse": "Nkolbisson, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.878,
+    "longitude": 11.482,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Soins de base"
+    ],
+    "services": [
+      "Consultations",
+      "Vaccination",
+      "Maternité",
+      "Soins infirmiers",
+      "Pharmacie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Centre de Lutte Contre le Cancer (CLCC)",
+    "type": "centre_specialise",
+    "adresse": "Melen, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.87,
+    "longitude": 11.52,
+    "telephone": null,
+    "horaires": "Lun-Ven: 8h-17h",
+    "statut": "public",
+    "specialites": [
+      "Oncologie",
+      "Chimiothérapie",
+      "Radiothérapie"
+    ],
+    "services": [
+      "Consultations spécialisées",
+      "Chimiothérapie",
+      "Radiothérapie",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Centre Pasteur du Cameroun",
+    "type": "laboratoire",
+    "adresse": "Avenue de la Grande Mission, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.8737,
+    "longitude": 11.5111,
+    "telephone": "+237 222 23 10 15 / +237 222 23 18 03 / +237 699 008 468",
+    "horaires": "Lun-Sam: 7h-18h",
+    "statut": "public",
+    "specialites": [
+      "Analyses médicales",
+      "Recherche",
+      "Vaccination"
+    ],
+    "services": [
+      "Analyses médicales",
+      "Prélèvements",
+      "Vaccination",
+      "Consultations"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Laboratoire Central de Yaoundé",
+    "type": "laboratoire",
+    "adresse": "Bastos, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.894,
+    "longitude": 11.511,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-18h",
+    "statut": "public",
+    "specialites": [
+      "Analyses médicales",
+      "Bactériologie",
+      "Biochimie",
+      "Hématologie"
+    ],
+    "services": [
+      "Analyses médicales",
+      "Prélèvements",
+      "Bactériologie",
+      "Biochimie",
+      "Hématologie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie du Centre",
+    "type": "pharmacie",
+    "adresse": "Avenue Charles Atangana, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.868,
+    "longitude": 11.518,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques",
+      "Pharmacie de garde"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie de l'Indépendance",
+    "type": "pharmacie",
+    "adresse": "Boulevard de l'Indépendance, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.865,
+    "longitude": 11.52,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h, Dim: 9h-13h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques",
+      "Pharmacie de garde"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie du Mfoundi",
+    "type": "pharmacie",
+    "adresse": "Mfoundi, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.855,
+    "longitude": 11.505,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques",
+      "Pharmacie de garde"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie Bastos",
+    "type": "pharmacie",
+    "adresse": "Bastos, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.895,
+    "longitude": 11.512,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie d'Essos",
+    "type": "pharmacie",
+    "adresse": "Essos, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.873,
+    "longitude": 11.543,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Laquintinie de Douala",
+    "type": "chu",
+    "adresse": "Akwa, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0486,
+    "longitude": 9.7034,
+    "telephone": "+237 688 824 844",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Cardiologie",
+      "Pédiatrie",
+      "Neurologie",
+      "Pneumologie",
+      "Néphrologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Réanimation",
+      "Bloc opératoire",
+      "Imagerie",
+      "Pharmacie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Général de Douala",
+    "type": "hopital_general",
+    "adresse": "Bonanjo, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0548,
+    "longitude": 9.7582,
+    "telephone": "+237 233 50 01 01",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Cardiologie",
+      "Pneumologie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Laboratoire",
+      "Imagerie",
+      "Bloc opératoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cc/H%C3%B4pital_G%C3%A9n%C3%A9ral_de_Douala_%28cropped%29.JPG"
+  },
+  {
+    "nom": "Hôpital Gynéco-Obstétrique et Pédiatrique de Douala (HGOPED)",
+    "type": "centre_specialise",
+    "adresse": "Bonanjo, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.05,
+    "longitude": 9.755,
+    "telephone": "+237 233 50 43 00",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Gynécologie",
+      "Obstétrique",
+      "Pédiatrie",
+      "Néonatologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Consultations pédiatriques",
+      "Laboratoire",
+      "Réanimation néonatale"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Militaire de Douala",
+    "type": "hopital_general",
+    "adresse": "Bonanjo, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.042,
+    "longitude": 9.742,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Traumatologie",
+      "Médecine militaire"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Hospitalisation",
+      "Imagerie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bonassama",
+    "type": "hopital_de_district",
+    "adresse": "Bonabéri, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0731,
+    "longitude": 9.6856,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de New Bell",
+    "type": "hopital_de_district",
+    "adresse": "New Bell, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0187,
+    "longitude": 9.7097,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nylon",
+    "type": "hopital_de_district",
+    "adresse": "Nylon, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0194,
+    "longitude": 9.7306,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Logbaba",
+    "type": "hopital_de_district",
+    "adresse": "Logbaba, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0255,
+    "longitude": 9.7542,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Deido",
+    "type": "hopital_de_district",
+    "adresse": "Deido, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0289,
+    "longitude": 9.6826,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de la Cité des Palmiers",
+    "type": "hopital_de_district",
+    "adresse": "Cité des Palmiers, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.042,
+    "longitude": 9.7617,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bonamoussadi Ad Lucem",
+    "type": "hopital_de_district",
+    "adresse": "Bonamoussadi, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0836,
+    "longitude": 9.7253,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Chinois de Douala",
+    "type": "hopital_general",
+    "adresse": "Akwa, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0565,
+    "longitude": 9.767,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-17h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Médecine traditionnelle chinoise",
+      "Acupuncture",
+      "Chirurgie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Acupuncture"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional d'Edéa",
+    "type": "hopital_general",
+    "adresse": "Edéa",
+    "ville": "Edéa",
+    "region": "Littoral",
+    "latitude": 3.7905,
+    "longitude": 10.1165,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Limbé",
+    "type": "hopital_general",
+    "adresse": "Limbé",
+    "ville": "Limbé",
+    "region": "Littoral",
+    "latitude": 4.0219,
+    "longitude": 9.2186,
+    "telephone": "+237 233 33 23 53 / +237 233 33 23 33 / +237 233 33 22 50",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Nkongsamba",
+    "type": "hopital_general",
+    "adresse": "Nkongsamba",
+    "ville": "Nkongsamba",
+    "region": "Littoral",
+    "latitude": 4.9604,
+    "longitude": 9.9307,
+    "telephone": "+237 233 49 11 03 / +237 233 49 12 58 / +237 233 49 15 33",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Loum",
+    "type": "hopital_de_district",
+    "adresse": "Loum",
+    "ville": "Loum",
+    "region": "Littoral",
+    "latitude": 4.7156,
+    "longitude": 9.7302,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Manjo",
+    "type": "hopital_de_district",
+    "adresse": "Manjo",
+    "ville": "Manjo",
+    "region": "Littoral",
+    "latitude": 4.8386,
+    "longitude": 9.8222,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbanga",
+    "type": "hopital_de_district",
+    "adresse": "Mbanga",
+    "ville": "Mbanga",
+    "region": "Littoral",
+    "latitude": 4.4877,
+    "longitude": 9.5643,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Melong",
+    "type": "hopital_de_district",
+    "adresse": "Melong",
+    "ville": "Melong",
+    "region": "Littoral",
+    "latitude": 5.1121,
+    "longitude": 9.9407,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Yabassi",
+    "type": "hopital_de_district",
+    "adresse": "Yabassi",
+    "ville": "Yabassi",
+    "region": "Littoral",
+    "latitude": 4.4514,
+    "longitude": 9.9708,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Dibombari",
+    "type": "hopital_de_district",
+    "adresse": "Dibombari",
+    "ville": "Dibombari",
+    "region": "Littoral",
+    "latitude": 4.1787,
+    "longitude": 9.6561,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Manoka",
+    "type": "hopital_de_district",
+    "adresse": "Manoka",
+    "ville": "Manoka",
+    "region": "Littoral",
+    "latitude": 4.0281,
+    "longitude": 9.6823,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Pouma",
+    "type": "hopital_de_district",
+    "adresse": "Pouma",
+    "ville": "Pouma",
+    "region": "Littoral",
+    "latitude": 3.8482,
+    "longitude": 10.5226,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ndom",
+    "type": "hopital_de_district",
+    "adresse": "Ndom",
+    "ville": "Ndom",
+    "region": "Littoral",
+    "latitude": 4.3877,
+    "longitude": 10.817,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ngambé",
+    "type": "hopital_de_district",
+    "adresse": "Ngambé",
+    "ville": "Ngambé",
+    "region": "Littoral",
+    "latitude": 4.2304,
+    "longitude": 10.6231,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nkondjock",
+    "type": "hopital_de_district",
+    "adresse": "Sahe, Nkondjock",
+    "ville": "Sahe",
+    "region": "Littoral",
+    "latitude": 4.8401,
+    "longitude": 10.2271,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Clinique Bon Pasteur Douala",
+    "type": "clinique_privee",
+    "adresse": "Bali, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.06,
+    "longitude": 9.7,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-20h",
+    "statut": "prive",
+    "specialites": [
+      "Médecine générale",
+      "Gynécologie",
+      "Cardiologie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Laboratoire",
+      "Maternité",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Polyclinique Bonanjo (Daniel Muna Memorial Clinic)",
+    "type": "clinique_privee",
+    "adresse": "Bonanjo, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0373,
+    "longitude": 9.6894,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-20h",
+    "statut": "prive",
+    "specialites": [
+      "Médecine générale",
+      "Cardiologie",
+      "Pédiatrie",
+      "Chirurgie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Consultations",
+      "Laboratoire",
+      "Imagerie",
+      "Maternité",
+      "Hospitalisation",
+      "Pharmacie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Baptist Mboppi",
+    "type": "clinique_privee",
+    "adresse": "Mboppi, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.0413,
+    "longitude": 9.7161,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Ophtalmologie",
+      "Dentisterie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Pharmacie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA Douala I",
+    "type": "cma",
+    "adresse": "Akwa, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.052,
+    "longitude": 9.765,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Vaccination",
+      "Maternité",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie d'Akwa",
+    "type": "pharmacie",
+    "adresse": "Rue de la Joie, Akwa, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.053,
+    "longitude": 9.767,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-23h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Pharmacie de garde",
+      "Conseils pharmaceutiques"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie de Bonanjo",
+    "type": "pharmacie",
+    "adresse": "Bonanjo, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.048,
+    "longitude": 9.705,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques",
+      "Pharmacie de garde"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie de Deido",
+    "type": "pharmacie",
+    "adresse": "Deido, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.028,
+    "longitude": 9.68,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h, Dim: 9h-13h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques",
+      "Pharmacie de garde"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie du Rond-Point Deido",
+    "type": "pharmacie",
+    "adresse": "Rond-Point Deido, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.03,
+    "longitude": 9.685,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Pharmacie de Bonapriso",
+    "type": "pharmacie",
+    "adresse": "Bonapriso, Douala",
+    "ville": "Douala",
+    "region": "Littoral",
+    "latitude": 4.055,
+    "longitude": 9.718,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-22h",
+    "statut": "prive",
+    "specialites": [],
+    "services": [
+      "Vente de médicaments",
+      "Conseils pharmaceutiques",
+      "Pharmacie de garde"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Bafoussam",
+    "type": "hopital_general",
+    "adresse": "Centre-ville, Bafoussam",
+    "ville": "Bafoussam",
+    "region": "Ouest",
+    "latitude": 5.4868,
+    "longitude": 10.4061,
+    "telephone": "+237 233 44 12 11 / +237 233 44 17 23 / +237 233 44 15 94",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Bloc opératoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7d/Hopital_regional_de_Bafoussam.jpg"
+  },
+  {
+    "nom": "Hôpital de District de Bafang",
+    "type": "hopital_de_district",
+    "adresse": "Bafang",
+    "ville": "Bafang",
+    "region": "Ouest",
+    "latitude": 5.152,
+    "longitude": 10.175,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Dschang",
+    "type": "hopital_de_district",
+    "adresse": "Dschang",
+    "ville": "Dschang",
+    "region": "Ouest",
+    "latitude": 5.453,
+    "longitude": 10.06,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbouda",
+    "type": "hopital_de_district",
+    "adresse": "Mbouda",
+    "ville": "Mbouda",
+    "region": "Ouest",
+    "latitude": 5.626,
+    "longitude": 10.255,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Foumban",
+    "type": "hopital_de_district",
+    "adresse": "Foumban",
+    "ville": "Foumban",
+    "region": "Ouest",
+    "latitude": 5.722,
+    "longitude": 10.9,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bangangté",
+    "type": "hopital_de_district",
+    "adresse": "Bangangté",
+    "ville": "Bangangté",
+    "region": "Ouest",
+    "latitude": 5.143,
+    "longitude": 10.523,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bandjoun",
+    "type": "hopital_de_district",
+    "adresse": "Bandjoun",
+    "ville": "Bandjoun",
+    "region": "Ouest",
+    "latitude": 5.373,
+    "longitude": 10.413,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Foumbot",
+    "type": "hopital_de_district",
+    "adresse": "Foumbot",
+    "ville": "Foumbot",
+    "region": "Ouest",
+    "latitude": 5.508,
+    "longitude": 10.632,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kékem",
+    "type": "hopital_de_district",
+    "adresse": "Kékem",
+    "ville": "Kékem",
+    "region": "Ouest",
+    "latitude": 5.16,
+    "longitude": 9.982,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Penka Michel",
+    "type": "hopital_de_district",
+    "adresse": "Penka Michel",
+    "ville": "Penka Michel",
+    "region": "Ouest",
+    "latitude": 5.453,
+    "longitude": 10.268,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Santchou",
+    "type": "hopital_de_district",
+    "adresse": "Santchou",
+    "ville": "Santchou",
+    "region": "Ouest",
+    "latitude": 5.3,
+    "longitude": 9.98,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Batcham",
+    "type": "hopital_de_district",
+    "adresse": "Batcham",
+    "ville": "Batcham",
+    "region": "Ouest",
+    "latitude": 5.25,
+    "longitude": 10.38,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bamendjou",
+    "type": "hopital_de_district",
+    "adresse": "Bamendjou",
+    "ville": "Bamendjou",
+    "region": "Ouest",
+    "latitude": 5.38,
+    "longitude": 10.33,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bandja",
+    "type": "hopital_de_district",
+    "adresse": "Bandja",
+    "ville": "Bandja",
+    "region": "Ouest",
+    "latitude": 5.105,
+    "longitude": 10.205,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bangourain",
+    "type": "hopital_de_district",
+    "adresse": "Bangourain",
+    "ville": "Bangourain",
+    "region": "Ouest",
+    "latitude": 5.133,
+    "longitude": 10.5,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Galim",
+    "type": "hopital_de_district",
+    "adresse": "Galim",
+    "ville": "Galim",
+    "region": "Ouest",
+    "latitude": 5.7,
+    "longitude": 10.2,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Malantouen",
+    "type": "hopital_de_district",
+    "adresse": "Malantouen",
+    "ville": "Malantouen",
+    "region": "Ouest",
+    "latitude": 5.516,
+    "longitude": 10.477,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Massangam",
+    "type": "hopital_de_district",
+    "adresse": "Massangam",
+    "ville": "Massangam",
+    "region": "Ouest",
+    "latitude": 5.36,
+    "longitude": 10.83,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kouoptamo",
+    "type": "hopital_de_district",
+    "adresse": "Kouoptamo",
+    "ville": "Kouoptamo",
+    "region": "Ouest",
+    "latitude": 5.483,
+    "longitude": 10.517,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Bafoussam Baptist Hospital",
+    "type": "clinique_privee",
+    "adresse": "Bafoussam",
+    "ville": "Bafoussam",
+    "region": "Ouest",
+    "latitude": 5.485,
+    "longitude": 10.41,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Ophtalmologie",
+      "Dentisterie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Pharmacie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA Bafoussam",
+    "type": "cma",
+    "adresse": "Bafoussam",
+    "ville": "Bafoussam",
+    "region": "Ouest",
+    "latitude": 5.475,
+    "longitude": 10.42,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Vaccination",
+      "Maternité"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Garoua",
+    "type": "hopital_general",
+    "adresse": "Garoua",
+    "ville": "Garoua",
+    "region": "Nord",
+    "latitude": 9.2955,
+    "longitude": 13.3884,
+    "telephone": "+237 222 27 14 14 / +237 222 27 11 13 / +237 222 27 31 92",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie",
+      "Cardiologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Bloc opératoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Militaire de Garoua",
+    "type": "hopital_general",
+    "adresse": "Garoua",
+    "ville": "Garoua",
+    "region": "Nord",
+    "latitude": 9.29,
+    "longitude": 13.395,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Traumatologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Hospitalisation",
+      "Imagerie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Garoua",
+    "type": "hopital_de_district",
+    "adresse": "Garoua",
+    "ville": "Garoua",
+    "region": "Nord",
+    "latitude": 9.2995,
+    "longitude": 13.3918,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Guider",
+    "type": "hopital_de_district",
+    "adresse": "Guider",
+    "ville": "Guider",
+    "region": "Nord",
+    "latitude": 9.9291,
+    "longitude": 13.9508,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Figuil",
+    "type": "hopital_de_district",
+    "adresse": "Figuil",
+    "ville": "Figuil",
+    "region": "Nord",
+    "latitude": 9.7502,
+    "longitude": 13.9693,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bibemi",
+    "type": "hopital_de_district",
+    "adresse": "Bibemi",
+    "ville": "Bibemi",
+    "region": "Nord",
+    "latitude": 9.3087,
+    "longitude": 13.8768,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Gaschiga",
+    "type": "hopital_de_district",
+    "adresse": "Gashiga",
+    "ville": "Gashiga",
+    "region": "Nord",
+    "latitude": 9.4331,
+    "longitude": 13.3634,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Lagdo",
+    "type": "hopital_de_district",
+    "adresse": "Lagdo",
+    "ville": "Lagdo",
+    "region": "Nord",
+    "latitude": 9.0516,
+    "longitude": 13.6602,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mayo-Oulo",
+    "type": "hopital_de_district",
+    "adresse": "Mayo-Oulo",
+    "ville": "Mayo-Oulo",
+    "region": "Nord",
+    "latitude": 9.9686,
+    "longitude": 13.6183,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ngong",
+    "type": "hopital_de_district",
+    "adresse": "Ngong",
+    "ville": "Ngong",
+    "region": "Nord",
+    "latitude": 9.0251,
+    "longitude": 13.5097,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Pitoa",
+    "type": "hopital_de_district",
+    "adresse": "Pitoa",
+    "ville": "Pitoa",
+    "region": "Nord",
+    "latitude": 9.3869,
+    "longitude": 13.5055,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Poli",
+    "type": "hopital_de_district",
+    "adresse": "Poli",
+    "ville": "Poli",
+    "region": "Nord",
+    "latitude": 8.4748,
+    "longitude": 13.2454,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Rey Bouba",
+    "type": "hopital_de_district",
+    "adresse": "Rey Bouba",
+    "ville": "Rey Bouba",
+    "region": "Nord",
+    "latitude": 8.6591,
+    "longitude": 14.1736,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Tcholliré",
+    "type": "hopital_de_district",
+    "adresse": "Tcholliré",
+    "ville": "Tcholliré",
+    "region": "Nord",
+    "latitude": 8.4022,
+    "longitude": 14.1698,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Touboro",
+    "type": "hopital_de_district",
+    "adresse": "Touboro",
+    "ville": "Touboro",
+    "region": "Nord",
+    "latitude": 7.7677,
+    "longitude": 15.3558,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Maroua",
+    "type": "hopital_general",
+    "adresse": "Maroua",
+    "ville": "Maroua",
+    "region": "Extrême-Nord",
+    "latitude": 10.5868,
+    "longitude": 14.3118,
+    "telephone": "+237 222 29 11 75 / +237 222 29 29 79",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Portail_h%C3%B4pital_Maroua.jpg"
+  },
+  {
+    "nom": "Hôpital Régional de Yagoua",
+    "type": "hopital_general",
+    "adresse": "Yagoua",
+    "ville": "Yagoua",
+    "region": "Extrême-Nord",
+    "latitude": 10.318,
+    "longitude": 15.2265,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional Annexe de Kousséri",
+    "type": "hopital_general",
+    "adresse": "Kousséri",
+    "ville": "Kousséri",
+    "region": "Extrême-Nord",
+    "latitude": 12.0838,
+    "longitude": 15.0326,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bogo",
+    "type": "hopital_de_district",
+    "adresse": "Bogo",
+    "ville": "Bogo",
+    "region": "Extrême-Nord",
+    "latitude": 10.7209,
+    "longitude": 14.5947,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mokolo",
+    "type": "hopital_de_district",
+    "adresse": "Mokolo",
+    "ville": "Mokolo",
+    "region": "Extrême-Nord",
+    "latitude": 10.7438,
+    "longitude": 13.8014,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mora",
+    "type": "hopital_de_district",
+    "adresse": "Mora",
+    "ville": "Mora",
+    "region": "Extrême-Nord",
+    "latitude": 11.0425,
+    "longitude": 14.1444,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kousséri",
+    "type": "hopital_de_district",
+    "adresse": "Kousséri",
+    "ville": "Kousséri",
+    "region": "Extrême-Nord",
+    "latitude": 12.0769,
+    "longitude": 15.0306,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kaélé",
+    "type": "hopital_de_district",
+    "adresse": "Kaélé",
+    "ville": "Kaélé",
+    "region": "Extrême-Nord",
+    "latitude": 10.1067,
+    "longitude": 14.4408,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Moulvoudaye",
+    "type": "hopital_de_district",
+    "adresse": "Moulvoudaye",
+    "ville": "Moulvoudaye",
+    "region": "Extrême-Nord",
+    "latitude": 10.3976,
+    "longitude": 14.857,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Guidiguis",
+    "type": "hopital_de_district",
+    "adresse": "Guidiguis",
+    "ville": "Guidiguis",
+    "region": "Extrême-Nord",
+    "latitude": 10.1375,
+    "longitude": 14.7105,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Doukoula",
+    "type": "hopital_de_district",
+    "adresse": "Doukoula",
+    "ville": "Doukoula",
+    "region": "Extrême-Nord",
+    "latitude": 10.1138,
+    "longitude": 14.9715,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kar Hay",
+    "type": "hopital_de_district",
+    "adresse": "Kar Hay",
+    "ville": "Kar Hay",
+    "region": "Extrême-Nord",
+    "latitude": 10.1041,
+    "longitude": 14.975,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Goulfey",
+    "type": "hopital_de_district",
+    "adresse": "Goulfey",
+    "ville": "Goulfey",
+    "region": "Extrême-Nord",
+    "latitude": 12.3788,
+    "longitude": 14.9086,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Guere",
+    "type": "hopital_de_district",
+    "adresse": "Guere",
+    "ville": "Guere",
+    "region": "Extrême-Nord",
+    "latitude": 10.023,
+    "longitude": 15.2737,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Hina",
+    "type": "hopital_de_district",
+    "adresse": "Hina",
+    "ville": "Hina",
+    "region": "Extrême-Nord",
+    "latitude": 10.3645,
+    "longitude": 13.8555,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mada",
+    "type": "hopital_de_district",
+    "adresse": "Mada",
+    "ville": "Mada",
+    "region": "Extrême-Nord",
+    "latitude": 12.6318,
+    "longitude": 14.4761,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Makary",
+    "type": "hopital_de_district",
+    "adresse": "Makary",
+    "ville": "Makary",
+    "region": "Extrême-Nord",
+    "latitude": 12.5734,
+    "longitude": 14.4548,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mindif",
+    "type": "hopital_de_district",
+    "adresse": "Mindif",
+    "ville": "Mindif",
+    "region": "Extrême-Nord",
+    "latitude": 10.4011,
+    "longitude": 14.4377,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mogode",
+    "type": "hopital_de_district",
+    "adresse": "Mogode",
+    "ville": "Mogode",
+    "region": "Extrême-Nord",
+    "latitude": 10.5996,
+    "longitude": 13.5724,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Moutourwa",
+    "type": "hopital_de_district",
+    "adresse": "Moutourwa",
+    "ville": "Moutourwa",
+    "region": "Extrême-Nord",
+    "latitude": 10.1994,
+    "longitude": 14.1807,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Petté",
+    "type": "hopital_de_district",
+    "adresse": "Petté",
+    "ville": "Petté",
+    "region": "Extrême-Nord",
+    "latitude": 10.9688,
+    "longitude": 14.498,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Roua",
+    "type": "hopital_de_district",
+    "adresse": "Roua",
+    "ville": "Roua",
+    "region": "Extrême-Nord",
+    "latitude": 10.7759,
+    "longitude": 13.9979,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Tokombéré",
+    "type": "hopital_de_district",
+    "adresse": "Tokombéré",
+    "ville": "Tokombéré",
+    "region": "Extrême-Nord",
+    "latitude": 10.862,
+    "longitude": 14.1587,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bourha",
+    "type": "hopital_de_district",
+    "adresse": "Bourha",
+    "ville": "Bourha",
+    "region": "Extrême-Nord",
+    "latitude": 10.2535,
+    "longitude": 13.5155,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Vele",
+    "type": "hopital_de_district",
+    "adresse": "Vele",
+    "ville": "Vele",
+    "region": "Extrême-Nord",
+    "latitude": 10.4857,
+    "longitude": 15.2063,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Cemao de Meskine",
+    "type": "clinique_privee",
+    "adresse": "Meskine, Maroua",
+    "ville": "Maroua",
+    "region": "Extrême-Nord",
+    "latitude": 10.5644,
+    "longitude": 14.2516,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Ophtalmologie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Pharmacie"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Bamenda",
+    "type": "hopital_general",
+    "adresse": "Bamenda",
+    "ville": "Bamenda",
+    "region": "Nord-Ouest",
+    "latitude": 5.9511,
+    "longitude": 10.1418,
+    "telephone": "+237 233 36 24 68 / +237 233 36 18 19 / +237 233 36 11 08",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie",
+      "Cardiologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Bloc opératoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Fundong",
+    "type": "hopital_de_district",
+    "adresse": "Fundong",
+    "ville": "Fundong",
+    "region": "Nord-Ouest",
+    "latitude": 6.25,
+    "longitude": 10.275,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ndop",
+    "type": "hopital_de_district",
+    "adresse": "Ndop",
+    "ville": "Ndop",
+    "region": "Nord-Ouest",
+    "latitude": 5.98,
+    "longitude": 10.42,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nkambé",
+    "type": "hopital_de_district",
+    "adresse": "Nkambé",
+    "ville": "Nkambé",
+    "region": "Nord-Ouest",
+    "latitude": 6.64,
+    "longitude": 10.46,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Wum",
+    "type": "hopital_de_district",
+    "adresse": "Wum",
+    "ville": "Wum",
+    "region": "Nord-Ouest",
+    "latitude": 6.4,
+    "longitude": 10.08,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbengwi",
+    "type": "hopital_de_district",
+    "adresse": "Mbengwi",
+    "ville": "Mbengwi",
+    "region": "Nord-Ouest",
+    "latitude": 6.0167,
+    "longitude": 10,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Batibo",
+    "type": "hopital_de_district",
+    "adresse": "Batibo",
+    "ville": "Batibo",
+    "region": "Nord-Ouest",
+    "latitude": 5.88,
+    "longitude": 9.73,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Tubah",
+    "type": "hopital_de_district",
+    "adresse": "Bambili, Bamenda",
+    "ville": "Bamenda",
+    "region": "Nord-Ouest",
+    "latitude": 5.95,
+    "longitude": 10.2,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bafut",
+    "type": "hopital_de_district",
+    "adresse": "Bafut",
+    "ville": "Bafut",
+    "region": "Nord-Ouest",
+    "latitude": 6.0833,
+    "longitude": 10.15,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Santa",
+    "type": "hopital_de_district",
+    "adresse": "Santa",
+    "ville": "Santa",
+    "region": "Nord-Ouest",
+    "latitude": 5.78,
+    "longitude": 10.16,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bali",
+    "type": "hopital_de_district",
+    "adresse": "Bali",
+    "ville": "Bali",
+    "region": "Nord-Ouest",
+    "latitude": 5.8833,
+    "longitude": 10.0167,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Ako",
+    "type": "hopital_de_district",
+    "adresse": "Ako",
+    "ville": "Ako",
+    "region": "Nord-Ouest",
+    "latitude": 6,
+    "longitude": 10,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ndu",
+    "type": "hopital_de_district",
+    "adresse": "Ndu",
+    "ville": "Ndu",
+    "region": "Nord-Ouest",
+    "latitude": 6.42,
+    "longitude": 10.8,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Oku",
+    "type": "hopital_de_district",
+    "adresse": "Oku",
+    "ville": "Oku",
+    "region": "Nord-Ouest",
+    "latitude": 6.25,
+    "longitude": 10.5,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nwa",
+    "type": "hopital_de_district",
+    "adresse": "Nwa",
+    "ville": "Nwa",
+    "region": "Nord-Ouest",
+    "latitude": 6.52,
+    "longitude": 10.6,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Njikwa",
+    "type": "hopital_de_district",
+    "adresse": "Fuanatui",
+    "ville": "Fuanatui",
+    "region": "Nord-Ouest",
+    "latitude": 5.8333,
+    "longitude": 9.85,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nduh",
+    "type": "hopital_de_district",
+    "adresse": "Nduh",
+    "ville": "Nduh",
+    "region": "Nord-Ouest",
+    "latitude": 6.43,
+    "longitude": 10.78,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Centre Hospitalier Spécialisé St. Elizabeth de Shisong",
+    "type": "clinique_privee",
+    "adresse": "Shisong, Kumbo",
+    "ville": "Kumbo",
+    "region": "Nord-Ouest",
+    "latitude": 6.2,
+    "longitude": 10.68,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "associatif",
+    "specialites": [
+      "Cardiologie",
+      "Chirurgie cardiaque",
+      "Pédiatrie",
+      "Gynécologie",
+      "Médecine générale"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations spécialisées",
+      "Bloc opératoire",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Cardiologie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Mbingo Baptist Hospital",
+    "type": "clinique_privee",
+    "adresse": "Mbingo",
+    "ville": "Mbingo",
+    "region": "Nord-Ouest",
+    "latitude": 6.15,
+    "longitude": 10.3,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Ophtalmologie",
+      "Dentisterie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Pharmacie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Banso Baptist Hospital",
+    "type": "clinique_privee",
+    "adresse": "Banso",
+    "ville": "Banso",
+    "region": "Nord-Ouest",
+    "latitude": 6.27,
+    "longitude": 10.64,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Ophtalmologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Pharmacie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional d'Ebolowa",
+    "type": "hopital_general",
+    "adresse": "Ebolowa",
+    "ville": "Ebolowa",
+    "region": "Sud",
+    "latitude": 2.9199,
+    "longitude": 11.1671,
+    "telephone": "+237 222 28 35 48 / +237 222 28 33 33",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Bloc opératoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Central d'Enongal",
+    "type": "hopital_general",
+    "adresse": "Ebolowa",
+    "ville": "Ebolowa",
+    "region": "Sud",
+    "latitude": 2.91,
+    "longitude": 11.16,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Sangmélima",
+    "type": "hopital_de_district",
+    "adresse": "Sangmélima",
+    "ville": "Sangmélima",
+    "region": "Sud",
+    "latitude": 2.93,
+    "longitude": 11.98,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de Référence de Sangmélima",
+    "type": "hopital_general",
+    "adresse": "Sangmélima",
+    "ville": "Sangmélima",
+    "region": "Sud",
+    "latitude": 2.935,
+    "longitude": 11.985,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie",
+      "Ophtalmologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations spécialisées",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kribi",
+    "type": "hopital_de_district",
+    "adresse": "Kribi",
+    "ville": "Kribi",
+    "region": "Sud",
+    "latitude": 2.94,
+    "longitude": 9.91,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Ambam",
+    "type": "hopital_de_district",
+    "adresse": "Ambam",
+    "ville": "Ambam",
+    "region": "Sud",
+    "latitude": 2.3833,
+    "longitude": 11.2833,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Djoum",
+    "type": "hopital_de_district",
+    "adresse": "Djoum",
+    "ville": "Djoum",
+    "region": "Sud",
+    "latitude": 2.67,
+    "longitude": 12.67,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Lolodorf",
+    "type": "hopital_de_district",
+    "adresse": "Lolodorf",
+    "ville": "Lolodorf",
+    "region": "Sud",
+    "latitude": 3.2333,
+    "longitude": 10.7333,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mvangan",
+    "type": "hopital_de_district",
+    "adresse": "Mvangan",
+    "ville": "Mvangan",
+    "region": "Sud",
+    "latitude": 2.78,
+    "longitude": 11.82,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Olamze",
+    "type": "hopital_de_district",
+    "adresse": "Olamze",
+    "ville": "Olamze",
+    "region": "Sud",
+    "latitude": 2.2,
+    "longitude": 11.1,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Zoetele",
+    "type": "hopital_de_district",
+    "adresse": "Zoetele",
+    "ville": "Zoetele",
+    "region": "Sud",
+    "latitude": 3.25,
+    "longitude": 11.88,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Meyomessala",
+    "type": "hopital_de_district",
+    "adresse": "Meyomessala",
+    "ville": "Meyomessala",
+    "region": "Sud",
+    "latitude": 2.89,
+    "longitude": 12.12,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mekomengona",
+    "type": "hopital_de_district",
+    "adresse": "Ebengon",
+    "ville": "Ebengon",
+    "region": "Sud",
+    "latitude": 2.95,
+    "longitude": 12.05,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Buea",
+    "type": "hopital_general",
+    "adresse": "Buea",
+    "ville": "Buea",
+    "region": "Sud-Ouest",
+    "latitude": 4.1457,
+    "longitude": 9.232,
+    "telephone": "+237 233 32 26 63",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie",
+      "Cardiologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Bloc opératoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kumba",
+    "type": "hopital_de_district",
+    "adresse": "Kumba",
+    "ville": "Kumba",
+    "region": "Sud-Ouest",
+    "latitude": 4.633,
+    "longitude": 9.442,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Tiko",
+    "type": "hopital_de_district",
+    "adresse": "Tiko",
+    "ville": "Tiko",
+    "region": "Sud-Ouest",
+    "latitude": 4.075,
+    "longitude": 9.36,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Limbé",
+    "type": "hopital_de_district",
+    "adresse": "Limbé",
+    "ville": "Limbé",
+    "region": "Sud-Ouest",
+    "latitude": 4.01,
+    "longitude": 9.21,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mamfe",
+    "type": "hopital_de_district",
+    "adresse": "Mamfe",
+    "ville": "Mamfe",
+    "region": "Sud-Ouest",
+    "latitude": 5.75,
+    "longitude": 9.32,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbonge",
+    "type": "hopital_de_district",
+    "adresse": "Mbonge",
+    "ville": "Mbonge",
+    "region": "Sud-Ouest",
+    "latitude": 4.55,
+    "longitude": 9,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mundemba",
+    "type": "hopital_de_district",
+    "adresse": "Mundemba",
+    "ville": "Mundemba",
+    "region": "Sud-Ouest",
+    "latitude": 4.97,
+    "longitude": 8.87,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Muyuka",
+    "type": "hopital_de_district",
+    "adresse": "Muyuka",
+    "ville": "Muyuka",
+    "region": "Sud-Ouest",
+    "latitude": 4.28,
+    "longitude": 9.41,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Tombel",
+    "type": "hopital_de_district",
+    "adresse": "Tombel",
+    "ville": "Tombel",
+    "region": "Sud-Ouest",
+    "latitude": 4.75,
+    "longitude": 9.57,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Baptist Hospital Mutengene",
+    "type": "clinique_privee",
+    "adresse": "Mutengene",
+    "ville": "Mutengene",
+    "region": "Sud-Ouest",
+    "latitude": 4.08,
+    "longitude": 9.31,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Ophtalmologie",
+      "Dentisterie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Pharmacie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Bertoua",
+    "type": "hopital_general",
+    "adresse": "Bertoua",
+    "ville": "Bertoua",
+    "region": "Est",
+    "latitude": 4.577,
+    "longitude": 13.683,
+    "telephone": "+237 222 24 12 07",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bertoua",
+    "type": "hopital_de_district",
+    "adresse": "Bertoua",
+    "ville": "Bertoua",
+    "region": "Est",
+    "latitude": 4.5545,
+    "longitude": 13.6834,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District d'Abong-Mbang",
+    "type": "hopital_de_district",
+    "adresse": "Abong-Mbang",
+    "ville": "Abong-Mbang",
+    "region": "Est",
+    "latitude": 3.9783,
+    "longitude": 13.182,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Batouri",
+    "type": "hopital_de_district",
+    "adresse": "Batouri",
+    "ville": "Batouri",
+    "region": "Est",
+    "latitude": 4.4413,
+    "longitude": 14.3744,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Hospitalisation"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bétaré-Oya",
+    "type": "hopital_de_district",
+    "adresse": "Bétaré-Oya",
+    "ville": "Bétaré-Oya",
+    "region": "Est",
+    "latitude": 5.5883,
+    "longitude": 14.0875,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Doumé",
+    "type": "hopital_de_district",
+    "adresse": "Doumé",
+    "ville": "Doumé",
+    "region": "Est",
+    "latitude": 4.2386,
+    "longitude": 13.4408,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Garoua Boulai",
+    "type": "hopital_de_district",
+    "adresse": "Garoua Boulai",
+    "ville": "Garoua Boulai",
+    "region": "Est",
+    "latitude": 5.8653,
+    "longitude": 14.5566,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Kette",
+    "type": "hopital_de_district",
+    "adresse": "Kette",
+    "ville": "Kette",
+    "region": "Est",
+    "latitude": 4.8833,
+    "longitude": 14.5457,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Lomié",
+    "type": "hopital_de_district",
+    "adresse": "Lomié",
+    "ville": "Lomié",
+    "region": "Est",
+    "latitude": 3.1593,
+    "longitude": 13.6196,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Mbang",
+    "type": "hopital_de_district",
+    "adresse": "Mbang",
+    "ville": "Mbang",
+    "region": "Est",
+    "latitude": 3.9619,
+    "longitude": 14.2678,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Messamena",
+    "type": "hopital_de_district",
+    "adresse": "Messamena",
+    "ville": "Messamena",
+    "region": "Est",
+    "latitude": 3.7325,
+    "longitude": 12.8241,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Moloundou",
+    "type": "hopital_de_district",
+    "adresse": "Moloundou",
+    "ville": "Moloundou",
+    "region": "Est",
+    "latitude": 2.0482,
+    "longitude": 15.2152,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ndelele",
+    "type": "hopital_de_district",
+    "adresse": "Ndelele",
+    "ville": "Ndelele",
+    "region": "Est",
+    "latitude": 4.0368,
+    "longitude": 14.9297,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nguelemendouka",
+    "type": "hopital_de_district",
+    "adresse": "Nguelemendouka",
+    "ville": "Nguelemendouka",
+    "region": "Est",
+    "latitude": 4.396,
+    "longitude": 12.9253,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Yokadouma",
+    "type": "hopital_de_district",
+    "adresse": "Yokadouma",
+    "ville": "Yokadouma",
+    "region": "Est",
+    "latitude": 3.5178,
+    "longitude": 15.048,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital Régional de Ngaoundéré",
+    "type": "hopital_general",
+    "adresse": "Ngaoundéré",
+    "ville": "Ngaoundéré",
+    "region": "Adamaoua",
+    "latitude": 7.3067,
+    "longitude": 13.5823,
+    "telephone": "+237 222 25 11 22 / +237 222 25 11 99",
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie",
+      "Cardiologie"
+    ],
+    "services": [
+      "Urgences",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Bloc opératoire"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Bankim",
+    "type": "hopital_de_district",
+    "adresse": "Bankim",
+    "ville": "Bankim",
+    "region": "Adamaoua",
+    "latitude": 6.0784,
+    "longitude": 11.4917,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Banyo",
+    "type": "hopital_de_district",
+    "adresse": "Banyo",
+    "ville": "Banyo",
+    "region": "Adamaoua",
+    "latitude": 6.7454,
+    "longitude": 11.7878,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Meiganga",
+    "type": "hopital_de_district",
+    "adresse": "Meiganga",
+    "ville": "Meiganga",
+    "region": "Adamaoua",
+    "latitude": 6.5106,
+    "longitude": 14.297,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Tignère",
+    "type": "hopital_de_district",
+    "adresse": "Tignère",
+    "ville": "Tignère",
+    "region": "Adamaoua",
+    "latitude": 7.3538,
+    "longitude": 12.6497,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Djohong",
+    "type": "hopital_de_district",
+    "adresse": "Djohong",
+    "ville": "Djohong",
+    "region": "Adamaoua",
+    "latitude": 6.8313,
+    "longitude": 14.6945,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Laboratoire"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Baptist Hospital Banyo",
+    "type": "clinique_privee",
+    "adresse": "Banyo",
+    "ville": "Banyo",
+    "region": "Adamaoua",
+    "latitude": 6.7519,
+    "longitude": 11.831,
+    "telephone": null,
+    "horaires": "Lun-Sam: 7h-19h",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie",
+      "Chirurgie",
+      "Ophtalmologie"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Pharmacie",
+      "Hospitalisation"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Protestant Hospital of Ngaoundéré",
+    "type": "clinique_privee",
+    "adresse": "Ngaoundéré",
+    "ville": "Ngaoundéré",
+    "region": "Adamaoua",
+    "latitude": 7.3094,
+    "longitude": 13.5968,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "associatif",
+    "specialites": [
+      "Médecine générale",
+      "Chirurgie",
+      "Pédiatrie",
+      "Gynécologie",
+      "Ophtalmologie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité",
+      "Laboratoire",
+      "Imagerie",
+      "Hospitalisation",
+      "Pharmacie"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Belel",
+    "type": "cma",
+    "adresse": "Belel",
+    "ville": "Belel",
+    "region": "Adamaoua",
+    "latitude": 7.0458,
+    "longitude": 14.4356,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Dang",
+    "type": "cma",
+    "adresse": "Dang",
+    "ville": "Dang",
+    "region": "Adamaoua",
+    "latitude": 7.4201,
+    "longitude": 13.5538,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Dibi",
+    "type": "cma",
+    "adresse": "Dibi",
+    "ville": "Dibi",
+    "region": "Adamaoua",
+    "latitude": 7.1421,
+    "longitude": 13.7168,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Dir",
+    "type": "cma",
+    "adresse": "Dir",
+    "ville": "Dir",
+    "region": "Adamaoua",
+    "latitude": 6.3193,
+    "longitude": 13.5443,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Galim-Tignère",
+    "type": "cma",
+    "adresse": "Galim-Tignère",
+    "ville": "Galim-Tignère",
+    "region": "Adamaoua",
+    "latitude": 7.0982,
+    "longitude": 12.4647,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Kontcha",
+    "type": "cma",
+    "adresse": "Kontcha",
+    "ville": "Kontcha",
+    "region": "Adamaoua",
+    "latitude": 7.9731,
+    "longitude": 12.2138,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Mayo-Baléo",
+    "type": "cma",
+    "adresse": "Mayo-Baléo",
+    "ville": "Mayo-Baléo",
+    "region": "Adamaoua",
+    "latitude": 7.6521,
+    "longitude": 12.3308,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Mayo-Darlé",
+    "type": "cma",
+    "adresse": "Mayo-Darlé",
+    "ville": "Mayo-Darlé",
+    "region": "Adamaoua",
+    "latitude": 6.5002,
+    "longitude": 11.5491,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Mbe",
+    "type": "cma",
+    "adresse": "Mbe",
+    "ville": "Mbe",
+    "region": "Adamaoua",
+    "latitude": 7.8547,
+    "longitude": 13.5981,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Ngaoundal",
+    "type": "cma",
+    "adresse": "Ngaoundal",
+    "ville": "Ngaoundal",
+    "region": "Adamaoua",
+    "latitude": 6.5,
+    "longitude": 13.2667,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Nyambaka",
+    "type": "cma",
+    "adresse": "Nyambaka",
+    "ville": "Nyambaka",
+    "region": "Adamaoua",
+    "latitude": 6.8983,
+    "longitude": 14.0854,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Songkolong",
+    "type": "cma",
+    "adresse": "Songkolong",
+    "ville": "Songkolong",
+    "region": "Adamaoua",
+    "latitude": 6.3953,
+    "longitude": 11.3233,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "CMA de Tibati",
+    "type": "cma",
+    "adresse": "Tibati",
+    "ville": "Tibati",
+    "region": "Adamaoua",
+    "latitude": 6.4631,
+    "longitude": 12.6224,
+    "telephone": null,
+    "horaires": "Lun-Ven: 7h30-15h30",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale"
+    ],
+    "services": [
+      "Consultations",
+      "Maternité",
+      "Vaccination",
+      "Soins infirmiers"
+    ],
+    "urgences24h": false,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Ngong (Yaoundé)",
+    "type": "hopital_de_district",
+    "adresse": "Ngong, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.85,
+    "longitude": 11.53,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  },
+  {
+    "nom": "Hôpital de District de Nkolfoulou",
+    "type": "hopital_de_district",
+    "adresse": "Nkolfoulou, Yaoundé",
+    "ville": "Yaoundé",
+    "region": "Centre",
+    "latitude": 3.92,
+    "longitude": 11.55,
+    "telephone": null,
+    "horaires": "24h/24 - 7j/7",
+    "statut": "public",
+    "specialites": [
+      "Médecine générale",
+      "Pédiatrie"
+    ],
+    "services": [
+      "Urgences",
+      "Consultations",
+      "Maternité"
+    ],
+    "urgences24h": true,
+    "estActif": true,
+    "imageUrl": null
+  }
+]

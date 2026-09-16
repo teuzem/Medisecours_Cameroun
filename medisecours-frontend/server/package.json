@@ -1,0 +1,13 @@
+{
+  "name": "medisecours-ws-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebSocket server for MediSecours real-time notifications",
+  "scripts": {
+    "start": "node websocket-server.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "ws": "^8.18.0"
+  }
+}

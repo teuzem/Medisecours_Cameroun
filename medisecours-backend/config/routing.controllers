@@ -1,0 +1,4 @@
+# This file was missing. Add controller route imports here.
+# Controllers with #[Route] attributes need to be imported:
+# - path: ../src/Controller/
+#   type: attribute
