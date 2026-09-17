@@ -13,6 +13,8 @@ use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\CentreDeSanteRepository;
+use App\State\CentreDeSanteCarteProvider;
+use App\State\CentreDeSanteFicheProvider;
 use App\State\CentreDeSanteProcheProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -28,7 +30,20 @@ use Symfony\Component\Validator\Constraints as Assert;
             provider: CentreDeSanteProcheProvider::class,
             normalizationContext: ['groups' => ['centre_sante:read', 'centre_sante:distance']]
         ),
+        // Moteur de recherche de la carte Santé (q / type / region / ville / lat / lng)
+        new GetCollection(
+            uriTemplate: '/carte/etablissements',
+            provider: CentreDeSanteCarteProvider::class,
+            normalizationContext: ['groups' => ['centre_sante:read', 'centre_sante:distance', 'centre_sante:carte']],
+            paginationEnabled: false
+        ),
         new Get(),
+        // Fiche détaillée (médias, note, médecins affiliés, stats)
+        new Get(
+            uriTemplate: '/centre_de_santes/{id}/fiche',
+            provider: CentreDeSanteFicheProvider::class,
+            normalizationContext: ['groups' => ['centre_sante:read', 'centre_sante:fiche']]
+        ),
         new Post(security: "is_granted('ROLE_ADMIN')"),
         new Patch(security: "is_granted('ROLE_ADMIN')"),
         new Delete(security: "is_granted('ROLE_ADMIN')")
@@ -164,14 +179,59 @@ class CentreDeSante
     #[Groups(['centre_sante:distance'])]
     private ?float $distance = null;
 
+    /**
+     * Note moyenne recalculée à chaque avis publié (AvisEtablissementProcessor).
+     */
+    #[ORM\Column(type: 'float', options: ['default' => 0])]
+    #[Groups(['centre_sante:read', 'centre_sante:fiche'])]
+    private float $noteMoyenne = 0;
+
+    /**
+     * Nombre total d'avis publiés.
+     */
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    #[Groups(['centre_sante:read', 'centre_sante:fiche'])]
+    private int $totalAvis = 0;
+
+    /**
+     * Identifiant Google Place (interopérabilité / alignement avec un portail externe).
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?string $googlePlaceId = null;
+
+    /**
+     * Statut de vérification des informations : NON_VERIFIE, EN_COURS, VERIFIE.
+     */
+    #[ORM\Column(length: 30, options: ['default' => 'NON_VERIFIE'])]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private string $verificationStatut = 'NON_VERIFIE';
+
+    /**
+     * Médecins affiliés (vus à travers la fiche) — injecté par CentreDeSanteFicheProvider.
+     * NON persisté. Tableau : [{"id":..., "fonction":..., "specialite":..., "nom":..., "prenom":..., "planning":..., "teleconsultation":...}]
+     */
+    #[Groups(['centre_sante:fiche'])]
+    private ?array $medecins = [];
+
     /** @var Collection<int, MediaObject> */
     #[ORM\OneToMany(targetEntity: MediaObject::class, mappedBy: 'centre', cascade: ['persist', 'remove'])]
     #[Groups(['centre_sante:read'])]
     private Collection $images;
 
+    /** @var Collection<int, AffiliationMedecin> */
+    #[ORM\OneToMany(targetEntity: AffiliationMedecin::class, mappedBy: 'etablissement', cascade: ['persist', 'remove'])]
+    private Collection $affiliations;
+
+    /** @var Collection<int, EtablissementEquipe> */
+    #[ORM\OneToMany(targetEntity: EtablissementEquipe::class, mappedBy: 'etablissement', cascade: ['persist', 'remove'])]
+    private Collection $equipes;
+
     public function __construct()
     {
         $this->images = new ArrayCollection();
+        $this->affiliations = new ArrayCollection();
+        $this->equipes = new ArrayCollection();
     }
 
     // Getters et setters
@@ -256,6 +316,113 @@ class CentreDeSante
     {
         if ($this->images->removeElement($image)) {
             $image->setCentre(null);
+        }
+        return $this;
+    }
+
+    public function getNoteMoyenne(): float
+    {
+        return $this->noteMoyenne;
+    }
+
+    public function setNoteMoyenne(float $noteMoyenne): static
+    {
+        $this->noteMoyenne = $noteMoyenne;
+        return $this;
+    }
+
+    public function getTotalAvis(): int
+    {
+        return $this->totalAvis;
+    }
+
+    public function setTotalAvis(int $totalAvis): static
+    {
+        $this->totalAvis = $totalAvis;
+        return $this;
+    }
+
+    public function getGooglePlaceId(): ?string
+    {
+        return $this->googlePlaceId;
+    }
+
+    public function setGooglePlaceId(?string $googlePlaceId): static
+    {
+        $this->googlePlaceId = $googlePlaceId;
+        return $this;
+    }
+
+    public function getVerificationStatut(): string
+    {
+        return $this->verificationStatut;
+    }
+
+    public function setVerificationStatut(string $verificationStatut): static
+    {
+        $this->verificationStatut = $verificationStatut;
+        return $this;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>|null
+     */
+    public function getMedecins(): ?array
+    {
+        return $this->medecins;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>>|null $medecins
+     */
+    public function setMedecins(?array $medecins): static
+    {
+        $this->medecins = $medecins;
+        return $this;
+    }
+
+    /** @return Collection<int, AffiliationMedecin> */
+    public function getAffiliations(): Collection
+    {
+        return $this->affiliations;
+    }
+
+    public function addAffiliation(AffiliationMedecin $affiliation): static
+    {
+        if (!$this->affiliations->contains($affiliation)) {
+            $this->affiliations->add($affiliation);
+            $affiliation->setEtablissement($this);
+        }
+        return $this;
+    }
+
+    public function removeAffiliation(AffiliationMedecin $affiliation): static
+    {
+        if ($this->affiliations->removeElement($affiliation)) {
+            $affiliation->setEtablissement(null);
+        }
+        return $this;
+    }
+
+    /** @return Collection<int, EtablissementEquipe> */
+    public function getEquipes(): Collection
+    {
+        return $this->equipes;
+    }
+
+    public function addEquipe(EtablissementEquipe $equipe): static
+    {
+        if (!$this->equipes->contains($equipe)) {
+            $this->equipes->add($equipe);
+            $equipe->setEtablissement($this);
+        }
+        return $this;
+    }
+
+    public function removeEquipe(EtablissementEquipe $equipe): static
+    {
+        if ($this->equipes->removeElement($equipe)) {
+            $equipe->setEtablissement(null);
         }
         return $this;
     }

@@ -3,19 +3,28 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-interface Position {
+export interface Position {
   lat: number
   lng: number
 }
 
-interface Destination extends Position {
+export interface Destination extends Position {
   nom: string
 }
+
+export type WayfindingMode = 'driving' | 'walking' | 'bicycling'
 
 interface UseWayfindingParams {
   patientPosition: Position | null
   destination: Destination | null
-  mode: 'driving' | 'walking'
+  mode: WayfindingMode
+}
+
+export interface RouteStep {
+  instruction: string
+  distance: number
+  duration: number
+  name: string
 }
 
 interface RouteGeometry {
@@ -28,12 +37,14 @@ interface CachedRoute {
   distance: number
   duration: number
   isFallback: boolean
+  steps: RouteStep[]
 }
 
 interface UseWayfindingResult {
   route: RouteGeometry | null
   distance: number | null
   duration: number | null
+  steps: RouteStep[]
   loading: boolean
   error: string | null
   isFallback: boolean
@@ -45,10 +56,18 @@ interface UseWayfindingResult {
 const OSRM_BASE = 'https://router.project-osrm.org/route/v1'
 const OSRM_TIMEOUT_MS = 8000
 
-// OSRM demo server only supports "driving" profile.
-// For "walking", we use "driving" geometry but recalculate duration using walking speed.
+// OSRM demo server only supports the "driving" profile.
+// For "walking" / "bicycling", we reuse the driving geometry but recalculate
+// the duration from the average speed of the mode.
 const WALKING_SPEED_KMH = 5
+const BICYCLING_SPEED_KMH = 15
 const DRIVING_SPEED_KMH = 40
+
+const MODE_SPEED_KMH: Record<WayfindingMode, number> = {
+  driving: DRIVING_SPEED_KMH,
+  walking: WALKING_SPEED_KMH,
+  bicycling: BICYCLING_SPEED_KMH,
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -101,6 +120,7 @@ export function useWayfinding({
   const [route, setRoute] = useState<RouteGeometry | null>(null)
   const [distance, setDistance] = useState<number | null>(null)
   const [duration, setDuration] = useState<number | null>(null)
+  const [steps, setSteps] = useState<RouteStep[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isFallback, setIsFallback] = useState(false)
@@ -119,6 +139,7 @@ export function useWayfinding({
     setRoute(null)
     setDistance(null)
     setDuration(null)
+    setSteps([])
     setLoading(false)
     setError(null)
     setIsFallback(false)
@@ -127,12 +148,15 @@ export function useWayfinding({
   useEffect(() => {
     // Both positions are required to calculate a route
     if (!patientPosition || !destination) {
-      setRoute(null)
-      setDistance(null)
-      setDuration(null)
-      setLoading(false)
-      setError(null)
-      setIsFallback(false)
+      // Reset only if something is actually set (avoids cascading renders)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (route !== null) setRoute(null)
+      if (distance !== null) setDistance(null)
+      if (duration !== null) setDuration(null)
+      if (steps.length > 0) setSteps([])
+      if (loading) setLoading(false)
+      if (error !== null) setError(null)
+      if (isFallback) setIsFallback(false)
       return
     }
 
@@ -143,6 +167,7 @@ export function useWayfinding({
       setRoute(cached.route)
       setDistance(cached.distance)
       setDuration(cached.duration)
+      setSteps(cached.steps)
       setIsFallback(cached.isFallback)
       setError(cached.isFallback ? 'Itinéraire approximatif (hors ligne)' : null)
       setLoading(false)
@@ -186,12 +211,27 @@ export function useWayfinding({
         const osrmRoute = data.routes[0]
         const geometry: RouteGeometry = osrmRoute.geometry
         const routeDistance: number = osrmRoute.legs[0].distance
-        let routeDuration: number = osrmRoute.legs[0].duration
 
-        // If walking mode, recalculate duration based on walking speed
-        if (mode === 'walking') {
-          routeDuration = (routeDistance / 1000 / WALKING_SPEED_KMH) * 3600
+        // Driving uses the real OSRM duration ; walking/bicycling are
+        // recalculated from the average speed of the mode.
+        let routeDuration: number = osrmRoute.legs[0].duration
+        if (mode !== 'driving') {
+          routeDuration = (routeDistance / 1000 / MODE_SPEED_KMH[mode]) * 3600
         }
+
+        const osrmSteps: {
+          maneuver?: { instruction?: string; type?: string; modifier?: string }
+          distance: number
+          duration: number
+          name?: string
+        }[] = osrmRoute.legs[0].steps ?? []
+
+        const routeSteps: RouteStep[] = osrmSteps.map((step) => ({
+          instruction: step.maneuver?.instruction ?? 'Continuer tout droit',
+          distance: step.distance,
+          duration: step.duration,
+          name: step.name ?? '',
+        }))
 
         if (!controller.signal.aborted) {
           // Store in cache
@@ -200,10 +240,12 @@ export function useWayfinding({
             distance: routeDistance,
             duration: routeDuration,
             isFallback: false,
+            steps: routeSteps,
           })
           setRoute(geometry)
           setDistance(routeDistance)
           setDuration(routeDuration)
+          setSteps(routeSteps)
           setIsFallback(false)
           setError(null)
         }
@@ -215,8 +257,7 @@ export function useWayfinding({
         // ─── Fallback: straight-line ────────────────────────────────
         const fallbackRoute = buildStraightLine(patientPosition, destination)
         const straightDist = haversineMeters(patientPosition, destination)
-        const speed = mode === 'walking' ? WALKING_SPEED_KMH : DRIVING_SPEED_KMH
-        const fallbackDuration = (straightDist / 1000 / speed) * 3600
+        const fallbackDuration = (straightDist / 1000 / MODE_SPEED_KMH[mode]) * 3600
 
         // Cache the fallback too (avoid re-fetching a known-broken route)
         cacheRef.current.set(key, {
@@ -224,11 +265,13 @@ export function useWayfinding({
           distance: straightDist,
           duration: fallbackDuration,
           isFallback: true,
+          steps: [],
         })
 
         setRoute(fallbackRoute)
         setDistance(straightDist)
         setDuration(fallbackDuration)
+        setSteps([])
         setIsFallback(true)
         setError('Itinéraire approximatif (hors ligne)')
       } finally {
@@ -246,7 +289,8 @@ export function useWayfinding({
       clearTimeout(timeoutId)
       controller.abort()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientPosition?.lat, patientPosition?.lng, destination?.lat, destination?.lng, mode])
 
-  return { route, distance, duration, loading, error, isFallback, clear }
+  return { route, distance, duration, steps, loading, error, isFallback, clear }
 }

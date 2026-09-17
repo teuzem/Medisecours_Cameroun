@@ -32,7 +32,7 @@ export default function Navbar() {
   const { unreadCount } = useUnreadCount()
 
   const estDansLaMessagerie = pathname.includes('/messages') || pathname.includes('/conversations') || pathname.includes('/medecin/messages')
-  const isCentresRoute = pathname === '/centres'
+  const isMapRoute = pathname === '/centres' || pathname === '/carte'
 
   const initials = user ? `${user.prenom?.[0] || ''}${user.nom?.[0] || ''}`.toUpperCase() : ''
   const isActive = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
@@ -43,8 +43,9 @@ export default function Navbar() {
     { to: '/', label: t('visitor.nav.home'), icon: Home },
     { to: '/premiers-soins', label: t('visitor.nav.firstAid'), icon: Cross },
     { to: '/maladies', label: t('visitor.nav.orientation'), icon: Activity },
-    { to: '/medecins', label: t('visitor.nav.doctors'), icon: Stethoscope },
-    { to: '/centres', label: t('visitor.nav.centres'), icon: MapPin },
+{ to: '/medecins', label: t('visitor.nav.doctors'), icon: Stethoscope },
+    { to: '/carte', label: t('visitor.nav.carte'), icon: MapPin },
+    { to: '/login', label: t('visitor.nav.login'), icon: UserCircle },
   ]
 
   const patientLinks: NavLink[] = [
@@ -53,7 +54,7 @@ export default function Navbar() {
     { to: '/maladies', label: t('visitor.nav.orientation'), icon: Activity },
     { to: '/medecins', label: t('visitor.nav.doctors'), icon: Stethoscope },
     { to: '/patient/consultations', label: t('visitor.nav.consultations'), icon: FileText },
-    { to: '/centres', label: t('visitor.nav.centres'), icon: MapPin },
+    { to: '/carte', label: t('visitor.nav.carte'), icon: MapPin },
     { to: '/messages', label: t('visitor.nav.messaging'), icon: MessageCircle, badge: unreadCount },
   ]
 
@@ -74,7 +75,7 @@ export default function Navbar() {
     { to: '/maladies', label: t('visitor.nav.orientation'), icon: Activity },
     { to: '/medecins', label: t('visitor.nav.doctors'), icon: Stethoscope },
     { to: '/patient/consultations', label: t('visitor.nav.appointments'), icon: FileText },
-    { to: '/centres', label: t('visitor.nav.centres'), icon: MapPin },
+    { to: '/carte', label: t('visitor.nav.carte'), icon: MapPin },
   ]
 
   const mobileNavItems: NavLink[] = isAuthenticated && !isAdmin ? patientMobileNav : publicMobileNav
@@ -356,7 +357,7 @@ export default function Navbar() {
 
       {/* Bottom spacer so page content doesn't hide behind the tab bar */}
       <div className={`xl:hidden h-[88px] ${
-        isCentresRoute ? 'hidden' : (inConversation ? 'hidden md:block' : '')
+        isMapRoute ? 'hidden' : (inConversation ? 'hidden md:block' : '')
       }`} />
       </>
           )}

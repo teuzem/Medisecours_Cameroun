@@ -138,4 +138,51 @@ class CentreDeSanteRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * Recherche textuelle + filtres pour le moteur de la carte Santé
+     * (endpoint GET /api/carte/etablissements).
+     *
+     * @return CentreDeSante[]
+     */
+    public function search(
+        ?string $q = null,
+        ?string $type = null,
+        ?string $region = null,
+        ?string $ville = null,
+        int $limit = 200
+    ): array {
+        $qb = $this->createQueryBuilder('c')
+            ->where('c.estActif = true')
+            ->orderBy('c.nom', 'ASC')
+            ->setMaxResults($limit);
+
+        if ($q !== null && $q !== '') {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->like('LOWER(c.nom)', ':q'),
+                    $qb->expr()->like('LOWER(c.adresse)', ':q'),
+                    $qb->expr()->like('LOWER(c.ville)', ':q'),
+                    $qb->expr()->like('LOWER(c.quartier)', ':q')
+                )
+            )->setParameter('q', '%' . strtolower($q) . '%');
+        }
+
+        if ($type !== null && $type !== '') {
+            $qb->andWhere('c.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if ($region !== null && $region !== '') {
+            $qb->andWhere('c.region = :region')
+                ->setParameter('region', $region);
+        }
+
+        if ($ville !== null && $ville !== '') {
+            $qb->andWhere('LOWER(c.ville) LIKE :ville')
+                ->setParameter('ville', '%' . strtolower($ville) . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
