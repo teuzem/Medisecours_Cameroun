@@ -40,6 +40,20 @@ const securityHeaders = [
 const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  // Accepte les noms exacts du projet de référence Manus (VITE_FRONTEND_FORGE_*)
+  // comme alias des NEXT_PUBLIC_FRONTEND_FORGE_* inlinés au build par Next.js.
+  // Sans ce mapping, ces variables seraient ignorées sur un build non-Docker
+  // (Vercel/Netlify) et la carte retomberait silencieusement sur Leaflet.
+  env: {
+    NEXT_PUBLIC_FRONTEND_FORGE_API_KEY:
+      process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_KEY ||
+      process.env.VITE_FRONTEND_FORGE_API_KEY ||
+      '',
+    NEXT_PUBLIC_FRONTEND_FORGE_API_URL:
+      process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_URL ||
+      process.env.VITE_FRONTEND_FORGE_API_URL ||
+      'https://forge.butterfly-effect.dev',
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },

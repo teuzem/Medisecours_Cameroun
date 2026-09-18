@@ -13,9 +13,12 @@ export interface MapProviderResult {
   fallbackReason: string | null
 }
 
+const NO_KEY_MESSAGE =
+  'Aucune clé Google Maps configurée au build (NEXT_PUBLIC_FRONTEND_FORGE_API_KEY / VITE_FRONTEND_FORGE_API_KEY) — mode hors-ligne (Leaflet). Reconstruire l\'image avec la clé (variable de build).'
+
 /**
  * Résout le fournisseur de carte au montage :
- *  1. aucune clé configurée → Leaflet immédiatement (repli nominal) ;
+ *  1. aucune clé inlinée au build → Leaflet immédiatement (repli nominal) ;
  *  2. clé configurée → tente le chargement de Google Maps → Google ou Leaflet.
  */
 export function useMapProvider(): MapProviderResult {
@@ -24,7 +27,7 @@ export function useMapProvider(): MapProviderResult {
     return {
       provider: 'leaflet',
       state: hasConfig ? 'checking' : 'ready',
-      fallbackReason: null,
+      fallbackReason: hasConfig ? null : NO_KEY_MESSAGE,
     }
   })
 
@@ -33,6 +36,8 @@ export function useMapProvider(): MapProviderResult {
 
     const config = getMapProviderConfig()
     if (!config) {
+      // Pas de clé inlinée au build : le repli Leaflet (et son bandeau
+      // explicatif) a déjà été posé dans l'initialiseur d'état.
       return () => {
         alive = false
       }

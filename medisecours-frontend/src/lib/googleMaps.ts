@@ -67,9 +67,24 @@ export function loadGoogleMaps(): Promise<boolean> {
   loadPromise = new Promise<boolean>((resolve) => {
     const config = getMapProviderConfig()
     if (!config) {
+      // Diagnostic : les NEXT_PUBLIC_* ne sont inlinés qu'au build, une clé
+      // ajoutée après coup dans l'environnement du conteneur est invisible.
+      console.warn(
+        '[googleMaps] Aucune clé Google Maps inlinée au build -> repli Leaflet. ' +
+          'Vérifier NEXT_PUBLIC_FRONTEND_FORGE_API_KEY (ou VITE_FRONTEND_FORGE_API_KEY) ' +
+          'dans les VARIABLES DE BUILD (pas seulement l\'environnement runtime).',
+      )
       resolve(false)
       return
     }
+
+    let scriptHost = '?'
+    try {
+      scriptHost = new URL(config.scriptUrl).host
+    } catch {
+      // URL invalide : le chargement tombera en erreur => repli Leaflet.
+    }
+    console.info(`[googleMaps] Google Maps activé (${config.displayName}) via ${scriptHost}.`)
 
     const script = document.createElement('script')
     script.src = config.scriptUrl
