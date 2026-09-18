@@ -18,6 +18,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
 import type { Position } from '../../hooks/useWayfinding'
+import { facilityMarkerHtml } from '../../lib/facilityMarker'
 
 interface RouteGeometry {
   type: 'LineString'
@@ -32,6 +33,7 @@ interface GoogleCarteMapProps {
   route?: RouteGeometry | null
   isFallback?: boolean
   destination?: { lat: number; lng: number; nom?: string } | null
+  satellite?: boolean
 }
 
 const CAMEROUN_CENTER = { lat: 4.05, lng: 11.65 }
@@ -42,7 +44,7 @@ function FACILITY_COLOR(type: string): string {
 }
 
 /** Épingle ronde colorée par type — mêmes couleurs que la version Leaflet. */
-function makePinContent(color: string, selected: boolean): HTMLDivElement {
+function makePinContent(color: string, selected: boolean, name: string): HTMLDivElement {
   const size = selected ? 34 : 26
   const element = document.createElement('div')
   element.setAttribute('aria-hidden', 'true')
@@ -73,7 +75,8 @@ function makePinContent(color: string, selected: boolean): HTMLDivElement {
     'background:#fff',
     'display:block',
   ].join(';')
-  element.appendChild(pin)
+  element.style.cssText = 'cursor:pointer'
+  element.innerHTML = facilityMarkerHtml(color, selected, name)
   return element
 }
 
@@ -117,6 +120,7 @@ export default function GoogleCarteMap({
   route,
   isFallback = false,
   destination,
+  satellite = false,
 }: GoogleCarteMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<google.maps.Map | null>(null)
@@ -139,10 +143,11 @@ export default function GoogleCarteMap({
       center: CAMEROUN_CENTER,
       mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
       mapTypeId: 'roadmap',
-      fullscreenControl: true,
+      fullscreenControl: false,
       mapTypeControl: false,
       streetViewControl: false,
       zoomControl: true,
+      zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
     })
     mapRef.current = map
 
@@ -157,6 +162,10 @@ export default function GoogleCarteMap({
       clustererRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    mapRef.current?.setMapTypeId(satellite ? 'satellite' : 'roadmap')
+  }, [satellite])
 
   // ── Marqueurs des établissements (regroupés) ─────────────────────────────
   useEffect(() => {
@@ -176,7 +185,7 @@ export default function GoogleCarteMap({
         map,
         position: { lat: centre.latitude, lng: centre.longitude },
         title: centre.nom,
-        content: makePinContent(FACILITY_COLOR(centre.type), selected),
+        content: makePinContent(FACILITY_COLOR(centre.type), selected, centre.nom),
         zIndex: selected ? 1000 : undefined,
       })
       marker.addEventListener('click', () => onSelect?.(centre.id))

@@ -16,6 +16,8 @@ use ApiPlatform\Metadata\Post;
 use App\Repository\AvisEtablissementRepository;
 use App\State\AvisEtablissementCollectionProvider;
 use App\State\AvisEtablissementProcessor;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -44,7 +46,10 @@ use Symfony\Component\Validator\Constraints as Assert;
             normalizationContext: ['groups' => ['avis_etablissement:read']],
             paginationEnabled: false
         ),
-        new Get(normalizationContext: ['groups' => ['avis_etablissement:read']]),
+        new Get(
+            security: "object.getStatut() == 'PUBLIE' or is_granted('ROLE_ADMIN') or object.getUser() == user",
+            normalizationContext: ['groups' => ['avis_etablissement:read']]
+        ),
         // Un utilisateur connecté peut laisser un avis sur un établissement
         new Post(
             security: "is_granted('ROLE_USER')",
@@ -118,9 +123,17 @@ class AvisEtablissement
     #[Groups(['avis_etablissement:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /**
+     * @var Collection<int, MediaObject>
+     */
+    #[ORM\OneToMany(mappedBy: 'avis', targetEntity: MediaObject::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['avis_etablissement:read'])]
+    private Collection $images;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->images = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -242,6 +255,33 @@ class AvisEtablissement
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MediaObject>
+     */
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
+
+    public function addImage(MediaObject $image): static
+    {
+        if (!$this->images->contains($image)) {
+            $this->images->add($image);
+            $image->setAvis($this);
+        }
+
+        return $this;
+    }
+
+    public function removeImage(MediaObject $image): static
+    {
+        if ($this->images->removeElement($image) && $image->getAvis() === $this) {
+            $image->setAvis(null);
+        }
 
         return $this;
     }

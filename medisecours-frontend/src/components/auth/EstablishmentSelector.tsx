@@ -5,6 +5,7 @@ import { Building2, Check, LoaderCircle, MapPin, Plus, Search } from 'lucide-rea
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import { useDebounce } from '../../hooks/useDebounce'
+import EstablishmentLocation from './EstablishmentLocation'
 import {
   FACILITY_TYPES,
   type CarteCentre,
@@ -17,6 +18,8 @@ export type ManualEstablishment = {
   adresse: string
   ville: string
   region: string
+  latitude?: number
+  longitude?: number
 }
 
 export type EstablishmentChoice =
@@ -117,6 +120,7 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
       mode: 'manual',
       establishment: {
         ...current,
+        ...(['adresse', 'ville', 'region'].includes(field) ? { latitude: undefined, longitude: undefined } : {}),
         [field]: nextValue,
       },
     })
@@ -154,6 +158,10 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
           placeholder={t('visitor.register.establishmentNamePlaceholder')}
           aria-invalid={Boolean(error)}
         />
+        <EstablishmentLocation onSelect={(location) => onChange({
+          mode: 'manual', establishment: { ...manual, ...location },
+        })} />
+        {manual.latitude != null && manual.longitude != null && <p className="text-xs text-emerald-700">Position selectionnee : {manual.latitude.toFixed(6)}, {manual.longitude.toFixed(6)}</p>}
         <div className="grid gap-3 sm:grid-cols-2">
           <select
             value={manual.type}

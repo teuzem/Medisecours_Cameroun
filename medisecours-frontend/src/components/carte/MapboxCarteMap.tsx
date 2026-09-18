@@ -5,6 +5,7 @@ import type { CarteCentre } from '../../lib/carte'
 import { FACILITY_COLORS } from '../../lib/carte'
 import type { Position } from '../../hooks/useWayfinding'
 import { getMapboxToken } from '../../lib/mapboxMaps'
+import { facilityMarkerHtml } from '../../lib/facilityMarker'
 
 interface RouteGeometry {
   type: 'LineString'
@@ -18,11 +19,12 @@ interface Props {
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
   destination?: { lat: number; lng: number; nom?: string } | null
+  satellite?: boolean
 }
 
 const CAMEROUN_CENTER: [number, number] = [11.65, 4.05]
 
-function markerElement(color: string, selected: boolean) {
+function markerElement(color: string, selected: boolean, name: string) {
   const el = document.createElement('button')
   el.type = 'button'
   el.style.cssText = [
@@ -37,11 +39,13 @@ function markerElement(color: string, selected: boolean) {
   ].join(';')
   const dot = document.createElement('span')
   dot.style.cssText = 'display:block;width:9px;height:9px;border-radius:50%;background:#fff;transform:rotate(45deg);margin:auto'
-  el.appendChild(dot)
+  el.style.cssText = 'background:transparent;border:0;cursor:pointer'
+  el.innerHTML = facilityMarkerHtml(color, selected, name)
+  el.setAttribute('aria-label', name)
   return el
 }
 
-export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, destination }: Props) {
+export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, destination, satellite = false }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
   const markersRef = useRef<any[]>([])
@@ -55,7 +59,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
       zoom: 5.5,
       attributionControl: true,
     })
-    map.addControl(new window.mapboxgl.NavigationControl(), 'top-right')
+    map.addControl(new window.mapboxgl.NavigationControl(), 'bottom-right')
     mapRef.current = map
     return () => {
       markersRef.current.forEach((marker) => marker.remove())
@@ -66,6 +70,10 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
   }, [])
 
   useEffect(() => {
+    mapRef.current?.setStyle(satellite ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/streets-v12')
+  }, [satellite])
+
+  useEffect(() => {
     const map = mapRef.current
     if (!map) return
     markersRef.current.forEach((marker) => marker.remove())
@@ -73,10 +81,10 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
       .filter((centre) => centre.latitude != null && centre.longitude != null)
       .map((centre) => {
         const marker = new window.mapboxgl.Marker({
-          element: markerElement(FACILITY_COLORS[centre.type] ?? '#64748B', centre.id === selectedId),
+          element: markerElement(FACILITY_COLORS[centre.type] ?? '#64748B', centre.id === selectedId, centre.nom),
         })
           .setLngLat([centre.longitude, centre.latitude])
-          .setPopup(new window.mapboxgl.Popup({ offset: 18 }).setHTML(`<strong>${centre.nom}</strong><br>${centre.adresse ?? ''}`))
+            .setPopup(new window.mapboxgl.Popup({ offset: 18 }).setText(`${centre.nom} — ${centre.adresse ?? ''}`))
           .addTo(map)
         marker.getElement().addEventListener('click', () => onSelect?.(centre.id))
         return marker
@@ -107,7 +115,8 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
       })
     }
     if (map.isStyleLoaded()) update()
-    else map.once('load', update)
+    map.on('style.load', update)
+    return () => map.off('style.load', update)
   }, [route])
 
   useEffect(() => {

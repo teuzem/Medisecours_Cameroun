@@ -1,5 +1,6 @@
 'use client'
 
+import './maps.css'
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -11,8 +12,10 @@ import {
   Clock,
   Footprints,
   Loader2,
+  Layers,
   LocateFixed,
   MapPin,
+  Menu,
   Navigation,
   RefreshCw,
   Route,
@@ -22,7 +25,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
-import EtablissementDrawer from '../../components/carte/EtablissementDrawer'
+import MapsPanel from '../../components/carte/MapsPanel'
 import SosModal from '../../components/carte/SosModal'
 import { useToast } from '../../components/ui/Toast'
 import { useAuth } from '../../hooks/useAuth'
@@ -104,10 +107,11 @@ export default function CartePage() {
   const [activeType, setActiveType] = useState<'all' | EtablissementType>('all')
   const [onlyUrgence, setOnlyUrgence] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia('(min-width: 1280px)').matches
-  })
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [layersOpen, setLayersOpen] = useState(false)
+  const [satellite, setSatellite] = useState(false)
+  const [panelView, setPanelView] = useState<'explore' | 'saved' | 'recent'>('explore')
   const [mode, setMode] = useState<WayfindingMode>('driving')
   const [destination, setDestination] = useState<Destination | null>(null)
   const [isTracking, setIsTracking] = useState(false)
@@ -115,6 +119,7 @@ export default function CartePage() {
   const [favorites, setFavorites] = useState<number[]>(() => readFavorites())
   const [recentIds, setRecentIds] = useState<number[]>(() => readRecentCentres())
   const remoteFilterActive = useRef(false)
+  const sharedCentreHandled = useRef(false)
 
   // ── Favoris (localStorage) ────────────────────────────────────────────────
 
@@ -226,29 +231,55 @@ export default function CartePage() {
   const handleSelect = useCallback(
     (id: number) => {
       setSelectedId(id)
+      setDrawerOpen(true)
       setRecentIds((current) => writeRecentCentre(id, current))
       setSosOpen(false)
-      const centre = centreById.get(id)
-      if (centre?.latitude != null && centre.longitude != null) {
-        setDestination({ lat: centre.latitude, lng: centre.longitude, nom: centre.nom })
-      }
+      setDestination(null)
     },
     [centreById],
   )
+
+  useEffect(() => {
+    if (sharedCentreHandled.current || loading) return
+    const rawId = new URLSearchParams(window.location.search).get('centre')
+    const id = rawId ? Number(rawId) : NaN
+    if (!Number.isInteger(id) || id <= 0) {
+      sharedCentreHandled.current = true
+      return
+    }
+    const localCentre = centres.find(centre => centre.id === id)
+    if (localCentre) {
+      sharedCentreHandled.current = true
+      handleSelect(id)
+      return
+    }
+
+    const controller = new AbortController()
+    api.get(`/api/centre_de_santes/${id}`, { signal: controller.signal })
+      .then(response => {
+        const centre = response.data as CarteCentre
+        if (!centre?.id) return
+        setCentres(current => current.some(item => item.id === centre.id) ? current : [...current, centre])
+        handleSelect(centre.id)
+      })
+      .catch(() => toast.error("L'etablissement partage n'est plus disponible."))
+      .finally(() => { sharedCentreHandled.current = true })
+    return () => controller.abort()
+  }, [centres, handleSelect, loading, toast])
 
   const handleBackToList = useCallback(() => {
     setSelectedId(null)
   }, [])
 
   const handleRequestDirections = useCallback(() => {
+    const centre = selectedId != null ? centreById.get(selectedId) : null
+    if (centre?.latitude != null && centre.longitude != null) {
+      setDestination({ lat: centre.latitude, lng: centre.longitude, nom: centre.nom })
+    }
     if (!position) {
       toast.info(t('visitor.carte.directions.needPosition'))
       locate()
       return
-    }
-    const centre = selectedId != null ? centreById.get(selectedId) : null
-    if (centre?.latitude != null && centre.longitude != null) {
-      setDestination({ lat: centre.latitude, lng: centre.longitude, nom: centre.nom })
     }
   }, [centreById, locate, position, selectedId, t, toast])
 
@@ -325,11 +356,12 @@ export default function CartePage() {
   const routeActive = Boolean(position && destination)
 
   return (
-    <div className="relative isolate h-dvh min-h-[520px] w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+    <div className="medisecours-map relative isolate h-dvh w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
       {/* ═══ Carte plein écran (Google par défaut, Leaflet en repli) ═══ */}
       <div className="absolute inset-0 z-0">
         {provider === 'google' ? (
           <GoogleCarteMap
+            satellite={satellite}
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
@@ -340,6 +372,7 @@ export default function CartePage() {
           />
         ) : provider === 'mapbox' ? (
           <MapboxCarteMap
+            satellite={satellite}
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
@@ -362,25 +395,27 @@ export default function CartePage() {
         )}
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-[700] flex flex-col items-center gap-2 px-3 sm:top-5">
+      <div className="maps-search-shell">
         <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-slate-950/95">
-          <Search className="ml-3 h-5 w-5 shrink-0 text-slate-500" />
+          <button type="button" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
           <input
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true) }}
             type="search"
             placeholder="Rechercher un établissement ou une ville"
             className="h-11 min-w-0 flex-1 bg-transparent px-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
             aria-label="Rechercher sur la carte"
           />
+          <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true) }} title="Afficher les resultats" aria-label="Afficher les resultats" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
           {searchQuery && (
             <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="Effacer la recherche">
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
-        <div className="pointer-events-auto flex max-w-full gap-2 overflow-x-auto rounded-full px-1 pb-1">
-          <button type="button" onClick={() => setActiveType('all')} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold ${activeType === 'all' ? 'border-slate-900 bg-slate-900 text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}>
+      </div>
+        <div className="maps-categories" aria-label="Types d'etablissement">
+          <button type="button" onClick={() => setActiveType('all')} aria-pressed={activeType === 'all'}>
             Tous
           </button>
           {FACILITY_TYPES.map((type) => (
@@ -388,14 +423,29 @@ export default function CartePage() {
               key={type}
               type="button"
               onClick={() => setActiveType(type)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold capitalize ${activeType === type ? 'text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}
-              style={activeType === type ? { backgroundColor: FACILITY_COLORS[type], borderColor: FACILITY_COLORS[type] } : undefined}
+              aria-pressed={activeType === type}
             >
               {type.replaceAll('_', ' ')}
             </button>
           ))}
         </div>
-      </div>
+      {menuOpen && (
+        <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
+          <aside className="h-full w-[min(340px,88vw)] overflow-y-auto border-r border-slate-200 bg-white p-4" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-5 flex items-center justify-between"><span className="text-lg font-medium text-slate-800">MediSecours Maps</span><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu" className="grid h-10 w-10 place-items-center rounded-full hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
+            <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false) }} className="flex w-full items-center gap-3 border-b border-slate-100 py-4 text-sm text-slate-700"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
+            <nav className="flex flex-col">
+              {[
+                ['Mon profil', isAuthenticated ? '/profil' : '/login'],
+                ['Trouver un medecin', '/medecins'],
+                ['Messages', '/messages'],
+                ['Ajouter un etablissement', '/register'],
+                ['Espace etablissement', '/espace-etablissement'],
+              ].map(([label, href]) => <a key={href} href={href} className="border-b border-slate-100 py-4 text-sm text-slate-700 hover:text-blue-600">{label}</a>)}
+            </nav>
+          </aside>
+        </div>
+      )}
 
       <div className="absolute right-4 top-4 z-[710]">
         <a
@@ -408,19 +458,22 @@ export default function CartePage() {
         </a>
       </div>
 
-      <div className="pointer-events-none absolute bottom-5 left-1/2 z-[650] -translate-x-1/2 rounded-full border border-white/70 bg-white/90 px-4 py-2 text-xs font-bold tracking-wide text-slate-700 dark:border-white/10 dark:bg-slate-950/90 dark:text-slate-200">
+      <div className="maps-brand">
         MediSecours Maps
+      </div>
+      <div className={`maps-layer-control ${drawerOpen ? 'maps-layer-control-open' : ''}`}>
+        <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen(current => !current)}><Layers size={24} /><span>Calques</span></button>
+        {layersOpen && <div role="group" aria-label="Fond de carte">
+          <button type="button" aria-pressed={!satellite || provider === 'leaflet'} onClick={() => setSatellite(false)}>Plan</button>
+          <button type="button" disabled={provider !== 'google' && provider !== 'mapbox'} aria-pressed={satellite && provider !== 'leaflet'} onClick={() => setSatellite(true)}>Satellite</button>
+          {provider !== 'google' && provider !== 'mapbox' && <small>Satellite indisponible avec le fond de carte actuel.</small>}
+        </div>}
       </div>
 
       {/* ═══ État vide : aucune donnée sur la carte ═══ */}
       {!loading && centres.length === 0 && (
-        <div className="absolute inset-0 z-[620] flex items-center justify-center bg-slate-100/60 p-4 backdrop-blur-[2px] dark:bg-slate-950/60">
-          <div className="w-full max-w-xs rounded-2xl border border-white/80 bg-white/95 p-6 text-center shadow-2xl dark:border-white/15 dark:bg-slate-900/95">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300">
-              <Building2 className="h-6 w-6" />
-            </div>
-            <h2 className="text-base font-extrabold text-slate-900 dark:text-white">{t('visitor.carte.emptyTitle')}</h2>
-            <p className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{t('visitor.carte.emptyDesc')}</p>
+        <div className="maps-map-status" role="status">
+            <span>{t('visitor.carte.emptyTitle')}</span>
             <button
               type="button"
               onClick={() => loadCentres()}
@@ -429,13 +482,12 @@ export default function CartePage() {
               <RefreshCw className="h-4 w-4" />
               {t('visitor.carte.refresh')}
             </button>
-          </div>
         </div>
       )}
 
       {/* ═══ Carte d'itinéraire flottante ═══ */}
       <AnimatePresence>
-        {routeActive && position && destination && (
+        {routeActive && !drawerOpen && position && destination && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -522,7 +574,7 @@ export default function CartePage() {
         disabled={locating && !position}
         aria-busy={locating}
         aria-label={isTracking ? t('visitor.carte.stopTracking') : t('visitor.carte.locateMe')}
-        className={`absolute bottom-24 right-3 z-[600] flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 transition xl:bottom-5 xl:right-5 ${
+        className={`absolute bottom-40 right-3 z-[600] flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 transition xl:bottom-36 xl:right-3 ${
           isTracking ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-primary-700 hover:bg-slate-100 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800'
         }`}
       >
@@ -530,7 +582,9 @@ export default function CartePage() {
       </button>
 
       {/* ═══ Panneau (liste / fiche) ═══ */}
-      <EtablissementDrawer
+      <MapsPanel
+        initialView={panelView}
+        onViewChange={(view) => { setPanelView(view); setDrawerOpen(true) }}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         visibleCentres={visibleCentres}

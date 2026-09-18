@@ -68,7 +68,6 @@ class AvisEtablissementRepository extends ServiceEntityRepository
         $etablissement->setNoteMoyenne((float) ($row['note_moyenne'] ?? 0));
         $etablissement->setTotalAvis((int) ($row['total_avis'] ?? 0));
 
-        $etablissement->setVerificationStatut('VERIFIE');
         $em->flush();
     }
 }

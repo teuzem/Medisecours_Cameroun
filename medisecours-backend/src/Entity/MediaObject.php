@@ -45,18 +45,19 @@ class MediaObject
     public const PURPOSE_GENERAL = 'general';
     public const PURPOSE_IDENTITY_DOCUMENT = 'identity_document';
     public const PURPOSE_IDENTITY_PHOTO = 'identity_photo';
+    public const PURPOSE_REVIEW_IMAGE = 'review_image';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read'])]
+    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'avis_etablissement:read'])]
     private ?int $id = null;
 
     #[Vich\UploadableField(mapping: 'media_object', fileNameProperty: 'filePath', size: 'size', mimeType: 'mimeType', originalName: 'originalName')]
     private ?File $file = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read', 'conversation:read'])]
+    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read', 'conversation:read', 'avis_etablissement:read'])]
     private ?string $filePath = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -64,11 +65,11 @@ class MediaObject
     private ?string $originalName = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read'])]
+    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read', 'avis_etablissement:read'])]
     private ?string $mimeType = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read', 'conversation:read'])]
+    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read', 'conversation:read', 'avis_etablissement:read'])]
     private ?int $size = null;
 
     /**
@@ -96,6 +97,10 @@ class MediaObject
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['media:read'])]
     private ?CentreDeSante $centre = null;
+
+    #[ORM\ManyToOne(targetEntity: AvisEtablissement::class, inversedBy: 'images')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?AvisEtablissement $avis = null;
 
     #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'images')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -196,7 +201,7 @@ class MediaObject
         return $this;
     }
 
-    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read', 'conversation:read'])]
+    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'message:read', 'conversation:read', 'avis_etablissement:read'])]
     public function getContentUrl(): ?string
     {
         return $this->filePath ? '/api/media_objects/' . $this->id . '/download' : null;
@@ -204,7 +209,7 @@ class MediaObject
 
     public function isPublic(): bool
     {
-        return $this->isPublic;
+        return $this->isPublic && ($this->avis === null || $this->avis->getStatut() === 'PUBLIE');
     }
 
     public function setIsPublic(bool $isPublic): static
@@ -285,6 +290,18 @@ class MediaObject
     public function setCentre(?CentreDeSante $centre): static
     {
         $this->centre = $centre;
+
+        return $this;
+    }
+
+    public function getAvis(): ?AvisEtablissement
+    {
+        return $this->avis;
+    }
+
+    public function setAvis(?AvisEtablissement $avis): static
+    {
+        $this->avis = $avis;
 
         return $this;
     }

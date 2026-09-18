@@ -351,6 +351,18 @@ class JWTController extends AbstractController
                 $manualAddress = trim((string) ($manual['adresse'] ?? ''));
                 $manualCity = trim((string) ($manual['ville'] ?? ''));
                 $manualRegion = trim((string) ($manual['region'] ?? ''));
+                $latitude = $manual['latitude'] ?? null;
+                $longitude = $manual['longitude'] ?? null;
+                if ($latitude !== null || $longitude !== null) {
+                    if (!is_numeric($latitude) || !is_numeric($longitude)
+                        || !is_finite((float) $latitude) || !is_finite((float) $longitude)
+                        || (float) $latitude < 1.5 || (float) $latitude > 13.5
+                        || (float) $longitude < 8.0 || (float) $longitude > 16.5) {
+                        return new JsonResponse([
+                            'error' => 'La position choisie doit se trouver au Cameroun.',
+                        ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                    }
+                }
                 $allowedTypes = [
                     'hopital_general',
                     'hopital_de_district',
@@ -385,6 +397,8 @@ class JWTController extends AbstractController
                     ->setAdresse(mb_substr($manualAddress, 0, 255))
                     ->setVille(mb_substr($manualCity, 0, 100))
                     ->setRegion($manualRegion)
+                    ->setLatitude($latitude === null ? null : (float) $latitude)
+                    ->setLongitude($longitude === null ? null : (float) $longitude)
                     ->setTelephone($user->getTelephone())
                     ->setHoraires('Horaires à confirmer auprès de l’établissement')
                     ->setSpecialites([])

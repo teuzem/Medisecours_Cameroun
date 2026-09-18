@@ -82,6 +82,7 @@ export interface Avis {
   signale: boolean
   createdAt: string
   auteurNom?: string | null
+  images?: EtablissementMedia[]
 }
 
 export interface SosProche {

@@ -81,7 +81,7 @@ function Stars({ value, onPick }: { value: number; onPick?: (note: number) => vo
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
-interface EtablissementDrawerProps {
+export interface EtablissementDrawerProps {
   open: boolean
   onClose: () => void
   // Exploration
@@ -139,7 +139,7 @@ function mediaUrl(media: EtablissementMedia): string {
   return imgUrl(media.contentUrl) || media.contentUrl
 }
 
-function MediaGallery({
+export function MediaGallery({
   centre,
   compact = false,
 }: {
@@ -153,7 +153,7 @@ function MediaGallery({
   if (medias.length === 0 && !legacyPhoto) {
     return (
       <div className={`${compact ? 'h-40' : 'h-52'} flex w-full items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800`}>
-        <Building2 className="h-12 w-12" />
+        <img src="/images/home-doctor-visit.jpg" alt="Illustration de soins, et non une photographie de cet etablissement" className="h-full w-full object-cover" />
       </div>
     )
   }
@@ -257,7 +257,7 @@ function MediaGallery({
   )
 }
 
-function FicheInfos({
+export function FicheInfos({
   fiche,
   isMedecin,
   medecinJoined,
@@ -598,6 +598,7 @@ export default function EtablissementDrawer({
 
       {/* Interface commune a tous les fournisseurs cartographiques. */}
       <aside
+        data-map-drawer
         aria-label={t('visitor.carte.title')}
         className="pointer-events-auto absolute inset-x-2 bottom-2 flex min-h-0 max-h-[72dvh] flex-col overflow-hidden rounded-t-2xl border border-slate-200/70 bg-white dark:border-white/10 dark:bg-slate-950/95 xl:inset-x-auto xl:bottom-3 xl:left-20 xl:top-3 xl:w-[430px] xl:max-h-none xl:rounded-2xl"
       >
@@ -682,59 +683,7 @@ export default function EtablissementDrawer({
                 </button>
               </div>
 
-              <div className="grid grid-cols-4 gap-2">
-                <button
-                  type="button"
-                  onClick={onRequestDirections}
-                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-primary-600 px-2 text-xs font-bold text-white transition hover:bg-primary-700"
-                >
-                  <Navigation className="h-4 w-4" />
-                  <span className="truncate">{t('visitor.carte.actions.directions')}</span>
-                </button>
-                <a
-                  href={selectedCentre.telephone ? `tel:${selectedCentre.telephone}` : undefined}
-                  aria-disabled={!selectedCentre.telephone}
-                  className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border px-2 text-xs font-bold transition ${
-                    selectedCentre.telephone
-                      ? 'border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10'
-                      : 'pointer-events-none border-slate-100 text-slate-300 dark:border-white/5 dark:text-slate-600'
-                  }`}
-                >
-                  <Phone className="h-4 w-4" />
-                  <span className="truncate">{t('visitor.carte.actions.call')}</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={onSosClick}
-                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-red-600 px-2 text-xs font-bold text-white transition hover:bg-red-700"
-                >
-                  <Phone className="h-4 w-4" />
-                  <span className="truncate">{t('visitor.carte.sos.title')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const shareData = {
-                      title: selectedCentre.nom,
-                      text: selectedCentre.adresse,
-                      url: window.location.href,
-                    }
-                    if (navigator.share) {
-                      void navigator.share(shareData)
-                    } else {
-                      void navigator.clipboard?.writeText(window.location.href)
-                      toast.success('Lien copie')
-                    }
-                  }}
-                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10"
-                  aria-label="Partager cet etablissement"
-                >
-                  <Share2 className="h-4 w-4" />
-                  <span className="truncate">Partager</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 pt-1">
+              <div data-facility-actions className="grid grid-cols-4 gap-2 pt-1">
                 <button type="button" onClick={() => { onRequestDirections(); setTab('directions') }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
                   <Navigation className="h-5 w-5 text-primary-600" />Itineraire
                 </button>
@@ -766,7 +715,7 @@ export default function EtablissementDrawer({
                 <button type="button" onClick={() => toast.info(position ? formatDistanceKm(haversineKm(position, selectedCentre)) : 'Activez la localisation')} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
                   <MapPin className="h-5 w-5 text-primary-600" />A proximite
                 </button>
-                <a href={selectedCentre.telephone ? `tel:${selectedCentre.telephone}` : undefined} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                <a href={selectedCentre.telephone ? `sms:${selectedCentre.telephone}?body=${encodeURIComponent(`${selectedCentre.nom} - ${selectedCentre.adresse}`)}` : undefined} aria-disabled={!selectedCentre.telephone} className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10 ${!selectedCentre.telephone ? 'pointer-events-none opacity-40' : ''}`}>
                   <Phone className="h-5 w-5 text-primary-600" />Vers telephone
                 </a>
                 <button type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href); toast.success('Lien copie') }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
@@ -1092,7 +1041,7 @@ export default function EtablissementDrawer({
                 ))}
               </div>
 
-              <label className="relative mt-3 block">
+              <label className="hidden">
                 <span className="sr-only">{t('visitor.carte.searchSrOnly')}</span>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input

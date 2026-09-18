@@ -6,6 +6,7 @@ import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
 import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
 import type { Position } from '../../hooks/useWayfinding'
+import { facilityMarkerHtml } from '../../lib/facilityMarker'
 
 // ─── Fix default Leaflet icon paths ─────────────────────────────────────────
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -195,7 +196,10 @@ const FacilityMarker = React.memo(function FacilityMarker({
 }) {
   const { t } = useTranslation()
   const color = FACILITY_COLORS[c.type] ?? '#64748B'
-  const icon = useMemo(() => makeFacilityIcon(color, selected), [color, selected])
+  const icon = useMemo(() => L.divIcon({
+    html: facilityMarkerHtml(color, selected, c.nom),
+    iconSize: [180, 30], iconAnchor: [15, 15], className: '',
+  }), [color, selected, c.nom])
   if (c.latitude == null || c.longitude == null) return null
 
   return (
@@ -251,11 +255,6 @@ export default function CarteMap({
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         attribution="&copy; OpenStreetMap contributors &copy; CARTO"
       />
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap contributors"
-      />
-
       <PulseStyle />
       <ForceMapRefresh />
 

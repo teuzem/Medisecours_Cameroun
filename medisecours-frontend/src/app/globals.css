@@ -2,6 +2,65 @@
 @import "tailwindcss";
 @import 'leaflet/dist/leaflet.css';
 
+/* One provider-neutral map shell; provider attribution remains untouched. */
+.medisecours-map {
+  font-family: Arial, sans-serif;
+  color: #202124;
+}
+.medisecours-map button,
+.medisecours-map aside,
+.medisecours-map nav,
+.medisecours-map input {
+  box-shadow: none;
+  letter-spacing: 0;
+}
+.medisecours-map [data-map-drawer] {
+  border-radius: 0;
+  background: white;
+}
+@media (min-width: 1280px) {
+  .medisecours-map [data-map-drawer] {
+    top: 0;
+    bottom: 0;
+    left: 72px;
+    width: 430px;
+    overflow-y: auto;
+    display: block;
+  }
+  .medisecours-map [data-map-drawer] > div {
+    overflow: visible;
+  }
+  .medisecours-map nav:not([aria-label]) {
+    border-radius: 0;
+  }
+}
+.medisecours-map .leaflet-control-zoom {
+  box-shadow: none;
+  border: 1px solid #dadce0;
+}
+.medisecours-map [data-facility-actions] button,
+.medisecours-map [data-facility-actions] a {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #1a73e8;
+  font-weight: 500;
+}
+.medisecours-map [data-facility-actions] svg {
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  border: 1px solid #1a73e8;
+  border-radius: 50%;
+  color: #1a73e8;
+}
+.medisecours-map .leaflet-top.leaflet-left {
+  top: auto;
+  left: auto;
+  right: 12px;
+  bottom: 90px;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
