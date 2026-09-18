@@ -33,7 +33,8 @@ const FORGE_BASE_URL =
   process.env.VITE_FRONTEND_FORGE_API_URL ||
   DEFAULT_FORGE_BASE_URL
 
-const LIBRARIES = 'marker,places,geocoding,geometry,routes'
+// Liste exacte du composant Map.tsx du projet de référence Manus.
+const LIBRARIES = 'marker,places,geocoding,geometry'
 
 /** Résolution du fournisseur depuis les variables d'environnement (build). */
 export function getMapProviderConfig(): MapProviderConfig | null {
