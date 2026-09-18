@@ -363,7 +363,7 @@ export default function CartePage() {
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 top-4 z-[700] flex flex-col items-center gap-2 px-3 sm:top-5">
-        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_5px_22px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/95">
+        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-slate-950/95">
           <Search className="ml-3 h-5 w-5 shrink-0 text-slate-500" />
           <input
             value={searchQuery}
@@ -380,7 +380,7 @@ export default function CartePage() {
           )}
         </div>
         <div className="pointer-events-auto flex max-w-full gap-2 overflow-x-auto rounded-full px-1 pb-1">
-          <button type="button" onClick={() => setActiveType('all')} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold shadow-sm ${activeType === 'all' ? 'border-slate-900 bg-slate-900 text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}>
+          <button type="button" onClick={() => setActiveType('all')} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold ${activeType === 'all' ? 'border-slate-900 bg-slate-900 text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}>
             Tous
           </button>
           {FACILITY_TYPES.map((type) => (
@@ -388,7 +388,7 @@ export default function CartePage() {
               key={type}
               type="button"
               onClick={() => setActiveType(type)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold capitalize shadow-sm ${activeType === type ? 'text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}
+              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold capitalize ${activeType === type ? 'text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}
               style={activeType === type ? { backgroundColor: FACILITY_COLORS[type], borderColor: FACILITY_COLORS[type] } : undefined}
             >
               {type.replaceAll('_', ' ')}
@@ -400,7 +400,7 @@ export default function CartePage() {
       <div className="absolute right-4 top-4 z-[710]">
         <a
           href={isAuthenticated ? '/profil' : '/login'}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-slate-700 shadow-[0_5px_22px_rgba(15,23,42,0.18)] transition hover:bg-white dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
           aria-label={isAuthenticated ? 'Ouvrir le profil' : 'Se connecter'}
           title={user?.email || (isAuthenticated ? 'Profil' : 'Connexion')}
         >
@@ -408,7 +408,7 @@ export default function CartePage() {
         </a>
       </div>
 
-      <div className="pointer-events-none absolute bottom-5 left-1/2 z-[650] -translate-x-1/2 rounded-full border border-white/70 bg-white/85 px-4 py-2 text-xs font-bold tracking-wide text-slate-700 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-slate-950/85 dark:text-slate-200">
+      <div className="pointer-events-none absolute bottom-5 left-1/2 z-[650] -translate-x-1/2 rounded-full border border-white/70 bg-white/90 px-4 py-2 text-xs font-bold tracking-wide text-slate-700 dark:border-white/10 dark:bg-slate-950/90 dark:text-slate-200">
         MediSecours Maps
       </div>
 
@@ -431,24 +431,6 @@ export default function CartePage() {
             </button>
           </div>
         </div>
-      )}
-
-      {/* ═══ Bouton flottant de recherche (drawer fermé) ═══ */}
-      {!drawerOpen && (
-        <button
-          type="button"
-          onClick={() => setDrawerOpen(true)}
-          className="absolute left-3 top-3 z-[600] inline-flex min-h-12 items-center gap-2 rounded-full border border-white/80 bg-white/95 px-4 text-sm font-bold text-slate-800 shadow-xl backdrop-blur-md transition hover:bg-white dark:border-white/15 dark:bg-slate-950/95 dark:text-white dark:hover:bg-slate-900"
-          aria-label={t('visitor.carte.searchSrOnly')}
-        >
-          <MapPin className="h-4 w-4 text-primary-500" />
-          <span className="max-w-40 truncate">
-            {searchQuery || t('visitor.carte.searchPlaceholder')}
-          </span>
-          <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-bold text-primary-700 dark:bg-primary-500/20 dark:text-primary-200">
-            {visibleCentres.length}
-          </span>
-        </button>
       )}
 
       {/* ═══ Carte d'itinéraire flottante ═══ */}
@@ -540,7 +522,7 @@ export default function CartePage() {
         disabled={locating && !position}
         aria-busy={locating}
         aria-label={isTracking ? t('visitor.carte.stopTracking') : t('visitor.carte.locateMe')}
-        className={`absolute bottom-24 right-3 z-[600] flex h-12 w-12 items-center justify-center rounded-2xl shadow-xl transition xl:bottom-5 xl:right-5 ${
+        className={`absolute bottom-24 right-3 z-[600] flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 transition xl:bottom-5 xl:right-5 ${
           isTracking ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-primary-700 hover:bg-slate-100 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800'
         }`}
       >

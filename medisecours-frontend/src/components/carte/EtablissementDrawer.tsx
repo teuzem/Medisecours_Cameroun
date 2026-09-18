@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   Star,
   Stethoscope,
+  ThumbsUp,
   X,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -439,6 +440,7 @@ export default function EtablissementDrawer({
   const [joined, setJoined] = useState(false)
   const [wishlisted, setWishlisted] = useState(false)
   const [collectionSaved, setCollectionSaved] = useState(false)
+  const [likedReviews, setLikedReviews] = useState<number[]>([])
   const [view, setView] = useState<'explore' | 'saved' | 'recent'>('explore')
 
   const [prevSelectedId, setPrevSelectedId] = useState(selectedId)
@@ -568,7 +570,7 @@ export default function EtablissementDrawer({
         )}
       </AnimatePresence>
 
-      <nav className="pointer-events-auto absolute bottom-3 left-3 top-3 hidden w-16 flex-col items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 px-1.5 py-3 shadow-2xl backdrop-blur xl:flex dark:border-white/10 dark:bg-slate-950/95">
+      <nav className="pointer-events-auto absolute bottom-3 left-3 top-3 hidden w-16 flex-col items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 px-1.5 py-3 backdrop-blur xl:flex dark:border-white/10 dark:bg-slate-950/95">
         {([
           ['explore', MapIcon, 'Explorer'],
           ['saved', Bookmark, 'Enregistres'],
@@ -597,7 +599,7 @@ export default function EtablissementDrawer({
       {/* Interface commune a tous les fournisseurs cartographiques. */}
       <aside
         aria-label={t('visitor.carte.title')}
-        className="pointer-events-auto absolute inset-x-2 bottom-2 flex min-h-0 max-h-[72dvh] flex-col overflow-hidden rounded-t-2xl border border-slate-200/70 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-950/95 xl:inset-x-auto xl:bottom-3 xl:left-20 xl:top-3 xl:w-[430px] xl:max-h-none xl:rounded-2xl"
+        className="pointer-events-auto absolute inset-x-2 bottom-2 flex min-h-0 max-h-[72dvh] flex-col overflow-hidden rounded-t-2xl border border-slate-200/70 bg-white dark:border-white/10 dark:bg-slate-950/95 xl:inset-x-auto xl:bottom-3 xl:left-20 xl:top-3 xl:w-[430px] xl:max-h-none xl:rounded-2xl"
       >
 
         {selectedCentre ? (
@@ -611,7 +613,7 @@ export default function EtablissementDrawer({
                 type="button"
                 onClick={onBackToList}
                 aria-label={t('visitor.carte.backToList')}
-                className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-lg transition hover:bg-white"
+                className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 transition hover:bg-white"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -1003,6 +1005,47 @@ export default function EtablissementDrawer({
                             {avis.commentaire && (
                               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{avis.commentaire}</p>
                             )}
+                            <div className="mt-3 flex items-center gap-4 border-t border-slate-100 pt-3 dark:border-white/10">
+                              <button
+                                type="button"
+                                aria-pressed={likedReviews.includes(avis.id)}
+                                onClick={() =>
+                                  setLikedReviews((current) =>
+                                    current.includes(avis.id)
+                                      ? current.filter((id) => id !== avis.id)
+                                      : [...current, avis.id],
+                                  )
+                                }
+                                className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
+                                  likedReviews.includes(avis.id)
+                                    ? 'text-primary-700 dark:text-primary-300'
+                                    : 'text-slate-500 hover:text-primary-700 dark:text-slate-400 dark:hover:text-primary-300'
+                                }`}
+                              >
+                                <ThumbsUp className={`h-4 w-4 ${likedReviews.includes(avis.id) ? 'fill-current' : ''}`} />
+                                J’aime
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const shareText = `${selectedCentre?.nom ?? ''}\n${avis.commentaire ?? ''}`
+                                  try {
+                                    if (navigator.share) {
+                                      await navigator.share({ title: selectedCentre?.nom, text: shareText })
+                                    } else {
+                                      await navigator.clipboard.writeText(shareText)
+                                      toast.success('Avis copié dans le presse-papiers.')
+                                    }
+                                  } catch (error) {
+                                    if ((error as Error).name !== 'AbortError') toast.error('Le partage est indisponible.')
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-primary-700 dark:text-slate-400 dark:hover:text-primary-300"
+                              >
+                                <Share2 className="h-4 w-4" />
+                                Partager
+                              </button>
+                            </div>
                           </div>
                         ))}
                     </div>
