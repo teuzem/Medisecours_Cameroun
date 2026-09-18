@@ -25,7 +25,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const isAdminRoute = pathname?.startsWith('/admin')
   const isMedecinRoute = pathname === '/medecin' || pathname?.startsWith('/medecin/')
   const isFocusedAuthRoute = pathname === '/login' || pathname === '/register'
-  const hideShell = isAdminRoute || isMedecinRoute || isFocusedAuthRoute
+  const isMapRoute = pathname === '/carte'
+  const hideShell = isAdminRoute || isMedecinRoute || isFocusedAuthRoute || isMapRoute
   const isMessagingRoute = pathname === '/messages' || pathname?.startsWith('/patient/messages')
   const isCentresRoute = pathname === '/centres'
 

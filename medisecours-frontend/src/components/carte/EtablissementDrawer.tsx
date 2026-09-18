@@ -36,7 +36,6 @@ import { useAuth } from '../../hooks/useAuth'
 import type { Position, RouteStep, WayfindingMode } from '../../hooks/useWayfinding'
 import {
   FACILITY_COLORS,
-  FACILITY_TYPES,
   formatDistanceKm,
   formatDuration,
   formatRelativeDate,
@@ -90,7 +89,6 @@ interface EtablissementDrawerProps {
   searchQuery: string
   onSearchChange: (query: string) => void
   activeType: 'all' | EtablissementType
-  onTypeChange: (type: 'all' | EtablissementType) => void
   onlyUrgence: boolean
   onUrgenceChange: (value: boolean) => void
   // Sélection
@@ -408,7 +406,6 @@ export default function EtablissementDrawer({
   searchQuery,
   onSearchChange,
   activeType,
-  onTypeChange,
   onlyUrgence,
   onUrgenceChange,
   selectedId,
@@ -434,20 +431,33 @@ export default function EtablissementDrawer({
   const { t, i18n } = useTranslation()
   const toast = useToast()
   const { user, isMedecin, isAuthenticated, isAdmin } = useAuth()
-  const [tab, setTab] = useState<'info' | 'directions' | 'reviews'>('info')
+  const [tab, setTab] = useState<'presentation' | 'about' | 'reviews' | 'directions'>('presentation')
   const [note, setNote] = useState(0)
   const [commentaire, setCommentaire] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [joining, setJoining] = useState(false)
   const [joined, setJoined] = useState(false)
+  const [wishlisted, setWishlisted] = useState(false)
+  const [collectionSaved, setCollectionSaved] = useState(false)
   const [view, setView] = useState<'explore' | 'saved' | 'recent'>('explore')
 
   const [prevSelectedId, setPrevSelectedId] = useState(selectedId)
   if (prevSelectedId !== selectedId) {
     setPrevSelectedId(selectedId)
-    setTab('info')
+    setTab('presentation')
     setNote(0)
     setCommentaire('')
+    if (typeof window !== 'undefined' && selectedId != null) {
+      try {
+        const wishes = JSON.parse(window.localStorage.getItem('medisecours_carte_souhaits') || '[]')
+        const collections = JSON.parse(window.localStorage.getItem('medisecours_carte_collections') || '[]')
+        setWishlisted(Array.isArray(wishes) && wishes.includes(selectedId))
+        setCollectionSaved(Array.isArray(collections) && collections.includes(selectedId))
+      } catch {
+        setWishlisted(false)
+        setCollectionSaved(false)
+      }
+    }
   }
 
   const selectedCentre = useMemo(
@@ -722,9 +732,52 @@ export default function EtablissementDrawer({
                 </button>
               </div>
 
+              <div className="grid grid-cols-4 gap-2 pt-1">
+                <button type="button" onClick={() => { onRequestDirections(); setTab('directions') }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                  <Navigation className="h-5 w-5 text-primary-600" />Itineraire
+                </button>
+                <button type="button" onClick={() => onToggleFavorite(selectedCentre.id)} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                  <Bookmark className={`h-5 w-5 ${isFavorite ? 'fill-primary-500 text-primary-500' : 'text-primary-600'}`} />Enregistrer
+                </button>
+                <button type="button" onClick={() => {
+                  const next = !wishlisted
+                  setWishlisted(next)
+                  try {
+                    const current = JSON.parse(window.localStorage.getItem('medisecours_carte_souhaits') || '[]')
+                    const nextValues = next ? [...new Set([...current, selectedCentre.id])] : current.filter((id: number) => id !== selectedCentre.id)
+                    window.localStorage.setItem('medisecours_carte_souhaits', JSON.stringify(nextValues))
+                  } catch {}
+                }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                  <Star className={`h-5 w-5 ${wishlisted ? 'fill-amber-400 text-amber-400' : 'text-amber-500'}`} />Souhait
+                </button>
+                <button type="button" onClick={() => {
+                  const next = !collectionSaved
+                  setCollectionSaved(next)
+                  try {
+                    const current = JSON.parse(window.localStorage.getItem('medisecours_carte_collections') || '[]')
+                    const nextValues = next ? [...new Set([...current, selectedCentre.id])] : current.filter((id: number) => id !== selectedCentre.id)
+                    window.localStorage.setItem('medisecours_carte_collections', JSON.stringify(nextValues))
+                  } catch {}
+                }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                  <Bookmark className={`h-5 w-5 ${collectionSaved ? 'fill-primary-500 text-primary-500' : 'text-primary-600'}`} />Collection
+                </button>
+                <button type="button" onClick={() => toast.info(position ? formatDistanceKm(haversineKm(position, selectedCentre)) : 'Activez la localisation')} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                  <MapPin className="h-5 w-5 text-primary-600" />A proximite
+                </button>
+                <a href={selectedCentre.telephone ? `tel:${selectedCentre.telephone}` : undefined} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                  <Phone className="h-5 w-5 text-primary-600" />Vers telephone
+                </a>
+                <button type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href); toast.success('Lien copie') }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                  <Share2 className="h-5 w-5 text-primary-600" />Partager
+                </button>
+                <button type="button" onClick={onSosClick} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl bg-rose-600 text-[11px] font-bold text-white hover:bg-rose-700">
+                  <Phone className="h-5 w-5" />SOS urgence
+                </button>
+              </div>
+
               {/* Onglets */}
               <div className="flex gap-1 rounded-xl bg-slate-100 p-1 dark:bg-white/5">
-                {(['info', 'directions', 'reviews'] as const).map((key) => (
+                {(['presentation', 'reviews', 'about'] as const).map((key) => (
                   <button
                     key={key}
                     type="button"
@@ -735,7 +788,7 @@ export default function EtablissementDrawer({
                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
-                    {t(`visitor.carte.tabs.${key}`)}
+                    {key === 'presentation' ? 'Presentation' : key === 'reviews' ? 'Avis' : 'A propos'}
                   </button>
                 ))}
               </div>
@@ -743,7 +796,7 @@ export default function EtablissementDrawer({
 
             {/* Contenu */}
             <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] xl:pb-6">
-              {tab === 'info' && (
+              {tab === 'presentation' && (
                 <div className="space-y-5">
                   {(fiche?.images?.length ?? 0) > 1 && <MediaGallery centre={fiche!} />}
                   <FicheInfos
@@ -754,6 +807,16 @@ export default function EtablissementDrawer({
                     joining={joining}
                   />
                 </div>
+              )}
+
+              {tab === 'about' && (
+                <FicheInfos
+                  fiche={fiche ?? (selectedCentre as FicheCentre)}
+                  isMedecin={isMedecin}
+                  medecinJoined={joinShown}
+                  onJoin={handleJoin}
+                  joining={joining}
+                />
               )}
 
               {tab === 'directions' && (
@@ -1007,39 +1070,6 @@ export default function EtablissementDrawer({
                   </button>
                 )}
               </label>
-
-              {/* Filtres catégorie */}
-              <div className="mt-3 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1" role="tablist" aria-label={t('visitor.carte.filterAll')}>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeType === 'all'}
-                  onClick={() => onTypeChange('all')}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                    activeType === 'all'
-                      ? 'bg-primary-600 text-white'
-                      : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-white/10'
-                  }`}
-                >
-                  {t('visitor.carte.filterAll')}
-                </button>
-                {FACILITY_TYPES.map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeType === type}
-                    onClick={() => onTypeChange(type)}
-                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                      activeType === type
-                        ? 'bg-primary-600 text-white'
-                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-white/10'
-                    }`}
-                  >
-                    {t(TYPE_LABEL_KEYS[type])}
-                  </button>
-                ))}
-              </div>
 
               <div className="mt-2 flex items-center gap-2">
                 <button

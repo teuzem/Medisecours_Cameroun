@@ -17,6 +17,8 @@ import {
   Phone,
   RefreshCw,
   Route,
+  Search,
+  UserCircle,
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -24,6 +26,7 @@ import api from '../../api/axios'
 import EtablissementDrawer from '../../components/carte/EtablissementDrawer'
 import SosModal from '../../components/carte/SosModal'
 import { useToast } from '../../components/ui/Toast'
+import { useAuth } from '../../hooks/useAuth'
 import { useGeolocation } from '../../hooks/useGeolocation'
 import { useGoogleDirections } from '../../hooks/useGoogleDirections'
 import { useMapProvider } from '../../hooks/useMapProvider'
@@ -34,6 +37,8 @@ import {
   type WayfindingMode,
 } from '../../hooks/useWayfinding'
 import {
+  FACILITY_COLORS,
+  FACILITY_TYPES,
   formatDistanceKm,
   formatDuration,
   haversineKm,
@@ -90,6 +95,7 @@ const MODE_META: Record<WayfindingMode, { icon: typeof Car; key: string }> = {
 export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
+  const { user, isAuthenticated } = useAuth()
   const { position, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
   const { provider, state: providerState } = useMapProvider()
 
@@ -320,7 +326,7 @@ export default function CartePage() {
   const routeActive = Boolean(position && destination)
 
   return (
-    <div className="relative isolate h-[calc(100dvh-76px)] min-h-[520px] w-full overflow-hidden bg-slate-100 xl:h-[calc(100dvh-96px)] dark:bg-slate-950">
+    <div className="relative isolate h-dvh min-h-[520px] w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
       {/* ═══ Carte plein écran (Google par défaut, Leaflet en repli) ═══ */}
       <div className="absolute inset-0 z-0">
         {provider === 'google' ? (
@@ -357,6 +363,52 @@ export default function CartePage() {
         )}
       </div>
 
+      <div className="pointer-events-none absolute inset-x-0 top-4 z-[700] flex flex-col items-center gap-2 px-3 sm:top-5">
+        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_5px_22px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/95">
+          <Search className="ml-3 h-5 w-5 shrink-0 text-slate-500" />
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            type="search"
+            placeholder="Rechercher un établissement ou une ville"
+            className="h-11 min-w-0 flex-1 bg-transparent px-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
+            aria-label="Rechercher sur la carte"
+          />
+          {searchQuery && (
+            <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="Effacer la recherche">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <div className="pointer-events-auto flex max-w-full gap-2 overflow-x-auto rounded-full px-1 pb-1">
+          <button type="button" onClick={() => setActiveType('all')} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold shadow-sm ${activeType === 'all' ? 'border-slate-900 bg-slate-900 text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}>
+            Tous
+          </button>
+          {FACILITY_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setActiveType(type)}
+              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold capitalize shadow-sm ${activeType === type ? 'text-white' : 'border-white/80 bg-white/95 text-slate-700 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200'}`}
+              style={activeType === type ? { backgroundColor: FACILITY_COLORS[type], borderColor: FACILITY_COLORS[type] } : undefined}
+            >
+              {type.replaceAll('_', ' ')}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute right-4 top-4 z-[710]">
+        <a
+          href={isAuthenticated ? '/profil' : '/login'}
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-slate-700 shadow-[0_5px_22px_rgba(15,23,42,0.18)] transition hover:bg-white dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
+          aria-label={isAuthenticated ? 'Ouvrir le profil' : 'Se connecter'}
+          title={user?.email || (isAuthenticated ? 'Profil' : 'Connexion')}
+        >
+          <UserCircle className="h-6 w-6" />
+        </a>
+      </div>
+
       {/* Identite stable: le fournisseur technique reste transparent pour l'utilisateur. */}
       {providerState === 'ready' && (
         <p className="absolute right-3 top-3 z-[600] inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/95 px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-lg backdrop-blur-md dark:border-white/15 dark:bg-slate-950/95 dark:text-slate-200">
@@ -373,6 +425,10 @@ export default function CartePage() {
           )}
         </p>
       )}
+
+      <div className="pointer-events-none absolute bottom-5 left-1/2 z-[650] -translate-x-1/2 rounded-full border border-white/70 bg-white/85 px-4 py-2 text-xs font-bold tracking-wide text-slate-700 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-slate-950/85 dark:text-slate-200">
+        MediSecours Maps
+      </div>
 
       {/* ═══ État vide : aucune donnée sur la carte ═══ */}
       {!loading && centres.length === 0 && (
@@ -528,7 +584,6 @@ export default function CartePage() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         activeType={activeType}
-        onTypeChange={setActiveType}
         onlyUrgence={onlyUrgence}
         onUrgenceChange={setOnlyUrgence}
         selectedId={selectedId}
