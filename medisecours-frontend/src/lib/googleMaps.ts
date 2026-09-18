@@ -29,7 +29,11 @@ const FORGE_KEY =
   process.env.NEXT_PUBLIC_BUILT_IN_FORGE_API_KEY ||
   process.env.BUILT_IN_FORGE_API_KEY ||
   ''
-const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
+const GOOGLE_KEY =
+  process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
+  process.env.VITE_GOOGLE_MAPS_API_KEY ||
+  process.env.GOOGLE_MAPS_API_KEY ||
+  ''
 const FORGE_BASE_URL =
   process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_URL ||
   process.env.VITE_FRONTEND_FORGE_API_URL ||
