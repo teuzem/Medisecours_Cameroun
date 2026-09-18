@@ -20,8 +20,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *   - fermé     : ignoré,
  * avec googlePlaceId comme clé d'unicité et source/last_synced_at tracés.
  *
- * Sans clé configurée (FORGE_API_KEY / GOOGLE_MAPS_API_KEY absente), la
- * sauvegarde ne modifie rien et retourne configured=false.
+ * Sans clé configurée (FORGE_API_KEY / BUILT_IN_FORGE_API_KEY /
+ * GOOGLE_MAPS_API_KEY absentes), la sauvegarde ne modifie rien et retourne
+ * configured=false.
  */
 final class StructureSyncService
 {
@@ -85,7 +86,7 @@ final class StructureSyncService
         if ($endpoint === null) {
             return [
                 'configured' => false,
-                'error'      => 'Aucune clé Google Places configurée (FORGE_API_KEY ou GOOGLE_MAPS_API_KEY).',
+                'error'      => 'Aucune clé Google Places configurée (FORGE_API_KEY, BUILT_IN_FORGE_API_KEY ou GOOGLE_MAPS_API_KEY).',
                 'queries'    => 0,
                 'created'    => 0,
                 'updated'    => 0,
@@ -142,10 +143,20 @@ final class StructureSyncService
      */
     private function resolveEndpoint(): ?array
     {
-        if ($this->forgeApiKey !== '') {
+        // Repli sur les noms exacts du projet de référence Manus
+        // (BUILT_IN_FORGE_API_URL / BUILT_IN_FORGE_API_KEY).
+        $forgeKey = $this->forgeApiKey !== ''
+            ? $this->forgeApiKey
+            : (self::envOrEmpty('BUILT_IN_FORGE_API_KEY'));
+        if ($forgeKey !== '') {
+            $forgeUrl = $this->forgeApiUrl !== ''
+                ? $this->forgeApiUrl
+                : (self::envOrEmpty('BUILT_IN_FORGE_API_URL') !== ''
+                    ? self::envOrEmpty('BUILT_IN_FORGE_API_URL')
+                    : 'https://forge.butterfly-effect.dev');
             return [
-                'url'   => rtrim($this->forgeApiUrl, '/') . '/v1/maps/proxy/maps/api/place/textsearch/json',
-                'key'   => $this->forgeApiKey,
+                'url'   => rtrim($forgeUrl, '/') . '/v1/maps/proxy/maps/api/place/textsearch/json',
+                'key'   => $forgeKey,
                 'label' => 'forge',
             ];
         }
@@ -159,6 +170,13 @@ final class StructureSyncService
         }
 
         return null;
+    }
+
+    private static function envOrEmpty(string $name): string
+    {
+        $value = getenv($name);
+
+        return $value === false ? '' : trim((string) $value);
     }
 
     /**

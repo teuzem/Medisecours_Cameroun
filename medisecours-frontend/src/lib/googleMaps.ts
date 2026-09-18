@@ -23,10 +23,15 @@ export interface MapProviderConfig {
 
 const DEFAULT_FORGE_BASE_URL = 'https://forge.butterfly-effect.dev'
 
-// Valeurs NEXT_PUBLIC_* inlinées par Next.js au build du client.
-const FORGE_KEY = process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_KEY || ''
+// Valeurs NEXT_PUBLIC_* inlinées par Next.js au build du client, avec repli
+// sur les noms exacts du projet de référence Manus (VITE_FRONTEND_FORGE_API_*).
+const FORGE_KEY =
+  process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_KEY || process.env.VITE_FRONTEND_FORGE_API_KEY || ''
 const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
-const FORGE_BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_URL || DEFAULT_FORGE_BASE_URL
+const FORGE_BASE_URL =
+  process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_URL ||
+  process.env.VITE_FRONTEND_FORGE_API_URL ||
+  DEFAULT_FORGE_BASE_URL
 
 const LIBRARIES = 'marker,places,geocoding,geometry,routes'
 

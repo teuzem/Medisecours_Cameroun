@@ -65,11 +65,17 @@ services:
       WS_PUBLISH_SECRET: ${WS_PUBLISH_SECRET:?set in .env}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       # Carte Santé — synchronisation temps réel des structures (Google Places).
-      # Proxy Forge (recommandé) ou clé Google Maps serveur, et seed de base.
+      # Proxy Forge (noms app : FORGE_API_URL/KEY ou Manus : BUILT_IN_FORGE_API_*)
+      # ou clé Google Maps serveur. LOAD_CENTRES=1 = seed legacy des 232 mock.
       FORGE_API_URL: ${FORGE_API_URL:-https://forge.butterfly-effect.dev}
       FORGE_API_KEY: ${FORGE_API_KEY:-}
+      BUILT_IN_FORGE_API_URL: ${BUILT_IN_FORGE_API_URL:-}
+      BUILT_IN_FORGE_API_KEY: ${BUILT_IN_FORGE_API_KEY:-}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
-      LOAD_CENTRES: ${LOAD_CENTRES:-1}
+      LOAD_CENTRES: ${LOAD_CENTRES:-0}
+      # Données réelles : sync Google Places au démarrage puis toutes les N min.
+      SYNC_STRUCTURES_INTERVAL_MIN: ${SYNC_STRUCTURES_INTERVAL_MIN:-0}
+      SYNC_STRUCTURES_CAP: ${SYNC_STRUCTURES_CAP:-400}
       MAILER_DSN: ${MAILER_DSN:?set in .env}
       MAILER_SENDER_EMAIL: ${MAILER_SENDER_EMAIL:-no-reply@medisecours.batirlepays.com}
       MAILER_SENDER_NAME: ${MAILER_SENDER_NAME:-MediSecours}
@@ -103,6 +109,9 @@ services:
         NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-wss://ws.medisecours.batirlepays.com/ws}
         NEXT_PUBLIC_FRONTEND_FORGE_API_KEY: ${NEXT_PUBLIC_FRONTEND_FORGE_API_KEY:-}
         NEXT_PUBLIC_FRONTEND_FORGE_API_URL: ${NEXT_PUBLIC_FRONTEND_FORGE_API_URL:-https://forge.butterfly-effect.dev}
+        # Noms exacts du projet de référence Manus (canonicalisés au build).
+        VITE_FRONTEND_FORGE_API_KEY: ${VITE_FRONTEND_FORGE_API_KEY:-}
+        VITE_FRONTEND_FORGE_API_URL: ${VITE_FRONTEND_FORGE_API_URL:-https://forge.butterfly-effect.dev}
         NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
     container_name: medisecours-frontend
     restart: unless-stopped

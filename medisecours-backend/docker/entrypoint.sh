@@ -84,10 +84,10 @@ else
     echo "==> SKIP_MIGRATIONS=1 => schema assumed to already exist (imported via database/schema.sql)."
 fi
 
-# Baseline health centres: load data/centres_sante.json (idempotent — existing
-# rows matched by nom+ville are skipped). Run once at boot so the Leaflet
-# fallback shows a real baseline; the Google Places sync (POST /api/carte/sync
-# or app:carte:sync-structures) then extends the map to thousands of facilities.
+# Legacy option (off by default) : seed des 232 mock data de
+# data/centres_sante.json (idempotent — rows existantes ignorées). Deprecated :
+# privilégier les données réelles Google Places via SYNC_STRUCTURES_INTERVAL_MIN
+# ou app:carte:sync-structures.
 if [ "${LOAD_CENTRES:-0}" = "1" ]; then
     echo "==> Loading baseline health centres (data/centres_sante.json)..."
     if ! php bin/console app:load-centres --no-interaction; then
@@ -110,9 +110,35 @@ fi
 echo "==> Starting PHP-FPM and Nginx..."
 "$@" &
 server_pid=$!
+sync_pid=""
+
+# Real-time structures sync (Google Places) : première passe immédiate puis
+# toutes les N minutes. Désactivé tant que SYNC_STRUCTURES_INTERVAL_MIN=0.
+SYNC_INTERVAL="${SYNC_STRUCTURES_INTERVAL_MIN:-0}"
+case "$SYNC_INTERVAL" in
+    ''|*[!0-9]*) SYNC_INTERVAL=0 ;;
+esac
+if [ "$SYNC_INTERVAL" -gt 0 ]; then
+    SYNC_CAP="${SYNC_STRUCTURES_CAP:-400}"
+    echo "==> Structures sync (Google Places) every ${SYNC_INTERVAL} min (cap ${SYNC_CAP})."
+    (
+        sync_structures() {
+            php bin/console app:carte:sync-structures --cap="${SYNC_CAP}" --no-interaction >/dev/null 2>&1 || true
+        }
+        sync_structures
+        while true; do
+            sleep "$((SYNC_INTERVAL * 60))"
+            sync_structures
+        done
+    ) &
+    sync_pid=$!
+fi
 
 stop_server() {
     kill -TERM "$server_pid" 2>/dev/null || true
+    if [ -n "$sync_pid" ]; then
+        kill -TERM "$sync_pid" 2>/dev/null || true
+    fi
     wait "$server_pid" 2>/dev/null || true
 }
 

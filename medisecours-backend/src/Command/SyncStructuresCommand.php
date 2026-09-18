@@ -19,8 +19,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *   php bin/console app:carte:sync-structures --region=Centre --region=Littoral
  *   php bin/console app:carte:sync-structures --cap=1000
  *
- * Sans clé configurée (FORGE_API_KEY / GOOGLE_MAPS_API_KEY), la commande
- * termine proprement sans modifier la base.
+ * Sans clé configurée (FORGE_API_KEY / BUILT_IN_FORGE_API_KEY /
+ * GOOGLE_MAPS_API_KEY), la commande termine proprement sans modifier la base.
  */
 #[AsCommand(name: 'app:carte:sync-structures', description: 'Synchronise les structures de santé depuis Google Places (temps réel).')]
 final class SyncStructuresCommand extends Command
