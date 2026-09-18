@@ -63,6 +63,7 @@ services:
       JWT_PRIVATE_KEY_BASE64: ${JWT_PRIVATE_KEY_BASE64:?set in .env}
       JWT_PUBLIC_KEY_BASE64: ${JWT_PUBLIC_KEY_BASE64:?set in .env}
       JWT_PASSPHRASE: ${JWT_PASSPHRASE:?set in .env}
+      STRICT_JWT_BOOTSTRAP: ${STRICT_JWT_BOOTSTRAP:-0}
       JWT_TTL: ${JWT_TTL:-7200}
       WS_PUBLISH_URL: ${WS_PUBLISH_URL:-http://ws:8081/publish}
       WS_PUBLISH_SECRET: ${WS_PUBLISH_SECRET:?set in .env}

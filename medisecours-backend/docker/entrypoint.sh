@@ -11,42 +11,51 @@ sed -i "s/listen 10000;/listen ${APP_PORT};/" /etc/nginx/http.d/default.conf
 # Production JWT keys must remain stable across deployments and be shared
 # with the WebSocket service.
 mkdir -p config/jwt
+JWT_READY=1
 if [ -n "${JWT_PRIVATE_KEY_BASE64:-}" ] && [ -n "${JWT_PUBLIC_KEY_BASE64:-}" ]; then
     printf '%s' "$JWT_PRIVATE_KEY_BASE64" | base64 -d > config/jwt/private.pem
     printf '%s' "$JWT_PUBLIC_KEY_BASE64" | base64 -d > config/jwt/public.pem
 elif [ ! -s config/jwt/private.pem ] || [ ! -s config/jwt/public.pem ]; then
-    echo "ERROR: JWT_PRIVATE_KEY_BASE64 and JWT_PUBLIC_KEY_BASE64 are required."
-    exit 1
+    JWT_READY=0
+    echo "WARNING: JWT key files are not available in the container runtime."
 fi
 
 # Strict validation BEFORE boot: a bad key or passphrase currently produces a
 # silent runtime 500 on login (JWTEncodeFailureException). Reject it here with
 # a clear message instead.
 JWT_PASSPHRASE="${JWT_PASSPHRASE:-}"
-if ! openssl pkey -in config/jwt/private.pem -passin "pass:${JWT_PASSPHRASE}" -noout 2>/dev/null; then
-    echo "ERROR: JWT private key is invalid or JWT_PASSPHRASE does not match it."
-    echo "       Check that JWT_PRIVATE_KEY_BASE64 (decoded) is a real private.pem and"
-    echo "       that JWT_PASSPHRASE equals the passphrase used to generate the key."
-    exit 1
+if [ "$JWT_READY" = "1" ]; then
+    if ! openssl pkey -in config/jwt/private.pem -passin "pass:${JWT_PASSPHRASE}" -noout 2>/dev/null; then
+        JWT_READY=0
+        echo "WARNING: JWT private key is invalid or JWT_PASSPHRASE does not match it."
+    fi
+    if ! openssl pkey -pubin -in config/jwt/public.pem -noout 2>/dev/null; then
+        JWT_READY=0
+        echo "WARNING: JWT public key is invalid."
+    fi
+    private_fp="$(openssl pkey -in config/jwt/private.pem -passin "pass:${JWT_PASSPHRASE}" -pubout 2>/dev/null | openssl pkey -pubin -outform DER 2>/dev/null | openssl sha1 -r 2>/dev/null | cut -d' ' -f1 || true)"
+    public_fp="$(openssl pkey -pubin -in config/jwt/public.pem -outform DER 2>/dev/null | openssl sha1 -r 2>/dev/null | cut -d' ' -f1 || true)"
+    if [ -z "$private_fp" ] || [ "$private_fp" != "$public_fp" ]; then
+        JWT_READY=0
+        echo "WARNING: JWT public key does not match the private key."
+    fi
 fi
-if ! openssl pkey -pubin -in config/jwt/public.pem -noout 2>/dev/null; then
-    echo "ERROR: JWT public key is invalid. Check JWT_PUBLIC_KEY_BASE64 (decoded)."
+if [ "$JWT_READY" = "1" ]; then
+    echo "==> JWT keys validated (private + public match, passphrase OK)."
+elif [ "${STRICT_JWT_BOOTSTRAP:-0}" = "1" ]; then
+    echo "ERROR: JWT validation failed and STRICT_JWT_BOOTSTRAP=1."
     exit 1
+else
+    echo "WARNING: JWT validation failed; keeping the HTTP process alive for diagnostics."
 fi
-private_fp="$(openssl pkey -in config/jwt/private.pem -passin "pass:${JWT_PASSPHRASE}" -pubout 2>/dev/null | openssl pkey -pubin -outform DER 2>/dev/null | openssl sha1 -r 2>/dev/null | cut -d' ' -f1)"
-public_fp="$(openssl pkey -pubin -in config/jwt/public.pem -outform DER 2>/dev/null | openssl sha1 -r 2>/dev/null | cut -d' ' -f1)"
-if [ -z "$private_fp" ] || [ "$private_fp" != "$public_fp" ]; then
-    echo "ERROR: JWT public key does not match the private key."
-    echo "       JWT_PUBLIC_KEY_BASE64 must be the public.pem paired with JWT_PRIVATE_KEY_BASE64."
-    exit 1
-fi
-echo "==> JWT keys validated (private + public match, passphrase OK)."
 
 # PHP-FPM signs access tokens as www-data. Keep the private key restricted to
 # that runtime user instead of leaving it readable only by root.
-chown www-data:www-data config/jwt/private.pem config/jwt/public.pem
-chmod 600 config/jwt/private.pem
-chmod 644 config/jwt/public.pem
+if [ -f config/jwt/private.pem ] && [ -f config/jwt/public.pem ]; then
+    chown www-data:www-data config/jwt/private.pem config/jwt/public.pem
+    chmod 600 config/jwt/private.pem
+    chmod 644 config/jwt/public.pem
+fi
 
 # /app/var/uploads may be backed by a Render persistent disk.
 mkdir -p var/cache var/log var/uploads/media

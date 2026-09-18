@@ -55,6 +55,8 @@ services:
         sync: false
       - key: JWT_PASSPHRASE
         sync: false
+      - key: STRICT_JWT_BOOTSTRAP
+        value: "0"
       - key: JWT_TTL
         value: "7200"
       - key: WS_PUBLISH_URL
