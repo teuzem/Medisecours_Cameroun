@@ -113,7 +113,7 @@ this inventory is not an end-to-end validation.
 
 ## Release Gate
 
-Audit date: 2026-09-19.
+Audit date: 2026-09-18.
 
 The production Google Maps-style shell, establishment detail tabs, media
 presentation section, review interface, review image endpoint, registration
