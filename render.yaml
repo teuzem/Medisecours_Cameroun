@@ -37,6 +37,8 @@ services:
         sync: false
       - key: SKIP_MIGRATIONS
         value: "0"
+      - key: STRICT_DATABASE_BOOTSTRAP
+        value: "0"
       - key: BOOTSTRAP_REFERENCE_DATA
         value: "1"
       - key: STRICT_REFERENCE_DATA_BOOTSTRAP

@@ -221,6 +221,11 @@ GOOGLE_CLIENT_ID=<your OAuth client id - optional>
       `STRICT_REFERENCE_DATA_BOOTSTRAP=1` when a hard failure is required),
    5. verifies `https://api.medisecours.batirlepays.com/api/health` → `200`.
 
+`STRICT_DATABASE_BOOTSTRAP=0` keeps the HTTP process alive when PostgreSQL is
+temporarily unavailable or an existing database needs a manual migration.
+The container liveness check uses `/`; `/api/health` remains the database
+readiness diagnostic.
+
 > Optional first-boot admin: add `CREATE_ADMIN_EMAIL` + `CREATE_ADMIN_PASSWORD`
 > temporarily to the env, deploy once, then **remove them**. The admin email
 > is created as verified.

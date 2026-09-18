@@ -72,8 +72,13 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
     migration_attempt=1
     until php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod; do
         if [ "$migration_attempt" -ge 5 ]; then
-            echo "ERROR: Database migrations failed after ${migration_attempt} attempts."
-            exit 1
+            if [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "1" ]; then
+                echo "ERROR: Database migrations failed after ${migration_attempt} attempts and STRICT_DATABASE_BOOTSTRAP=1."
+                exit 1
+            fi
+            echo "WARNING: Database migrations failed after ${migration_attempt} attempts; starting the API anyway."
+            echo "         Run doctrine:migrations:migrate manually after fixing the database connection/schema."
+            break
         fi
 
         migration_attempt=$((migration_attempt + 1))
