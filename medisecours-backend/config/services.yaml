@@ -8,9 +8,12 @@ parameters:
   app.sender_email: '%env(MAILER_SENDER_EMAIL)%'
   app.sender_name: '%env(MAILER_SENDER_NAME)%'
   app.ws_publish_url: 'http://127.0.0.1:8082'
-  app.forge_api_url: '%env(default:FORGE_API_URL:https://forge.butterfly-effect.dev)%'
-  app.forge_api_key: '%env(default::FORGE_API_KEY)%'
-  app.google_maps_api_key: '%env(default::GOOGLE_MAPS_API_KEY)%'
+  app.forge_api_url_default: 'https://forge.butterfly-effect.dev'
+  app.forge_api_key_default: ''
+  app.google_maps_api_key_default: ''
+  app.forge_api_url: '%env(default:app.forge_api_url_default:FORGE_API_URL)%'
+  app.forge_api_key: '%env(default:app.forge_api_key_default:FORGE_API_KEY)%'
+  app.google_maps_api_key: '%env(default:app.google_maps_api_key_default:GOOGLE_MAPS_API_KEY)%'
 services:
   _defaults:
     autowire: true
