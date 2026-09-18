@@ -10,8 +10,8 @@ const BACKEND_URL = (
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com https://maps.googleapis.com https://maps.gstatic.com https://forge.butterfly-effect.dev`,
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
-  "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://api.mapbox.com",
+  "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://api.mapbox.com",
   `img-src 'self' data: blob: https:${isProduction ? '' : ' http://127.0.0.1:8000 http://localhost:8000'}`,
   "font-src 'self' data: https://fonts.gstatic.com",
   "worker-src 'self' blob:",
@@ -58,6 +58,11 @@ const nextConfig = {
       process.env.NEXT_PUBLIC_BUILT_IN_FORGE_API_URL ||
       process.env.BUILT_IN_FORGE_API_URL ||
       'https://forge.butterfly-effect.dev',
+    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:
+      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
+      process.env.VITE_MAPBOX_ACCESS_TOKEN ||
+      process.env.MAPBOX_ACCESS_TOKEN ||
+      '',
   },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]

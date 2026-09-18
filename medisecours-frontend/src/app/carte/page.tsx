@@ -65,6 +65,11 @@ const GoogleCarteMap = dynamic(() => import('../../components/carte/GoogleCarteM
   loading: () => <CarteMapLoading />,
 })
 
+const MapboxCarteMap = dynamic(() => import('../../components/carte/MapboxCarteMap'), {
+  ssr: false,
+  loading: () => <CarteMapLoading />,
+})
+
 function extractCentres(response: { data?: unknown }): CarteCentre[] {
   const data = response.data as {
     'hydra:member'?: unknown
@@ -286,6 +291,15 @@ export default function CartePage() {
             onSelect={handleSelect}
             route={route}
             isFallback={isFallback}
+            destination={destination}
+          />
+        ) : provider === 'mapbox' ? (
+          <MapboxCarteMap
+            centres={visibleCentres}
+            selectedId={selectedId}
+            position={position}
+            onSelect={handleSelect}
+            route={route}
             destination={destination}
           />
         ) : providerState === 'checking' ? (

@@ -7,46 +7,66 @@ import {
   type GoogleMapKind,
   type MapProvider,
 } from '../lib/googleMaps'
+import { getMapboxToken, loadMapbox } from '../lib/mapboxMaps'
 
 type ProviderState = 'checking' | 'ready'
+export type ExtendedMapProvider = MapProvider | 'mapbox'
 
 export interface MapProviderResult {
-  /** Fournisseur actif. 'leaflet' = repli (aucune clé ou échec de chargement). */
-  provider: MapProvider
+  provider: ExtendedMapProvider
   state: ProviderState
-  /** Non-null quand une clé Google était configurée mais que le chargement a échoué. */
   fallbackReason: string | null
-  /** Fournisseur effectivement chargé ('forge'/'google') ou null en repli. */
   googleKind: GoogleMapKind | null
 }
 
 const NO_KEY_MESSAGE =
-  'Aucune clé Google Maps configurée au build (NEXT_PUBLIC_FRONTEND_FORGE_API_KEY / VITE_FRONTEND_FORGE_API_KEY) — mode hors-ligne (Leaflet). Reconstruire l\'image avec la clé (variable de build).'
+  'Aucune clé Google Maps ou Mapbox configurée au build — mode hors-ligne (Leaflet). Reconstruire l’image avec les variables publiques.'
 
-/**
- * Résout le fournisseur de carte au montage :
- *  1. aucune clé inlinée au build → Leaflet immédiatement (repli nominal) ;
- *  2. clé(s) configurée(s) → tente le chargement (Forge puis clé directe) ;
- *  3. échec total → Leaflet + bannière avec le diagnostic HTTP exact.
- */
 export function useMapProvider(): MapProviderResult {
   const [result, setResult] = useState<MapProviderResult>(() => {
-    const hasConfig = getMapProviderConfigs().length > 0
+    const hasGoogle = getMapProviderConfigs().length > 0
+    const hasMapbox = Boolean(getMapboxToken())
     return {
       provider: 'leaflet',
-      state: hasConfig ? 'checking' : 'ready',
-      fallbackReason: hasConfig ? null : NO_KEY_MESSAGE,
+      state: hasGoogle || hasMapbox ? 'checking' : 'ready',
+      fallbackReason: hasGoogle || hasMapbox ? null : NO_KEY_MESSAGE,
       googleKind: null,
     }
   })
 
   useEffect(() => {
     let alive = true
-
     const configs = getMapProviderConfigs()
+
+    const finishMapboxOrLeaflet = (reason: string | null) => {
+      if (!getMapboxToken()) {
+        if (!alive) return
+        setResult({
+          provider: 'leaflet',
+          state: 'ready',
+          fallbackReason: reason
+            ? `Services Google Maps indisponibles (${reason}) — mode hors-ligne (Leaflet).`
+            : 'Services Google Maps indisponibles — mode hors-ligne (Leaflet).',
+          googleKind: null,
+        })
+        return
+      }
+
+      loadMapbox().then((mapbox) => {
+        if (!alive) return
+        setResult({
+          provider: mapbox.loaded ? 'mapbox' : 'leaflet',
+          state: 'ready',
+          fallbackReason: mapbox.loaded
+            ? null
+            : `${reason ? `${reason} ` : ''}${mapbox.reason ?? 'Mapbox indisponible'} — mode hors-ligne (Leaflet).`,
+          googleKind: null,
+        })
+      })
+    }
+
     if (configs.length === 0) {
-      // Pas de clé inlinée au build : le repli Leaflet (et son bandeau
-      // explicatif) a déjà été posé dans l'initialiseur d'état.
+      finishMapboxOrLeaflet(NO_KEY_MESSAGE)
       return () => {
         alive = false
       }
@@ -62,14 +82,7 @@ export function useMapProvider(): MapProviderResult {
           googleKind: res.kind,
         })
       } else {
-        setResult({
-          provider: 'leaflet',
-          state: 'ready',
-          fallbackReason: res.probeReason
-            ? `Services Google Maps indisponibles (${res.probeReason}) — mode hors-ligne (Leaflet).`
-            : 'Services Google Maps indisponibles — mode hors-ligne (Leaflet).',
-          googleKind: null,
-        })
+        finishMapboxOrLeaflet(res.probeReason)
       }
     })
 
