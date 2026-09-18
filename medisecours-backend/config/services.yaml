@@ -3,39 +3,26 @@
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
 # See also https://symfony.com/doc/current/service_container/import.html
-
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    # URL publique de l'application frontend (pour générer les liens dans les emails)
-    app.frontend_url: '%env(FRONTEND_URL)%'
-    # Email expéditeur des notifications
-    app.sender_email: '%env(MAILER_SENDER_EMAIL)%'
-    app.sender_name: '%env(MAILER_SENDER_NAME)%'
-    app.ws_publish_url: 'http://127.0.0.1:8082'
-    # Synchronisation temps réel des structures (Google Places)
-    app.forge_api_url: '%env(default:https://forge.butterfly-effect.dev:FORGE_API_URL)%'
-    app.forge_api_key: '%env(default::FORGE_API_KEY)%'
-    app.google_maps_api_key: '%env(default::GOOGLE_MAPS_API_KEY)%'
-
+  app.frontend_url: '%env(FRONTEND_URL)%'
+  app.sender_email: '%env(MAILER_SENDER_EMAIL)%'
+  app.sender_name: '%env(MAILER_SENDER_NAME)%'
+  app.ws_publish_url: 'http://127.0.0.1:8082'
+  app.forge_api_url: '%env(default:FORGE_API_URL:https://forge.butterfly-effect.dev)%'
+  app.forge_api_key: '%env(default::FORGE_API_KEY)%'
+  app.google_maps_api_key: '%env(default::GOOGLE_MAPS_API_KEY)%'
 services:
-    # default configuration for services in *this* file
-    _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-        bind:
-            # Injection des paramètres dans EmailVerificationService et ConsultationEmailService
-            string $appUrl:       '%app.frontend_url%'
-            string $senderEmail:  '%app.sender_email%'
-            string $senderName:   '%app.sender_name%'
-            string $wsPublishUrl: '%env(default:app.ws_publish_url:WS_PUBLISH_URL)%'
-            string $wsPublishSecret: '%env(WS_PUBLISH_SECRET)%'
-            # Injection dans StructureSyncService
-            string $forgeApiUrl: '%app.forge_api_url%'
-            string $forgeApiKey: '%app.forge_api_key%'
-            string $googleMapsApiKey: '%app.google_maps_api_key%'
-
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
-    App\:
-        resource: '../src/'
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    bind:
+      string $appUrl: '%app.frontend_url%'
+      string $senderEmail: '%app.sender_email%'
+      string $senderName: '%app.sender_name%'
+      string $wsPublishUrl: '%env(default:app.ws_publish_url:WS_PUBLISH_URL)%'
+      string $wsPublishSecret: '%env(WS_PUBLISH_SECRET)%'
+      string $forgeApiUrl: '%app.forge_api_url%'
+      string $forgeApiKey: '%app.forge_api_key%'
+      string $googleMapsApiKey: '%app.google_maps_api_key%'
+  'App\\':
+    resource: '../src/'
