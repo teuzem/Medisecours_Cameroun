@@ -1,0 +1,29 @@
+# Project TODO
+
+- [x] Inventorier l’archive MediSecours et relever les pages, composants, routes, ressources et flux existants sans en renommer les composants.
+- [x] Comparer la structure extraite à la base du projet et établir la correspondance des fichiers à reconstruire.
+- [x] Évaluer le composant `client/src/components/Map.tsx` fourni et le conserver intact pour l’intégration Google Maps.
+- [x] Reconstruire les pages, composants et comportements métier de l’application d’origine en préservant les noms et la structure existants.
+- [x] Mettre en œuvre l’affichage de la carte, la géolocalisation de l’utilisateur et les marqueurs des urgences, hôpitaux et pharmacies.
+- [x] Ajouter la recherche de lieux et de services médicaux proches avec Google Places via la carte fournie.
+- [x] Ajouter le calcul et l’affichage d’itinéraires vers les établissements retenus avec Google Directions.
+- [x] Mettre en place un signalement d’urgence qui notifie automatiquement le propriétaire après la demande initiale de l’utilisateur.
+- [x] Adapter l’interface aux mobiles avec contrastes élevés, zones tactiles généreuses, états de chargement et interactions accessibles.
+- [x] Écrire et exécuter les tests Vitest couvrant les flux métier et les alertes d’urgence.
+- [x] Vérifier visuellement l’interface desktop et mobile, ainsi que les parcours de recherche, itinéraire et alerte.
+- [x] Créer un point de restauration final et préparer la publication depuis l’interface de gestion.
+- [x] Vérifier en prévisualisation publique le calcul Google Directions avec une origine et une destination de test non personnelles.
+- [x] Couvrir par test le déclenchement effectif de l’alerte propriétaire lors de la création d’une demande de secours.
+- [x] Documenter les résultats de validation des parcours recherche, fiche, itinéraire et alerte avant publication.
+- [x] Étendre la fiche établissement à la pleine hauteur de l’écran, avec un comportement de panneau type Google Maps adapté aux mobiles.
+- [x] Réorganiser les actions de la fiche en une grille accessible de deux rangées de quatre boutons, incluant un bouton SOS clairement différencié.
+- [x] Ajouter un flux SOS qui alerte automatiquement le propriétaire et identifie les établissements les plus proches à partir de la géolocalisation consentie.
+- [x] Empêcher tout accès utilisateur au tableau de bord administrateur et réserver ce rôle au propriétaire de l’application.
+- [x] Garantir qu’après inscription ou connexion un utilisateur est orienté vers son tableau de bord patient.
+- [x] Ajouter les tests Vitest et validations visuelles des corrections de fiche, des autorisations et du flux SOS.
+- [ ] Raccorder les canaux autorisés des établissements de santé afin de leur transmettre directement les alertes SOS ciblées.
+- [ ] Configurer l’envoi automatique des alertes SOS par e-mail vers `yeiayel.ngoumtsop@saintjeaningenieur.org` via un service transactionnel autorisé.
+- [x] Ajouter aux résultats SOS les raccourcis d’appel et de SMS pour les formations sanitaires les plus proches disposant d’un numéro vérifié.
+- [x] Vérifier par tests et parcours réel que tous les comptes, y compris le propriétaire, arrivent d’abord dans le tableau de bord patient avancé après connexion ou inscription.
+- [x] Désactiver la diffusion e-mail externe jusqu’à la configuration prévue et retirer le test de clé actuellement invalide.
+- [x] Finaliser et tester le mode SOS sans API : notification propriétaire, ciblage de proximité et actions appel/SMS depuis l’appareil.

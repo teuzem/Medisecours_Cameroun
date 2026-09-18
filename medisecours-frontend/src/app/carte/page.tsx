@@ -14,7 +14,6 @@ import {
   LocateFixed,
   MapPin,
   Navigation,
-  Phone,
   RefreshCw,
   Route,
   Search,
@@ -409,23 +408,6 @@ export default function CartePage() {
         </a>
       </div>
 
-      {/* Identite stable: le fournisseur technique reste transparent pour l'utilisateur. */}
-      {providerState === 'ready' && (
-        <p className="absolute right-3 top-3 z-[600] inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/95 px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-lg backdrop-blur-md dark:border-white/15 dark:bg-slate-950/95 dark:text-slate-200">
-          <span
-            className={`h-2 w-2 rounded-full bg-emerald-500 ${loading ? 'animate-pulse' : ''}`}
-          />
-          {loading ? (
-            <>
-              <Loader2 className="h-3 w-3 animate-spin" />
-              {t('visitor.carte.updating')}
-            </>
-          ) : (
-            'MediSecours Maps'
-          )}
-        </p>
-      )}
-
       <div className="pointer-events-none absolute bottom-5 left-1/2 z-[650] -translate-x-1/2 rounded-full border border-white/70 bg-white/85 px-4 py-2 text-xs font-bold tracking-wide text-slate-700 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-slate-950/85 dark:text-slate-200">
         MediSecours Maps
       </div>
@@ -563,16 +545,6 @@ export default function CartePage() {
         }`}
       >
         {locating ? <Loader2 className="h-5 w-5 animate-spin" /> : <LocateFixed className={`h-5 w-5 ${isTracking ? 'animate-pulse' : ''}`} />}
-      </button>
-
-      {/* ═══ FAB SOS ═══ */}
-      <button
-        type="button"
-        onClick={() => setSosOpen(true)}
-        aria-label={t('visitor.carte.sosFabAria')}
-        className="absolute bottom-[7.5rem] right-3 z-[600] flex h-14 w-14 items-center justify-center gap-1.5 rounded-full bg-red-600 text-sm font-bold text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] transition hover:bg-red-700 xl:bottom-24 xl:right-5"
-      >
-        <Phone className="h-6 w-6" />
       </button>
 
       {/* ═══ Panneau (liste / fiche) ═══ */}
