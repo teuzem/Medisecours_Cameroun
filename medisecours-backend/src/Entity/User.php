@@ -22,7 +22,7 @@ use Gedmo\Mapping\Annotation as Gedmo;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
-#[ORM\DiscriminatorMap(['patient' => Patient::class, 'medecin' => Medecin::class, 'admin' => Admin::class])]
+#[ORM\DiscriminatorMap(['patient' => Patient::class, 'medecin' => Medecin::class, 'admin' => Admin::class, 'etablissement' => EtablissementManager::class])]
 #[Gedmo\Loggable]
 #[ApiResource(
     operations: [

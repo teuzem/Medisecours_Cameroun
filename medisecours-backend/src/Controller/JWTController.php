@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\EtablissementManager;
 use App\Entity\Medecin;
 use App\Entity\Patient;
 use App\Entity\User;
@@ -225,7 +226,11 @@ class JWTController extends AbstractController
         }
 
         $type = $data['type'] ?? 'patient';
-        $user = $type === 'medecin' ? new Medecin() : new Patient();
+        $user = match ($type) {
+            'medecin'       => new Medecin(),
+            'etablissement' => new EtablissementManager(),
+            default         => new Patient(),
+        };
 
         $user->setEmail($email);
         $user->setPassword($passwordHasher->hashPassword($user, $password));
@@ -262,6 +267,21 @@ class JWTController extends AbstractController
                     $contacts = [['nom' => $contacts, 'telephone' => '', 'lien' => '']];
                 }
                 $user->setContactsUrgence(is_array($contacts) ? $contacts : []);
+            }
+        }
+
+        if ($user instanceof EtablissementManager) {
+            $etablissementNom = trim((string) ($data['etablissementNom'] ?? ''));
+            if ($etablissementNom === '') {
+                return new JsonResponse([
+                    'error' => 'Le nom de l’établissement est obligatoire.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            $user->setEtablissementNom($etablissementNom);
+
+            $fonction = trim((string) ($data['fonction'] ?? ''));
+            if ($fonction !== '') {
+                $user->setFonction($fonction);
             }
         }
 

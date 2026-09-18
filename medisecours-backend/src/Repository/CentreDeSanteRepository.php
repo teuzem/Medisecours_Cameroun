@@ -140,6 +140,20 @@ class CentreDeSanteRepository extends ServiceEntityRepository
     }
 
     /**
+     * Recherche par identifiant Google Place (retrouve une structure déjà présente,
+     * quelle que soit son origine initiale — seed, import CSV ou sync précédente).
+     */
+    public function findByGooglePlaceId(string $placeId): ?CentreDeSante
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.googlePlaceId = :placeId')
+            ->setParameter('placeId', $placeId)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * Recherche textuelle + filtres pour le moteur de la carte Santé
      * (endpoint GET /api/carte/etablissements).
      *

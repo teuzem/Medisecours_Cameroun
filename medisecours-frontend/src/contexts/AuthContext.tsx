@@ -62,10 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = Boolean(token)
   const isAdmin = Boolean(user?.roles?.includes('ROLE_ADMIN'))
   const isMedecin = Boolean(user?.roles?.includes('ROLE_MEDECIN'))
+  const isEtablissement = Boolean(user?.roles?.includes('ROLE_ETABLISSEMENT'))
 
   return (
     <AuthContext.Provider
-      value={{ user, token, isAuthenticated, isAdmin, isMedecin, mounted, login, loginWithGoogle, register, logout, updateUser }}
+      value={{ user, token, isAuthenticated, isAdmin, isMedecin, isEtablissement, mounted, login, loginWithGoogle, register, logout, updateUser }}
     >
       {children}
     </AuthContext.Provider>

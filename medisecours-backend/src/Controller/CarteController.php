@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\CentreDeSante;
 use App\Entity\EtablissementEquipe;
+use App\Entity\EtablissementManager;
 use App\Entity\Medecin;
 use App\Entity\User;
 use App\Repository\AffiliationMedecinRepository;
@@ -14,6 +15,7 @@ use App\Repository\CentreDeSanteRepository;
 use App\Repository\DemandeSosRepository;
 use App\Repository\EtablissementEquipeRepository;
 use App\Repository\UserRepository;
+use App\Service\StructureSyncService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -45,7 +47,8 @@ class CarteController extends AbstractController
         private EtablissementEquipeRepository $equipeRepository,
         private AffiliationMedecinRepository $affiliationRepository,
         private AvisEtablissementRepository $avisRepository,
-        private DemandeSosRepository $sosRepository
+        private DemandeSosRepository $sosRepository,
+        private StructureSyncService $structureSync
     ) {
     }
 
@@ -371,6 +374,136 @@ class CarteController extends AbstractController
             'equipe' => $equipeStats,
             'generatedAt' => (new \DateTimeImmutable())->format('c'),
         ]);
+    }
+
+    /**
+     * Réclamation d'un établissement par un manager (compte "etablissement").
+     *
+     * POST /api/carte/revendiquer   body: {"centre": int, "force"?: bool}
+     * Crée / réactive le rattachement DIRECTEUR ACTIF de l'utilisateur au centre.
+     */
+    #[Route('/api/carte/revendiquer', name: 'api_carte_revendiquer', methods: ['POST'])]
+    public function revendiquer(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+
+        if (!$user instanceof EtablissementManager && !$this->isAdmin($user)) {
+            throw new AccessDeniedHttpException('Un compte de type établissement est requis.');
+        }
+
+        $data = $request->toArray();
+        $centreId = isset($data['centre']) ? (int) $data['centre'] : 0;
+        $centre = $centreId > 0 ? $this->centreRepository->find($centreId) : null;
+        if (!$centre) {
+            throw new NotFoundHttpException('Établissement introuvable.');
+        }
+
+        $existing = $this->equipeRepository->findActiveMember($user, $centre);
+        if ($existing) {
+            return new JsonResponse([
+                'centre' => $this->serializeCentre($centre),
+                'role' => $existing->getRole(),
+                'alreadyClaimed' => true,
+            ]);
+        }
+
+        $other = $this->equipeRepository->findManagedCentre($user);
+        if ($other && $other->getId() !== $centre->getId() && !(bool) ($data['force'] ?? false)) {
+            return new JsonResponse(
+                ['error' => 'Vous gérez déjà un autre établissement. Passez "force": true pour le remplacer.'],
+                Response::HTTP_CONFLICT
+            );
+        }
+
+        $member = new EtablissementEquipe();
+        $member
+            ->setEtablissement($centre)
+            ->setUser($user)
+            ->setRole('DIRECTEUR')
+            ->setStatut('ACTIF')
+            ->setInvitePar($user)
+            ->setUpdatedAt(new \DateTimeImmutable());
+
+        $this->em->persist($member);
+        $this->em->flush();
+
+        return new JsonResponse([
+            'centre' => $this->serializeCentre($centre),
+            'role' => 'DIRECTEUR',
+            'alreadyClaimed' => false,
+        ], Response::HTTP_CREATED);
+    }
+
+    /**
+     * Lancement de la synchronisation temps réel des structures (Google Places).
+     *
+     * POST /api/carte/sync   body: {"limitQuery"?: int, "cap"?: int}
+     * Réservé aux administrateurs de plateforme.
+     */
+    #[Route('/api/carte/sync', name: 'api_carte_sync', methods: ['POST'])]
+    public function syncStructures(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        if (!$this->isAdmin($user)) {
+            throw new AccessDeniedHttpException('Réservé aux administrateurs.');
+        }
+
+        $data = $request->toArray();
+        $limitQuery = isset($data['limitQuery']) ? (int) $data['limitQuery'] : 60;
+        $cap = isset($data['cap']) ? (int) $data['cap'] : 400;
+
+        $stats = $this->structureSync->sync(null, max(1, min(100, $limitQuery)), max(1, min(2000, $cap)));
+
+        return $this->json($stats);
+    }
+
+    /**
+     * Statistiques publiques de la carte (volume, types, régions, sources, dernier sync).
+     *
+     * GET /api/carte/stats
+     */
+    #[Route('/api/carte/stats', name: 'api_carte_stats', methods: ['GET'])]
+    public function stats(): JsonResponse
+    {
+        $lastSyncValue = $this->em->createQueryBuilder()
+            ->select('MAX(c.lastSyncedAt)')
+            ->from(CentreDeSante::class, 'c')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return new JsonResponse([
+            'total'       => (int) $this->centreRepository->count(['estActif' => true]),
+            'parType'     => $this->statsGroup('type'),
+            'parRegion'   => $this->statsGroup('region'),
+            'parSource'   => $this->statsGroup('source'),
+            'dernierSync' => $lastSyncValue
+                ? (new \DateTimeImmutable((string) $lastSyncValue))->format('c')
+                : null,
+            'generatedAt' => (new \DateTimeImmutable())->format('c'),
+        ]);
+    }
+
+    /**
+     * Regroupe les centres actifs par valeur d'une colonne.
+     *
+     * @return array<string, int>
+     */
+    private function statsGroup(string $field): array
+    {
+        $rows = $this->em->createQueryBuilder()
+            ->select(sprintf('c.%s AS cle, COUNT(c.id) AS nb', $field))
+            ->from(CentreDeSante::class, 'c')
+            ->where('c.estActif = true')
+            ->groupBy('cle')
+            ->getQuery()
+            ->getResult();
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[(string) $row['cle']] = (int) $row['nb'];
+        }
+
+        return $out;
     }
 
     private function serializeCentre(CentreDeSante $centre): array

@@ -62,6 +62,16 @@ security:
         # Santé API (monitoring)
         - { path: ^/api/health, methods: [GET], roles: PUBLIC_ACCESS }
 
+        # ── Module Carte Santé (publique par conception) ─────────────────────
+        # Moteur de recherche de la carte : les visiteurs (non connectés) peuvent
+        # consulter tous les établissements, sans devoir créer de compte.
+        - { path: ^/api/carte/etablissements$, methods: [GET], roles: PUBLIC_ACCESS }
+        # Affiliation médecins : lecture publique restreinte aux seules
+        # affiliations ACCEPTEE (filtrées par le provider) en collection.
+        - { path: ^/api/affiliation_medecins$, methods: [GET], roles: PUBLIC_ACCESS }
+        # Alerte SOS : n'importe qui peut demander de l'aide sans être connecté.
+        - { path: ^/api/demande_sos$, methods: [POST], roles: PUBLIC_ACCESS }
+
         # ── Tout le reste nécessite une authentification complète ─────────────
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 

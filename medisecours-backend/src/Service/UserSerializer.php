@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Admin;
+use App\Entity\EtablissementManager;
 use App\Entity\Medecin;
 use App\Entity\Patient;
 use App\Entity\User;
@@ -38,7 +39,9 @@ final class UserSerializer
             'emailVerified' => $user->isEmailVerified(),
             'actif'         => $user->isActif(),
             'banni'         => $user->isBanni(),
-            'type'          => $user instanceof Medecin ? 'medecin' : ($user instanceof Admin ? 'admin' : 'patient'),
+            'type'          => $user instanceof EtablissementManager
+                ? 'etablissement'
+                : ($user instanceof Medecin ? 'medecin' : ($user instanceof Admin ? 'admin' : 'patient')),
         ];
 
         if ($user instanceof Patient) {
@@ -55,6 +58,11 @@ final class UserSerializer
             $data['disponibilitesTexte']     = $user->getDisponibilitesTexte();
             $data['disponibilitesLabel']     = $user->getDisponibilitesLabel();
             $data['isDisponibleMaintenant']  = $user->isDisponibleMaintenant();
+        }
+
+        if ($user instanceof EtablissementManager) {
+            $data['etablissementNom'] = $user->getEtablissementNom();
+            $data['fonction']         = $user->getFonction();
         }
 
         return $data;

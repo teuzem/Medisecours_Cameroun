@@ -84,6 +84,18 @@ else
     echo "==> SKIP_MIGRATIONS=1 => schema assumed to already exist (imported via database/schema.sql)."
 fi
 
+# Baseline health centres: load data/centres_sante.json (idempotent — existing
+# rows matched by nom+ville are skipped). Run once at boot so the Leaflet
+# fallback shows a real baseline; the Google Places sync (POST /api/carte/sync
+# or app:carte:sync-structures) then extends the map to thousands of facilities.
+if [ "${LOAD_CENTRES:-0}" = "1" ]; then
+    echo "==> Loading baseline health centres (data/centres_sante.json)..."
+    if ! php bin/console app:load-centres --no-interaction; then
+        echo "ERROR: app:load-centres failed."
+        exit 1
+    fi
+fi
+
 # One-off admin bootstrap: if CREATE_ADMIN_EMAIL / CREATE_ADMIN_PASSWORD are
 # set, create or update the admin account (idempotent, CLI-created emails are
 # marked verified). Unset these env vars in Render once done.

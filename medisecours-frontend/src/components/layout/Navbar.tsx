@@ -9,7 +9,8 @@ import {
   MessageCircle, UserCircle, LogOut, 
   Home, Grid, Activity, MapPin, 
   ArrowRight, FileText,
-  Cross, Stethoscope, FolderOpen, Pill
+  Cross, Stethoscope, FolderOpen, Pill,
+  Building2
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/useUnreadCount'
@@ -25,7 +26,7 @@ function ConversationAware({ children }: { children: (inConversation: boolean) =
 
 export default function Navbar() {
   const { dark, toggleTheme: toggleDark } = useTheme()
-  const { isAuthenticated, user, isAdmin, logout } = useAuth()
+  const { isAuthenticated, user, isAdmin, isEtablissement, logout } = useAuth()
   const { t } = useTranslation()
   const pathname = usePathname()
   const router = useRouter()
@@ -58,7 +59,22 @@ export default function Navbar() {
     { to: '/messages', label: t('visitor.nav.messaging'), icon: MessageCircle, badge: unreadCount },
   ]
 
-  const activeLinks = isAuthenticated && !isAdmin ? patientLinks : publicLinks
+  const etablissementLinks: NavLink[] = [
+    { to: '/', label: t('visitor.nav.home'), icon: Home },
+    { to: '/premiers-soins', label: t('visitor.nav.firstAid'), icon: Cross },
+    { to: '/maladies', label: t('visitor.nav.orientation'), icon: Activity },
+    { to: '/medecins', label: t('visitor.nav.doctors'), icon: Stethoscope },
+    { to: '/carte', label: t('visitor.nav.carte'), icon: MapPin },
+    { to: '/espace-etablissement', label: t('visitor.nav.establishment'), icon: Building2 },
+  ]
+
+  const activeLinks: NavLink[] = !isAuthenticated
+    ? publicLinks
+    : isAdmin
+      ? publicLinks
+      : isEtablissement
+        ? etablissementLinks
+        : patientLinks
 
   /* ─── Mobile bottom tab bar items ─── */
   const publicMobileNav: NavLink[] = [
@@ -78,7 +94,20 @@ export default function Navbar() {
     { to: '/carte', label: t('visitor.nav.carte'), icon: MapPin },
   ]
 
-  const mobileNavItems: NavLink[] = isAuthenticated && !isAdmin ? patientMobileNav : publicMobileNav
+  const etablissementMobileNav: NavLink[] = [
+    { to: '/', label: t('visitor.nav.home'), icon: Home },
+    { to: '/premiers-soins', label: t('visitor.nav.firstAid'), icon: Cross },
+    { to: '/carte', label: t('visitor.nav.carte'), icon: MapPin },
+    { to: '/espace-etablissement', label: t('visitor.nav.establishmentShort'), icon: Building2 },
+  ]
+
+  const mobileNavItems: NavLink[] = !isAuthenticated
+    ? publicMobileNav
+    : isAdmin
+      ? publicMobileNav
+      : isEtablissement
+        ? etablissementMobileNav
+        : patientMobileNav
 
   return (
     <>

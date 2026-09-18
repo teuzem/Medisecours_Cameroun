@@ -208,6 +208,18 @@ class CentreDeSante
     private string $verificationStatut = 'NON_VERIFIE';
 
     /**
+     * Origine des données : manuel (saisie/seed), csv (import), google_places (sync temps réel).
+     */
+    #[ORM\Column(length: 20, options: ['default' => 'manuel'])]
+    private string $source = 'manuel';
+
+    /**
+     * Dernière mise à jour par la synchronisation temps réel des structures.
+     */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastSyncedAt = null;
+
+    /**
      * Médecins affiliés (vus à travers la fiche) — injecté par CentreDeSanteFicheProvider.
      * NON persisté. Tableau : [{"id":..., "fonction":..., "specialite":..., "nom":..., "prenom":..., "planning":..., "teleconsultation":...}]
      */
@@ -361,6 +373,28 @@ class CentreDeSante
     public function setVerificationStatut(string $verificationStatut): static
     {
         $this->verificationStatut = $verificationStatut;
+        return $this;
+    }
+
+    public function getSource(): string
+    {
+        return $this->source;
+    }
+
+    public function setSource(string $source): static
+    {
+        $this->source = $source;
+        return $this;
+    }
+
+    public function getLastSyncedAt(): ?\DateTimeImmutable
+    {
+        return $this->lastSyncedAt;
+    }
+
+    public function setLastSyncedAt(?\DateTimeImmutable $lastSyncedAt): static
+    {
+        $this->lastSyncedAt = $lastSyncedAt;
         return $this;
     }
 

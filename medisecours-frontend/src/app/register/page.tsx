@@ -22,6 +22,7 @@ import {
   Phone,
   ShieldCheck,
   Stethoscope,
+  Building2,
   UploadCloud,
   User,
 } from 'lucide-react'
@@ -31,7 +32,7 @@ import { useToast } from '../../components/ui/Toast'
 import { destinationForUser } from '../../lib/auth-routing'
 import { useTranslation } from 'react-i18next'
 
-type AccountType = 'patient' | 'medecin'
+type AccountType = 'patient' | 'medecin' | 'etablissement'
 type IdentityDocumentType = 'CNI' | 'PASSPORT'
 
 type RegisterForm = {
@@ -47,6 +48,8 @@ type RegisterForm = {
   contactsUrgence: string
   specialite: string
   numeroOrdre: string
+  etablissementNom: string
+  fonction: string
 }
 
 type FieldErrors = Partial<Record<
@@ -67,6 +70,8 @@ const emptyForm: RegisterForm = {
   contactsUrgence: '',
   specialite: '',
   numeroOrdre: '',
+  etablissementNom: '',
+  fonction: '',
 }
 
 const steps = ['visitor.register.stepProfile', 'visitor.register.stepIdentity', 'visitor.register.stepDetails']
@@ -190,6 +195,10 @@ export default function RegisterPage() {
       }
     }
 
+    if (type === 'etablissement' && form.etablissementNom.trim().length < 2) {
+      nextErrors.etablissementNom = t('visitor.register.errEstablishmentName')
+    }
+
     if (!isValidPhone(form.telephone)) {
       nextErrors.telephone = t('visitor.register.errPhone')
     }
@@ -268,7 +277,14 @@ export default function RegisterPage() {
               allergies: form.allergies.trim(),
               contactsUrgence: form.contactsUrgence.trim(),
             }
-          : (() => {
+          : type === 'etablissement'
+            ? {
+                ...common,
+                telephone: form.telephone.trim(),
+                etablissementNom: form.etablissementNom.trim(),
+                fonction: form.fonction.trim(),
+              }
+            : (() => {
               const data = new FormData()
               Object.entries({
                 ...common,
@@ -289,7 +305,9 @@ export default function RegisterPage() {
       toast.success(
         type === 'medecin'
           ? t('visitor.register.toastDoctorCreated')
-          : t('visitor.register.toastPatientCreated'),
+          : type === 'etablissement'
+            ? t('visitor.register.toastEstablishmentCreated')
+            : t('visitor.register.toastPatientCreated'),
       )
       router.push('/login?registered=1')
     } catch (error: any) {
@@ -377,7 +395,7 @@ export default function RegisterPage() {
             exit={{ opacity: 0, x: -18 }}
             className="space-y-5"
           >
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <button
                 type="button"
                 onClick={() => chooseType('patient')}
@@ -403,6 +421,20 @@ export default function RegisterPage() {
                 <span className="block font-display text-base font-bold text-slate-950 dark:text-white">{t('visitor.register.doctorCardTitle')}</span>
                 <span className="mt-1 block text-xs leading-5 text-slate-500 dark:text-slate-400">
                   {t('visitor.register.doctorCardDesc')}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => chooseType('etablissement')}
+                className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
+              >
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950 dark:text-emerald-300">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <span className="block font-display text-base font-bold text-slate-950 dark:text-white">{t('visitor.register.establishmentCardTitle')}</span>
+                <span className="mt-1 block text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  {t('visitor.register.establishmentCardDesc')}
                 </span>
               </button>
             </div>
@@ -639,6 +671,65 @@ export default function RegisterPage() {
                     placeholder={t('visitor.register.emergencyContactPlaceholder')}
                   />
                 </Field>
+              </>
+            ) : type === 'etablissement' ? (
+              <>
+                <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs leading-5 text-emerald-950 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200">
+                  <Building2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  {t('visitor.register.establishmentManagerNote')}
+                </div>
+                <Field
+                  label={t('visitor.register.establishmentNameLabel')}
+                  error={errors.etablissementNom}
+                  hint={t('visitor.register.establishmentNameHint')}
+                  required
+                >
+                  <div className="relative">
+                    <Building2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      value={form.etablissementNom}
+                      onChange={setField('etablissementNom')}
+                      onBlur={() => validateField('etablissementNom')}
+                      aria-invalid={Boolean(errors.etablissementNom)}
+                      className={`${inputClass} pl-10`}
+                      placeholder={t('visitor.register.establishmentNamePlaceholder')}
+                    />
+                  </div>
+                </Field>
+                <Field
+                  label={t('visitor.register.establishmentRoleLabel')}
+                  hint={t('visitor.register.establishmentRoleHint')}
+                >
+                  <input
+                    value={form.fonction}
+                    onChange={setField('fonction')}
+                    className={inputClass}
+                    placeholder={t('visitor.register.establishmentRolePlaceholder')}
+                  />
+                </Field>
+                <Field
+                  label={t('visitor.register.phoneProLabel')}
+                  error={errors.telephone}
+                  hint={t('visitor.register.phoneProHint')}
+                >
+                  <div className="relative">
+                    <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      value={form.telephone}
+                      onChange={setField('telephone')}
+                      onBlur={() => validateField('telephone')}
+                      autoComplete="tel"
+                      inputMode="tel"
+                      aria-invalid={Boolean(errors.telephone)}
+                      className={`${inputClass} pl-10`}
+                      placeholder={t('visitor.register.phonePlaceholder')}
+                    />
+                  </div>
+                </Field>
+                <p className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] leading-5 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  {t('visitor.register.establishmentClaimNote')}
+                </p>
               </>
             ) : (
               <>

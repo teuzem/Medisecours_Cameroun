@@ -9,7 +9,7 @@ const BACKEND_URL = (
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com`,
+  `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com https://maps.googleapis.com https://forge.butterfly-effect.dev`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
   "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
   `img-src 'self' data: blob: https:${isProduction ? '' : ' http://127.0.0.1:8000 http://localhost:8000'}`,

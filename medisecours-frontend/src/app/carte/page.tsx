@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
   Bike,
+  Building2,
   Car,
   Clock,
   Footprints,
@@ -14,6 +15,7 @@ import {
   MapPin,
   Navigation,
   Phone,
+  RefreshCw,
   Route,
   X,
 } from 'lucide-react'
@@ -23,6 +25,8 @@ import EtablissementDrawer from '../../components/carte/EtablissementDrawer'
 import SosModal from '../../components/carte/SosModal'
 import { useToast } from '../../components/ui/Toast'
 import { useGeolocation } from '../../hooks/useGeolocation'
+import { useGoogleDirections } from '../../hooks/useGoogleDirections'
+import { useMapProvider } from '../../hooks/useMapProvider'
 import {
   useWayfinding,
   type Destination,
@@ -56,6 +60,11 @@ const CarteMap = dynamic(() => import('../../components/carte/CarteMap'), {
   loading: () => <CarteMapLoading />,
 })
 
+const GoogleCarteMap = dynamic(() => import('../../components/carte/GoogleCarteMap'), {
+  ssr: false,
+  loading: () => <CarteMapLoading />,
+})
+
 function extractCentres(response: { data?: unknown }): CarteCentre[] {
   const data = response.data as {
     'hydra:member'?: unknown
@@ -75,6 +84,7 @@ export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
   const { position, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
+  const { provider, state: providerState, fallbackReason } = useMapProvider()
 
   const [centres, setCentres] = useState<CarteCentre[]>([])
   const [loading, setLoading] = useState(true)
@@ -107,26 +117,39 @@ export default function CartePage() {
   }, [])
 
   // ── Chargement des établissements ─────────────────────────────────────────
-  const loadCentres = useCallback(() => {
-    const controller = new AbortController()
-    api
-      .get('/api/carte/etablissements', { params: { limit: 500 }, signal: controller.signal })
-      .then((response) => {
-        const items = extractCentres(response)
-        setCentres(items)
-      })
-      .catch((requestError: any) => {
-        if (requestError?.name !== 'CanceledError' && requestError?.message !== 'canceled') {
-          toast.error(t('visitor.centres.loadError'))
-        }
-      })
-      .finally(() => setLoading(false))
-    return controller
-  }, [toast, t])
+  const loadCentres = useCallback(
+    (options?: { silent?: boolean }) => {
+      const controller = new AbortController()
+      api
+        .get('/api/carte/etablissements', { params: { limit: 500 }, signal: controller.signal })
+        .then((response) => {
+          const items = extractCentres(response)
+          setCentres(items)
+        })
+        .catch((requestError: any) => {
+          if (requestError?.name !== 'CanceledError' && requestError?.message !== 'canceled' && !options?.silent) {
+            toast.error(t('visitor.centres.loadError'))
+          }
+        })
+        .finally(() => setLoading(false))
+      return controller
+    },
+    [toast, t],
+  )
 
   useEffect(() => {
     const controller = loadCentres()
     return () => controller.abort()
+  }, [loadCentres])
+
+  // ── Rafraîchissement temps réel silencieux (45 s) ────────────────────────
+  // Les structures synchronisées (Google Places) apparaissent sur la carte (et
+  // sur le repli Leaflet) sans action de l'utilisateur.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      loadCentres({ silent: true })
+    }, 45_000)
+    return () => window.clearInterval(timer)
   }, [loadCentres])
 
   // ── Suivi GPS continu ─────────────────────────────────────────────────────
@@ -183,19 +206,44 @@ export default function CartePage() {
     setDestination(null)
   }, [])
 
+  // ── Moteurs d'itinéraire (Google par défaut, OSRM en repli) ───────────────
+  const osrmEnabled = provider === 'leaflet'
   const {
-    route,
-    distance,
-    duration,
-    steps,
-    loading: routeLoading,
-    error: routeError,
-    isFallback,
+    route: osrmRoute,
+    distance: osrmDistance,
+    duration: osrmDuration,
+    steps: osrmSteps,
+    loading: osrmLoading,
+    error: osrmError,
+    isFallback: osrmIsFallback,
   } = useWayfinding({
-    patientPosition: position,
+    patientPosition: osrmEnabled ? position : null,
+    destination: osrmEnabled ? destination : null,
+    mode,
+  })
+
+  const {
+    route: googleRoute,
+    distance: googleDistance,
+    duration: googleDuration,
+    steps: googleSteps,
+    loading: googleLoading,
+    error: googleError,
+    isFallback: googleIsFallback,
+  } = useGoogleDirections({
+    enabled: provider === 'google',
+    position,
     destination,
     mode,
   })
+
+  const route = provider === 'google' ? googleRoute : osrmRoute
+  const distance = provider === 'google' ? googleDistance : osrmDistance
+  const duration = provider === 'google' ? googleDuration : osrmDuration
+  const steps = provider === 'google' ? googleSteps : osrmSteps
+  const routeLoading = provider === 'google' ? googleLoading : osrmLoading
+  const routeError = provider === 'google' ? googleError : osrmError
+  const isFallback = provider === 'google' ? googleIsFallback : osrmIsFallback
 
   // ── Filtrage + tri ────────────────────────────────────────────────────────
   const visibleCentres = useMemo(() => {
@@ -228,18 +276,80 @@ export default function CartePage() {
 
   return (
     <div className="relative isolate h-[calc(100dvh-76px)] min-h-[520px] w-full overflow-hidden bg-slate-100 xl:h-[calc(100dvh-96px)] dark:bg-slate-950">
-      {/* ═══ Carte plein écran ═══ */}
+      {/* ═══ Carte plein écran (Google par défaut, Leaflet en repli) ═══ */}
       <div className="absolute inset-0 z-0">
-        <CarteMap
-          centres={visibleCentres}
-          selectedId={selectedId}
-          position={position}
-          onSelect={handleSelect}
-          route={route}
-          isFallback={isFallback}
-          destination={destination}
-        />
+        {provider === 'google' ? (
+          <GoogleCarteMap
+            centres={visibleCentres}
+            selectedId={selectedId}
+            position={position}
+            onSelect={handleSelect}
+            route={route}
+            isFallback={isFallback}
+            destination={destination}
+          />
+        ) : providerState === 'checking' ? (
+          <CarteMapLoading />
+        ) : (
+          <CarteMap
+            centres={visibleCentres}
+            selectedId={selectedId}
+            position={position}
+            onSelect={handleSelect}
+            route={route}
+            isFallback={isFallback}
+            destination={destination}
+          />
+        )}
       </div>
+
+      {/* ═══ Bandeau repli "services Google indisponibles" ═══ */}
+      {fallbackReason && provider === 'leaflet' && (
+        <p className="absolute left-3 top-16 z-[600] flex max-w-72 items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 shadow-lg dark:bg-amber-500/10 dark:text-amber-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          {fallbackReason}
+        </p>
+      )}
+
+      {/* ═══ Pastille fournisseur de données ═══ */}
+      {providerState === 'ready' && (
+        <p className="absolute right-3 top-3 z-[600] inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/95 px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-lg backdrop-blur-md dark:border-white/15 dark:bg-slate-950/95 dark:text-slate-200">
+          <span
+            className={`h-2 w-2 rounded-full ${provider === 'google' ? 'bg-emerald-500' : 'bg-amber-400'} ${loading ? 'animate-pulse' : ''}`}
+          />
+          {loading ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {t('visitor.carte.updating')}
+            </>
+          ) : provider === 'google' ? (
+            t('visitor.carte.providerGoogle')
+          ) : (
+            t('visitor.carte.providerLeaflet')
+          )}
+        </p>
+      )}
+
+      {/* ═══ État vide : aucune donnée sur la carte ═══ */}
+      {!loading && centres.length === 0 && (
+        <div className="absolute inset-0 z-[620] flex items-center justify-center bg-slate-100/60 p-4 backdrop-blur-[2px] dark:bg-slate-950/60">
+          <div className="w-full max-w-xs rounded-2xl border border-white/80 bg-white/95 p-6 text-center shadow-2xl dark:border-white/15 dark:bg-slate-900/95">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300">
+              <Building2 className="h-6 w-6" />
+            </div>
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white">{t('visitor.carte.emptyTitle')}</h2>
+            <p className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{t('visitor.carte.emptyDesc')}</p>
+            <button
+              type="button"
+              onClick={() => loadCentres()}
+              className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 text-sm font-bold text-white transition hover:bg-primary-700"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t('visitor.carte.refresh')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Bouton flottant de recherche (drawer fermé) ═══ */}
       {!drawerOpen && (
