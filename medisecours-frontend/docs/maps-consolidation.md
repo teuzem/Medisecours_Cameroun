@@ -113,7 +113,31 @@ this inventory is not an end-to-end validation.
 
 ## Release Gate
 
-This is a consolidation checkpoint, not a completed feature migration.
-The reference must be retained until the required checklist has passed.
-Rebuild the production frontend image for public Maps variables and CSP
-changes; restarting an old frontend image does not apply source changes.
+Audit date: 2026-09-19.
+
+The production Google Maps-style shell, establishment detail tabs, media
+presentation section, review interface, review image endpoint, registration
+location autocomplete, provider fallbacks, markers, directions, sharing, and
+provider-aware layers are transferred and build successfully.
+
+The reference **must not be removed yet**. The following release gates remain
+open and require a live Symfony/PostgreSQL/Coolify environment or additional
+production work:
+
+| Gate | Status | Evidence / blocker |
+| --- | --- | --- |
+| Google/Mapbox live details, photos, attribution, pagination, quota cooldown and cache parity | Open | No live provider/API quota verification in this workspace |
+| Account-backed collections, private notes, wishlist, search history and route history | Open | Current implementation is browser-local; no production entities/API/migrations exist |
+| Review image migration and moderation/download behavior | Implemented, runtime verification open | Controller and migration are committed, but PHP/PostgreSQL execution is unavailable locally |
+| Edit suggestions and moderation/audit | Existing production equivalent | `SuggestionEtablissement` and admin moderation exist; live role-boundary verification remains open |
+| Clinical requests, appointments, notifications and profile preferences | Existing production equivalents | Existing patient/doctor modules are retained; no reference router was copied |
+| Provider-neutral layers | Implemented with capability limits | Plan/Satellite works for Google/Mapbox; Leaflet disables Satellite |
+| Nearby and collections workflows | Partially implemented | Nearby currently returns the explore list; collections remain local |
+| Illustrative fallback cover and media error handling | Implemented | Fallback is labelled illustrative and uses an error handler |
+| Desktop/mobile screenshots and keyboard/provider-failure checks | Open | Playwright installation timed out; no screenshot evidence |
+| Reference-path dependency audit | Passed | No imports or strings referencing `medisecours-maps-module` were found in production frontend source |
+| Reference removal | **Blocked** | Must wait for all open gates above |
+
+Rebuild the production frontend and backend images for the committed source,
+public Maps variables, CSP changes, and migration. Restarting an old image does
+not apply these changes.
