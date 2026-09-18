@@ -7,6 +7,9 @@ import {
   Activity,
   Building2,
   Check,
+  Eye,
+  EyeOff,
+  FileImage,
   Loader2,
   LogIn,
   MapPin,
@@ -18,14 +21,17 @@ import {
   Star,
   Stethoscope,
   Trash2,
+  Upload,
   UserPlus,
   Users,
+  Video,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
+import { imgUrl } from '../../lib/config'
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Types
@@ -74,6 +80,27 @@ type SyncStats = {
   created?: number
   updated?: number
   skipped?: number
+}
+
+type ManagedMedia = {
+  id: number
+  contentUrl: string
+  originalName?: string | null
+  mimeType?: string | null
+  kind: 'image' | 'video'
+  size?: number | null
+  createdAt: string
+}
+
+type ManagedReview = {
+  id: number
+  note: number
+  commentaire?: string | null
+  statut: 'PUBLIE' | 'REJETE' | 'EN_ATTENTE'
+  signale: boolean
+  raisonSignalement?: string | null
+  auteurNom?: string | null
+  createdAt: string
 }
 
 type Prefs = {
@@ -162,6 +189,10 @@ export default function EtablissementEspacePage() {
   const [syncing, setSyncing] = useState(false)
   const [lastSync, setLastSync] = useState<string | null>(null)
   const [statsTotal, setStatsTotal] = useState<number | null>(null)
+  const [media, setMedia] = useState<ManagedMedia[]>([])
+  const [reviews, setReviews] = useState<ManagedReview[]>([])
+  const [uploadingMedia, setUploadingMedia] = useState(false)
+  const [moderatingReview, setModeratingReview] = useState<number | null>(null)
 
   // Personnalisation
   const [prefs, setPrefs] = useState<Prefs>(readPrefs)
@@ -203,6 +234,14 @@ export default function EtablissementEspacePage() {
           void api
             .get<{ members: EquipeMembre[] }>('/api/carte/equipes', { params: { centre: centreId } })
             .then(({ data: team }) => setEquipe(team.members))
+            .catch(() => undefined)
+          void api
+            .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: centreId } })
+            .then(({ data: gallery }) => setMedia(gallery.items ?? []))
+            .catch(() => undefined)
+          void api
+            .get<{ items: ManagedReview[] }>('/api/carte/avis', { params: { centre: centreId } })
+            .then(({ data: reviewData }) => setReviews(reviewData.items ?? []))
             .catch(() => undefined)
         }
       })
@@ -348,6 +387,50 @@ export default function EtablissementEspacePage() {
     }
   }, [toast, loadStats, loadMonEtablissement])
 
+  const uploadMedia = useCallback(async (file: File) => {
+    if (!mon?.centre?.id || uploadingMedia) return
+    setUploadingMedia(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('centre', String(mon.centre.id))
+      const { data } = await api.post<{ media: ManagedMedia }>('/api/carte/medias', form)
+      setMedia((current) => [data.media, ...current])
+      toast.success('Media ajoute a la fiche publique')
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || error.response?.data?.error || "Impossible d'ajouter ce media")
+    } finally {
+      setUploadingMedia(false)
+    }
+  }, [mon, toast, uploadingMedia])
+
+  const deleteMedia = useCallback(async (item: ManagedMedia) => {
+    try {
+      await api.delete(`/api/carte/medias/${item.id}`)
+      setMedia((current) => current.filter((mediaItem) => mediaItem.id !== item.id))
+      toast.success('Media supprime')
+    } catch {
+      toast.error('Suppression du media impossible')
+    }
+  }, [toast])
+
+  const moderateReview = useCallback(async (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => {
+    setModeratingReview(review.id)
+    try {
+      const { data } = await api.patch<{ avis: ManagedReview }>(`/api/carte/avis/${review.id}`, {
+        statut,
+        raison: statut === 'REJETE' ? 'Avis masque par le responsable de l etablissement' : null,
+      })
+      setReviews((current) => current.map((item) => item.id === review.id ? data.avis : item))
+      toast.success(statut === 'PUBLIE' ? 'Avis publie' : 'Avis masque')
+      void loadMonEtablissement()
+    } catch {
+      toast.error("La moderation de l'avis a echoue")
+    } finally {
+      setModeratingReview(null)
+    }
+  }, [loadMonEtablissement, toast])
+
   const reloadData = useCallback(() => {
     if (mon?.centre?.id != null) {
       void api
@@ -357,6 +440,14 @@ export default function EtablissementEspacePage() {
       void api
         .get<{ members: EquipeMembre[] }>('/api/carte/equipes', { params: { centre: mon.centre.id } })
         .then(({ data: team }) => setEquipe(team.members))
+        .catch(() => undefined)
+      void api
+        .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: mon.centre.id } })
+        .then(({ data: gallery }) => setMedia(gallery.items ?? []))
+        .catch(() => undefined)
+      void api
+        .get<{ items: ManagedReview[] }>('/api/carte/avis', { params: { centre: mon.centre.id } })
+        .then(({ data: reviewData }) => setReviews(reviewData.items ?? []))
         .catch(() => undefined)
       void loadStats()
     }
@@ -503,6 +594,17 @@ export default function EtablissementEspacePage() {
           ) : prefs.compact ? (
             <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
               <OverviewPanel dashboard={dashboard} prefs={prefs} accent={accent} />
+              <MediaPanel
+                items={media}
+                uploading={uploadingMedia}
+                onUpload={uploadMedia}
+                onDelete={deleteMedia}
+              />
+              <ReviewsPanel
+                items={reviews}
+                moderatingId={moderatingReview}
+                onModerate={moderateReview}
+              />
               <TeamPanel
                 accent={accent}
                 equipe={equipe}
@@ -521,6 +623,17 @@ export default function EtablissementEspacePage() {
           ) : (
             <div className="mt-6 space-y-6">
               <OverviewPanel dashboard={dashboard} prefs={prefs} accent={accent} />
+              <MediaPanel
+                items={media}
+                uploading={uploadingMedia}
+                onUpload={uploadMedia}
+                onDelete={deleteMedia}
+              />
+              <ReviewsPanel
+                items={reviews}
+                moderatingId={moderatingReview}
+                onModerate={moderateReview}
+              />
               <TeamPanel
                 accent={accent}
                 equipe={equipe}
@@ -954,6 +1067,176 @@ function TeamPanel({
         ))}
       </div>
     </div>
+  )
+}
+
+function MediaPanel({
+  items,
+  uploading,
+  onUpload,
+  onDelete,
+}: {
+  items: ManagedMedia[]
+  uploading: boolean
+  onUpload: (file: File) => void
+  onDelete: (item: ManagedMedia) => void
+}) {
+  return (
+    <section className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Galerie publique
+          </h2>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Images et videos affichees dans la fiche de la carte.
+          </p>
+        </div>
+        <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 text-xs font-bold text-white transition hover:bg-indigo-700">
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? 'Envoi...' : 'Ajouter'}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+            className="sr-only"
+            disabled={uploading}
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) onUpload(file)
+              event.currentTarget.value = ''
+            }}
+          />
+        </label>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="mt-4 flex min-h-32 flex-col items-center justify-center border border-dashed border-slate-300 bg-slate-50 text-center dark:border-slate-700 dark:bg-slate-950/40">
+          <FileImage className="h-7 w-7 text-slate-400" />
+          <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">Aucun media publie</p>
+          <p className="mt-1 text-xs text-slate-500">JPEG, PNG, WebP, GIF, MP4, WebM ou MOV.</p>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {items.map((item) => {
+            const source = imgUrl(item.contentUrl) || item.contentUrl
+            return (
+              <div key={item.id} className="group relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
+                {item.kind === 'video' ? (
+                  <>
+                    <video src={source} muted preload="metadata" className="h-full w-full object-cover" />
+                    <Video className="pointer-events-none absolute left-2 top-2 h-5 w-5 text-white drop-shadow" />
+                  </>
+                ) : (
+                  <img src={source} alt={item.originalName || 'Media etablissement'} className="h-full w-full object-cover" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => onDelete(item)}
+                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-slate-950/75 text-white opacity-100 transition hover:bg-red-600 sm:opacity-0 sm:group-hover:opacity-100"
+                  aria-label="Supprimer ce media"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <p className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/80 to-transparent px-2 pb-2 pt-6 text-[10px] font-semibold text-white">
+                  {item.originalName || (item.kind === 'video' ? 'Video' : 'Image')}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function ReviewsPanel({
+  items,
+  moderatingId,
+  onModerate,
+}: {
+  items: ManagedReview[]
+  moderatingId: number | null
+  onModerate: (item: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
+}) {
+  const published = items.filter((item) => item.statut === 'PUBLIE').length
+  const hidden = items.filter((item) => item.statut === 'REJETE').length
+
+  return (
+    <section className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Moderation des avis
+          </h2>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {published} publies, {hidden} masques
+          </p>
+        </div>
+        <div className="flex gap-2 text-[10px] font-bold">
+          <span className="bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+            {published} visibles
+          </span>
+          <span className="bg-slate-100 px-2 py-1 text-slate-600 dark:bg-white/10 dark:text-slate-300">
+            {hidden} masques
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-4 max-h-[28rem] divide-y divide-slate-100 overflow-y-auto border-y border-slate-100 dark:divide-white/10 dark:border-white/10">
+        {items.length === 0 ? (
+          <p className="py-8 text-center text-sm text-slate-500">Aucun avis pour le moment.</p>
+        ) : items.map((item) => (
+          <article key={item.id} className="py-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-900 dark:text-white">
+                  {item.auteurNom || 'Utilisateur MediSecours'}
+                </p>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                    <Star className="h-3.5 w-3.5 fill-current" />
+                    {item.note}/5
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <span className={`px-2 py-1 text-[10px] font-bold ${
+                item.statut === 'PUBLIE'
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+                  : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300'
+              }`}>
+                {item.statut === 'PUBLIE' ? 'Visible' : 'Masque'}
+              </span>
+            </div>
+            {item.commentaire && (
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.commentaire}</p>
+            )}
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => onModerate(item, 'PUBLIE')}
+                disabled={moderatingId === item.id || item.statut === 'PUBLIE'}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-40 dark:border-white/10 dark:text-slate-200"
+              >
+                {moderatingId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+                Publier
+              </button>
+              <button
+                type="button"
+                onClick={() => onModerate(item, 'REJETE')}
+                disabled={moderatingId === item.id || item.statut === 'REJETE'}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-40 dark:border-white/10 dark:text-slate-200"
+              >
+                <EyeOff className="h-3.5 w-3.5" />
+                Masquer
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   )
 }
 

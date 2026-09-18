@@ -7,6 +7,8 @@ namespace App\Controller;
 use App\Entity\CentreDeSante;
 use App\Entity\EtablissementEquipe;
 use App\Entity\EtablissementManager;
+use App\Entity\AvisEtablissement;
+use App\Entity\MediaObject;
 use App\Entity\Medecin;
 use App\Entity\User;
 use App\Repository\AffiliationMedecinRepository;
@@ -21,6 +23,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -74,10 +77,10 @@ class CarteController extends AbstractController
     private function resolveManagedCentre(User $user, Request $request): CentreDeSante
     {
         if ($this->isAdmin($user)) {
-            $centreId = $request->query->get('centre')
-                ?? (method_exists($request, 'toArray') && $request->getContent()
-                    ? ($request->toArray()['centre'] ?? null)
-                    : null);
+            $centreId = $request->query->get('centre') ?? $request->request->get('centre');
+            if (!$centreId && str_contains((string) $request->headers->get('Content-Type'), 'application/json')) {
+                $centreId = $request->getContent() ? ($request->toArray()['centre'] ?? null) : null;
+            }
 
             if ($centreId) {
                 $centre = $this->centreRepository->find((int) $centreId);
@@ -377,6 +380,177 @@ class CarteController extends AbstractController
     }
 
     /**
+     * Galerie publique de l'etablissement gere.
+     *
+     * GET /api/carte/medias?centre=
+     */
+    #[Route('/api/carte/medias', name: 'api_carte_medias_list', methods: ['GET'])]
+    public function listeMedias(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $centre = $this->resolveManagedCentre($user, $request);
+        $this->assertCanManage($user, $centre);
+
+        $items = array_map(
+            fn (MediaObject $media): array => $this->serializeMedia($media),
+            $centre->getImages()->toArray()
+        );
+
+        usort(
+            $items,
+            static fn (array $left, array $right): int => strcmp($right['createdAt'], $left['createdAt'])
+        );
+
+        return new JsonResponse(['items' => $items, 'total' => count($items)]);
+    }
+
+    /**
+     * Ajout d'une image ou video a la galerie de l'etablissement.
+     *
+     * POST /api/carte/medias (multipart: file, centre?)
+     */
+    #[Route('/api/carte/medias', name: 'api_carte_medias_add', methods: ['POST'])]
+    public function ajouterMedia(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $centre = $this->resolveManagedCentre($user, $request);
+        $this->assertCanManage($user, $centre);
+
+        $file = $request->files->get('file');
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
+            throw new BadRequestHttpException('Un fichier image ou video valide est obligatoire.');
+        }
+
+        $mimeType = strtolower((string) ($file->getMimeType() ?: $file->getClientMimeType()));
+        $allowedMimeTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/gif',
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+        ];
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            throw new BadRequestHttpException('Format refuse. Utilisez JPEG, PNG, WebP, GIF, MP4, WebM ou MOV.');
+        }
+
+        $maxBytes = str_starts_with($mimeType, 'video/') ? 30 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (($file->getSize() ?? 0) > $maxBytes) {
+            throw new BadRequestHttpException(
+                str_starts_with($mimeType, 'video/')
+                    ? 'La video ne doit pas depasser 30 Mo.'
+                    : "L'image ne doit pas depasser 10 Mo."
+            );
+        }
+
+        $binary = file_get_contents($file->getPathname());
+        if ($binary === false || $binary === '') {
+            throw new BadRequestHttpException('Le fichier televerse est vide ou illisible.');
+        }
+
+        $extension = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'bin');
+        $media = new MediaObject();
+        $media
+            ->setFilePath(bin2hex(random_bytes(16)) . '.' . preg_replace('/[^a-z0-9]+/', '', $extension))
+            ->setOriginalName($file->getClientOriginalName())
+            ->setMimeType($mimeType)
+            ->setSize(strlen($binary))
+            ->setData($binary)
+            ->setIsPublic(true)
+            ->setPurpose(MediaObject::PURPOSE_GENERAL)
+            ->setUploadedBy($user)
+            ->setCentre($centre);
+
+        $this->em->persist($media);
+        $this->em->flush();
+
+        return new JsonResponse(['media' => $this->serializeMedia($media)], Response::HTTP_CREATED);
+    }
+
+    /**
+     * Suppression d'un media de la galerie geree.
+     */
+    #[Route('/api/carte/medias/{id}', name: 'api_carte_medias_delete', methods: ['DELETE'])]
+    public function supprimerMedia(Request $request, int $id): JsonResponse
+    {
+        $user = $this->requireUser();
+        $media = $this->em->getRepository(MediaObject::class)->find($id);
+        if (!$media || !$media->getCentre()) {
+            throw new NotFoundHttpException('Media introuvable.');
+        }
+        $this->assertCanManage($user, $media->getCentre());
+
+        $this->em->remove($media);
+        $this->em->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Avis de l'etablissement, y compris ceux masques par moderation.
+     */
+    #[Route('/api/carte/avis', name: 'api_carte_avis_list', methods: ['GET'])]
+    public function listeAvis(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $centre = $this->resolveManagedCentre($user, $request);
+        $this->assertCanManage($user, $centre);
+
+        $statut = strtoupper(trim((string) $request->query->get('statut', '')));
+        $qb = $this->avisRepository->createQueryBuilder('a')
+            ->where('a.etablissement = :centre')
+            ->setParameter('centre', $centre->getId())
+            ->orderBy('a.createdAt', 'DESC');
+        if (in_array($statut, ['PUBLIE', 'REJETE', 'EN_ATTENTE'], true)) {
+            $qb->andWhere('a.statut = :statut')->setParameter('statut', $statut);
+        }
+
+        $items = array_map(
+            fn (AvisEtablissement $avis): array => $this->serializeAvis($avis),
+            $qb->getQuery()->getResult()
+        );
+
+        return new JsonResponse(['items' => $items, 'total' => count($items)]);
+    }
+
+    /**
+     * Publication ou masquage d'un avis par le manager de l'etablissement.
+     */
+    #[Route('/api/carte/avis/{id}', name: 'api_carte_avis_moderate', methods: ['PATCH'])]
+    public function modererAvis(Request $request, int $id): JsonResponse
+    {
+        $user = $this->requireUser();
+        $avis = $this->avisRepository->find($id);
+        if (!$avis instanceof AvisEtablissement || !$avis->getEtablissement()) {
+            throw new NotFoundHttpException('Avis introuvable.');
+        }
+        $this->assertCanManage($user, $avis->getEtablissement());
+
+        $data = $request->toArray();
+        $statut = strtoupper(trim((string) ($data['statut'] ?? '')));
+        if (!in_array($statut, ['PUBLIE', 'REJETE'], true)) {
+            throw new BadRequestHttpException('Statut invalide. Valeurs autorisees: PUBLIE, REJETE.');
+        }
+
+        $avis
+            ->setStatut($statut)
+            ->setUpdatedAt(new \DateTimeImmutable());
+        if ($statut === 'REJETE') {
+            $avis->setSignale(true);
+            $avis->setRaisonSignalement(mb_substr(trim((string) ($data['raison'] ?? 'Modere par l etablissement')), 0, 2000));
+        } else {
+            $avis->setSignale(false);
+            $avis->setRaisonSignalement(null);
+        }
+
+        $this->em->flush();
+        $this->avisRepository->refreshAggregates($avis->getEtablissement());
+
+        return new JsonResponse(['avis' => $this->serializeAvis($avis)]);
+    }
+
+    /**
      * Réclamation d'un établissement par un manager (compte "etablissement").
      *
      * POST /api/carte/revendiquer   body: {"centre": int, "force"?: bool}
@@ -525,6 +699,43 @@ class CarteController extends AbstractController
             'totalAvis' => $centre->getTotalAvis(),
             'verificationStatut' => $centre->getVerificationStatut(),
             'statut' => $centre->getStatut(),
+            'description' => $centre->getDescription(),
+            'services' => $centre->getServices(),
+            'specialites' => $centre->getSpecialites(),
+            'latitude' => $centre->getLatitude(),
+            'longitude' => $centre->getLongitude(),
+            'images' => array_map(
+                fn (MediaObject $media): array => $this->serializeMedia($media),
+                $centre->getImages()->toArray()
+            ),
+        ];
+    }
+
+    private function serializeMedia(MediaObject $media): array
+    {
+        return [
+            'id' => $media->getId(),
+            'contentUrl' => $media->getContentUrl(),
+            'originalName' => $media->getOriginalName(),
+            'mimeType' => $media->getMimeType(),
+            'size' => $media->getSize(),
+            'kind' => str_starts_with((string) $media->getMimeType(), 'video/') ? 'video' : 'image',
+            'createdAt' => $media->getCreatedAt()->format('c'),
+        ];
+    }
+
+    private function serializeAvis(AvisEtablissement $avis): array
+    {
+        return [
+            'id' => $avis->getId(),
+            'note' => $avis->getNote(),
+            'commentaire' => $avis->getCommentaire(),
+            'statut' => $avis->getStatut(),
+            'signale' => $avis->isSignale(),
+            'raisonSignalement' => $avis->getRaisonSignalement(),
+            'auteurNom' => $avis->getAuteurNom(),
+            'createdAt' => $avis->getCreatedAt()->format('c'),
+            'updatedAt' => $avis->getUpdatedAt()?->format('c'),
         ];
     }
 }

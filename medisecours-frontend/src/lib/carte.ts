@@ -31,6 +31,7 @@ export interface CarteCentre {
   imageUrl?: string
   photo?: string
   photos?: string[] | string
+  images?: EtablissementMedia[]
   specialites?: string[] | string
   services?: string[] | string
   urgences24h?: boolean
@@ -61,6 +62,16 @@ export interface PlanningJour {
 
 export interface FicheCentre extends CarteCentre {
   medecins?: MedecinFiche[]
+}
+
+export interface EtablissementMedia {
+  id: number
+  contentUrl: string
+  originalName?: string | null
+  mimeType?: string | null
+  size?: number | null
+  kind?: 'image' | 'video'
+  createdAt?: string
 }
 
 export interface Avis {
@@ -168,6 +179,8 @@ export function formatRelativeDate(iso: string, locale: string): string {
 // ─── Photo ───────────────────────────────────────────────────────────────────
 
 export function getEtablissementPhoto(centre: CarteCentre): string | null {
+  const image = centre.images?.find((media) => media.kind !== 'video' && media.contentUrl)
+  if (image?.contentUrl) return image.contentUrl
   if (centre.photo) return centre.photo
   if (centre.imageUrl) return centre.imageUrl
   if (Array.isArray(centre.photos)) return centre.photos[0] || null
@@ -216,4 +229,26 @@ export function readFavorites(): number[] {
   } catch {
     return []
   }
+}
+
+export function readRecentCentres(): number[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem('medisecours_carte_recents')
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed.map(Number).filter(Number.isFinite).slice(0, 20) : []
+  } catch {
+    return []
+  }
+}
+
+export function writeRecentCentre(id: number, current: number[]): number[] {
+  const next = [id, ...current.filter((item) => item !== id)].slice(0, 20)
+  try {
+    window.localStorage.setItem('medisecours_carte_recents', JSON.stringify(next))
+  } catch {
+    // Storage can be disabled in private browsing.
+  }
+  return next
 }

@@ -3,19 +3,26 @@
 import { useMemo, useState } from 'react'
 import {
   Bike,
+  Bookmark,
+  Building2,
   Car,
   ChevronLeft,
   Clock,
   ExternalLink,
   Footprints,
+  History,
+  Image as ImageIcon,
   Loader2,
   Mail,
+  Map as MapIcon,
   MapPin,
   Medal,
   Navigation,
   Phone,
+  PlayCircle,
   Route,
   Search,
+  Share2,
   ShieldCheck,
   Star,
   Stethoscope,
@@ -42,6 +49,7 @@ import {
   WAYFINDING_MODES,
   type Avis,
   type CarteCentre,
+  type EtablissementMedia,
   type EtablissementType,
   type FicheCentre,
 } from '../../lib/carte'
@@ -92,6 +100,7 @@ interface EtablissementDrawerProps {
   // Contexte
   position: Position | null
   favorites: number[]
+  recentIds: number[]
   onToggleFavorite: (id: number) => void
   onSosClick: () => void
   onRequestDirections: () => void
@@ -125,6 +134,128 @@ const MODE_ICONS: Record<WayfindingMode, typeof Car> = {
   driving: Car,
   walking: Footprints,
   bicycling: Bike,
+}
+
+function mediaUrl(media: EtablissementMedia): string {
+  return imgUrl(media.contentUrl) || media.contentUrl
+}
+
+function MediaGallery({
+  centre,
+  compact = false,
+}: {
+  centre: CarteCentre
+  compact?: boolean
+}) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const medias = centre.images?.filter((media) => media.contentUrl) ?? []
+  const legacyPhoto = getEtablissementPhoto({ ...centre, images: [] })
+
+  if (medias.length === 0 && !legacyPhoto) {
+    return (
+      <div className={`${compact ? 'h-40' : 'h-52'} flex w-full items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800`}>
+        <Building2 className="h-12 w-12" />
+      </div>
+    )
+  }
+
+  const preview = medias.length > 0
+    ? medias.slice(0, compact ? 1 : 3)
+    : [{ id: -1, contentUrl: legacyPhoto!, kind: 'image' as const }]
+
+  return (
+    <>
+      <div className={`grid ${compact || preview.length === 1 ? 'grid-cols-1' : 'grid-cols-[2fr_1fr]'} gap-1 overflow-hidden bg-slate-200 dark:bg-slate-800`}>
+        {preview.map((media, index) => {
+          const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/')
+          return (
+            <button
+              key={media.id}
+              type="button"
+              onClick={() => setActiveIndex(Math.max(0, medias.findIndex((item) => item.id === media.id)))}
+              className={`relative overflow-hidden bg-slate-200 text-left dark:bg-slate-800 ${
+                compact || preview.length === 1
+                  ? 'h-40'
+                  : index === 0
+                    ? 'row-span-2 h-52'
+                    : 'h-[102px]'
+              }`}
+            >
+              {isVideo ? (
+                <>
+                  <video src={mediaUrl(media)} muted preload="metadata" className="h-full w-full object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white">
+                    <PlayCircle className="h-10 w-10 drop-shadow" />
+                  </span>
+                </>
+              ) : (
+                <img
+                  src={mediaUrl(media)}
+                  alt={`${centre.nom} - media ${index + 1}`}
+                  className="h-full w-full object-cover transition duration-300 hover:scale-[1.02]"
+                />
+              )}
+              {!compact && index === preview.length - 1 && medias.length > preview.length && (
+                <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-xs font-bold text-white">
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  +{medias.length - preview.length}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      <AnimatePresence>
+        {activeIndex != null && medias[activeIndex] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1200] flex items-center justify-center bg-slate-950/95 p-4"
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              type="button"
+              onClick={() => setActiveIndex(null)}
+              className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              aria-label="Fermer la galerie"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            {medias[activeIndex].kind === 'video' || medias[activeIndex].mimeType?.startsWith('video/') ? (
+              <video
+                src={mediaUrl(medias[activeIndex])}
+                controls
+                autoPlay
+                className="max-h-[86dvh] max-w-[92vw]"
+              />
+            ) : (
+              <img
+                src={mediaUrl(medias[activeIndex])}
+                alt={medias[activeIndex].originalName || centre.nom}
+                className="max-h-[86dvh] max-w-[92vw] object-contain"
+              />
+            )}
+            {medias.length > 1 && (
+              <div className="absolute bottom-5 flex gap-2">
+                {medias.map((media, index) => (
+                  <button
+                    key={media.id}
+                    type="button"
+                    onClick={() => setActiveIndex(index)}
+                    className={`h-2.5 w-2.5 rounded-full ${index === activeIndex ? 'bg-white' : 'bg-white/40'}`}
+                    aria-label={`Media ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
 }
 
 function FicheInfos({
@@ -285,6 +416,7 @@ export default function EtablissementDrawer({
   onBackToList,
   position,
   favorites,
+  recentIds,
   onToggleFavorite,
   onSosClick,
   onRequestDirections,
@@ -308,6 +440,7 @@ export default function EtablissementDrawer({
   const [submitting, setSubmitting] = useState(false)
   const [joining, setJoining] = useState(false)
   const [joined, setJoined] = useState(false)
+  const [view, setView] = useState<'explore' | 'saved' | 'recent'>('explore')
 
   const [prevSelectedId, setPrevSelectedId] = useState(selectedId)
   if (prevSelectedId !== selectedId) {
@@ -321,6 +454,19 @@ export default function EtablissementDrawer({
     () => (selectedId != null ? visibleCentres.find((c) => c.id === selectedId) ?? null : null),
     [selectedId, visibleCentres],
   )
+
+  const displayedCentres = useMemo(() => {
+    if (view === 'saved') {
+      return visibleCentres.filter((centre) => favorites.includes(centre.id))
+    }
+    if (view === 'recent') {
+      const order = new Map(recentIds.map((id, index) => [id, index]))
+      return visibleCentres
+        .filter((centre) => order.has(centre.id))
+        .sort((left, right) => (order.get(left.id) ?? 99) - (order.get(right.id) ?? 99))
+    }
+    return visibleCentres
+  }, [favorites, recentIds, view, visibleCentres])
 
   const { data: ficheData } = useSWR<FicheCentre>(
     selectedId ? `/api/centre_de_santes/${selectedId}/fiche` : null,
@@ -396,7 +542,7 @@ export default function EtablissementDrawer({
   if (!open) return null
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-[800] flex justify-end">
+    <div className="pointer-events-none absolute inset-0 z-[800] flex justify-start">
       {/* Voile mobile */}
       <AnimatePresence>
         {selectedId && (
@@ -412,26 +558,44 @@ export default function EtablissementDrawer({
         )}
       </AnimatePresence>
 
-      {/* ── Conteneur ─────────────────────────────────────────────────────── */}
+      <nav className="pointer-events-auto absolute bottom-3 left-3 top-3 hidden w-16 flex-col items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 px-1.5 py-3 shadow-2xl backdrop-blur xl:flex dark:border-white/10 dark:bg-slate-950/95">
+        {([
+          ['explore', MapIcon, 'Explorer'],
+          ['saved', Bookmark, 'Enregistres'],
+          ['recent', History, 'Recents'],
+        ] as const).map(([key, Icon, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => {
+              setView(key)
+              onBackToList()
+            }}
+            className={`flex w-full flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-bold transition ${
+              view === key
+                ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-200'
+                : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10'
+            }`}
+            aria-pressed={view === key}
+          >
+            <Icon className="h-5 w-5" />
+            <span className="w-full truncate">{label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* Interface commune a tous les fournisseurs cartographiques. */}
       <aside
         aria-label={t('visitor.carte.title')}
-        className="pointer-events-auto absolute inset-x-2 bottom-2 flex min-h-0 max-h-[68dvh] flex-col overflow-hidden rounded-t-3xl border border-slate-200/70 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-950/95 xl:inset-x-auto xl:top-3 xl:right-3 xl:bottom-3 xl:w-[420px] xl:max-h-none xl:rounded-3xl"
+        className="pointer-events-auto absolute inset-x-2 bottom-2 flex min-h-0 max-h-[72dvh] flex-col overflow-hidden rounded-t-2xl border border-slate-200/70 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-950/95 xl:inset-x-auto xl:bottom-3 xl:left-20 xl:top-3 xl:w-[430px] xl:max-h-none xl:rounded-2xl"
       >
 
         {selectedCentre ? (
           /* ═══════════ DÉTAIL ═══════════ */
           <>
             <div className="relative shrink-0">
-              <div className="h-40 w-full bg-slate-200 dark:bg-slate-800">
-                {getEtablissementPhoto(selectedCentre) && (
-                  <img
-                    src={imgUrl(getEtablissementPhoto(selectedCentre)!) || getEtablissementPhoto(selectedCentre)!}
-                    alt={selectedCentre.nom}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-              </div>
+              <MediaGallery centre={fiche ?? selectedCentre} compact />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
 
               <button
                 type="button"
@@ -506,7 +670,7 @@ export default function EtablissementDrawer({
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={onRequestDirections}
@@ -535,6 +699,27 @@ export default function EtablissementDrawer({
                   <Phone className="h-4 w-4" />
                   <span className="truncate">{t('visitor.carte.sos.title')}</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const shareData = {
+                      title: selectedCentre.nom,
+                      text: selectedCentre.adresse,
+                      url: window.location.href,
+                    }
+                    if (navigator.share) {
+                      void navigator.share(shareData)
+                    } else {
+                      void navigator.clipboard?.writeText(window.location.href)
+                      toast.success('Lien copie')
+                    }
+                  }}
+                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10"
+                  aria-label="Partager cet etablissement"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="truncate">Partager</span>
+                </button>
               </div>
 
               {/* Onglets */}
@@ -559,13 +744,16 @@ export default function EtablissementDrawer({
             {/* Contenu */}
             <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] xl:pb-6">
               {tab === 'info' && (
-                <FicheInfos
-                  fiche={fiche ?? (selectedCentre as FicheCentre)}
-                  isMedecin={isMedecin}
-                  medecinJoined={joinShown}
-                  onJoin={handleJoin}
-                  joining={joining}
-                />
+                <div className="space-y-5">
+                  {(fiche?.images?.length ?? 0) > 1 && <MediaGallery centre={fiche!} />}
+                  <FicheInfos
+                    fiche={fiche ?? (selectedCentre as FicheCentre)}
+                    isMedecin={isMedecin}
+                    medecinJoined={joinShown}
+                    onJoin={handleJoin}
+                    joining={joining}
+                  />
+                </div>
               )}
 
               {tab === 'directions' && (
@@ -776,6 +964,28 @@ export default function EtablissementDrawer({
                 </button>
               </div>
 
+              <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 xl:hidden dark:bg-white/5">
+                {([
+                  ['explore', MapIcon, 'Explorer'],
+                  ['saved', Bookmark, 'Enregistres'],
+                  ['recent', History, 'Recents'],
+                ] as const).map(([key, Icon, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setView(key)}
+                    className={`flex min-h-9 items-center justify-center gap-1 rounded-lg text-[11px] font-bold ${
+                      view === key
+                        ? 'bg-white text-primary-700 shadow-sm dark:bg-slate-800 dark:text-white'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <label className="relative mt-3 block">
                 <span className="sr-only">{t('visitor.carte.searchSrOnly')}</span>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -846,7 +1056,7 @@ export default function EtablissementDrawer({
                   {t('visitor.carte.filterUrgence')}
                 </button>
                 <span className="text-[11px] font-semibold text-slate-400">
-                  {t('visitor.carte.resultsCount', { count: visibleCentres.length })}
+                  {t('visitor.carte.resultsCount', { count: displayedCentres.length })}
                 </span>
               </div>
             </div>
@@ -856,7 +1066,7 @@ export default function EtablissementDrawer({
                 <div className="flex justify-center py-10">
                   <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
                 </div>
-              ) : visibleCentres.length === 0 ? (
+              ) : displayedCentres.length === 0 ? (
                 <div className="py-10 text-center">
                   <p className="font-bold text-slate-800 dark:text-slate-100">
                     {t('visitor.carte.noResultTitle')}
@@ -864,7 +1074,7 @@ export default function EtablissementDrawer({
                   <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t('visitor.carte.noResultDesc')}</p>
                 </div>
               ) : (
-                visibleCentres.map((centre) => {
+                displayedCentres.map((centre) => {
                   const centreDistance = position ? haversineKm(position, centre) : null
                   return (
                     <button

@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
@@ -38,6 +38,8 @@ import {
   formatDuration,
   haversineKm,
   readFavorites,
+  readRecentCentres,
+  writeRecentCentre,
   WAYFINDING_MODES,
   type CarteCentre,
   type EtablissementType,
@@ -89,7 +91,7 @@ export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
   const { position, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
-  const { provider, state: providerState, fallbackReason } = useMapProvider()
+  const { provider, state: providerState } = useMapProvider()
 
   const [centres, setCentres] = useState<CarteCentre[]>([])
   const [loading, setLoading] = useState(true)
@@ -106,6 +108,8 @@ export default function CartePage() {
   const [isTracking, setIsTracking] = useState(false)
   const [sosOpen, setSosOpen] = useState(false)
   const [favorites, setFavorites] = useState<number[]>(() => readFavorites())
+  const [recentIds, setRecentIds] = useState<number[]>(() => readRecentCentres())
+  const remoteFilterActive = useRef(false)
 
   // ── Favoris (localStorage) ────────────────────────────────────────────────
 
@@ -147,6 +151,41 @@ export default function CartePage() {
     return () => controller.abort()
   }, [loadCentres])
 
+  useEffect(() => {
+    const query = searchQuery.trim()
+    if (!query && activeType === 'all') {
+      if (!remoteFilterActive.current) return
+      remoteFilterActive.current = false
+      const controller = loadCentres({ silent: true })
+      return () => controller.abort()
+    }
+    remoteFilterActive.current = true
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      api
+        .get('/api/carte/etablissements', {
+          params: {
+            q: query || undefined,
+            type: activeType === 'all' ? undefined : activeType,
+            limit: 500,
+          },
+          signal: controller.signal,
+        })
+        .then((response) => setCentres(extractCentres(response)))
+        .catch((requestError: any) => {
+          if (requestError?.name !== 'CanceledError' && requestError?.message !== 'canceled') {
+            toast.error(t('visitor.centres.loadError'))
+          }
+        })
+    }, 250)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [activeType, loadCentres, searchQuery, t, toast])
+
   // ── Rafraîchissement temps réel silencieux (45 s) ────────────────────────
   // Les structures synchronisées (Google Places) apparaissent sur la carte (et
   // sur le repli Leaflet) sans action de l'utilisateur.
@@ -182,6 +221,7 @@ export default function CartePage() {
   const handleSelect = useCallback(
     (id: number) => {
       setSelectedId(id)
+      setRecentIds((current) => writeRecentCentre(id, current))
       setSosOpen(false)
       const centre = centreById.get(id)
       if (centre?.latitude != null && centre.longitude != null) {
@@ -212,7 +252,7 @@ export default function CartePage() {
   }, [])
 
   // ── Moteurs d'itinéraire (Google par défaut, OSRM en repli) ───────────────
-  const osrmEnabled = provider === 'leaflet'
+  const osrmEnabled = provider !== 'google'
   const {
     route: osrmRoute,
     distance: osrmDistance,
@@ -317,29 +357,19 @@ export default function CartePage() {
         )}
       </div>
 
-      {/* ═══ Bandeau repli "services Google indisponibles" ═══ */}
-      {fallbackReason && provider === 'leaflet' && (
-        <p className="absolute left-3 top-16 z-[600] flex max-w-72 items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 shadow-lg dark:bg-amber-500/10 dark:text-amber-300">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          {fallbackReason}
-        </p>
-      )}
-
-      {/* ═══ Pastille fournisseur de données ═══ */}
+      {/* Identite stable: le fournisseur technique reste transparent pour l'utilisateur. */}
       {providerState === 'ready' && (
         <p className="absolute right-3 top-3 z-[600] inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/95 px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-lg backdrop-blur-md dark:border-white/15 dark:bg-slate-950/95 dark:text-slate-200">
           <span
-            className={`h-2 w-2 rounded-full ${provider === 'google' ? 'bg-emerald-500' : 'bg-amber-400'} ${loading ? 'animate-pulse' : ''}`}
+            className={`h-2 w-2 rounded-full bg-emerald-500 ${loading ? 'animate-pulse' : ''}`}
           />
           {loading ? (
             <>
               <Loader2 className="h-3 w-3 animate-spin" />
               {t('visitor.carte.updating')}
             </>
-          ) : provider === 'google' ? (
-            t('visitor.carte.providerGoogle')
           ) : (
-            t('visitor.carte.providerLeaflet')
+            'MediSecours Maps'
           )}
         </p>
       )}
@@ -472,7 +502,7 @@ export default function CartePage() {
         disabled={locating && !position}
         aria-busy={locating}
         aria-label={isTracking ? t('visitor.carte.stopTracking') : t('visitor.carte.locateMe')}
-        className={`absolute bottom-24 right-3 z-[600] flex h-12 w-12 items-center justify-center rounded-2xl shadow-xl transition xl:bottom-5 xl:right-[448px] ${
+        className={`absolute bottom-24 right-3 z-[600] flex h-12 w-12 items-center justify-center rounded-2xl shadow-xl transition xl:bottom-5 xl:right-5 ${
           isTracking ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-primary-700 hover:bg-slate-100 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800'
         }`}
       >
@@ -484,7 +514,7 @@ export default function CartePage() {
         type="button"
         onClick={() => setSosOpen(true)}
         aria-label={t('visitor.carte.sosFabAria')}
-        className="absolute bottom-[7.5rem] right-3 z-[600] flex h-14 w-14 items-center justify-center gap-1.5 rounded-full bg-red-600 text-sm font-bold text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] transition hover:bg-red-700 xl:bottom-24 xl:right-[448px]"
+        className="absolute bottom-[7.5rem] right-3 z-[600] flex h-14 w-14 items-center justify-center gap-1.5 rounded-full bg-red-600 text-sm font-bold text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] transition hover:bg-red-700 xl:bottom-24 xl:right-5"
       >
         <Phone className="h-6 w-6" />
       </button>
@@ -506,6 +536,7 @@ export default function CartePage() {
         onBackToList={handleBackToList}
         position={position}
         favorites={favorites}
+        recentIds={recentIds}
         onToggleFavorite={toggleFavorite}
         onSosClick={() => setSosOpen(true)}
         onRequestDirections={handleRequestDirections}
