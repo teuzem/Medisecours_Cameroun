@@ -51,6 +51,11 @@ Port behavior through production contracts and authenticated APIs.
   the published state. Migration `Version20260918140000` adds this relation.
 - Review aggregate refresh no longer marks an establishment verified as an
   unrelated side effect.
+- Authenticated map persistence endpoints now exist for saved places,
+  collections, private notes, search history, and route history:
+  `/api/carte/saved`, `/api/carte/collections`, and `/api/carte/history`.
+  Migration `Version20260918150000` creates their ownership-safe tables.
+- Nearby filtering now uses a real 25 km haversine radius in the map panel.
 
 ## Existing Production Equivalents
 
@@ -127,12 +132,12 @@ production work:
 | Gate | Status | Evidence / blocker |
 | --- | --- | --- |
 | Google/Mapbox live details, photos, attribution, pagination, quota cooldown and cache parity | Open | No live provider/API quota verification in this workspace |
-| Account-backed collections, private notes, wishlist, search history and route history | Open | Current implementation is browser-local; no production entities/API/migrations exist |
+| Account-backed collections, private notes, wishlist, search history and route history | Implemented, runtime verification open | Symfony entities/controllers/migration are committed; frontend synchronizes authenticated saved places, collections, search and route events; PostgreSQL execution remains to be run |
 | Review image migration and moderation/download behavior | Implemented, runtime verification open | Controller and migration are committed, but PHP/PostgreSQL execution is unavailable locally |
 | Edit suggestions and moderation/audit | Existing production equivalent | `SuggestionEtablissement` and admin moderation exist; live role-boundary verification remains open |
 | Clinical requests, appointments, notifications and profile preferences | Existing production equivalents | Existing patient/doctor modules are retained; no reference router was copied |
 | Provider-neutral layers | Implemented with capability limits | Plan/Satellite works for Google/Mapbox; Leaflet disables Satellite |
-| Nearby and collections workflows | Partially implemented | Nearby currently returns the explore list; collections remain local |
+| Nearby and collections workflows | Implemented, runtime verification open | Nearby uses a 25 km radius; authenticated collections/saved places persist through Symfony, with local fallback when signed out |
 | Illustrative fallback cover and media error handling | Implemented | Fallback is labelled illustrative and uses an error handler |
 | Desktop/mobile screenshots and keyboard/provider-failure checks | Open | Playwright installation timed out; no screenshot evidence |
 | Reference-path dependency audit | Passed | No imports or strings referencing `medisecours-maps-module` were found in production frontend source |

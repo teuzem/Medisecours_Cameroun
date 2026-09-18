@@ -48,6 +48,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionOpen, setCollectionOpen] = useState(false)
   const [collectionName, setCollectionName] = useState('')
+  const [nearbyOnly, setNearbyOnly] = useState(false)
   const selected = props.visibleCentres.find(centre => centre.id === props.selectedId)
   const { data: detail, error: detailError } = useSWR<FicheCentre>(selected ? `/api/centre_de_santes/${selected.id}/fiche` : null)
   const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(selected ? `/api/avis_etablissements?etablissement=${selected.id}` : null)
@@ -70,7 +71,15 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       const stored = JSON.parse(localStorage.getItem(COLLECTION_KEY) ?? '[]')
       if (Array.isArray(stored)) setCollections(stored.filter(item => typeof item?.id === 'string' && typeof item.name === 'string' && Array.isArray(item.places)))
     } catch { /* Local storage may be disabled. */ }
-  }, [])
+    if (isAuthenticated) {
+      void api.get('/api/carte/collections').then(response => {
+        const items = Array.isArray(response.data?.items) ? response.data.items : []
+        setCollections(items.map((item: any) => ({
+          id: String(item.id), name: String(item.name), note: String(item.note ?? ''), places: Array.isArray(item.places) ? item.places.map(Number) : [],
+        })))
+      }).catch(() => undefined)
+    }
+  }, [isAuthenticated])
   useEffect(() => {
     if (!composer && !collectionOpen) return
     const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { setComposer(false); setCollectionOpen(false) } }
@@ -81,6 +90,15 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const saveCollections = (next: Collection[]) => {
     try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(next)); setCollections(next) }
     catch { toast.error('Le stockage de cet appareil est indisponible.') }
+    if (isAuthenticated) {
+      for (const collection of next) {
+        const numericId = Number(collection.id)
+        const request = Number.isInteger(numericId)
+          ? api.patch(`/api/carte/collections/${numericId}`, { name: collection.name, note: collection.note, places: collection.places })
+          : api.post('/api/carte/collections', { name: collection.name, note: collection.note, places: collection.places })
+        void request.catch(() => toast.info('La collection reste disponible localement, mais n’a pas pu être synchronisée.'))
+      }
+    }
   }
   const placeUrl = () => {
     const url = new URL('/carte', window.location.origin)
@@ -120,9 +138,12 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     finally { setJoining(false) }
   }
 
-  const list = props.initialView === 'saved' ? props.visibleCentres.filter(centre => props.favorites.includes(centre.id))
+  const baseList = props.initialView === 'saved' ? props.visibleCentres.filter(centre => props.favorites.includes(centre.id))
     : props.initialView === 'recent' ? props.recentIds.flatMap(id => props.visibleCentres.filter(centre => centre.id === id))
       : props.visibleCentres
+  const list = nearbyOnly && props.position
+    ? baseList.filter(centre => (haversineKm(props.position, centre) ?? Number.POSITIVE_INFINITY) <= 25)
+    : baseList
   const mean = facility?.noteMoyenne ?? 0
   const total = facility?.totalAvis ?? 0
   const hasCoords = facility?.latitude != null && facility.longitude != null
@@ -139,7 +160,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         <div className="maps-actions">
           <Action icon={<Navigation size={20} />} onClick={() => { props.onRequestDirections(); setTab('directions') }}>Itineraire</Action>
           <Action icon={<Bookmark size={20} />} active={props.favorites.includes(facility.id)} onClick={() => props.onToggleFavorite(facility.id)}>{props.favorites.includes(facility.id) ? 'Enregistre' : 'Enregistrer'}</Action>
-          <Action icon={<MapPin size={20} />} onClick={() => { props.onBackToList(); props.onViewChange('explore') }}>A proximite</Action>
+          <Action icon={<MapPin size={20} />} active={nearbyOnly} onClick={() => { setNearbyOnly(true); props.onBackToList(); props.onViewChange('explore') }}>A proximite</Action>
           <Action icon={<Send size={20} />} onClick={() => { window.location.href = `sms:?body=${encodeURIComponent(`${facility.nom}\n${placeUrl()}`)}` }}>Telephone</Action>
           <Action icon={<Share2 size={20} />} onClick={() => void share()}>Partager</Action>
         </div>

@@ -131,9 +131,22 @@ export default function CartePage() {
       } catch {
         // stockage indisponible : on ignore
       }
+      if (isAuthenticated) {
+        void api.request({ url: `/api/carte/saved/${id}`, method: next.includes(id) ? 'PUT' : 'DELETE' }).catch(() => {
+          toast.info('Le favori reste disponible localement, mais n’a pas pu être synchronisé.')
+        })
+      }
       return next
     })
-  }, [])
+  }, [isAuthenticated, toast])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    api.get('/api/carte/saved').then(response => {
+      const ids = Array.isArray(response.data?.ids) ? response.data.ids.map(Number).filter(Number.isInteger) : []
+      if (ids.length) setFavorites(current => Array.from(new Set([...current, ...ids])))
+    }).catch(() => undefined)
+  }, [isAuthenticated])
 
   // ── Chargement des établissements ─────────────────────────────────────────
   const loadCentres = useCallback(
@@ -195,6 +208,14 @@ export default function CartePage() {
       controller.abort()
     }
   }, [activeType, loadCentres, searchQuery, t, toast])
+
+  useEffect(() => {
+    if (!isAuthenticated || searchQuery.trim().length < 3) return
+    const timer = window.setTimeout(() => {
+      void api.post('/api/carte/history', { type: 'search', query: searchQuery.trim(), metadata: { type: activeType } }).catch(() => undefined)
+    }, 900)
+    return () => window.clearTimeout(timer)
+  }, [activeType, isAuthenticated, searchQuery])
 
   // ── Rafraîchissement temps réel silencieux (45 s) ────────────────────────
   // Les structures synchronisées (Google Places) apparaissent sur la carte (et
@@ -275,13 +296,16 @@ export default function CartePage() {
     const centre = selectedId != null ? centreById.get(selectedId) : null
     if (centre?.latitude != null && centre.longitude != null) {
       setDestination({ lat: centre.latitude, lng: centre.longitude, nom: centre.nom })
+      if (isAuthenticated) {
+        void api.post('/api/carte/history', { type: 'route', centre: centre.id, metadata: { mode } }).catch(() => undefined)
+      }
     }
     if (!position) {
       toast.info(t('visitor.carte.directions.needPosition'))
       locate()
       return
     }
-  }, [centreById, locate, position, selectedId, t, toast])
+  }, [centreById, isAuthenticated, locate, mode, position, selectedId, t, toast])
 
   const clearRoute = useCallback(() => {
     setDestination(null)
