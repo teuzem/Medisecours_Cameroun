@@ -9,11 +9,12 @@ const BACKEND_URL = (
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com https://maps.googleapis.com https://forge.butterfly-effect.dev`,
+  `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com https://maps.googleapis.com https://maps.gstatic.com https://forge.butterfly-effect.dev`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
   "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
   `img-src 'self' data: blob: https:${isProduction ? '' : ' http://127.0.0.1:8000 http://localhost:8000'}`,
   "font-src 'self' data: https://fonts.gstatic.com",
+  "worker-src 'self' blob:",
   `media-src 'self' blob: https:${isProduction ? '' : ' http://127.0.0.1:8000 http://localhost:8000'}`,
   `connect-src 'self' https: wss:${isProduction ? '' : ' http://127.0.0.1:8000 http://localhost:8000 ws://127.0.0.1:8081 ws://localhost:8081'}`,
   "frame-src 'self' https://accounts.google.com",
@@ -48,10 +49,14 @@ const nextConfig = {
     NEXT_PUBLIC_FRONTEND_FORGE_API_KEY:
       process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_KEY ||
       process.env.VITE_FRONTEND_FORGE_API_KEY ||
+      process.env.NEXT_PUBLIC_BUILT_IN_FORGE_API_KEY ||
+      process.env.BUILT_IN_FORGE_API_KEY ||
       '',
     NEXT_PUBLIC_FRONTEND_FORGE_API_URL:
       process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_URL ||
       process.env.VITE_FRONTEND_FORGE_API_URL ||
+      process.env.NEXT_PUBLIC_BUILT_IN_FORGE_API_URL ||
+      process.env.BUILT_IN_FORGE_API_URL ||
       'https://forge.butterfly-effect.dev',
   },
   async headers() {

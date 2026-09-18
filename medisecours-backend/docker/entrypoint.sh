@@ -159,9 +159,13 @@ if [ "${BOOTSTRAP_REFERENCE_DATA:-1}" = "1" ]; then
     if ! php bin/console app:bootstrap-reference-data \
         --no-interaction \
         --catalog-version="${REFERENCE_DATA_VERSION:-2026-08-07.1}"; then
-        echo "ERROR: Reference data bootstrap failed."
-        stop_server
-        exit 1
+        if [ "${STRICT_REFERENCE_DATA_BOOTSTRAP:-0}" = "1" ]; then
+            echo "ERROR: Reference data bootstrap failed and STRICT_REFERENCE_DATA_BOOTSTRAP=1."
+            stop_server
+            exit 1
+        fi
+        echo "WARNING: Reference data bootstrap failed; keeping the API online."
+        echo "         Run app:bootstrap-reference-data manually after fixing the catalogue/database issue."
     fi
 else
     echo "==> Reference data bootstrap disabled."

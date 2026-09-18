@@ -109,14 +109,12 @@ class CentreDeSante
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private ?string $region = null;
 
-    #[ORM\Column]
-    #[Assert\NotBlank(message: 'La latitude est obligatoire')]
+    #[ORM\Column(nullable: true)]
     #[Assert\Range(min: -90, max: 90)]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private ?float $latitude = null;
 
-    #[ORM\Column]
-    #[Assert\NotBlank(message: 'La longitude est obligatoire')]
+    #[ORM\Column(nullable: true)]
     #[Assert\Range(min: -180, max: 180)]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private ?float $longitude = null;

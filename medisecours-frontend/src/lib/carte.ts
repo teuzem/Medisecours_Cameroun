@@ -108,6 +108,7 @@ export const FACILITY_COLORS: Record<EtablissementType, string> = {
 /** i18n keys — chaque type possède une clé `visitor.carte.type.<type>` */
 export const FACILITY_TYPES: EtablissementType[] = [
   'hopital_general',
+  'hopital_de_district',
   'chu',
   'cma',
   'csi',

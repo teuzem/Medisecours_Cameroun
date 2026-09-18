@@ -27,6 +27,9 @@ import {
   User,
 } from 'lucide-react'
 import AuthLayout from '../../components/auth/AuthLayout'
+import EstablishmentSelector, {
+  type EstablishmentChoice,
+} from '../../components/auth/EstablishmentSelector'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { destinationForUser } from '../../lib/auth-routing'
@@ -106,6 +109,7 @@ export default function RegisterPage() {
   const [pieceIdentite, setPieceIdentite] = useState<File | null>(null)
   const [pieceIdentiteVerso, setPieceIdentiteVerso] = useState<File | null>(null)
   const [photoVerification, setPhotoVerification] = useState<File | null>(null)
+  const [establishmentChoice, setEstablishmentChoice] = useState<EstablishmentChoice | null>(null)
   const { register, loginWithGoogle } = useAuth()
   const { t } = useTranslation()
   const toast = useToast()
@@ -195,8 +199,20 @@ export default function RegisterPage() {
       }
     }
 
-    if (type === 'etablissement' && form.etablissementNom.trim().length < 2) {
-      nextErrors.etablissementNom = t('visitor.register.errEstablishmentName')
+    if (type === 'etablissement') {
+      if (!establishmentChoice) {
+        nextErrors.etablissementNom = t('visitor.register.errEstablishmentSelection')
+      } else if (establishmentChoice.mode === 'manual') {
+        const manual = establishmentChoice.establishment
+        if (
+          manual.nom.trim().length < 2 ||
+          manual.adresse.trim().length < 5 ||
+          manual.ville.trim().length < 2 ||
+          !manual.region
+        ) {
+          nextErrors.etablissementNom = t('visitor.register.errManualEstablishment')
+        }
+      }
     }
 
     if (!isValidPhone(form.telephone)) {
@@ -281,7 +297,20 @@ export default function RegisterPage() {
             ? {
                 ...common,
                 telephone: form.telephone.trim(),
-                etablissementNom: form.etablissementNom.trim(),
+                etablissementNom: establishmentChoice?.mode === 'existing'
+                  ? establishmentChoice.centre.nom
+                  : establishmentChoice?.establishment.nom.trim(),
+                etablissementId: establishmentChoice?.mode === 'existing'
+                  ? establishmentChoice.centre.id
+                  : undefined,
+                etablissementManuel: establishmentChoice?.mode === 'manual'
+                  ? {
+                      ...establishmentChoice.establishment,
+                      nom: establishmentChoice.establishment.nom.trim(),
+                      adresse: establishmentChoice.establishment.adresse.trim(),
+                      ville: establishmentChoice.establishment.ville.trim(),
+                    }
+                  : undefined,
                 fonction: form.fonction.trim(),
               }
             : (() => {
@@ -684,17 +713,23 @@ export default function RegisterPage() {
                   hint={t('visitor.register.establishmentNameHint')}
                   required
                 >
-                  <div className="relative">
-                    <Building2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      value={form.etablissementNom}
-                      onChange={setField('etablissementNom')}
-                      onBlur={() => validateField('etablissementNom')}
-                      aria-invalid={Boolean(errors.etablissementNom)}
-                      className={`${inputClass} pl-10`}
-                      placeholder={t('visitor.register.establishmentNamePlaceholder')}
-                    />
-                  </div>
+                  <EstablishmentSelector
+                    value={establishmentChoice}
+                    error={errors.etablissementNom}
+                    inputClass={inputClass}
+                    onChange={(choice) => {
+                      setEstablishmentChoice(choice)
+                      setForm((current) => ({
+                        ...current,
+                        etablissementNom: choice?.mode === 'existing'
+                          ? choice.centre.nom
+                          : choice?.establishment.nom ?? '',
+                      }))
+                      if (errors.etablissementNom) {
+                        setErrors((current) => ({ ...current, etablissementNom: undefined }))
+                      }
+                    }}
+                  />
                 </Field>
                 <Field
                   label={t('visitor.register.establishmentRoleLabel')}
@@ -728,7 +763,7 @@ export default function RegisterPage() {
                 </Field>
                 <p className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] leading-5 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  {t('visitor.register.establishmentClaimNote')}
+                  {t('visitor.register.establishmentRegistrationNote')}
                 </p>
               </>
             ) : (

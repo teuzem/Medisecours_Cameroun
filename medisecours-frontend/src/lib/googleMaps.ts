@@ -1,112 +1,181 @@
 'use client'
 
-/**
- * Intégration "Carte Santé" — fournisseur de cartographie.
- *
- * Défaut : Google Maps via le proxy officiel de la plateforme Frontend Forge
- * (intégration Manus) ou, à défaut, via une clé Google Maps directe.
- * Repli : Leaflet (aucune clé configurée / services Google indisponibles) —
- * l'application reste 100 % fonctionnelle sans interrompre les services.
- */
-
 export type MapProvider = 'google' | 'leaflet'
-
 export type GoogleMapKind = 'forge' | 'google'
 
 export interface MapProviderConfig {
   kind: GoogleMapKind
-  /** URL du script Google Maps à injecter. */
   scriptUrl: string
-  /** Fournisseur "source" pour l'information utilisateur. */
   displayName: string
 }
 
-const DEFAULT_FORGE_BASE_URL = 'https://forge.butterfly-effect.dev'
+export interface GoogleMapsLoadResult {
+  loaded: boolean
+  displayName: string | null
+  kind: GoogleMapKind | null
+  probeReason: string | null
+}
 
-// Valeurs NEXT_PUBLIC_* inlinées par Next.js au build du client, avec repli
-// sur les noms exacts du projet de référence Manus (VITE_FRONTEND_FORGE_API_*).
+declare global {
+  interface Window {
+    gm_authFailure?: () => void
+  }
+}
+
+const DEFAULT_FORGE_BASE_URL = 'https://forge.butterfly-effect.dev'
 const FORGE_KEY =
-  process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_KEY || process.env.VITE_FRONTEND_FORGE_API_KEY || ''
+  process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_KEY ||
+  process.env.VITE_FRONTEND_FORGE_API_KEY ||
+  process.env.NEXT_PUBLIC_BUILT_IN_FORGE_API_KEY ||
+  process.env.BUILT_IN_FORGE_API_KEY ||
+  ''
 const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
 const FORGE_BASE_URL =
   process.env.NEXT_PUBLIC_FRONTEND_FORGE_API_URL ||
   process.env.VITE_FRONTEND_FORGE_API_URL ||
+  process.env.NEXT_PUBLIC_BUILT_IN_FORGE_API_URL ||
+  process.env.BUILT_IN_FORGE_API_URL ||
   DEFAULT_FORGE_BASE_URL
-
-// Liste exacte du composant Map.tsx du projet de référence Manus.
 const LIBRARIES = 'marker,places,geocoding,geometry'
+const FORGE_DISPLAY_NAME = 'Google Maps (Frontend Forge)'
+const GOOGLE_DISPLAY_NAME = 'Google Maps'
 
-/** Résolution du fournisseur depuis les variables d'environnement (build). */
-export function getMapProviderConfig(): MapProviderConfig | null {
+export function getMapProviderConfigs(): MapProviderConfig[] {
+  const configs: MapProviderConfig[] = []
+
   if (FORGE_KEY) {
-    return {
+    configs.push({
       kind: 'forge',
       scriptUrl: `${FORGE_BASE_URL}/v1/maps/proxy/maps/api/js?key=${encodeURIComponent(FORGE_KEY)}&v=weekly&libraries=${LIBRARIES}`,
-      displayName: 'Google Maps (Frontend Forge)',
-    }
+      displayName: FORGE_DISPLAY_NAME,
+    })
   }
 
   if (GOOGLE_KEY) {
-    return {
+    configs.push({
       kind: 'google',
       scriptUrl: `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GOOGLE_KEY)}&v=weekly&libraries=${LIBRARIES}`,
-      displayName: 'Google Maps',
-    }
+      displayName: GOOGLE_DISPLAY_NAME,
+    })
   }
 
-  return null
+  return configs
 }
 
-let loadPromise: Promise<boolean> | null = null
-let loaded = false
+export function getMapProviderConfig(): MapProviderConfig | null {
+  return getMapProviderConfigs()[0] ?? null
+}
 
-/** Charge le script Google Maps une seule fois (singleton). */
-export function loadGoogleMaps(): Promise<boolean> {
-  if (loaded) return Promise.resolve(true)
-  if (loadPromise) return loadPromise
+let loadPromise: Promise<GoogleMapsLoadResult> | null = null
+let loadedConfig: MapProviderConfig | null = null
 
-  loadPromise = new Promise<boolean>((resolve) => {
-    const config = getMapProviderConfig()
-    if (!config) {
-      // Diagnostic : les NEXT_PUBLIC_* ne sont inlinés qu'au build, une clé
-      // ajoutée après coup dans l'environnement du conteneur est invisible.
-      console.warn(
-        '[googleMaps] Aucune clé Google Maps inlinée au build -> repli Leaflet. ' +
-          'Vérifier NEXT_PUBLIC_FRONTEND_FORGE_API_KEY (ou VITE_FRONTEND_FORGE_API_KEY) ' +
-          'dans les VARIABLES DE BUILD (pas seulement l\'environnement runtime).',
-      )
-      resolve(false)
-      return
-    }
-
-    let scriptHost = '?'
-    try {
-      scriptHost = new URL(config.scriptUrl).host
-    } catch {
-      // URL invalide : le chargement tombera en erreur => repli Leaflet.
-    }
-    console.info(`[googleMaps] Google Maps activé (${config.displayName}) via ${scriptHost}.`)
-
+function loadScript(src: string): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    let settled = false
+    const previousAuthFailure = window.gm_authFailure
     const script = document.createElement('script')
-    script.src = config.scriptUrl
+    const timeout = window.setTimeout(() => finish(false), 20_000)
+
+    function finish(success: boolean) {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timeout)
+      window.gm_authFailure = previousAuthFailure
+      script.remove()
+      resolve(success)
+    }
+
+    script.src = src
     script.async = true
     script.crossOrigin = 'anonymous'
-    script.onload = () => {
-      loaded = true
-      script.remove()
-      resolve(true)
+    window.gm_authFailure = () => {
+      console.error('[googleMaps] Google Maps authentication failed.')
+      finish(false)
     }
-    script.onerror = () => {
-      console.error('[googleMaps] Impossible de charger le script Google Maps — repli Leaflet.')
-      script.remove()
-      resolve(false)
+    script.onload = async () => {
+      try {
+        if (!window.google?.maps) {
+          finish(false)
+          return
+        }
+        await Promise.all([
+          window.google.maps.importLibrary('maps'),
+          window.google.maps.importLibrary('marker'),
+          window.google.maps.importLibrary('places'),
+          window.google.maps.importLibrary('geocoding'),
+          window.google.maps.importLibrary('geometry'),
+        ])
+        finish(Boolean(window.google.maps.Map && window.google.maps.marker?.AdvancedMarkerElement))
+      } catch (error) {
+        console.error('[googleMaps] Google libraries failed to initialize.', error)
+        finish(false)
+      }
     }
+    script.onerror = () => finish(false)
     document.head.appendChild(script)
   })
+}
+
+async function probeScriptUrl(src: string): Promise<string> {
+  try {
+    const response = await fetch(src, { method: 'GET', cache: 'no-store' })
+    const body = await response.text()
+    const snippet = body
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 140)
+    return snippet ? `HTTP ${response.status} - ${snippet}` : `HTTP ${response.status}`
+  } catch (error) {
+    const cause = error instanceof Error ? error.message : String(error)
+    return `network response blocked (${cause})`
+  }
+}
+
+export function loadGoogleMaps(): Promise<GoogleMapsLoadResult> {
+  if (loadedConfig) {
+    return Promise.resolve({
+      loaded: true,
+      displayName: loadedConfig.displayName,
+      kind: loadedConfig.kind,
+      probeReason: null,
+    })
+  }
+  if (loadPromise) return loadPromise
+
+  loadPromise = (async () => {
+    const configs = getMapProviderConfigs()
+    if (configs.length === 0) {
+      console.warn(
+        '[googleMaps] No Google Maps key was embedded at build time. ' +
+          'Set NEXT_PUBLIC_FRONTEND_FORGE_API_KEY or VITE_FRONTEND_FORGE_API_KEY as a build variable.',
+      )
+      return { loaded: false, displayName: null, kind: null, probeReason: null }
+    }
+
+    for (const config of configs) {
+      console.info(`[googleMaps] Loading ${config.displayName}.`)
+      if (await loadScript(config.scriptUrl)) {
+        loadedConfig = config
+        return {
+          loaded: true,
+          displayName: config.displayName,
+          kind: config.kind,
+          probeReason: null,
+        }
+      }
+    }
+
+    const last = configs[configs.length - 1]
+    const probeReason = await probeScriptUrl(last.scriptUrl)
+    console.error(`[googleMaps] Failed to load ${last.displayName}: ${probeReason}.`)
+    loadPromise = null
+    return { loaded: false, displayName: null, kind: null, probeReason }
+  })()
 
   return loadPromise
 }
 
 export function isGoogleMapsLoaded(): boolean {
-  return loaded || Boolean(typeof window !== 'undefined' && window.google?.maps)
+  return Boolean(loadedConfig || (typeof window !== 'undefined' && window.google?.maps))
 }

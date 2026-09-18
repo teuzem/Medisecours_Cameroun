@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\CentreDeSante;
+use App\Entity\EtablissementEquipe;
 use App\Entity\EtablissementManager;
 use App\Entity\Medecin;
 use App\Entity\Patient;
@@ -271,14 +273,6 @@ class JWTController extends AbstractController
         }
 
         if ($user instanceof EtablissementManager) {
-            $etablissementNom = trim((string) ($data['etablissementNom'] ?? ''));
-            if ($etablissementNom === '') {
-                return new JsonResponse([
-                    'error' => 'Le nom de l’établissement est obligatoire.',
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-            $user->setEtablissementNom($etablissementNom);
-
             $fonction = trim((string) ($data['fonction'] ?? ''));
             if ($fonction !== '') {
                 $user->setFonction($fonction);
@@ -336,8 +330,105 @@ class JWTController extends AbstractController
             }
         }
 
-        $entityManager->persist($user);
-        $entityManager->flush();
+        $centre = null;
+        if ($user instanceof EtablissementManager) {
+            $centreId = filter_var($data['etablissementId'] ?? null, FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1],
+            ]);
+            $manual = $data['etablissementManuel'] ?? null;
+
+            if ($centreId !== false && $centreId !== null) {
+                $centre = $entityManager->getRepository(CentreDeSante::class)->find($centreId);
+                if (!$centre instanceof CentreDeSante) {
+                    return new JsonResponse([
+                        'error' => 'L’établissement sélectionné n’existe plus. Relancez la recherche.',
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
+                $user->setEtablissementNom($centre->getNom());
+            } elseif (is_array($manual)) {
+                $manualName = trim((string) ($manual['nom'] ?? ''));
+                $manualType = trim((string) ($manual['type'] ?? ''));
+                $manualAddress = trim((string) ($manual['adresse'] ?? ''));
+                $manualCity = trim((string) ($manual['ville'] ?? ''));
+                $manualRegion = trim((string) ($manual['region'] ?? ''));
+                $allowedTypes = [
+                    'hopital_general',
+                    'hopital_de_district',
+                    'chu',
+                    'cma',
+                    'csi',
+                    'clinique_privee',
+                    'pharmacie',
+                    'laboratoire',
+                    'centre_specialise',
+                ];
+                $allowedRegions = [
+                    'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
+                    'Nord', 'Nord-Ouest', 'Ouest', 'Sud', 'Sud-Ouest',
+                ];
+
+                if (
+                    mb_strlen($manualName) < 2
+                    || mb_strlen($manualAddress) < 5
+                    || mb_strlen($manualCity) < 2
+                    || !in_array($manualType, $allowedTypes, true)
+                    || !in_array($manualRegion, $allowedRegions, true)
+                ) {
+                    return new JsonResponse([
+                        'error' => 'Les informations de l’établissement ajouté manuellement sont incomplètes ou invalides.',
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
+
+                $centre = (new CentreDeSante())
+                    ->setNom(mb_substr($manualName, 0, 255))
+                    ->setType($manualType)
+                    ->setAdresse(mb_substr($manualAddress, 0, 255))
+                    ->setVille(mb_substr($manualCity, 0, 100))
+                    ->setRegion($manualRegion)
+                    ->setTelephone($user->getTelephone())
+                    ->setHoraires('Horaires à confirmer auprès de l’établissement')
+                    ->setSpecialites([])
+                    ->setServices([])
+                    ->setStatut('prive')
+                    ->setVerificationStatut('EN_COURS')
+                    ->setSource('manuel')
+                    ->setEstActif(true)
+                    ->setUrgences24h(false);
+                $user->setEtablissementNom($centre->getNom());
+            } else {
+                return new JsonResponse([
+                    'error' => 'Sélectionnez un établissement existant ou ajoutez-le manuellement.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        }
+
+        $connection = $entityManager->getConnection();
+        $connection->beginTransaction();
+        try {
+            $entityManager->persist($user);
+            if ($centre instanceof CentreDeSante) {
+                $entityManager->persist($centre);
+
+                $membership = (new EtablissementEquipe())
+                    ->setEtablissement($centre)
+                    ->setUser($user)
+                    ->setRole('DIRECTEUR')
+                    ->setStatut('ACTIF')
+                    ->setInvitePar($user)
+                    ->setUpdatedAt(new \DateTimeImmutable());
+                $entityManager->persist($membership);
+            }
+            $entityManager->flush();
+            $connection->commit();
+        } catch (\Throwable) {
+            if ($connection->isTransactionActive()) {
+                $connection->rollBack();
+            }
+
+            return new JsonResponse([
+                'error' => 'Impossible de finaliser l’inscription pour le moment.',
+            ], Response::HTTP_SERVICE_UNAVAILABLE);
+        }
 
         // Envoyer l'email de vérification (non bloquant si le mailer est indisponible)
         try {

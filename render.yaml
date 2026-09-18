@@ -35,8 +35,12 @@ services:
         value: "10000"
       - key: DATABASE_URL
         sync: false
+      - key: SKIP_MIGRATIONS
+        value: "0"
       - key: BOOTSTRAP_REFERENCE_DATA
         value: "1"
+      - key: STRICT_REFERENCE_DATA_BOOTSTRAP
+        value: "0"
       - key: REFERENCE_DATA_VERSION
         value: "2026-08-07.1"
       - key: JWT_SECRET_KEY

@@ -137,6 +137,7 @@ export default function GoogleCarteMap({
     const map = new window.google.maps.Map(containerRef.current, {
       zoom: DEFAULT_ZOOM,
       center: CAMEROUN_CENTER,
+      mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
       mapTypeId: 'roadmap',
       fullscreenControl: true,
       mapTypeControl: false,

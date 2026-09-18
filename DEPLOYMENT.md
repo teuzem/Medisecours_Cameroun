@@ -217,8 +217,8 @@ GOOGLE_CLIENT_ID=<your OAuth client id - optional>
    2. waits for Postgres and **runs all 55 Doctrine migrations**,
    3. caches Symfony, boots nginx+php-fpm,
    4. **boots the medical catalog** (`app:bootstrap-reference-data`) and
-      **fails the deploy** if volumes are wrong (≥200 diseases, exactly 200
-      patient-visible, ≥500 first-aid sheet protocols),
+      logs a warning if volumes are wrong (the API remains online; set
+      `STRICT_REFERENCE_DATA_BOOTSTRAP=1` when a hard failure is required),
    5. verifies `https://api.medisecours.batirlepays.com/api/health` → `200`.
 
 > Optional first-boot admin: add `CREATE_ADMIN_EMAIL` + `CREATE_ADMIN_PASSWORD`

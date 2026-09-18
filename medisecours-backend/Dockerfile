@@ -99,7 +99,7 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 10000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=5 \
-  CMD curl -fsS http://127.0.0.1:10000/api/health >/dev/null 2>&1 || exit 1
+  CMD-SHELL curl -fsS "http://127.0.0.1:$${PORT:-10000}/api/health" >/dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

@@ -51,7 +51,9 @@ services:
       TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
       DEFAULT_URI: ${DEFAULT_URI:-https://api.medisecours.batirlepays.com}
       DATABASE_URL: ${DATABASE_URL:?set in .env}
+      SKIP_MIGRATIONS: ${SKIP_MIGRATIONS:-0}
       BOOTSTRAP_REFERENCE_DATA: ${BOOTSTRAP_REFERENCE_DATA:-1}
+      STRICT_REFERENCE_DATA_BOOTSTRAP: ${STRICT_REFERENCE_DATA_BOOTSTRAP:-0}
       REFERENCE_DATA_VERSION: ${REFERENCE_DATA_VERSION:-2026-08-07.1}
       CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?set in .env}
       FRONTEND_URL: ${FRONTEND_URL:-https://medisecours.batirlepays.com}
@@ -113,6 +115,8 @@ services:
         VITE_FRONTEND_FORGE_API_KEY: ${VITE_FRONTEND_FORGE_API_KEY:-}
         VITE_FRONTEND_FORGE_API_URL: ${VITE_FRONTEND_FORGE_API_URL:-https://forge.butterfly-effect.dev}
         NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+        NEXT_PUBLIC_BUILT_IN_FORGE_API_KEY: ${NEXT_PUBLIC_BUILT_IN_FORGE_API_KEY:-${BUILT_IN_FORGE_API_KEY:-}}
+        NEXT_PUBLIC_BUILT_IN_FORGE_API_URL: ${NEXT_PUBLIC_BUILT_IN_FORGE_API_URL:-${BUILT_IN_FORGE_API_URL:-https://forge.butterfly-effect.dev}}
     container_name: medisecours-frontend
     restart: unless-stopped
     depends_on:
