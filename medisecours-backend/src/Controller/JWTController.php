@@ -84,7 +84,7 @@ class JWTController extends AbstractController
             return new JsonResponse(['error' => 'Votre compte est désactivé.'], Response::HTTP_FORBIDDEN);
         }
 
-        if (!$user->isEmailVerified()) {
+        if (!$user->isEmailVerified() && $user->getEmailVerificationToken() !== 'delivery_unavailable') {
             return new JsonResponse([
                 'error' => 'Confirmez votre adresse email avant de vous connecter.',
             ], Response::HTTP_FORBIDDEN);
@@ -141,7 +141,7 @@ class JWTController extends AbstractController
             || !$user
             || $user->isBanni()
             || !$user->isActif()
-            || !$user->isEmailVerified()
+            || (!$user->isEmailVerified() && $user->getEmailVerificationToken() !== 'delivery_unavailable')
             || ($user instanceof Medecin && !$user->isEstValide())
         ) {
             $response = new JsonResponse(['error' => 'Session expirée.'], Response::HTTP_UNAUTHORIZED);

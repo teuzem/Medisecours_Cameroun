@@ -55,7 +55,11 @@ class EmailVerificationService
                 'email'   => $user->getEmail(),
                 'message' => $e->getMessage(),
             ]);
-            throw $e;
+            $user->setEmailVerificationToken('delivery_unavailable');
+            $user->setEmailVerificationTokenExpiresAt(null);
+            $this->logger->warning('Compte créé sans validation email après échec du transport.', [
+                'email' => $user->getEmail(),
+            ]);
         }
     }
 
