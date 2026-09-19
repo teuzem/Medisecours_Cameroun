@@ -41,7 +41,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Get(normalizationContext: ['groups' => ['suggestion_etablissement:read']]),
         new Post(
-            security: "is_granted('ROLE_USER')",
+            security: "true",
             processor: SuggestionEtablissementProcessor::class,
             normalizationContext: ['groups' => ['suggestion_etablissement:read']]
         ),

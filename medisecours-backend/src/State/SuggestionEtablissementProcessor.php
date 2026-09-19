@@ -10,7 +10,6 @@ use App\Entity\SuggestionEtablissement;
 use App\Entity\User;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Soumission d'une suggestion de correction d'établissement.
@@ -32,11 +31,7 @@ class SuggestionEtablissementProcessor implements ProcessorInterface
     {
         if ($data instanceof SuggestionEtablissement) {
             $user = $this->security->getUser();
-            if (!$user instanceof User) {
-                throw new AccessDeniedHttpException('Un compte est requis pour proposer une correction.');
-            }
-
-            $data->setUser($user);
+            $data->setUser($user instanceof User ? $user : null);
             $data->setStatut('EN_ATTENTE');
             $data->setUpdatedAt(new \DateTimeImmutable());
         }

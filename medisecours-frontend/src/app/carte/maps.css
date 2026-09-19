@@ -24,10 +24,10 @@
 .maps-rail button[aria-pressed="true"] { color: var(--maps-blue); }
 .maps-rail-collapsed { transform: translateX(-100%); pointer-events: none; }
 .maps-rail-close, .maps-rail-open {
-  position: absolute; left: 60px; top: 92px; z-index: 940; display: grid; place-items: center;
+  position: absolute; left: 86px; top: 18px; z-index: 960; display: grid; place-items: center;
   width: 28px; height: 28px; border: 1px solid #dadce0; border-radius: 50%; background: #fff; color: #5f6368;
 }
-.maps-rail-open { left: 8px; }
+.maps-rail-open { left: 12px; top: 18px; }
 .maps-panel {
   position: absolute; left: 72px; top: 76px; bottom: 0; width: 408px; z-index: 850;
   overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
@@ -147,6 +147,11 @@
 .maps-dialog { width: min(560px, 100%); max-height: 90dvh; overflow: auto; background: #fff; border-radius: 8px; padding: 24px; }
 .maps-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .maps-dialog h2 { font-size: 20px; font-weight: 400; overflow-wrap: anywhere; }
+.maps-dialog-subtitle { margin-top: 4px; color: #5f6368; font-size: 12px; }
+.maps-field-label { display: flex; flex-direction: column; gap: 7px; margin-top: 16px; color: #3c4043; font-size: 13px; }
+.maps-field-label select, .maps-field-label textarea { width: 100%; border: 1px solid #dadce0; border-radius: 4px; background: #fff; padding: 10px 12px; color: #202124; font-size: 14px; }
+.maps-field-label textarea { min-height: 90px; resize: vertical; }
+.maps-suggestion-note { margin-top: 14px; color: #5f6368; font-size: 12px; line-height: 1.5; }
 .maps-dialog button { background: transparent; color: var(--maps-blue); padding: 8px; }
 .maps-review-stars { display: flex; justify-content: center; gap: 10px; padding: 16px 0 24px; }
 .maps-review-stars button { color: #e8a117; padding: 3px; }

@@ -52,6 +52,11 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [collectionName, setCollectionName] = useState('')
   const [nearbyOnly, setNearbyOnly] = useState(false)
   const [noticeOpen, setNoticeOpen] = useState(false)
+  const [suggestionOpen, setSuggestionOpen] = useState(false)
+  const [suggestionField, setSuggestionField] = useState('adresse')
+  const [suggestionValue, setSuggestionValue] = useState('')
+  const [suggestionComment, setSuggestionComment] = useState('')
+  const [suggestionSending, setSuggestionSending] = useState(false)
   const selected = props.visibleCentres.find(centre => centre.id === props.selectedId)
   const { data: detail, error: detailError } = useSWR<FicheCentre>(selected ? `/api/centre_de_santes/${selected.id}/fiche` : null)
   const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(selected ? `/api/avis_etablissements?etablissement=${selected.id}` : null)
@@ -141,6 +146,26 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     } catch (cause: any) { toast.error(cause?.response?.data?.error ?? 'Impossible de publier cet avis. Veuillez reessayer.') }
     finally { setSending(false) }
   }
+  const submitSuggestion = async () => {
+    if (!selected || !suggestionValue.trim() || suggestionSending) return
+    setSuggestionSending(true)
+    try {
+      await api.post('/api/suggestion_etablissements', {
+        etablissement: `/api/centre_de_santes/${selected.id}`,
+        champ: suggestionField,
+        valeurProposee: suggestionValue.trim(),
+        commentaire: suggestionComment.trim() || null,
+      })
+      setSuggestionOpen(false)
+      setSuggestionValue('')
+      setSuggestionComment('')
+      toast.success('Votre suggestion a ete transmise pour verification.')
+    } catch (cause: any) {
+      toast.error(cause?.response?.data?.detail ?? 'Impossible de transmettre la suggestion.')
+    } finally {
+      setSuggestionSending(false)
+    }
+  }
   const acceptReviewFiles = (incoming: File[]) => {
     if (incoming.length > 5 || incoming.some(file => file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) {
       toast.error('Maximum 5 images JPEG, PNG ou WebP de 2 Mo chacune.')
@@ -183,7 +208,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
           <Action icon={<Share2 size={20} />} onClick={() => void share()}>Partager</Action>
         </div>}
         {tab === 'presentation' && <div className="maps-actions">
-          <button type="button" onClick={() => { setTab('about'); toast.info('Vous pouvez proposer une correction depuis le tableau de bord.') }}><MapPin size={18} />Suggérer une correction</button>
+          <Action icon={<MapPin size={20} />} onClick={() => setSuggestionOpen(true)}>Suggérer</Action>
           <Action icon={<FolderPlus size={20} />} onClick={() => setCollectionOpen(true)}>Collection</Action>
           <Action icon={<Phone size={20} />} onClick={() => { if (facility.telephone) window.location.href = `tel:${facility.telephone}` }} disabled={!facility.telephone}>Appeler</Action>
           <Action icon={<Phone size={20} />} tone="danger" onClick={props.onSosClick}>SOS</Action>
@@ -218,6 +243,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       </>}
     </aside>}
     {composer && facility && <div className="maps-modal-backdrop" onClick={() => !sending && setComposer(false)}><form className="maps-dialog" role="dialog" aria-modal="true" aria-label="Rediger un avis" onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submit() }}><header><h2>{facility.nom}</h2><button type="button" disabled={sending} onClick={() => setComposer(false)} aria-label="Fermer"><X size={22} /></button></header><div className="maps-review-stars" role="group" aria-label="Note">{[1, 2, 3, 4, 5].map(star => <button type="button" key={star} aria-label={`${star} etoiles`} aria-pressed={note === star} onClick={() => setNote(star)}><Star size={34} fill={star <= note ? 'currentColor' : 'none'} /></button>)}</div><textarea autoFocus value={comment} minLength={5} maxLength={2000} onChange={event => setComment(event.target.value)} placeholder="Partagez votre experience" aria-label="Votre avis" /><label className={`maps-upload maps-dropzone ${dragActive ? 'is-dragging' : ''}`} onDragEnter={event => { event.preventDefault(); setDragActive(true) }} onDragOver={event => event.preventDefault()} onDragLeave={() => setDragActive(false)} onDrop={event => { event.preventDefault(); setDragActive(false); acceptReviewFiles(Array.from(event.dataTransfer.files)) }}><span className="maps-dropzone-icon"><ImageIcon size={25} /></span><strong>{dragActive ? 'Deposez vos images ici' : 'Ajouter des photos'}</strong><small>Glissez-deposez ou cliquez pour parcourir · 5 images maximum · 2 Mo par image</small><input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={event => { acceptReviewFiles(Array.from(event.target.files ?? [])); event.target.value = '' }} /></label>{files.length > 0 && <div className="maps-upload-grid">{files.map((file, index) => <figure key={`${file.name}-${index}`}><img src={filePreviews[index]} alt={`Apercu ${file.name}`} /><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={`Retirer ${file.name}`}><X size={16} /></button></figure>)}</div>}<ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span></li>)}</ul><footer><button type="button" disabled={sending} onClick={() => setComposer(false)}>Annuler</button><button type="submit" disabled={!note || sending}>{sending ? 'Publication...' : 'Publier'}</button></footer></form></div>}
+    {suggestionOpen && facility && <div className="maps-modal-backdrop" onClick={() => !suggestionSending && setSuggestionOpen(false)}><form className="maps-dialog maps-suggestion-dialog" role="dialog" aria-modal="true" aria-label="Suggérer une correction" onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submitSuggestion() }}><header><div><h2>Suggérer une correction</h2><p className="maps-dialog-subtitle">{facility.nom}</p></div><button type="button" disabled={suggestionSending} onClick={() => setSuggestionOpen(false)} aria-label="Fermer"><X size={22} /></button></header><label className="maps-field-label">Élément à corriger<select value={suggestionField} onChange={event => setSuggestionField(event.target.value)}><option value="adresse">Adresse</option><option value="ville">Ville</option><option value="region">Région</option><option value="telephone">Téléphone</option><option value="horaires">Horaires</option><option value="services">Services</option><option value="description">Description</option><option value="siteWeb">Site web</option><option value="autre">Autre</option></select></label><label className="maps-field-label">Valeur proposée<textarea required minLength={2} maxLength={2000} value={suggestionValue} onChange={event => setSuggestionValue(event.target.value)} placeholder="Décrivez la correction à apporter" /></label><label className="maps-field-label">Précisions (facultatif)<textarea maxLength={1200} value={suggestionComment} onChange={event => setSuggestionComment(event.target.value)} placeholder="Ajoutez une source ou un contexte utile" /></label><p className="maps-suggestion-note">Votre suggestion sera vérifiée avant publication. Aucun compte n'est nécessaire.</p><footer><button type="button" disabled={suggestionSending} onClick={() => setSuggestionOpen(false)}>Annuler</button><button type="submit" disabled={suggestionSending || suggestionValue.trim().length < 2}>{suggestionSending ? 'Envoi...' : 'Envoyer la suggestion'}</button></footer></form></div>}
     {collectionOpen && facility && <div className="maps-modal-backdrop"><section className="maps-dialog" role="dialog" aria-modal="true" aria-label="Collections"><header><h2>Enregistrer dans une collection</h2><button type="button" onClick={() => setCollectionOpen(false)} aria-label="Fermer"><X size={20} /></button></header>{collections.map(collection => <div className="maps-collection" key={collection.id}><label><input type="checkbox" checked={collection.places.includes(facility.id)} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, places: event.target.checked ? [...item.places, facility.id] : item.places.filter(id => id !== facility.id) }))} />{collection.name}</label><input value={collection.note} placeholder="Note privee" aria-label={`Note pour ${collection.name}`} maxLength={600} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, note: event.target.value }))} /><button type="button" onClick={() => saveCollections(collections.filter(item => item.id !== collection.id))}>Supprimer</button></div>)}<form onSubmit={event => { event.preventDefault(); if (!collectionName.trim()) return; saveCollections([...collections, { id: crypto.randomUUID(), name: collectionName.trim(), places: [facility.id], note: '' }]); setCollectionName('') }}><input required maxLength={80} value={collectionName} onChange={event => setCollectionName(event.target.value)} placeholder="Nom de la collection" aria-label="Nom de la collection" /><button type="submit">Creer</button></form></section></div>}
   </>
 }
