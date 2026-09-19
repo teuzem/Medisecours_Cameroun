@@ -465,7 +465,7 @@ export default function CartePage() {
 
       <div className="maps-search-shell">
         <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-slate-950/95">
-          <button type="button" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
+          <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label="Ouvrir le menu" className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
           <input
             value={searchQuery}
             onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true) }}
@@ -508,10 +508,10 @@ export default function CartePage() {
         </div>
       {menuOpen && (
         <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
-          <aside className="maps-offcanvas" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
+          <aside id="maps-navigation-menu" className="maps-offcanvas" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
             <div className="maps-menu-brand"><div className="maps-menu-wordmark"><strong>MediSecours</strong><span>Maps Sante</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X className="h-5 w-5" /></button></div>
             <div className="maps-menu-top-actions">
-              <button type="button" onClick={() => { setRailOpen(current => !current); setMenuOpen(false) }} className="maps-menu-link"><Menu className="h-5 w-5" />Afficher le panneau lateral</button>
+              <button type="button" onClick={() => { setRailOpen(true); setMenuOpen(false) }} className="maps-menu-link"><Menu className="h-5 w-5" />Afficher le panneau lateral</button>
               <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('explore'); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
             </div>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('saved'); setMenuOpen(false) }} className="maps-menu-link"><Bookmark className="h-5 w-5" />Enregistres</button>
