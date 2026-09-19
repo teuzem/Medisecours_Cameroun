@@ -7,8 +7,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
   Bike,
+  Bell,
   Building2,
   Car,
+  ClipboardList,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -22,6 +24,7 @@ import {
   Stethoscope,
   MapPin,
   Menu,
+  MessageCircle,
   Navigation,
   RefreshCw,
   Route,
@@ -103,7 +106,7 @@ const MODE_META: Record<WayfindingMode, { icon: typeof Car; key: string }> = {
 export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isMedecin, isEtablissement } = useAuth()
   const { position, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
   const { provider, state: providerState } = useMapProvider()
 
@@ -471,16 +474,17 @@ export default function CartePage() {
       {menuOpen && (
         <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
           <aside className="h-full w-[min(340px,88vw)] overflow-y-auto border-r border-slate-200 bg-white p-4" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
-            <div className="mb-5 flex items-center justify-between"><span className="text-lg font-medium text-slate-800">MediSecours Maps</span><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu" className="grid h-10 w-10 place-items-center rounded-full hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
-            <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false) }} className="flex w-full items-center gap-3 border-b border-slate-100 py-4 text-sm text-slate-700"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
+            <div className="maps-menu-brand"><img src="/brand/medisecours-logo.png" alt="MediSecours" /><div><strong>MediSecours</strong><span>Maps Sante</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X className="h-5 w-5" /></button></div>
+            <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
             <nav className="flex flex-col">
-              {[
-                ['Mon profil', isAuthenticated ? '/profil' : '/login'],
-                ['Trouver un medecin', '/medecins'],
-                ['Messages', '/messages'],
-                ['Ajouter un etablissement', '/register'],
-                ['Espace etablissement', '/espace-etablissement'],
-              ].map(([label, href]) => <a key={href} href={href} className="border-b border-slate-100 py-4 text-sm text-slate-700 hover:text-blue-600">{label}</a>)}
+              {([
+                [UserCircle, 'Mon profil', isAuthenticated ? '/profil' : '/login'],
+                [Stethoscope, 'Trouver un medecin', '/medecins'],
+                [MessageCircle, 'Messages', '/messages'],
+                [Bell, 'Notifications', '/notifications'],
+                [ClipboardList, 'Mes consultations', '/patient/consultations'],
+                [ClipboardList, 'Mes prescriptions', '/patient/prescriptions'],
+              ] as const).filter(([, , href]) => href === '/profil' || href === '/login' || (!isMedecin && !isEtablissement)).map(([Icon, label, href]) => <a key={href} href={href} className="maps-menu-link"><Icon className="h-5 w-5" />{label}</a>)}
             </nav>
           </aside>
         </div>
@@ -498,7 +502,8 @@ export default function CartePage() {
       </div>
 
       <div className="maps-brand">
-        MediSecours Maps
+        <img src="/brand/medisecours-logo.png" alt="" aria-hidden="true" />
+        <span>MediSecours <b>Maps</b></span>
       </div>
       {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label="Fermer le panneau lateral"><ChevronLeft size={18} /></button>}
       {!railOpen && <button type="button" className="maps-rail-open" onClick={() => setRailOpen(true)} aria-label="Afficher le panneau lateral"><ChevronRight size={18} /></button>}

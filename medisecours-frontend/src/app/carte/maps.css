@@ -75,6 +75,14 @@
   border-radius: 0; background: transparent; border-color: var(--maps-line);
 }
 .maps-gallery-section { border-top: 1px solid var(--maps-line); padding-top: 20px; margin-top: 20px; }
+.maps-about-facts { border-top: 1px solid var(--maps-line); padding-top: 18px; }
+.maps-fact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.maps-fact-grid > div { display: flex; flex-direction: column; gap: 3px; padding: 10px; border: 1px solid #edf0f2; border-radius: 6px; }
+.maps-fact-grid strong, .maps-fact-list > strong { font-size: 11px; font-weight: 600; color: #5f6368; }
+.maps-fact-grid span { font-size: 12px; line-height: 1.45; color: #3c4043; }
+.maps-fact-list { margin-top: 14px; }
+.maps-fact-list > div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.maps-fact-list span { border: 1px solid #dadce0; border-radius: 14px; padding: 5px 9px; color: #3c4043; font-size: 11px; }
 .maps-results-heading { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 12px; }
 .maps-results-heading h1 { font-size: 20px; font-weight: 400; }
 .maps-results-heading button { background: transparent; width: 32px; height: 32px; display: grid; place-items: center; }
@@ -137,6 +145,12 @@
 .maps-review-stars button { color: #e8a117; padding: 3px; }
 .maps-dialog textarea { width: 100%; min-height: 150px; border: 1px solid #dadce0; border-radius: 4px; padding: 12px; font-size: 14px; resize: vertical; }
 .maps-upload { display: block; margin: 16px 0; color: var(--maps-blue); font-size: 13px; }
+.maps-upload input { display: none; }
+.maps-dropzone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 142px; margin: 18px 0; padding: 20px; border: 1px dashed #a8c7fa; border-radius: 10px; background: #f8fbff; color: #1967d2; text-align: center; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.maps-dropzone:hover, .maps-dropzone.is-dragging { border-color: var(--maps-blue); background: #e8f0fe; }
+.maps-dropzone strong { font-size: 14px; font-weight: 600; }
+.maps-dropzone small { max-width: 300px; color: #5f6368; font-size: 11px; line-height: 1.5; }
+.maps-dropzone-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #d2e3fc; color: #1967d2; }
 .maps-upload input { display: block; margin-top: 10px; max-width: 100%; }
 .maps-upload-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
 .maps-upload-grid figure { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 6px; background: #f1f3f4; }
@@ -159,7 +173,18 @@
 .maps-categories button { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; border: 1px solid #dadce0; border-radius: 20px; padding: 8px 13px; background: #fff; font-size: 12px; color: #3c4043; }
 .maps-categories button[aria-pressed="true"] { border-color: var(--maps-blue); color: #1967d2; background: #e8f0fe; }
 .maps-category-arrow { display: grid; flex: 0 0 30px; place-items: center; width: 30px; height: 30px; border: 1px solid #dadce0; border-radius: 50%; background: #fff; color: #5f6368; }
-.maps-brand { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 650; font-size: 20px; color: #3c4043; pointer-events: none; }
+.maps-brand { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 650; display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; color: #3c4043; pointer-events: none; white-space: nowrap; }
+.maps-brand img { width: 28px; height: 28px; object-fit: contain; }
+.maps-brand b { color: var(--maps-blue); font-weight: 700; }
+.maps-menu-brand { display: flex; align-items: center; gap: 10px; padding: 4px 0 18px; border-bottom: 1px solid var(--maps-line); }
+.maps-menu-brand img { width: 38px; height: 38px; object-fit: contain; }
+.maps-menu-brand > div { display: flex; flex: 1; flex-direction: column; }
+.maps-menu-brand strong { font-size: 17px; color: #1a73e8; }
+.maps-menu-brand span { font-size: 11px; color: #5f6368; }
+.maps-menu-brand button { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: transparent; color: #5f6368; }
+.maps-menu-link { display: flex; align-items: center; gap: 13px; width: 100%; padding: 14px 4px; border-bottom: 1px solid #f1f3f4; background: transparent; color: #3c4043; font-size: 14px; text-align: left; }
+.maps-menu-link svg { color: var(--maps-blue); flex-shrink: 0; }
+.maps-menu-link:hover { background: #f8f9fa; color: var(--maps-blue); }
 .maps-map-status { position: absolute; bottom: 64px; left: 84px; z-index: 650; background: #fff; border: 1px solid #dadce0; padding: 12px; max-width: 300px; font-size: 13px; }
 .maps-map-status button { display: inline-flex; align-items: center; gap: 8px; color: var(--maps-blue); margin-left: 10px; }
 .medisecours-map .leaflet-control-zoom { margin-bottom: 80px !important; }
@@ -185,6 +210,7 @@
   .maps-panel { left: 0; right: 0; top: 128px; bottom: 58px; width: auto; }
   .maps-cover { height: 200px; }
   .maps-brand { font-size: 16px; bottom: 76px; }
+  .maps-brand img { width: 24px; height: 24px; }
   .maps-map-status { left: 12px; bottom: 110px; }
   .maps-layer-control { bottom: 76px; left: 12px; }
   .maps-layer-control-open { display: none; }

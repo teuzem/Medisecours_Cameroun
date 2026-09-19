@@ -34,6 +34,16 @@ export interface CarteCentre {
   images?: EtablissementMedia[]
   specialites?: string[] | string
   services?: string[] | string
+  equipements?: string[] | string
+  accessibilite?: string[] | string
+  accesRoute?: string | null
+  parking?: string | null
+  langues?: string[] | string
+  paiement?: string[] | string
+  assurance?: string[] | string
+  teleconsultation?: boolean
+  priseRendezVous?: boolean
+  urgence?: string | null
   urgences24h?: boolean
   distance?: number | null
   noteMoyenne?: number

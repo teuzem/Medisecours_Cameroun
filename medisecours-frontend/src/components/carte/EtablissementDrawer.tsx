@@ -273,6 +273,14 @@ export function FicheInfos({
   const { t } = useTranslation()
   const services = getServicesList(fiche)
   const specialites = getSpecialitesList(fiche)
+  const listValue = (value: unknown): string[] => Array.isArray(value)
+    ? value.map(String).filter(Boolean)
+    : typeof value === 'string' ? value.split(',').map(item => item.trim()).filter(Boolean) : []
+  const equipements = listValue(fiche.equipements)
+  const accessibilite = listValue(fiche.accessibilite)
+  const langues = listValue(fiche.langues)
+  const paiement = listValue(fiche.paiement)
+  const assurance = listValue(fiche.assurance)
 
   const rows = [
     { key: 'address', icon: MapPin, value: fiche.adresse, extra: [fiche.quartier, fiche.ville, fiche.region].filter(Boolean).join(', ') },
@@ -337,6 +345,24 @@ export function FicheInfos({
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {(equipements.length > 0 || accessibilite.length > 0 || fiche.accesRoute || fiche.parking || langues.length > 0 || paiement.length > 0 || assurance.length > 0 || fiche.teleconsultation || fiche.priseRendezVous || fiche.urgence) && (
+        <div className="maps-about-facts">
+          <p className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-100">Informations pratiques</p>
+          <div className="maps-fact-grid">
+            {fiche.accesRoute && <div><strong>Acces routier</strong><span>{fiche.accesRoute}</span></div>}
+            {fiche.parking && <div><strong>Stationnement</strong><span>{fiche.parking}</span></div>}
+            {fiche.urgence && <div><strong>Urgences</strong><span>{fiche.urgence}</span></div>}
+            {fiche.teleconsultation && <div><strong>Teleconsultation</strong><span>Disponible</span></div>}
+            {fiche.priseRendezVous && <div><strong>Rendez-vous</strong><span>Prise de rendez-vous disponible</span></div>}
+          </div>
+          {equipements.length > 0 && <div className="maps-fact-list"><strong>Equipements</strong><div>{equipements.map(item => <span key={item}>{item}</span>)}</div></div>}
+          {accessibilite.length > 0 && <div className="maps-fact-list"><strong>Accessibilite</strong><div>{accessibilite.map(item => <span key={item}>{item}</span>)}</div></div>}
+          {langues.length > 0 && <div className="maps-fact-list"><strong>Langues</strong><div>{langues.map(item => <span key={item}>{item}</span>)}</div></div>}
+          {paiement.length > 0 && <div className="maps-fact-list"><strong>Paiement</strong><div>{paiement.map(item => <span key={item}>{item}</span>)}</div></div>}
+          {assurance.length > 0 && <div className="maps-fact-list"><strong>Assurances</strong><div>{assurance.map(item => <span key={item}>{item}</span>)}</div></div>}
         </div>
       )}
 
