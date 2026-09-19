@@ -207,9 +207,9 @@
 .maps-menu-brand strong { font-size: 17px; color: #1a73e8; }
 .maps-menu-brand span { font-size: 11px; color: #5f6368; }
 .maps-menu-brand button { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: transparent; color: #5f6368; }
-.maps-menu-link { display: flex; align-items: center; gap: 13px; width: 100%; padding: 14px 4px; border-bottom: 1px solid #f1f3f4; background: transparent; color: #3c4043; font-size: 14px; text-align: left; }
+.maps-menu-link { display: flex; align-items: center; gap: 13px; width: 100%; min-height: 44px; padding: 10px 8px; border: 0; border-radius: 8px; background: transparent; color: #3c4043; font-size: 14px; text-align: left; transition: background .15s ease, color .15s ease; }
 .maps-menu-link svg { color: var(--maps-blue); flex-shrink: 0; }
-.maps-menu-link:hover { background: #f8f9fa; color: var(--maps-blue); }
+.maps-menu-link:hover, .maps-menu-link:focus-visible { background: #f1f3f4; color: var(--maps-blue); }
 .maps-map-status { position: absolute; bottom: 64px; left: 84px; z-index: 650; background: #fff; border: 1px solid #dadce0; padding: 12px; max-width: 300px; font-size: 13px; }
 .maps-map-status button { display: inline-flex; align-items: center; gap: 8px; color: var(--maps-blue); margin-left: 10px; }
 .medisecours-map .leaflet-control-zoom { margin-bottom: 80px !important; }

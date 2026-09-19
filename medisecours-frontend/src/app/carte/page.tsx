@@ -9,24 +9,32 @@ import {
   Activity,
   Bike,
   Bell,
+  Bookmark,
   Building2,
   Car,
   ClipboardList,
   ChevronLeft,
   ChevronRight,
   Clock,
+  Database,
   Footprints,
   Loader2,
   Layers,
   LocateFixed,
   FlaskConical,
+  HelpCircle,
+  History,
+  Languages,
   Hospital,
   Pill,
+  Printer,
+  Share2,
   Stethoscope,
   MapPin,
   Menu,
   MessageCircle,
   Navigation,
+  PanelLeft,
   RefreshCw,
   Route,
   Search,
@@ -132,6 +140,31 @@ export default function CartePage() {
   const [recentIds, setRecentIds] = useState<number[]>(() => readRecentCentres())
   const remoteFilterActive = useRef(false)
   const sharedCentreHandled = useRef(false)
+
+  const shareMap = useCallback(async () => {
+    const url = window.location.href
+    try {
+      if (navigator.share) await navigator.share({ title: 'MediSecours Maps', text: 'Carte des etablissements de sante', url })
+      else { await navigator.clipboard.writeText(url); toast.success('Lien de la carte copie.') }
+    } catch (cause) {
+      if ((cause as Error).name !== 'AbortError') toast.error('Le partage est indisponible.')
+    }
+  }, [toast])
+
+  const sharePosition = useCallback(async () => {
+    if (!position) {
+      locate()
+      toast.info('Autorisez votre position puis relancez le partage.')
+      return
+    }
+    const url = `https://www.google.com/maps?q=${position.lat},${position.lng}`
+    try {
+      if (navigator.share) await navigator.share({ title: 'Ma position', text: 'Ma position MediSecours Maps', url })
+      else { await navigator.clipboard.writeText(url); toast.success('Lien de position copie.') }
+    } catch (cause) {
+      if ((cause as Error).name !== 'AbortError') toast.error('Le partage de position est indisponible.')
+    }
+  }, [locate, position, toast])
 
   // ── Favoris (localStorage) ────────────────────────────────────────────────
 
@@ -478,7 +511,20 @@ export default function CartePage() {
         <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
           <aside className="maps-offcanvas" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
             <div className="maps-menu-brand"><div className="maps-menu-wordmark"><strong>MediSecours</strong><span>Maps Sante</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X className="h-5 w-5" /></button></div>
-            <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
+            <button type="button" onClick={() => { setRailOpen(current => !current); setMenuOpen(false) }} className="maps-menu-link"><PanelLeft className="h-5 w-5" />Afficher le panneau lateral</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('saved'); setMenuOpen(false) }} className="maps-menu-link"><Bookmark className="h-5 w-5" />Enregistres</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><History className="h-5 w-5" />Recents</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false); toast.info('Ouvrez une fiche puis utilisez Suggérer pour envoyer une contribution.') }} className="maps-menu-link"><MessageCircle className="h-5 w-5" />Vos contributions</button>
+            <button type="button" onClick={() => { void sharePosition(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />Partager votre position</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Route className="h-5 w-5" />Vos trajets</button>
+            <a href={isAuthenticated ? '/profil' : '/login'} onClick={() => setMenuOpen(false)} className="maps-menu-link"><Database className="h-5 w-5" />Vos donnees</a>
+            <button type="button" onClick={() => { void shareMap(); setMenuOpen(false) }} className="maps-menu-link"><Share2 className="h-5 w-5" />Partager la carte ou integrer</button>
+            <button type="button" onClick={() => { window.print(); setMenuOpen(false) }} className="maps-menu-link"><Printer className="h-5 w-5" />Imprimer</button>
+            <button type="button" onClick={() => { void locate(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />Ajouter une position precise</button>
+            <a href="/guide-utilisation" onClick={() => setMenuOpen(false)} className="maps-menu-link"><HelpCircle className="h-5 w-5" />Obtenir de l'aide</a>
+            <button type="button" onClick={() => { toast.info('La langue suit les preferences de votre compte.'); setMenuOpen(false) }} className="maps-menu-link"><Languages className="h-5 w-5" />Langue</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Clock className="h-5 w-5" />Historique MediSecours Maps</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('explore'); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
             <nav className="flex flex-col">
               {([
                 [UserCircle, 'Mon profil', isAuthenticated ? '/profil' : '/login'],
