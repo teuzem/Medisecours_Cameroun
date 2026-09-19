@@ -70,6 +70,9 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false)
   }, [props.selectedId])
   useEffect(() => {
+    setNoticeOpen(false)
+  }, [props.selectedId, tab])
+  useEffect(() => {
     const urls = files.map(file => URL.createObjectURL(file))
     setFilePreviews(urls)
     return () => urls.forEach(url => URL.revokeObjectURL(url))

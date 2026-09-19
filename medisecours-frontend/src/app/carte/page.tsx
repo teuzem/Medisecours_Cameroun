@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
+  Activity,
   Bike,
   Bell,
   Building2,
@@ -475,8 +476,8 @@ export default function CartePage() {
         </div>
       {menuOpen && (
         <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
-          <aside className="h-full w-[min(340px,88vw)] overflow-y-auto border-r border-slate-200 bg-white p-4" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
-            <div className="maps-menu-brand"><img src="/brand/medisecours-logo.png" alt="MediSecours" /><div><strong>MediSecours</strong><span>Maps Sante</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X className="h-5 w-5" /></button></div>
+          <aside className="maps-offcanvas" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
+            <div className="maps-menu-brand"><div className="maps-menu-wordmark"><strong>MediSecours</strong><span>Maps Sante</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X className="h-5 w-5" /></button></div>
             <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
             <nav className="flex flex-col">
               {([
@@ -486,6 +487,8 @@ export default function CartePage() {
                 [Bell, 'Notifications', '/notifications'],
                 [ClipboardList, 'Mes consultations', '/patient/consultations'],
                 [ClipboardList, 'Mes prescriptions', '/patient/prescriptions'],
+                [Activity, 'Premiers soins', '/premiers-soins'],
+                [Building2, 'Explorer les categories', '/categories'],
               ] as const).filter(([, , href]) => href === '/profil' || href === '/login' || (!isMedecin && !isEtablissement)).map(([Icon, label, href]) => <a key={href} href={href} className="maps-menu-link"><Icon className="h-5 w-5" />{label}</a>)}
             </nav>
           </aside>
