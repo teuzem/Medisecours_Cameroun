@@ -34,7 +34,6 @@ import {
   Menu,
   MessageCircle,
   Navigation,
-  PanelLeft,
   RefreshCw,
   Route,
   Search,
@@ -511,7 +510,10 @@ export default function CartePage() {
         <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
           <aside className="maps-offcanvas" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
             <div className="maps-menu-brand"><div className="maps-menu-wordmark"><strong>MediSecours</strong><span>Maps Sante</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X className="h-5 w-5" /></button></div>
-            <button type="button" onClick={() => { setRailOpen(current => !current); setMenuOpen(false) }} className="maps-menu-link"><PanelLeft className="h-5 w-5" />Afficher le panneau lateral</button>
+            <div className="maps-menu-top-actions">
+              <button type="button" onClick={() => { setRailOpen(current => !current); setMenuOpen(false) }} className="maps-menu-link"><Menu className="h-5 w-5" />Afficher le panneau lateral</button>
+              <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('explore'); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
+            </div>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('saved'); setMenuOpen(false) }} className="maps-menu-link"><Bookmark className="h-5 w-5" />Enregistres</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><History className="h-5 w-5" />Recents</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false); toast.info('Ouvrez une fiche puis utilisez Suggérer pour envoyer une contribution.') }} className="maps-menu-link"><MessageCircle className="h-5 w-5" />Vos contributions</button>
@@ -524,7 +526,6 @@ export default function CartePage() {
             <a href="/guide-utilisation" onClick={() => setMenuOpen(false)} className="maps-menu-link"><HelpCircle className="h-5 w-5" />Obtenir de l'aide</a>
             <button type="button" onClick={() => { toast.info('La langue suit les preferences de votre compte.'); setMenuOpen(false) }} className="maps-menu-link"><Languages className="h-5 w-5" />Langue</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Clock className="h-5 w-5" />Historique MediSecours Maps</button>
-            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('explore'); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
             <nav className="flex flex-col">
               {([
                 [UserCircle, 'Mon profil', isAuthenticated ? '/profil' : '/login'],

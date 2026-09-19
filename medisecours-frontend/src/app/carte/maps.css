@@ -111,7 +111,7 @@
 .maps-rating-bar progress::-webkit-progress-bar { background: #f1f3f4; border-radius: 4px; }
 .maps-rating-bar progress::-webkit-progress-value { background: #fbbc04; border-radius: 4px; }
 .maps-rating-bar progress::-moz-progress-bar { background: #fbbc04; border-radius: 4px; }
-.maps-review-summary > div:last-child { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.maps-review-summary > div:nth-child(2) { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .maps-review-summary strong { font-size: 40px; font-weight: 400; line-height: 1.2; }
 .maps-review-summary p { font-size: 12px; color: #5f6368; }
 .maps-outline-command {
@@ -122,7 +122,7 @@
 .maps-review-tools { display: flex; flex-wrap: wrap; gap: 12px; padding: 22px 0 14px; }
 .maps-review-tools label { display: flex; align-items: center; gap: 8px; width: 100%; border-bottom: 1px solid #dadce0; padding-bottom: 8px; }
 .maps-review-tools input { width: 100%; min-width: 0; outline: none; background: transparent; font-size: 13px; }
-.maps-review-tools select { background: transparent; font-size: 13px; color: #3c4043; padding: 8px 0; }
+.maps-review-tools select { min-height: 36px; border: 1px solid #dadce0; border-radius: 18px; background: #fff; font-size: 13px; color: #3c4043; padding: 7px 30px 7px 12px; }
 .maps-review { border-top: 1px solid var(--maps-line); padding: 20px 0; font-size: 14px; }
 .maps-reviews { padding-top: 8px; }
 .maps-review-dialog { width: min(520px, 100%); padding: 28px; }
@@ -204,8 +204,10 @@
 .maps-brand { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 650; display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; color: #3c4043; pointer-events: none; white-space: nowrap; }
 .maps-brand img { width: 28px; height: 28px; object-fit: contain; }
 .maps-brand b { color: var(--maps-blue); font-weight: 700; }
-.maps-menu-brand { display: flex; align-items: center; gap: 10px; padding: 4px 0 18px; border-bottom: 1px solid var(--maps-line); }
+.maps-menu-brand { display: flex; align-items: center; gap: 10px; padding: 4px 0 14px; border-bottom: 1px solid var(--maps-line); }
 .maps-offcanvas { height: 100%; width: min(320px, 88vw); overflow-y: auto; border-right: 1px solid #e5e7eb; background: #fff; padding: 16px; }
+.maps-menu-top-actions { display: grid; gap: 2px; margin: 10px 0 8px; }
+.maps-menu-top-actions .maps-menu-link { min-height: 46px; font-weight: 500; }
 .maps-menu-brand > div { display: flex; flex: 1; flex-direction: column; }
 .maps-menu-wordmark strong { font-size: 21px; letter-spacing: -.02em; color: #1a73e8; }
 .maps-menu-wordmark span { font-size: 11px; color: #5f6368; letter-spacing: .08em; text-transform: uppercase; }
@@ -215,6 +217,7 @@
 .maps-menu-link { display: flex; align-items: center; gap: 13px; width: 100%; min-height: 44px; padding: 10px 8px; border: 0; border-radius: 8px; background: transparent; color: #3c4043; font-size: 14px; text-align: left; transition: background .15s ease, color .15s ease; }
 .maps-menu-link svg { color: var(--maps-blue); flex-shrink: 0; }
 .maps-menu-link:hover, .maps-menu-link:focus-visible { background: #f1f3f4; color: var(--maps-blue); }
+.maps-menu-link:focus-visible { outline: 2px solid #8ab4f8; outline-offset: -2px; }
 .maps-map-status { position: absolute; bottom: 64px; left: 84px; z-index: 650; background: #fff; border: 1px solid #dadce0; padding: 12px; max-width: 300px; font-size: 13px; }
 .maps-map-status button { display: inline-flex; align-items: center; gap: 8px; color: var(--maps-blue); margin-left: 10px; }
 .medisecours-map .leaflet-control-zoom { margin-bottom: 80px !important; }
@@ -263,4 +266,7 @@
   .maps-review-tools select { width: 100%; border: 1px solid #dadce0; padding: 8px 10px; }
   .maps-dialog footer { flex-wrap: wrap; gap: 8px; }
   .maps-dialog footer button { flex: 1 1 120px; }
+  .maps-offcanvas { width: min(320px, calc(100vw - 20px)); padding: 14px 12px; }
+  .maps-menu-brand { padding-inline: 4px; }
+  .maps-menu-top-actions { margin-top: 8px; }
 }
