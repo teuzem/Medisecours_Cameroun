@@ -489,28 +489,28 @@ export default function EtablissementEspacePage() {
   }
 
   return (
-    <div style={{ ['--accent' as never]: accent }}>
-      <div className="min-h-[calc(100dvh-76px)] w-full bg-slate-50 dark:bg-slate-950 xl:min-h-[calc(100dvh-96px)]">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 xl:py-10">
+    <div className="etablissement-dashboard overflow-x-hidden" style={{ ['--accent' as never]: accent }}>
+      <div className="min-h-[calc(100dvh-76px)] w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 xl:min-h-[calc(100dvh-96px)]">
+        <div className="mx-auto w-full max-w-6xl min-w-0 px-3 py-4 sm:px-6 sm:py-6 xl:py-10">
           {/* ═══ En-tête ═══ */}
-          <header className="relative isolate overflow-hidden rounded-2xl border border-white/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-slate-900/80 sm:p-8">
+          <header className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-slate-900/80 sm:p-8">
             <span
               className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full opacity-20 blur-3xl"
               style={{ backgroundColor: accent }}
             />
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                 <div
                   className="flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg"
                   style={{ backgroundColor: accent }}
                 >
                   <Building2 className="h-6 w-6" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     {t('etablissement.title')}
                   </p>
-                  <h1 className="font-display text-xl font-extrabold text-slate-900 dark:text-white sm:text-2xl">
+                  <h1 className="break-words font-display text-xl font-extrabold text-slate-900 dark:text-white sm:text-2xl">
                     {mon?.centre?.nom || user?.etablissementNom || t('etablissement.subtitle')}
                   </h1>
                   {mon?.centre && (
