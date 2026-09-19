@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Bookmark, ChevronLeft, Clock, FolderPlus, History, MapPin, MoreHorizontal, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
+import { Bookmark, ChevronLeft, Clock, ExternalLink, FolderPlus, History, MapPin, MoreHorizontal, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
 import useSWR, { mutate } from 'swr'
 import api from '../../api/axios'
 import { useAuth } from '../../hooks/useAuth'
@@ -31,7 +31,7 @@ function Action({ icon, children, onClick, active = false }: { icon: ReactNode; 
   return <button type="button" className="maps-action" onClick={onClick} aria-pressed={active}><span className={active ? 'maps-action-icon is-active' : 'maps-action-icon'}>{icon}</span><span>{children}</span></button>
 }
 
-export default function MapsPanel(props: EtablissementDrawerProps & { initialView: View; onViewChange: (view: View) => void }) {
+export default function MapsPanel(props: EtablissementDrawerProps & { initialView: View; onViewChange: (view: View) => void; railOpen?: boolean }) {
   const { user, isAuthenticated, isMedecin } = useAuth()
   const toast = useToast()
   const [tab, setTab] = useState<'presentation' | 'reviews' | 'about' | 'directions'>('presentation')
@@ -41,6 +41,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [note, setNote] = useState(0)
   const [comment, setComment] = useState('')
   const [files, setFiles] = useState<File[]>([])
+  const [filePreviews, setFilePreviews] = useState<string[]>([])
   const [sending, setSending] = useState(false)
   const [likes, setLikes] = useState<number[]>([])
   const [joining, setJoining] = useState(false)
@@ -66,6 +67,11 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   useEffect(() => {
     setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false)
   }, [props.selectedId])
+  useEffect(() => {
+    const urls = files.map(file => URL.createObjectURL(file))
+    setFilePreviews(urls)
+    return () => urls.forEach(url => URL.revokeObjectURL(url))
+  }, [files])
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(COLLECTION_KEY) ?? '[]')
@@ -149,7 +155,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const hasCoords = facility?.latitude != null && facility.longitude != null
 
   return <>
-    <nav className="maps-rail" aria-label="Mes lieux">
+    <nav className={`maps-rail ${props.railOpen === false ? 'maps-rail-collapsed' : ''}`} aria-label="Mes lieux">
       {([['explore', MapPin, 'Explorer'], ['saved', Bookmark, 'Enregistres'], ['recent', History, 'Recents']] as const).map(([view, Icon, label]) => <button type="button" key={view} onClick={() => { props.onBackToList(); props.onViewChange(view) }} aria-pressed={props.initialView === view}><Icon size={22} /><span>{label}</span></button>)}
     </nav>
     {props.open && <aside className="maps-panel" aria-label={facility?.nom ?? 'Etablissements'}>
@@ -157,17 +163,19 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         <div className="maps-cover"><MediaGallery centre={facility} compact /><button type="button" className="maps-cover-back" onClick={props.onBackToList} aria-label="Retour aux resultats"><ChevronLeft size={22} /></button><button type="button" className="maps-cover-close" onClick={props.onClose} aria-label="Fermer la fiche"><X size={20} /></button></div>
         <header className="maps-place-heading"><h1>{facility.nom}</h1><div className="maps-rating-line"><span>{mean.toFixed(1)}</span><Rating value={mean} /><button type="button" onClick={() => setTab('reviews')}>({total} avis)</button></div><p>{facility.type.replaceAll('_', ' ')}{facility.verificationStatut === 'VERIFIE' && <ShieldCheck size={15} aria-label="Verifie" />}</p></header>
         <div className="maps-tabs" role="tablist" aria-label="Fiche etablissement">{([['presentation', 'Presentation'], ['reviews', 'Avis'], ['about', 'A propos']] as const).map(([id, label]) => <button type="button" key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>)}</div>
-        <div className="maps-actions">
+        {tab === 'presentation' && <div className="maps-actions">
           <Action icon={<Navigation size={20} />} onClick={() => { props.onRequestDirections(); setTab('directions') }}>Itineraire</Action>
           <Action icon={<Bookmark size={20} />} active={props.favorites.includes(facility.id)} onClick={() => props.onToggleFavorite(facility.id)}>{props.favorites.includes(facility.id) ? 'Enregistre' : 'Enregistrer'}</Action>
           <Action icon={<MapPin size={20} />} active={nearbyOnly} onClick={() => { setNearbyOnly(true); props.onBackToList(); props.onViewChange('explore') }}>A proximite</Action>
           <Action icon={<Send size={20} />} onClick={() => { window.location.href = `sms:?body=${encodeURIComponent(`${facility.nom}\n${placeUrl()}`)}` }}>Telephone</Action>
           <Action icon={<Share2 size={20} />} onClick={() => void share()}>Partager</Action>
-        </div>
-        <details className="maps-more"><summary><MoreHorizontal size={18} />Autres actions</summary><div>
+        </div>}
+        <details className="maps-more"><summary><MoreHorizontal size={18} />Actions utiles</summary><div className="maps-more-actions">
           <button type="button" onClick={() => setCollectionOpen(true)}><FolderPlus size={18} />Ajouter a une collection</button>
           {facility.telephone && <a href={`tel:${facility.telephone}`}><Phone size={18} />Appeler</a>}
           <button type="button" onClick={props.onSosClick}><Phone size={18} />SOS urgence</button>
+          {facility.siteWeb && <a href={facility.siteWeb} target="_blank" rel="noopener noreferrer"><ExternalLink size={18} />Site web</a>}
+          <button type="button" onClick={() => { setTab('about'); toast.info('Vous pouvez proposer une correction depuis le tableau de bord.') }}><MapPin size={18} />Suggérer une correction</button>
         </div></details>
         {detailError && <p role="status" className="maps-inline-status">Les details complementaires ne sont pas disponibles.</p>}
         <section className="maps-panel-content" role="tabpanel">
@@ -201,7 +209,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       const selectedFiles = Array.from(event.target.files ?? [])
       if (selectedFiles.length > 5 || selectedFiles.some(file => file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) { event.target.value = ''; toast.error('Maximum 5 images JPEG, PNG ou WebP de 2 Mo chacune.'); return }
       setFiles(selectedFiles)
-    }} /></label><ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={`Retirer ${file.name}`}><X size={16} /></button></li>)}</ul><footer><button type="button" disabled={sending} onClick={() => setComposer(false)}>Annuler</button><button type="submit" disabled={!note || sending}>{sending ? 'Publication...' : 'Publier'}</button></footer></form></div>}
+    }} /></label>{files.length > 0 && <div className="maps-upload-grid">{files.map((file, index) => <figure key={`${file.name}-${index}`}><img src={filePreviews[index]} alt={`Apercu ${file.name}`} /><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={`Retirer ${file.name}`}><X size={16} /></button></figure>)}</div>}<ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span></li>)}</ul><footer><button type="button" disabled={sending} onClick={() => setComposer(false)}>Annuler</button><button type="submit" disabled={!note || sending}>{sending ? 'Publication...' : 'Publier'}</button></footer></form></div>}
     {collectionOpen && facility && <div className="maps-modal-backdrop"><section className="maps-dialog" role="dialog" aria-modal="true" aria-label="Collections"><header><h2>Enregistrer dans une collection</h2><button type="button" onClick={() => setCollectionOpen(false)} aria-label="Fermer"><X size={20} /></button></header>{collections.map(collection => <div className="maps-collection" key={collection.id}><label><input type="checkbox" checked={collection.places.includes(facility.id)} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, places: event.target.checked ? [...item.places, facility.id] : item.places.filter(id => id !== facility.id) }))} />{collection.name}</label><input value={collection.note} placeholder="Note privee" aria-label={`Note pour ${collection.name}`} maxLength={600} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, note: event.target.value }))} /><button type="button" onClick={() => saveCollections(collections.filter(item => item.id !== collection.id))}>Supprimer</button></div>)}<form onSubmit={event => { event.preventDefault(); if (!collectionName.trim()) return; saveCollections([...collections, { id: crypto.randomUUID(), name: collectionName.trim(), places: [facility.id], note: '' }]); setCollectionName('') }}><input required maxLength={80} value={collectionName} onChange={event => setCollectionName(event.target.value)} placeholder="Nom de la collection" aria-label="Nom de la collection" /><button type="submit">Creer</button></form></section></div>}
   </>
 }

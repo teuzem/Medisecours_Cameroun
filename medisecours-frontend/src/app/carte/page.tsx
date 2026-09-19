@@ -9,11 +9,17 @@ import {
   Bike,
   Building2,
   Car,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Footprints,
   Loader2,
   Layers,
   LocateFixed,
+  FlaskConical,
+  Hospital,
+  Pill,
+  Stethoscope,
   MapPin,
   Menu,
   Navigation,
@@ -111,6 +117,8 @@ export default function CartePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [layersOpen, setLayersOpen] = useState(false)
   const [satellite, setSatellite] = useState(false)
+  const [railOpen, setRailOpen] = useState(true)
+  const categoryRef = useRef<HTMLDivElement | null>(null)
   const [panelView, setPanelView] = useState<'explore' | 'saved' | 'recent'>('explore')
   const [mode, setMode] = useState<WayfindingMode>('driving')
   const [destination, setDestination] = useState<Destination | null>(null)
@@ -438,20 +446,27 @@ export default function CartePage() {
           )}
         </div>
       </div>
-        <div className="maps-categories" aria-label="Types d'etablissement">
-          <button type="button" onClick={() => setActiveType('all')} aria-pressed={activeType === 'all'}>
-            Tous
-          </button>
-          {FACILITY_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => setActiveType(type)}
-              aria-pressed={activeType === type}
-            >
-              {type.replaceAll('_', ' ')}
-            </button>
-          ))}
+        <div className="maps-categories-wrap">
+          <button type="button" className="maps-category-arrow" onClick={() => categoryRef.current?.scrollBy({ left: -260, behavior: 'smooth' })} aria-label="Voir les categories precedentes"><ChevronLeft size={18} /></button>
+          <div ref={categoryRef} className="maps-categories" aria-label="Types d'etablissement">
+            {([
+              ['all', 'Tous', MapPin],
+              ['hopital_general', 'Hopitaux', Hospital],
+              ['hopital_de_district', 'District', Hospital],
+              ['chu', 'CHU', Hospital],
+              ['cma', 'CMA', Stethoscope],
+              ['csi', 'CSI', Stethoscope],
+              ['clinique_privee', 'Cliniques', Stethoscope],
+              ['pharmacie', 'Pharmacies', Pill],
+              ['laboratoire', 'Laboratoires', FlaskConical],
+              ['centre_specialise', 'Specialises', Building2],
+            ] as const).map(([type, label, Icon]) => (
+              <button key={type} type="button" onClick={() => setActiveType(type as 'all' | EtablissementType)} aria-pressed={activeType === type} title={label}>
+                <Icon size={16} aria-hidden="true" /><span>{label}</span>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="maps-category-arrow" onClick={() => categoryRef.current?.scrollBy({ left: 260, behavior: 'smooth' })} aria-label="Voir les categories suivantes"><ChevronRight size={18} /></button>
         </div>
       {menuOpen && (
         <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
@@ -485,6 +500,8 @@ export default function CartePage() {
       <div className="maps-brand">
         MediSecours Maps
       </div>
+      {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label="Fermer le panneau lateral"><ChevronLeft size={18} /></button>}
+      {!railOpen && <button type="button" className="maps-rail-open" onClick={() => setRailOpen(true)} aria-label="Afficher le panneau lateral"><ChevronRight size={18} /></button>}
       <div className={`maps-layer-control ${drawerOpen ? 'maps-layer-control-open' : ''}`}>
         <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen(current => !current)}><Layers size={24} /><span>Calques</span></button>
         {layersOpen && <div role="group" aria-label="Fond de carte">
@@ -607,6 +624,7 @@ export default function CartePage() {
 
       {/* ═══ Panneau (liste / fiche) ═══ */}
       <MapsPanel
+        railOpen={railOpen}
         initialView={panelView}
         onViewChange={(view) => { setPanelView(view); setDrawerOpen(true) }}
         open={drawerOpen}
