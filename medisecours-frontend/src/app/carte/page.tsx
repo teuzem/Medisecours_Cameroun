@@ -455,8 +455,10 @@ export default function CartePage() {
             {([
               ['all', 'Tous', MapPin],
               ['hopital_general', 'Hopitaux', Hospital],
+              ['hopital_general', 'Regional', Hospital],
+              ['hopital_general', 'General', Hospital],
+              ['chu', 'Central', Hospital],
               ['hopital_de_district', 'District', Hospital],
-              ['chu', 'CHU', Hospital],
               ['cma', 'CMA', Stethoscope],
               ['csi', 'CSI', Stethoscope],
               ['clinique_privee', 'Cliniques', Stethoscope],
@@ -464,7 +466,7 @@ export default function CartePage() {
               ['laboratoire', 'Laboratoires', FlaskConical],
               ['centre_specialise', 'Specialises', Building2],
             ] as const).map(([type, label, Icon]) => (
-              <button key={type} type="button" onClick={() => setActiveType(type as 'all' | EtablissementType)} aria-pressed={activeType === type} title={label}>
+              <button key={`${type}-${label}`} type="button" onClick={() => setActiveType(type as 'all' | EtablissementType)} aria-pressed={activeType === type} title={label}>
                 <Icon size={16} aria-hidden="true" /><span>{label}</span>
               </button>
             ))}
@@ -505,7 +507,7 @@ export default function CartePage() {
         <img src="/brand/medisecours-logo.png" alt="" aria-hidden="true" />
         <span>MediSecours <b>Maps</b></span>
       </div>
-      {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label="Fermer le panneau lateral"><ChevronLeft size={18} /></button>}
+      {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label="Fermer le panneau lateral"><Menu size={18} /></button>}
       {!railOpen && <button type="button" className="maps-rail-open" onClick={() => setRailOpen(true)} aria-label="Afficher le panneau lateral"><ChevronRight size={18} /></button>}
       <div className={`maps-layer-control ${drawerOpen ? 'maps-layer-control-open' : ''}`}>
         <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen(current => !current)}><Layers size={24} /><span>Calques</span></button>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Bookmark, ChevronLeft, Clock, ExternalLink, FolderPlus, History, Image as ImageIcon, MapPin, MoreHorizontal, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
+import { Bookmark, ChevronLeft, Clock, ExternalLink, FolderPlus, History, Image as ImageIcon, Info, MapPin, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
 import useSWR, { mutate } from 'swr'
 import api from '../../api/axios'
 import { useAuth } from '../../hooks/useAuth'
@@ -27,8 +27,8 @@ function Rating({ value }: { value: number }) {
   return <span className="maps-stars" aria-label={`${value} sur 5`}>{[1, 2, 3, 4, 5].map(star => <Star key={star} size={14} fill={star <= Math.round(value) ? 'currentColor' : 'none'} />)}</span>
 }
 
-function Action({ icon, children, onClick, active = false }: { icon: ReactNode; children: ReactNode; onClick: () => void; active?: boolean }) {
-  return <button type="button" className="maps-action" onClick={onClick} aria-pressed={active}><span className={active ? 'maps-action-icon is-active' : 'maps-action-icon'}>{icon}</span><span>{children}</span></button>
+function Action({ icon, children, onClick, active = false, tone = 'default', disabled = false }: { icon: ReactNode; children: ReactNode; onClick: () => void; active?: boolean; tone?: 'default' | 'danger'; disabled?: boolean }) {
+  return <button type="button" className={`maps-action ${tone === 'danger' ? 'maps-action-danger' : ''}`} onClick={onClick} aria-pressed={active} disabled={disabled}><span className={active ? 'maps-action-icon is-active' : 'maps-action-icon'}>{icon}</span><span>{children}</span></button>
 }
 
 export default function MapsPanel(props: EtablissementDrawerProps & { initialView: View; onViewChange: (view: View) => void; railOpen?: boolean }) {
@@ -51,6 +51,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [collectionOpen, setCollectionOpen] = useState(false)
   const [collectionName, setCollectionName] = useState('')
   const [nearbyOnly, setNearbyOnly] = useState(false)
+  const [noticeOpen, setNoticeOpen] = useState(false)
   const selected = props.visibleCentres.find(centre => centre.id === props.selectedId)
   const { data: detail, error: detailError } = useSWR<FicheCentre>(selected ? `/api/centre_de_santes/${selected.id}/fiche` : null)
   const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(selected ? `/api/avis_etablissements?etablissement=${selected.id}` : null)
@@ -178,13 +179,13 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
           <Action icon={<Send size={20} />} onClick={() => { window.location.href = `sms:?body=${encodeURIComponent(`${facility.nom}\n${placeUrl()}`)}` }}>Telephone</Action>
           <Action icon={<Share2 size={20} />} onClick={() => void share()}>Partager</Action>
         </div>}
-        <details className="maps-more"><summary><MoreHorizontal size={18} />Actions utiles</summary><div className="maps-more-actions">
-          <button type="button" onClick={() => setCollectionOpen(true)}><FolderPlus size={18} />Ajouter a une collection</button>
-          {facility.telephone && <a href={`tel:${facility.telephone}`}><Phone size={18} />Appeler</a>}
-          <button type="button" onClick={props.onSosClick}><Phone size={18} />SOS urgence</button>
-          {facility.siteWeb && <a href={facility.siteWeb} target="_blank" rel="noopener noreferrer"><ExternalLink size={18} />Site web</a>}
+        {tab === 'presentation' && <div className="maps-actions">
           <button type="button" onClick={() => { setTab('about'); toast.info('Vous pouvez proposer une correction depuis le tableau de bord.') }}><MapPin size={18} />Suggérer une correction</button>
-        </div></details>
+          <Action icon={<FolderPlus size={20} />} onClick={() => setCollectionOpen(true)}>Collection</Action>
+          <Action icon={<Phone size={20} />} onClick={() => { if (facility.telephone) window.location.href = `tel:${facility.telephone}` }} disabled={!facility.telephone}>Appeler</Action>
+          <Action icon={<Phone size={20} />} tone="danger" onClick={props.onSosClick}>SOS</Action>
+          <Action icon={<ExternalLink size={20} />} onClick={() => { if (facility.siteWeb) window.open(facility.siteWeb, '_blank', 'noopener,noreferrer') }} disabled={!facility.siteWeb}>Site web</Action>
+        </div>}
         {detailError && <p role="status" className="maps-inline-status">Les details complementaires ne sont pas disponibles.</p>}
         <section className="maps-panel-content" role="tabpanel">
           {(tab === 'presentation' || tab === 'about') && <><FicheInfos fiche={facility as FicheCentre} isMedecin={isMedecin} medecinJoined={joined || Boolean(detail?.medecins?.some(medecin => String(medecin.medecinId) === String(user?.id)))} onJoin={() => void join()} joining={joining} />{tab === 'presentation' && <section className="maps-gallery-section"><h2>Photos et videos</h2><MediaGallery centre={facility} /></section>}</>}
@@ -198,7 +199,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             <div className="maps-external-links"><a href={toGoogleMapsUrl(facility)} target="_blank" rel="noopener noreferrer">Google Maps</a><a href={toWazeUrl(facility)} target="_blank" rel="noopener noreferrer">Waze</a>{props.routeActive && <button type="button" onClick={props.onClearRoute}>Effacer l'itineraire</button>}</div>
           </div>}
           {tab === 'reviews' && <div className="maps-reviews">
-            <div className="maps-review-summary"><div>{[5, 4, 3, 2, 1].map(star => <div className="maps-rating-bar" key={star}><span>{star}</span><progress max={Math.max(1, reviews.length)} value={reviews.filter(review => review.note === star).length} /></div>)}</div><div><strong>{mean.toFixed(1)}</strong><Rating value={mean} /><p>{total} avis</p></div></div>
+            <div className="maps-review-summary"><div>{[5, 4, 3, 2, 1].map(star => <div className="maps-rating-bar" key={star}><span>{star}</span><progress max={Math.max(1, reviews.length)} value={reviews.filter(review => review.note === star).length} /></div>)}</div><div><strong>{mean.toFixed(1)}</strong><Rating value={mean} /><p>{total} avis</p></div><div className="maps-review-notice"><button type="button" aria-expanded={noticeOpen} aria-controls="maps-review-notice-text" aria-label="A propos des avis" onClick={() => setNoticeOpen(current => !current)}><Info size={16} /></button>{noticeOpen && <p id="maps-review-notice-text" role="tooltip">Les avis publies sont moderes selon les regles de la plateforme. Les photos doivent representer une experience reelle de cet etablissement.</p>}</div></div>
             <button type="button" className="maps-outline-command" onClick={() => isAuthenticated ? setComposer(true) : window.location.assign('/login')}><Star size={18} />Rediger un avis</button>
             <div className="maps-review-tools"><label><Search size={17} /><input value={reviewSearch} onChange={event => setReviewSearch(event.target.value)} placeholder="Rechercher dans les avis" aria-label="Rechercher dans les avis" /></label><select aria-label="Trier les avis" value={sort} onChange={event => setSort(event.target.value)}><option value="recent">Les plus recents</option><option value="positive">Les plus favorables</option><option value="critical">Les plus critiques</option></select></div>
             {isLoading && <p role="status">Chargement des avis...</p>}
