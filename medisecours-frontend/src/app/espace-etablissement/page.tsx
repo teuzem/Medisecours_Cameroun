@@ -129,6 +129,14 @@ type Prefs = {
 }
 
 const ACCENTS = ['#059669', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706']
+const ACCENT_NAMES: Record<string, string> = {
+  '#059669': 'emerald',
+  '#4f46e5': 'indigo',
+  '#0284c7': 'sky',
+  '#7c3aed': 'violet',
+  '#e11d48': 'rose',
+  '#d97706': 'amber',
+}
 
 const TEAM_ROLES = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'LECTURE']
 
@@ -158,6 +166,18 @@ const TYPE_LABELS: Record<string, string> = {
   centre_specialise: 'Centre spécialisé',
 }
 
+const TYPE_TRANSLATION_KEYS: Record<string, string> = {
+  hopital_general: 'hopitalGeneral',
+  hopital_de_district: 'hopitalDistrict',
+  chu: 'chu',
+  cma: 'cma',
+  csi: 'csi',
+  clinique_privee: 'clinique',
+  pharmacie: 'pharmacie',
+  laboratoire: 'laboratoire',
+  centre_specialise: 'centreSpecialise',
+}
+
 const ROLE_TONE: Record<string, 'mint' | 'blue' | 'violet' | 'amber' | 'slate'> = {
   DIRECTEUR: 'violet',
   GESTIONNAIRE: 'blue',
@@ -167,9 +187,22 @@ const ROLE_TONE: Record<string, 'mint' | 'blue' | 'violet' | 'amber' | 'slate'> 
 }
 
 const PREFS_KEY = 'medisecours_etab_prefs'
+const PREFS_VERSION = 2
+
+type StoredPrefs = Prefs & { version: number }
 
 function defaultPrefs(): Prefs {
   return { accent: ACCENTS[0], showSos: true, compact: false, animations: true, surface: 'glass' }
+}
+
+function normalizePrefs(parsed: Partial<Prefs> | null | undefined): Prefs {
+  return {
+    accent: typeof parsed?.accent === 'string' && ACCENTS.includes(parsed.accent) ? parsed.accent : ACCENTS[0],
+    showSos: parsed?.showSos !== false,
+    compact: Boolean(parsed?.compact),
+    animations: parsed?.animations !== false,
+    surface: parsed?.surface === 'soft' ? 'soft' : 'glass',
+  }
 }
 
 function readPrefs(): Prefs {
@@ -177,14 +210,7 @@ function readPrefs(): Prefs {
   try {
     const raw = window.localStorage.getItem(PREFS_KEY)
     if (!raw) return defaultPrefs()
-    const parsed = JSON.parse(raw) as Partial<Prefs>
-    return {
-      accent: typeof parsed.accent === 'string' && ACCENTS.includes(parsed.accent) ? parsed.accent : ACCENTS[0],
-      showSos: parsed.showSos !== false,
-      compact: Boolean(parsed.compact),
-      animations: parsed.animations !== false,
-      surface: parsed.surface === 'soft' ? 'soft' : 'glass',
-    }
+    return normalizePrefs(JSON.parse(raw) as Partial<StoredPrefs>)
   } catch {
     return defaultPrefs()
   }
@@ -234,13 +260,33 @@ export default function EtablissementEspacePage() {
   const accent = prefs.accent
 
   const applyPrefs = useCallback((next: Prefs) => {
-    setPrefs(next)
+    const normalized = normalizePrefs(next)
+    setPrefs(normalized)
     try {
-      window.localStorage.setItem(PREFS_KEY, JSON.stringify(next))
+      const stored: StoredPrefs = { ...normalized, version: PREFS_VERSION }
+      window.localStorage.setItem(PREFS_KEY, JSON.stringify(stored))
     } catch {
       // stockage indisponible : on ignore
     }
   }, [])
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== PREFS_KEY || !event.newValue) return
+      try {
+        setPrefs(normalizePrefs(JSON.parse(event.newValue) as Partial<StoredPrefs>))
+      } catch {
+        // Ignore malformed values from another tab.
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  const resetPrefs = useCallback(() => {
+    applyPrefs(defaultPrefs())
+    toast.success(t('etablissement.settingsReset'))
+  }, [applyPrefs, t, toast])
 
   /* ── Chargement principal ─────────────────────────────────────────────── */
   const loadMonEtablissement = useCallback(() => {
@@ -570,7 +616,6 @@ export default function EtablissementEspacePage() {
               searching={searching}
               onSearch={runSearch}
               results={results}
-              typeLabels={TYPE_LABELS}
               claiming={claiming}
               claimedId={claimedId}
               onClaim={claim}
@@ -606,7 +651,7 @@ export default function EtablissementEspacePage() {
               />
               <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
               <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
-              <PersonalizationPanel prefs={prefs} onChange={applyPrefs} accent={accent} />
+              <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
             </div>
           ) : (
             <div className="mt-6 space-y-6">
@@ -634,7 +679,7 @@ export default function EtablissementEspacePage() {
               </div>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
-                <PersonalizationPanel prefs={prefs} onChange={applyPrefs} accent={accent} />
+                <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
               </div>
             </div>
           )}
@@ -754,7 +799,7 @@ function DashboardHeader({
   onRefresh: () => void
   onSync: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const centre = mon?.centre
   const verification = centre?.verificationStatut
 
@@ -842,7 +887,7 @@ function DashboardHeader({
           {lastSync ? (
             <span className="wdg-chip wdg-chip--mint">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              {t('etablissement.syncLast', { date: new Date(lastSync).toLocaleString() })}
+              {t('etablissement.syncLast', { date: new Date(lastSync).toLocaleString(i18n.language) })}
             </span>
           ) : (
             <span className="wdg-chip wdg-chip--slate">
@@ -1156,7 +1201,6 @@ function ClaimWizard({
   searching,
   onSearch,
   results,
-  typeLabels,
   claiming,
   claimedId,
   onClaim,
@@ -1168,13 +1212,12 @@ function ClaimWizard({
   searching: boolean
   onSearch: () => void
   results: CentreLite[]
-  typeLabels: Record<string, string>
   claiming: boolean
   claimedId: number | null
   onClaim: (id: number) => void
   isManager: boolean
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <GlassCard glow className="wdg-anim mt-6 p-6">
       <div className="flex items-center gap-3">
@@ -1235,7 +1278,9 @@ function ClaimWizard({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{centre.nom}</p>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  {typeLabels[centre.type] ?? centre.type}
+                  {t(`etablissement.types.${TYPE_TRANSLATION_KEYS[centre.type] ?? 'unknown'}`, {
+                    defaultValue: centre.type,
+                  })}
                   {centre.ville ? ` · ${centre.ville}` : ''}
                   {centre.region ? ` · ${centre.region}` : ''}
                 </p>
@@ -1367,7 +1412,7 @@ function TeamPanel({
                 <select
                   value={member.role}
                   onChange={(event) => onRoleChange(member, event.target.value)}
-                  aria-label="Rôle"
+                  aria-label={t('etablissement.roleSelectLabel')}
                   className="max-w-28 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 >
                   {TEAM_ROLES.map((role) => (
@@ -1390,7 +1435,7 @@ function TeamPanel({
                 <button
                   type="button"
                   onClick={() => onRemove(member)}
-                  aria-label={t('etablissement.mediaDeleteAlt')}
+                  aria-label={t('etablissement.removeMember')}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-300"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -1505,7 +1550,7 @@ function ReviewsPanel({
   moderatingId: number | null
   onModerate: (item: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const published = items.filter((item) => item.statut === 'PUBLIE').length
   const pending = items.filter((item) => item.statut === 'EN_ATTENTE').length
 
@@ -1540,7 +1585,7 @@ function ReviewsPanel({
                       {item.note}/5
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      {new Date(item.createdAt).toLocaleDateString()}
+                      {new Date(item.createdAt).toLocaleDateString(i18n.language)}
                     </span>
                   </div>
                 </div>
@@ -1588,10 +1633,12 @@ function ReviewsPanel({
 function PersonalizationPanel({
   prefs,
   onChange,
+  onReset,
   accent,
 }: {
   prefs: Prefs
   onChange: (prefs: Prefs) => void
+  onReset: () => void
   accent: string
 }) {
   const { t } = useTranslation()
@@ -1616,6 +1663,7 @@ function PersonalizationPanel({
             type="button"
             onClick={() => onChange({ ...prefs, accent: color })}
             aria-pressed={prefs.accent === color}
+            aria-label={t(`etablissement.accentNames.${ACCENT_NAMES[color] ?? 'emerald'}`)}
             className="flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
             style={{ backgroundColor: color, boxShadow: prefs.accent === color ? `0 0 0 3px white, 0 0 0 5px ${color}` : undefined }}
           >
@@ -1666,6 +1714,14 @@ function PersonalizationPanel({
           accent
         />
       </div>
+      <button
+        type="button"
+        onClick={onReset}
+        className="mt-5 inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-200 px-3.5 text-xs font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+      >
+        <RefreshCw className="h-3.5 w-3.5" />
+        {t('etablissement.resetSettings')}
+      </button>
     </GlassCard>
   )
 }

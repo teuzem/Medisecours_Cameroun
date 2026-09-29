@@ -60,6 +60,19 @@ const REGIONS = [
   'Sud-Ouest',
 ]
 
+const REGION_KEYS = [
+  'adamaoua',
+  'centre',
+  'est',
+  'extremeNord',
+  'littoral',
+  'nord',
+  'nordOuest',
+  'ouest',
+  'sud',
+  'sudOuest',
+] as const
+
 const SERVICE_PRESETS = [
   'Urgences',
   'Consultations',
@@ -70,6 +83,17 @@ const SERVICE_PRESETS = [
   'Bloc opératoire',
   'Hospitalisation',
 ]
+
+const SERVICE_PRESET_KEYS: Record<string, string> = {
+  Urgences: 'urgences',
+  Consultations: 'consultations',
+  'Maternité': 'maternite',
+  Pédiatrie: 'pediatrie',
+  Imagerie: 'imagerie',
+  Laboratoire: 'laboratoire',
+  'Bloc opératoire': 'blocOperatoire',
+  Hospitalisation: 'hospitalisation',
+}
 
 type Draft = {
   nom: string
@@ -111,6 +135,7 @@ function TagEditor({
   placeholder: string
 }) {
   const [draft, setDraft] = useState('')
+  const { t } = useTranslation()
 
   const commit = () => {
     const item = draft.trim()
@@ -136,7 +161,7 @@ function TagEditor({
               <button
                 type="button"
                 onClick={() => onChange(value.filter((existing) => existing !== item))}
-                aria-label={`Retirer ${item}`}
+                aria-label={t('etablissement.removeTag', { item })}
                 className="text-slate-400 transition hover:text-red-600"
               >
                 <X className="h-3 w-3" />
@@ -379,9 +404,9 @@ export default function FichePanel({
                 className={inputCls}
               >
                 <option value="">{t('etablissement.ficheRegionPlaceholder')}</option>
-                {REGIONS.map((region) => (
+                {REGIONS.map((region, index) => (
                   <option key={region} value={region}>
-                    {region}
+                    {t(`etablissement.regions.${REGION_KEYS[index]}`, { defaultValue: region })}
                   </option>
                 ))}
               </select>
@@ -406,7 +431,7 @@ export default function FichePanel({
                 value={draft.telephone}
                 onChange={(event) => update('telephone', event.target.value)}
                 className={inputCls}
-                placeholder="+237 6 00 00 00 00"
+                placeholder={t('etablissement.fichePhonePlaceholder')}
               />
             </div>
             <div>
@@ -415,7 +440,7 @@ export default function FichePanel({
                 value={draft.email}
                 onChange={(event) => update('email', event.target.value)}
                 className={inputCls}
-                placeholder="contact@exemple.cm"
+                placeholder={t('etablissement.ficheEmailPlaceholder')}
               />
             </div>
           </div>
@@ -425,7 +450,7 @@ export default function FichePanel({
             value={draft.siteWeb}
             onChange={(event) => update('siteWeb', event.target.value)}
             className={inputCls}
-            placeholder="https://…"
+            placeholder={t('etablissement.ficheWebsitePlaceholder')}
           />
 
           <FieldLabel>{t('etablissement.ficheHoursLabel')}</FieldLabel>
@@ -528,7 +553,7 @@ export default function FichePanel({
                       }`}
                       style={active ? { backgroundColor: accent } : undefined}
                     >
-                      {item}
+                      {t(`etablissement.servicePresets.${SERVICE_PRESET_KEYS[item] ?? 'other'}`, { defaultValue: item })}
                     </button>
                   )
                 })}
