@@ -9,6 +9,7 @@ import { useToast } from '../ui/Toast'
 import { FicheInfos, MediaGallery, type EtablissementDrawerProps } from './EtablissementDrawer'
 import { formatDistanceKm, formatDuration, getEtablissementPhoto, haversineKm, toGoogleMapsUrl, toWazeUrl, WAYFINDING_MODES, type Avis, type FicheCentre } from '../../lib/carte'
 import { imgUrl } from '../../lib/config'
+import { trackInteraction } from '../../lib/track'
 
 type View = 'explore' | 'saved' | 'recent'
 type Collection = { id: string; name: string; places: number[]; note: string }
@@ -77,6 +78,10 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   useEffect(() => {
     setNoticeOpen(false)
   }, [props.selectedId, tab])
+  const selectedIdForTracking = selected?.id
+  useEffect(() => {
+    if (props.open && selectedIdForTracking != null) trackInteraction(selectedIdForTracking, 'fiche')
+  }, [props.open, selectedIdForTracking])
   useEffect(() => {
     const urls = files.map(file => URL.createObjectURL(file))
     setFilePreviews(urls)
@@ -142,6 +147,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       setComposer(false); setNote(0); setComment(''); setFiles([])
       await refreshReviews()
       void mutate(`/api/centre_de_santes/${selected.id}/fiche`)
+      trackInteraction(selected.id, 'avis')
       toast.success('Avis publie.')
     } catch (cause: any) { toast.error(cause?.response?.data?.error ?? 'Impossible de publier cet avis. Veuillez reessayer.') }
     finally { setSending(false) }
@@ -159,6 +165,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       setSuggestionOpen(false)
       setSuggestionValue('')
       setSuggestionComment('')
+      trackInteraction(selected.id, 'suggestion')
       toast.success('Votre suggestion a ete transmise pour verification.')
     } catch (cause: any) {
       toast.error(cause?.response?.data?.detail ?? 'Impossible de transmettre la suggestion.')
@@ -201,30 +208,30 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         <header className="maps-place-heading"><h1>{facility.nom}</h1><div className="maps-rating-line"><span>{mean.toFixed(1)}</span><Rating value={mean} /><button type="button" onClick={() => setTab('reviews')}>({total} avis)</button></div><p>{facility.type.replaceAll('_', ' ')}{facility.verificationStatut === 'VERIFIE' && <ShieldCheck size={15} aria-label="Verifie" />}</p></header>
         <div className="maps-tabs" role="tablist" aria-label="Fiche etablissement">{([['presentation', 'Presentation'], ['reviews', 'Avis'], ['about', 'A propos']] as const).map(([id, label]) => <button type="button" key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>)}</div>
         {tab === 'presentation' && <div className="maps-actions">
-          <Action icon={<Navigation size={20} />} onClick={() => { props.onRequestDirections(); setTab('directions') }}>Itineraire</Action>
-          <Action icon={<Bookmark size={20} />} active={props.favorites.includes(facility.id)} onClick={() => props.onToggleFavorite(facility.id)}>{props.favorites.includes(facility.id) ? 'Enregistre' : 'Enregistrer'}</Action>
-          <Action icon={<MapPin size={20} />} active={nearbyOnly} onClick={() => { setNearbyOnly(true); props.onBackToList(); props.onViewChange('explore') }}>A proximite</Action>
-          <Action icon={<Send size={20} />} onClick={() => { window.location.href = `sms:?body=${encodeURIComponent(`${facility.nom}\n${placeUrl()}`)}` }}>Telephone</Action>
-          <Action icon={<Share2 size={20} />} onClick={() => void share()}>Partager</Action>
+          <Action icon={<Navigation size={20} />} onClick={() => { trackInteraction(facility.id, 'itineraire'); props.onRequestDirections(); setTab('directions') }}>Itineraire</Action>
+          <Action icon={<Bookmark size={20} />} active={props.favorites.includes(facility.id)} onClick={() => { trackInteraction(facility.id, 'sauvegarde'); props.onToggleFavorite(facility.id) }}>{props.favorites.includes(facility.id) ? 'Enregistre' : 'Enregistrer'}</Action>
+          <Action icon={<MapPin size={20} />} active={nearbyOnly} onClick={() => { trackInteraction(facility.id, 'proximite'); setNearbyOnly(true); props.onBackToList(); props.onViewChange('explore') }}>A proximite</Action>
+          <Action icon={<Send size={20} />} onClick={() => { trackInteraction(facility.id, 'partage', { channel: 'sms' }); window.location.href = `sms:?body=${encodeURIComponent(`${facility.nom}\n${placeUrl()}`)}` }}>Telephone</Action>
+          <Action icon={<Share2 size={20} />} onClick={() => { trackInteraction(facility.id, 'partage'); void share() }}>Partager</Action>
         </div>}
         {tab === 'presentation' && <div className="maps-actions">
           <Action icon={<MapPin size={20} />} onClick={() => setSuggestionOpen(true)}>Suggérer</Action>
           <Action icon={<FolderPlus size={20} />} onClick={() => setCollectionOpen(true)}>Collection</Action>
-          <Action icon={<Phone size={20} />} onClick={() => { if (facility.telephone) window.location.href = `tel:${facility.telephone}` }} disabled={!facility.telephone}>Appeler</Action>
-          <Action icon={<Phone size={20} />} tone="danger" onClick={props.onSosClick}>SOS</Action>
-          <Action icon={<ExternalLink size={20} />} onClick={() => { if (facility.siteWeb) window.open(facility.siteWeb, '_blank', 'noopener,noreferrer') }} disabled={!facility.siteWeb}>Site web</Action>
+          <Action icon={<Phone size={20} />} onClick={() => { if (facility.telephone) { trackInteraction(facility.id, 'telephone'); window.location.href = `tel:${facility.telephone}` } }} disabled={!facility.telephone}>Appeler</Action>
+          <Action icon={<Phone size={20} />} tone="danger" onClick={() => { trackInteraction(facility.id, 'sos'); props.onSosClick() }}>SOS</Action>
+          <Action icon={<ExternalLink size={20} />} onClick={() => { if (facility.siteWeb) { trackInteraction(facility.id, 'site_web'); window.open(facility.siteWeb, '_blank', 'noopener,noreferrer') } }} disabled={!facility.siteWeb}>Site web</Action>
         </div>}
         {detailError && <p role="status" className="maps-inline-status">Les details complementaires ne sont pas disponibles.</p>}
         <section className="maps-panel-content" role="tabpanel">
-          {(tab === 'presentation' || tab === 'about') && <><FicheInfos fiche={facility as FicheCentre} isMedecin={isMedecin} medecinJoined={joined || Boolean(detail?.medecins?.some(medecin => String(medecin.medecinId) === String(user?.id)))} onJoin={() => void join()} joining={joining} />{tab === 'presentation' && <section className="maps-gallery-section"><h2>Photos et videos</h2><MediaGallery centre={facility} /></section>}</>}
+          {(tab === 'presentation' || tab === 'about') && <><FicheInfos fiche={facility as FicheCentre} isMedecin={isMedecin} medecinJoined={joined || Boolean(detail?.medecins?.some(medecin => String(medecin.medecinId) === String(user?.id)))} onJoin={() => void join()} joining={joining} onServiceSelect={(label) => trackInteraction(facility.id, 'service', { service: label })} />{tab === 'presentation' && <section className="maps-gallery-section"><h2>Photos et videos</h2><MediaGallery centre={facility} /></section>}</>}
           {tab === 'directions' && <div className="maps-directions">
             <h2>Itineraire</h2>
             {!hasCoords && <p role="status">Cet etablissement ne dispose pas encore de coordonnees verifiees.</p>}
             <div className="maps-mode-selector">{WAYFINDING_MODES.map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onModeChange(mode)}>{mode === 'driving' ? 'Voiture' : mode === 'walking' ? 'A pied' : 'Velo'}</button>)}</div>
-            <button type="button" className="maps-outline-command" disabled={!hasCoords} onClick={props.onRequestDirections}><Navigation size={18} />{props.position ? 'Calculer depuis ma position' : 'Autoriser ma localisation'}</button>
+            <button type="button" className="maps-outline-command" disabled={!hasCoords} onClick={() => { trackInteraction(facility.id, 'itineraire', { via: 'panel' }); props.onRequestDirections() }}><Navigation size={18} />{props.position ? 'Calculer depuis ma position' : 'Autoriser ma localisation'}</button>
             {props.routeLoading ? <p role="status">Calcul en cours...</p> : <div><p>{formatDistanceKm(props.distance != null ? props.distance / 1000 : null)} · {formatDuration(props.duration)}</p>{props.isFallback && <p role="status">Trace approximatif, ne pas utiliser pour la navigation.</p>}{props.routeError && <p role="alert">{props.routeError}</p>}</div>}
             <ol>{props.steps.map((step, index) => <li key={index}><span>{index + 1}.</span> {step.instruction} <small>{Math.round(step.distance)} m</small></li>)}</ol>
-            <div className="maps-external-links"><a href={toGoogleMapsUrl(facility)} target="_blank" rel="noopener noreferrer">Google Maps</a><a href={toWazeUrl(facility)} target="_blank" rel="noopener noreferrer">Waze</a>{props.routeActive && <button type="button" onClick={props.onClearRoute}>Effacer l'itineraire</button>}</div>
+            <div className="maps-external-links"><a href={toGoogleMapsUrl(facility)} target="_blank" rel="noopener noreferrer" onClick={() => trackInteraction(facility.id, 'itineraire', { via: 'google' })}>Google Maps</a><a href={toWazeUrl(facility)} target="_blank" rel="noopener noreferrer" onClick={() => trackInteraction(facility.id, 'itineraire', { via: 'waze' })}>Waze</a>{props.routeActive && <button type="button" onClick={props.onClearRoute}>Effacer l'itineraire</button>}</div>
           </div>}
           {tab === 'reviews' && <div className="maps-reviews">
             <div className="maps-review-summary"><div>{[5, 4, 3, 2, 1].map(star => <div className="maps-rating-bar" key={star}><span>{star}</span><progress max={Math.max(1, reviews.length)} value={reviews.filter(review => review.note === star).length} /></div>)}</div><div><strong>{mean.toFixed(1)}</strong><Rating value={mean} /><p>{total} avis</p></div><div className="maps-review-notice"><button type="button" aria-expanded={noticeOpen} aria-controls="maps-review-notice-text" aria-label="A propos des avis" onClick={() => setNoticeOpen(current => !current)}><Info size={16} /></button>{noticeOpen && <p id="maps-review-notice-text" role="tooltip">Les avis publies sont moderes selon les regles de la plateforme. Les photos doivent representer une experience reelle de cet etablissement.</p>}</div></div>

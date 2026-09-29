@@ -263,12 +263,14 @@ export function FicheInfos({
   medecinJoined,
   onJoin,
   joining,
+  onServiceSelect,
 }: {
   fiche: FicheCentre
   isMedecin: boolean
   medecinJoined: boolean
   onJoin: () => void
   joining: boolean
+  onServiceSelect?: (label: string, kind: 'service' | 'specialite') => void
 }) {
   const { t } = useTranslation()
   const services = getServicesList(fiche)
@@ -327,9 +329,20 @@ export function FicheInfos({
           <p className="mb-2 text-sm font-bold text-slate-800 dark:text-slate-100">{t('visitor.carte.info.services')}</p>
           <div className="flex flex-wrap gap-2">
             {services.map((service) => (
-              <span key={service} className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-semibold text-primary-700 dark:bg-primary-500/15 dark:text-primary-200">
-                {service}
-              </span>
+              onServiceSelect ? (
+                <button
+                  key={service}
+                  type="button"
+                  onClick={() => onServiceSelect(service, 'service')}
+                  className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-semibold text-primary-700 transition hover:brightness-95 active:scale-95 dark:bg-primary-500/15 dark:text-primary-200"
+                >
+                  {service}
+                </button>
+              ) : (
+                <span key={service} className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-semibold text-primary-700 dark:bg-primary-500/15 dark:text-primary-200">
+                  {service}
+                </span>
+              )
             ))}
           </div>
         </div>
@@ -340,9 +353,20 @@ export function FicheInfos({
           <p className="mb-2 text-sm font-bold text-slate-800 dark:text-slate-100">{t('visitor.carte.info.specialities')}</p>
           <div className="flex flex-wrap gap-2">
             {specialites.map((specialite) => (
-              <span key={specialite} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                {specialite}
-              </span>
+              onServiceSelect ? (
+                <button
+                  key={specialite}
+                  type="button"
+                  onClick={() => onServiceSelect(specialite, 'specialite')}
+                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:brightness-95 active:scale-95 dark:bg-white/10 dark:text-slate-300"
+                >
+                  {specialite}
+                </button>
+              ) : (
+                <span key={specialite} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                  {specialite}
+                </span>
+              )
             ))}
           </div>
         </div>

@@ -503,9 +503,9 @@ class CarteController extends AbstractController
                 ->getQuery()->getSingleScalarResult(),
         ];
 
-        // Équipe : effectif par rôle
+        // Équipe : effectif par rôle (membres ACTIF uniquement)
         $equipeStats = ['DIRECTEUR' => 0, 'GESTIONNAIRE' => 0, 'MEDECIN' => 0, 'INFIRMIER' => 0, 'LECTURE' => 0, 'total' => 0];
-        foreach ($this->equipeRepository->findByCentreOrdered($centre->getId()) as $member) {
+        foreach ($this->equipeRepository->findActiveByCentre($centre->getId()) as $member) {
             $role = $member->getRole();
             if (array_key_exists($role, $equipeStats)) {
                 ++$equipeStats[$role];

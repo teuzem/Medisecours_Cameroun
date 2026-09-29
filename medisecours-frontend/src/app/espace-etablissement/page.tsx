@@ -38,6 +38,7 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import FichePanel, { type FicheCentre } from '../../components/espace-etablissement/FichePanel'
+import AnalyticsPanel from '../../components/espace-etablissement/AnalyticsPanel'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { imgUrl } from '../../lib/config'
@@ -586,6 +587,9 @@ export default function EtablissementEspacePage() {
                 <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
               </div>
               <div className="xl:col-span-3">
+                <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
+              </div>
+              <div className="xl:col-span-3">
                 <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
               </div>
               <TeamPanel
@@ -612,6 +616,7 @@ export default function EtablissementEspacePage() {
                 <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
                 <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
               </div>
+              <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
               <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <TeamPanel

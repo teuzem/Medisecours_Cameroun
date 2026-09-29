@@ -71,6 +71,8 @@ security:
         - { path: ^/api/affiliation_medecins$, methods: [GET], roles: PUBLIC_ACCESS }
         # Alerte SOS : n'importe qui peut demander de l'aide sans être connecté.
         - { path: ^/api/demande_sos$, methods: [POST], roles: PUBLIC_ACCESS }
+        # Interactions sur les fiches établissements (analytiques temps réel) : enregistrement public.
+        - { path: ^/api/carte/evenements$, methods: [POST], roles: PUBLIC_ACCESS }
 
         # ── Tout le reste nécessite une authentification complète ─────────────
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
