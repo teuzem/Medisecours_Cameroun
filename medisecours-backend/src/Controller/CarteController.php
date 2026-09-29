@@ -149,6 +149,150 @@ class CarteController extends AbstractController
     }
 
     /**
+     * Mise à jour de la fiche publique de l'établissement par son manager.
+     *
+     * PATCH /api/carte/mon-etablissement
+     * Body (JSON, champs optionnels) : nom, type, adresse, ville, region, quartier,
+     * telephone, email, siteWeb, horaires, urgences24h, description, specialites, services.
+     *
+     * Les modifications alimentent en temps réel la fiche de la Carte Santé
+     * (GET /api/centre_de_santes/{id}/fiche) et la pastille de la carte.
+     */
+    #[Route('/api/carte/mon-etablissement', name: 'api_carte_mon_etablissement_update', methods: ['PATCH'])]
+    public function modifierFiche(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $centre = $this->resolveManagedCentre($user, $request);
+        $this->assertCanManage($user, $centre);
+
+        $data = $request->toArray();
+        $allowedTypes = [
+            'hopital_general', 'hopital_de_district', 'chu', 'cma', 'csi',
+            'clinique_privee', 'pharmacie', 'laboratoire', 'centre_specialise',
+        ];
+        $allowedRegions = [
+            'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
+            'Nord', 'Nord-Ouest', 'Ouest', 'Sud', 'Sud-Ouest',
+        ];
+
+        $nonEmpty = static function (mixed $value): ?string {
+            $value = trim((string) $value);
+            return $value === '' ? null : $value;
+        };
+
+        if (isset($data['nom'])) {
+            $nom = trim((string) $data['nom']);
+            if (mb_strlen($nom) < 2 || mb_strlen($nom) > 255) {
+                throw new BadRequestHttpException('Le nom doit contenir entre 2 et 255 caractères.');
+            }
+            $centre->setNom($nom);
+        }
+
+        if (isset($data['type'])) {
+            $type = (string) $data['type'];
+            if (!in_array($type, $allowedTypes, true)) {
+                throw new BadRequestHttpException('Catégorie d’établissement invalide.');
+            }
+            $centre->setType($type);
+        }
+
+        if (isset($data['adresse'])) {
+            $adresse = trim((string) $data['adresse']);
+            if (mb_strlen($adresse) < 5 || mb_strlen($adresse) > 255) {
+                throw new BadRequestHttpException('L’adresse doit contenir entre 5 et 255 caractères.');
+            }
+            $centre->setAdresse($adresse);
+        }
+
+        if (isset($data['ville'])) {
+            $ville = trim((string) $data['ville']);
+            if ($ville === '' || mb_strlen($ville) > 100) {
+                throw new BadRequestHttpException('La ville est invalide.');
+            }
+            $centre->setVille($ville);
+        }
+
+        if (isset($data['region'])) {
+            $region = (string) $data['region'];
+            if (!in_array($region, $allowedRegions, true)) {
+                throw new BadRequestHttpException('Région invalide.');
+            }
+            $centre->setRegion($region);
+        }
+
+        if (isset($data['quartier'])) {
+            $centre->setQuartier($nonEmpty($data['quartier']));
+        }
+
+        if (isset($data['telephone'])) {
+            $centre->setTelephone($nonEmpty($data['telephone']));
+        }
+
+        if (isset($data['email'])) {
+            $email = trim((string) $data['email']);
+            if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new BadRequestHttpException('Adresse e-mail invalide.');
+            }
+            $centre->setEmail($email === '' ? null : $email);
+        }
+
+        if (isset($data['siteWeb'])) {
+            $centre->setSiteWeb($nonEmpty($data['siteWeb']));
+        }
+
+        if (isset($data['horaires'])) {
+            $horaires = trim((string) $data['horaires']);
+            if ($horaires === '' || mb_strlen($horaires) > 255) {
+                throw new BadRequestHttpException('Les horaires ne peuvent pas être vides (255 caractères max).');
+            }
+            $centre->setHoraires($horaires);
+        }
+
+        if (isset($data['description'])) {
+            $description = trim((string) $data['description']);
+            $centre->setDescription(mb_strlen($description) > 4000 ? mb_substr($description, 0, 4000) : $description);
+        }
+
+        if (isset($data['urgences24h'])) {
+            $centre->setUrgences24h((bool) $data['urgences24h']);
+        }
+
+        if (array_key_exists('specialites', $data)) {
+            $centre->setSpecialites($this->cleanStringList($data['specialites'], 30));
+        }
+
+        if (array_key_exists('services', $data)) {
+            $centre->setServices($this->cleanStringList($data['services'], 40));
+        }
+
+        $this->em->flush();
+
+        return new JsonResponse(['centre' => $this->serializeCentre($centre)]);
+    }
+
+    /**
+     * Nettoie une liste de chaînes (tags spécialités / services) pour la fiche.
+     *
+     * @return string[]
+     */
+    private function cleanStringList(mixed $value, int $maxItems): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $items = [];
+        foreach ($value as $item) {
+            $item = trim((string) $item);
+            if ($item !== '' && mb_strlen($item) <= 120) {
+                $items[] = mb_substr($item, 0, 120);
+            }
+        }
+
+        return array_slice(array_values(array_unique($items)), 0, $maxItems);
+    }
+
+    /**
      * Liste des membres de l'équipe (gestion des accès par niveau).
      *
      * GET /api/carte/equipes?centre=

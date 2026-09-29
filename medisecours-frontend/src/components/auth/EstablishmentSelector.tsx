@@ -161,7 +161,7 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
         <EstablishmentLocation onSelect={(location) => onChange({
           mode: 'manual', establishment: { ...manual, ...location },
         })} />
-        {manual.latitude != null && manual.longitude != null && <p className="text-xs text-emerald-700">Position selectionnee : {manual.latitude.toFixed(6)}, {manual.longitude.toFixed(6)}</p>}
+        {manual.latitude != null && manual.longitude != null && <p className="text-xs text-emerald-700">{t('visitor.register.positionSelected', { lat: manual.latitude.toFixed(6), lng: manual.longitude.toFixed(6) })}</p>}
         <div className="grid gap-3 sm:grid-cols-2">
           <select
             value={manual.type}
