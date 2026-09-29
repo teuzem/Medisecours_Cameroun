@@ -210,6 +210,16 @@ type DashboardSectionId =
   | 'dashboard-analytics'
   | 'dashboard-settings'
 
+const DASHBOARD_SECTION_IDS: DashboardSectionId[] = [
+  'dashboard-overview',
+  'dashboard-fiche',
+  'dashboard-team',
+  'dashboard-media',
+  'dashboard-reviews',
+  'dashboard-analytics',
+  'dashboard-settings',
+]
+
 function defaultPrefs(): Prefs {
   return { accent: ACCENTS[0], showSos: true, compact: false, animations: true, surface: 'glass' }
 }
@@ -391,17 +401,7 @@ export default function EtablissementEspacePage() {
     if (typeof window === 'undefined') return
     const updateFromHash = () => {
       const value = window.location.hash.replace(/^#/, '') as DashboardSectionId
-      if (
-        [
-          'dashboard-overview',
-          'dashboard-fiche',
-          'dashboard-team',
-          'dashboard-media',
-          'dashboard-reviews',
-          'dashboard-analytics',
-          'dashboard-settings',
-        ].includes(value)
-      ) {
+      if (DASHBOARD_SECTION_IDS.includes(value)) {
         setActiveSection(value)
       }
     }
@@ -409,6 +409,36 @@ export default function EtablissementEspacePage() {
     window.addEventListener('hashchange', updateFromHash)
     return () => window.removeEventListener('hashchange', updateFromHash)
   }, [])
+
+  useEffect(() => {
+    if (!mon?.centre?.id || typeof window === 'undefined') return
+    const hash = window.location.hash.replace(/^#/, '') as DashboardSectionId
+    if (!DASHBOARD_SECTION_IDS.includes(hash)) return
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [mon?.centre?.id, prefs.compact])
+
+  useEffect(() => {
+    if (!mon?.centre?.id || typeof window === 'undefined') return
+    const sections = Array.from(
+      document.querySelectorAll<HTMLElement>('.etablissement-dashboard .dashboard-section[id]'),
+    )
+    if (!sections.length || !('IntersectionObserver' in window)) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        const id = visible[0]?.target.id as DashboardSectionId | undefined
+        if (id && DASHBOARD_SECTION_IDS.includes(id)) setActiveSection(id)
+      },
+      { rootMargin: '-20% 0px -65% 0px', threshold: [0, 0.15, 0.5] },
+    )
+    sections.forEach((section) => observer.observe(section))
+    return () => observer.disconnect()
+  }, [mon?.centre?.id, prefs.compact])
 
   const selectDashboardSection = useCallback((section: DashboardSectionId) => {
     setActiveSection(section)
@@ -765,7 +795,12 @@ export default function EtablissementEspacePage() {
               <DashboardSectionNav activeSection={activeSection} onSelect={selectDashboardSection} />
               {prefs.compact ? (
             <div className="dashboard-workspace mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
-              <div id="dashboard-overview" className="dashboard-section xl:col-span-3">
+              <div
+                id="dashboard-overview"
+                className="dashboard-section xl:col-span-3"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-overview"
+              >
                 <KpiBand dashboard={dashboard} prefs={prefs} />
               </div>
               <div className="dashboard-section xl:col-span-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -773,13 +808,28 @@ export default function EtablissementEspacePage() {
                 <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
                 <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
               </div>
-              <div id="dashboard-analytics" className="dashboard-section xl:col-span-3">
+              <div
+                id="dashboard-analytics"
+                className="dashboard-section xl:col-span-3"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-analytics"
+              >
                 <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
               </div>
-              <div id="dashboard-fiche" className="dashboard-section xl:col-span-3">
+              <div
+                id="dashboard-fiche"
+                className="dashboard-section xl:col-span-3"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-fiche"
+              >
                 <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
               </div>
-              <div id="dashboard-team" className="dashboard-section">
+              <div
+                id="dashboard-team"
+                className="dashboard-section"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-team"
+              >
                 <TeamPanel
                   equipe={equipe}
                   memberEmail={memberEmail}
@@ -797,7 +847,12 @@ export default function EtablissementEspacePage() {
                   compact
                 />
               </div>
-              <div id="dashboard-media" className="dashboard-section">
+              <div
+                id="dashboard-media"
+                className="dashboard-section"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-media"
+              >
                 <MediaPanel
                   items={media}
                   uploading={uploadingMedia}
@@ -808,7 +863,12 @@ export default function EtablissementEspacePage() {
                   onDelete={deleteMedia}
                 />
               </div>
-              <div id="dashboard-reviews" className="dashboard-section">
+              <div
+                id="dashboard-reviews"
+                className="dashboard-section"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-reviews"
+              >
                 <ReviewsPanel
                   items={reviews}
                   moderatingId={moderatingReview}
@@ -818,13 +878,23 @@ export default function EtablissementEspacePage() {
                   onModerate={moderateReview}
                 />
               </div>
-              <div id="dashboard-settings" className="dashboard-section">
+              <div
+                id="dashboard-settings"
+                className="dashboard-section"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-settings"
+              >
                 <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
               </div>
             </div>
               ) : (
             <div className="dashboard-workspace mt-4 space-y-4">
-              <div id="dashboard-overview" className="dashboard-section">
+              <div
+                id="dashboard-overview"
+                className="dashboard-section"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-overview"
+              >
                 <KpiBand dashboard={dashboard} prefs={prefs} />
               </div>
               <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -832,40 +902,69 @@ export default function EtablissementEspacePage() {
                 <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
                 <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
               </div>
-              <div id="dashboard-analytics" className="dashboard-section">
+              <div
+                id="dashboard-analytics"
+                className="dashboard-section"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-analytics"
+              >
                 <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
               </div>
-              <div id="dashboard-fiche" className="dashboard-section">
+              <div
+                id="dashboard-fiche"
+                className="dashboard-section"
+                role="tabpanel"
+                aria-labelledby="dashboard-tab-dashboard-fiche"
+              >
                 <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
               </div>
               <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <TeamPanel
-                  equipe={equipe}
-                  memberEmail={memberEmail}
-                  setMemberEmail={setMemberEmail}
-                  memberRole={memberRole}
-                  setMemberRole={setMemberRole}
-                  onAdd={addMember}
-                  adding={addingMember}
-                  onRoleChange={updateMemberRole}
-                  onStatusChange={updateMemberStatus}
-                  onRemove={removeMember}
-                  loading={teamLoading}
-                  error={teamError}
-                  onRetry={reloadData}
-                />
-                <MediaPanel
-                  items={media}
-                  uploading={uploadingMedia}
-                  loading={mediaLoading}
-                  error={mediaError}
-                  onRetry={reloadData}
-                  onUpload={uploadMedia}
-                  onDelete={deleteMedia}
-                />
+                <div
+                  id="dashboard-team"
+                  className="dashboard-section min-w-0"
+                  role="tabpanel"
+                  aria-labelledby="dashboard-tab-dashboard-team"
+                >
+                  <TeamPanel
+                    equipe={equipe}
+                    memberEmail={memberEmail}
+                    setMemberEmail={setMemberEmail}
+                    memberRole={memberRole}
+                    setMemberRole={setMemberRole}
+                    onAdd={addMember}
+                    adding={addingMember}
+                    onRoleChange={updateMemberRole}
+                    onStatusChange={updateMemberStatus}
+                    onRemove={removeMember}
+                    loading={teamLoading}
+                    error={teamError}
+                    onRetry={reloadData}
+                  />
+                </div>
+                <div
+                  id="dashboard-media"
+                  className="dashboard-section min-w-0"
+                  role="tabpanel"
+                  aria-labelledby="dashboard-tab-dashboard-media"
+                >
+                  <MediaPanel
+                    items={media}
+                    uploading={uploadingMedia}
+                    loading={mediaLoading}
+                    error={mediaError}
+                    onRetry={reloadData}
+                    onUpload={uploadMedia}
+                    onDelete={deleteMedia}
+                  />
+                </div>
               </div>
               <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div id="dashboard-reviews">
+                <div
+                  id="dashboard-reviews"
+                  className="dashboard-section min-w-0"
+                  role="tabpanel"
+                  aria-labelledby="dashboard-tab-dashboard-reviews"
+                >
                   <ReviewsPanel
                     items={reviews}
                     moderatingId={moderatingReview}
@@ -875,7 +974,12 @@ export default function EtablissementEspacePage() {
                     onModerate={moderateReview}
                   />
                 </div>
-                <div id="dashboard-settings">
+                <div
+                  id="dashboard-settings"
+                  className="dashboard-section min-w-0"
+                  role="tabpanel"
+                  aria-labelledby="dashboard-tab-dashboard-settings"
+                >
                   <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
                 </div>
               </div>
@@ -911,18 +1015,58 @@ function DashboardSectionNav({
     { id: 'dashboard-settings', label: t('etablissement.navSettings'), icon: Palette },
   ]
 
+  const moveFocus = (currentId: DashboardSectionId, direction: 'next' | 'previous' | 'first' | 'last') => {
+    const index = items.findIndex((item) => item.id === currentId)
+    const nextIndex =
+      direction === 'first'
+        ? 0
+        : direction === 'last'
+          ? items.length - 1
+          : direction === 'next'
+            ? (index + 1) % items.length
+            : (index - 1 + items.length) % items.length
+    const next = items[nextIndex]?.id as DashboardSectionId | undefined
+    if (!next) return
+    onSelect(next)
+    document.getElementById(`dashboard-tab-${next}`)?.focus()
+  }
+
   return (
-    <nav className="dashboard-section-nav" aria-label={t('etablissement.dashboardNavigation')}>
+    <nav
+      className="dashboard-section-nav"
+      aria-label={t('etablissement.dashboardNavigation')}
+      role="tablist"
+    >
       <div className="dashboard-section-nav__scroll">
         {items.map(({ id, label, icon: Icon }) => (
           <a
             key={id}
+            id={`dashboard-tab-${id}`}
             href={`#${id}`}
             onClick={(event) => {
               event.preventDefault()
               onSelect(id as DashboardSectionId)
             }}
-            aria-current={activeSection === id ? 'page' : undefined}
+            onKeyDown={(event) => {
+              const currentId = id as DashboardSectionId
+              if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                event.preventDefault()
+                moveFocus(currentId, 'next')
+              } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                event.preventDefault()
+                moveFocus(currentId, 'previous')
+              } else if (event.key === 'Home') {
+                event.preventDefault()
+                moveFocus(currentId, 'first')
+              } else if (event.key === 'End') {
+                event.preventDefault()
+                moveFocus(currentId, 'last')
+              }
+            }}
+            role="tab"
+            aria-selected={activeSection === id}
+            aria-controls={id}
+            tabIndex={activeSection === id ? 0 : -1}
             className={`dashboard-section-nav__item ${activeSection === id ? 'is-active' : ''}`}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
