@@ -1636,7 +1636,111 @@ h1, h2, h3, h4 {
 [data-anim='off'] .wdg-progress__bar { transform: scaleX(1); }
 [data-anim='off'] .wdg-bars__bar { transform: scaleY(1); }
 
+/* Establishment workspace: calm, flat surfaces with a clear information
+   hierarchy. The dashboard intentionally avoids decorative shadows and
+   oversized glass effects so operational data stays easy to scan. */
+.etablissement-dashboard {
+  --dashboard-gap: clamp(1rem, 1.8vw, 1.5rem);
+  background: #f6f8fb;
+}
+
+.dark .etablissement-dashboard {
+  background: #0b1726;
+}
+
+.etablissement-dashboard .wdg,
+.etablissement-dashboard .wdg:hover,
+.etablissement-dashboard [class*='shadow-'],
+.etablissement-dashboard .shadow-sm,
+.etablissement-dashboard .shadow-lg {
+  box-shadow: none !important;
+}
+
+.etablissement-dashboard .wdg {
+  border: 1px solid #dce4ed;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.dark .etablissement-dashboard .wdg {
+  border-color: rgba(203, 219, 234, 0.16);
+  background: #102237;
+}
+
+.etablissement-dashboard .wdg__glow::before,
+.etablissement-dashboard .wdg__halo,
+.etablissement-dashboard > div > span[aria-hidden='true'] {
+  display: none !important;
+}
+
+.etablissement-dashboard .wdg__tile,
+.etablissement-dashboard .wdg__tile--mint,
+.etablissement-dashboard .wdg__tile--blue,
+.etablissement-dashboard .wdg__tile--amazon,
+.etablissement-dashboard .wdg__tile--red,
+.etablissement-dashboard .wdg__tile--amber,
+.etablissement-dashboard .wdg__tile--violet,
+.etablissement-dashboard .wdg__tile--teal,
+.etablissement-dashboard .wdg__tile--sky {
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent, #059669) 90%, #0f172a 10%);
+}
+
+.etablissement-dashboard .wdg__tile--red { background: #c62828; }
+.etablissement-dashboard .wdg__tile--amber { background: #b56b00; }
+.etablissement-dashboard .wdg__tile--violet { background: #6841b8; }
+.etablissement-dashboard .wdg__tile--blue,
+.etablissement-dashboard .wdg__tile--sky { background: #2563a8; }
+
+.etablissement-dashboard .rounded-2xl,
+.etablissement-dashboard .rounded-xl {
+  border-radius: 14px;
+}
+
+.etablissement-dashboard .grid,
+.etablissement-dashboard .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+}
+
+.etablissement-dashboard input,
+.etablissement-dashboard textarea,
+.etablissement-dashboard select {
+  box-shadow: none !important;
+}
+
+.etablissement-dashboard button,
+.etablissement-dashboard a {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.etablissement-dashboard .wdg-anim {
+  animation-duration: 320ms;
+}
+
+@media (max-width: 768px) {
+  .etablissement-dashboard .wdg {
+    border-radius: 12px;
+  }
+
+  .etablissement-dashboard .wdg__value {
+    font-size: 1.75rem;
+  }
+
+  .etablissement-dashboard .grid {
+    min-width: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .etablissement-dashboard *,
+  .etablissement-dashboard *::before,
+  .etablissement-dashboard *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+  @media (prefers-reduced-motion: reduce) {
   .wdg__glow::before,
   .wdg-donut,
   .wdg-progress__bar,

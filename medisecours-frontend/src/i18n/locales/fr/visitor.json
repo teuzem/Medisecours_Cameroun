@@ -1317,6 +1317,8 @@
         "liveBadge": "En temps réel",
         "chartTitle": "Évolution des interactions",
         "chartSubtitle": "Rythme quotidien sur la période",
+        "chartAria": "Évolution quotidienne des interactions",
+        "interactionCount": "{{count}} interaction(s)",
         "noData": "Aucune interaction enregistrée sur la période. Dès qu'un visiteur consulte votre fiche, appelle, partage ou déclenche un SOS, l'activité apparaît ici en temps réel.",
         "breakdownTitle": "Répartition par type",
         "breakdownSubtitle": "Quelle est l'origine de l'engagement",

@@ -1317,6 +1317,8 @@
         "liveBadge": "Real time",
         "chartTitle": "Interaction trend",
         "chartSubtitle": "Daily rhythm over the period",
+        "chartAria": "Daily interaction trend",
+        "interactionCount": "{{count}} interaction(s)",
         "noData": "No interaction recorded over the period. As soon as a visitor views your fiche, calls, shares or triggers an SOS, activity appears here in real time.",
         "breakdownTitle": "Breakdown by type",
         "breakdownSubtitle": "Where does engagement come from",

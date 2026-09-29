@@ -96,6 +96,7 @@ const PERIOD_OPTIONS = [7, 30, 90] as const
  * ────────────────────────────────────────────────────────────────────────── */
 
 function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: string }) {
+  const { t } = useTranslation()
   const gradientId = useId().replace(/:/g, '')
   const totals = serie.map((s) => ANALYTIC_TYPES.reduce((sum, k) => sum + (s[k] ?? 0), 0))
   const max = Math.max(...totals, 1)
@@ -114,7 +115,7 @@ function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: strin
 
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-40 w-full sm:h-48" role="img" aria-label="Évolution des interactions">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-40 w-full sm:h-48" role="img" aria-label={t('etablissement.analytics.chartAria')}>
         <defs>
           <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={accent} stopOpacity="0.32" />
@@ -160,7 +161,7 @@ function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: strin
             vectorEffect="non-scaling-stroke"
           >
             <title>
-              {serie[i]?.jour ?? ''} · {totals[i]} interaction{totals[i] > 1 ? 's' : ''}
+              {serie[i]?.jour ?? ''} · {totals[i]} {t('etablissement.analytics.interactionCount', { count: totals[i] })}
             </title>
           </circle>
         ))}
@@ -207,21 +208,26 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
 
   useEffect(() => {
     let cancelled = false
-    api
-      .get<AnalyticsData>('/api/carte/evenements', { params: { centre: centreId, period } })
-      .then(({ data: d }) => {
-        if (cancelled) return
-        setData(d)
-        setError(false)
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    const load = () => {
+      api
+        .get<AnalyticsData>('/api/carte/evenements', { params: { centre: centreId, period } })
+        .then(({ data: d }) => {
+          if (cancelled) return
+          setData(d)
+          setError(false)
+        })
+        .catch(() => {
+          if (!cancelled) setError(true)
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+    }
+    load()
+    const timer = window.setInterval(load, 60_000)
     return () => {
       cancelled = true
+      window.clearInterval(timer)
     }
   }, [centreId, period, reloadKey])
 
