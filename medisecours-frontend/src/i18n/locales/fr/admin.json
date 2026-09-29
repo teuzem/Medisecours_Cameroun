@@ -111,6 +111,12 @@
       "csvMessages": "Messages",
       "csvAvis": "Avis",
       "csvAvisSignales": "Avis signalés",
+      "docteursActivityTitle": "Activité des médecins",
+      "docteursActivitySubtitle": "Vue globale de la file médicale : validations et spécialités.",
+      "docteursTopSpecialites": "Spécialités dominantes",
+      "docteursPendingTitle": "Validations en attente",
+      "docteursEmpty": "Aucun praticien enregistré.",
+      "docteursSpecialiteNone": "Spécialité non renseignée",
       "loading": "Chargement du tableau de bord..."
     },
     "utilisateurs": {

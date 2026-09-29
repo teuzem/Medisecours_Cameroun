@@ -3,12 +3,18 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
+  BadgeCheck,
   Building2,
+  Clock,
   ExternalLink,
+  FileImage,
   Loader2,
   MapPin,
+  Navigation,
   Plus,
   Save,
+  ShieldCheck,
+  Star,
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -34,6 +40,11 @@ export type FicheCentre = {
   specialites?: string[]
   latitude?: number | null
   longitude?: number | null
+  verificationStatut?: string | null
+  statut?: string | null
+  noteMoyenne?: number | null
+  totalAvis?: number
+  images?: { id: number; contentUrl: string; kind: 'image' | 'video' }[]
 }
 
 const REGIONS = [
@@ -47,6 +58,17 @@ const REGIONS = [
   'Ouest',
   'Sud',
   'Sud-Ouest',
+]
+
+const SERVICE_PRESETS = [
+  'Urgences',
+  'Consultations',
+  'Maternité',
+  'Pédiatrie',
+  'Imagerie',
+  'Laboratoire',
+  'Bloc opératoire',
+  'Hospitalisation',
 ]
 
 type Draft = {
@@ -174,6 +196,34 @@ export default function FichePanel({
   }
 
   const hasGps = centre.latitude != null && centre.longitude != null
+  const mapsUrl =
+    hasGps ? `https://www.google.com/maps?q=${centre.latitude},${centre.longitude}` : null
+
+  const verificationChip = (() => {
+    const status = centre.verificationStatut
+    if (status === 'VERIFIE') {
+      return {
+        label: t('etablissement.verificationOk'),
+        cls: 'border-mint-200 bg-mint-50 text-mint-700 dark:border-mint-500/25 dark:bg-mint-500/15 dark:text-mint-300',
+        Icon: BadgeCheck,
+      }
+    }
+    if (status === 'EN_COURS') {
+      return {
+        label: t('etablissement.verificationPending'),
+        cls: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-300',
+        Icon: Clock,
+      }
+    }
+    if (status) {
+      return {
+        label: t('etablissement.verificationNone'),
+        cls: 'border-slate-200 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-300',
+        Icon: ShieldCheck,
+      }
+    }
+    return null
+  })()
 
   const update = (field: keyof Draft, nextValue: string | boolean) => {
     setDraft((current) => ({ ...current, [field]: nextValue }))
@@ -255,6 +305,29 @@ export default function FichePanel({
           {t('etablissement.fichePublicLink')}
         </Link>
       </div>
+
+      {(verificationChip || centre.noteMoyenne != null) && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {verificationChip && (
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${verificationChip.cls}`}>
+              <verificationChip.Icon className="h-3.5 w-3.5" />
+              {verificationChip.label}
+            </span>
+          )}
+          {centre.noteMoyenne != null && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/15 dark:text-amber-300">
+              <Star className="h-3.5 w-3.5 fill-current" />
+              {Number(centre.noteMoyenne).toFixed(1)}/5 · {centre.totalAvis ?? 0} {t('etablissement.avisCountLabel')}
+            </span>
+          )}
+          {!!centre.images?.length && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-bold text-sky-700 dark:border-sky-500/25 dark:bg-sky-500/15 dark:text-sky-300">
+              <FileImage className="h-3.5 w-3.5" />
+              {centre.images.length} {t('etablissement.ficheMediaCount')}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* ── Informations générales ── */}
@@ -364,16 +437,31 @@ export default function FichePanel({
           />
 
           <div
-            className={`flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold ${
+            className={`flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 text-xs font-semibold ${
               hasGps
                 ? 'border-emerald-200 bg-emerald-50/60 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300'
                 : 'border-amber-200 bg-amber-50/60 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300'
             }`}
           >
-            <MapPin className="h-4 w-4 shrink-0" />
-            {hasGps
-              ? `${centre.latitude?.toFixed(6)}, ${centre.longitude?.toFixed(6)}`
-              : t('etablissement.ficheNoGps')}
+            <span className="flex min-w-0 items-center gap-2">
+              <MapPin className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {hasGps
+                  ? `${centre.latitude?.toFixed(6)}, ${centre.longitude?.toFixed(6)}`
+                  : t('etablissement.ficheNoGps')}
+              </span>
+            </span>
+            {hasGps && mapsUrl && (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-lg border border-emerald-300/60 bg-white/60 px-2.5 text-[10px] font-bold text-emerald-700 transition hover:bg-white dark:border-emerald-700/60 dark:bg-slate-950/40 dark:text-emerald-300"
+              >
+                <Navigation className="h-3 w-3" />
+                {t('etablissement.ficheGpsOpen')}
+              </a>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 dark:border-slate-700 dark:bg-slate-950/40">
@@ -422,6 +510,29 @@ export default function FichePanel({
                 onChange={setServices}
                 placeholder={t('etablissement.ficheTagsHint')}
               />
+              <p className="mb-1.5 mt-3 block text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                {t('etablissement.ficheServicePresets')}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {SERVICE_PRESETS.map((item) => {
+                  const active = services.includes(item)
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setServices(active ? services.filter((s) => s !== item) : [...services, item])}
+                      className={`rounded-full border px-2.5 py-1 text-[10px] font-bold transition ${
+                        active
+                          ? 'border-transparent text-white'
+                          : 'border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:bg-slate-900'
+                      }`}
+                      style={active ? { backgroundColor: accent } : undefined}
+                    >
+                      {item}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
         </div>

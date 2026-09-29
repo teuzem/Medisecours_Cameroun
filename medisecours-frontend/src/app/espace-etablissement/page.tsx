@@ -1,23 +1,31 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  AlertCircle,
   Activity,
+  AlertCircle,
+  ArrowUpRight,
+  BadgeCheck,
   Building2,
   Check,
+  CheckCircle2,
+  Clock,
   Eye,
   EyeOff,
   FileImage,
+  Gauge,
   Loader2,
   LogIn,
   MapPin,
+  MessageSquare,
   Palette,
   Plus,
   RefreshCw,
   Search,
   ShieldCheck,
+  Siren,
+  Sparkles,
   Star,
   Stethoscope,
   Trash2,
@@ -33,6 +41,12 @@ import FichePanel, { type FicheCentre } from '../../components/espace-etablissem
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { imgUrl } from '../../lib/config'
+import GlassCard from '../../components/ui/GlassCard'
+import StatCard from '../../components/ui/StatCard'
+import Toggle from '../../components/ui/Toggle'
+import SectionHeader from '../../components/ui/SectionHeader'
+import Avatar from '../../components/ui/Avatar'
+import { useCountUp } from '../../components/ui/useCountUp'
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Types
@@ -71,6 +85,7 @@ type EquipeMembre = {
   role: string
   statut: string
   createdAt: string
+  photoProfil?: string | null
 }
 
 type SyncStats = {
@@ -108,9 +123,11 @@ type Prefs = {
   accent: string
   showSos: boolean
   compact: boolean
+  animations: boolean
+  surface: 'glass' | 'soft'
 }
 
-const ACCENTS = ['#4f46e5', '#059669', '#0284c7', '#7c3aed', '#e11d48', '#d97706']
+const ACCENTS = ['#059669', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706']
 
 const TEAM_ROLES = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'LECTURE']
 
@@ -140,21 +157,35 @@ const TYPE_LABELS: Record<string, string> = {
   centre_specialise: 'Centre spécialisé',
 }
 
+const ROLE_TONE: Record<string, 'mint' | 'blue' | 'violet' | 'amber' | 'slate'> = {
+  DIRECTEUR: 'violet',
+  GESTIONNAIRE: 'blue',
+  MEDECIN: 'mint',
+  INFIRMIER: 'amber',
+  LECTURE: 'slate',
+}
+
 const PREFS_KEY = 'medisecours_etab_prefs'
 
+function defaultPrefs(): Prefs {
+  return { accent: ACCENTS[0], showSos: true, compact: false, animations: true, surface: 'glass' }
+}
+
 function readPrefs(): Prefs {
-  if (typeof window === 'undefined') return { accent: ACCENTS[0], showSos: true, compact: false }
+  if (typeof window === 'undefined') return defaultPrefs()
   try {
     const raw = window.localStorage.getItem(PREFS_KEY)
-    if (!raw) return { accent: ACCENTS[0], showSos: true, compact: false }
+    if (!raw) return defaultPrefs()
     const parsed = JSON.parse(raw) as Partial<Prefs>
     return {
       accent: typeof parsed.accent === 'string' && ACCENTS.includes(parsed.accent) ? parsed.accent : ACCENTS[0],
       showSos: parsed.showSos !== false,
       compact: Boolean(parsed.compact),
+      animations: parsed.animations !== false,
+      surface: parsed.surface === 'soft' ? 'soft' : 'glass',
     }
   } catch {
-    return { accent: ACCENTS[0], showSos: true, compact: false }
+    return defaultPrefs()
   }
 }
 
@@ -211,15 +242,6 @@ export default function EtablissementEspacePage() {
   }, [])
 
   /* ── Chargement principal ─────────────────────────────────────────────── */
-  const centreById = useMemo(() => {
-    return new Map<number, CentreLite>(
-      ([] as CentreLite[])
-        .concat(mon?.centre ? [mon.centre] : [])
-        .concat(results)
-        .map((c) => [c.id, c]),
-    )
-  }, [mon, results])
-
   const loadMonEtablissement = useCallback(() => {
     api
       .get<MonEtablissement>('/api/carte/mon-etablissement')
@@ -498,80 +520,33 @@ export default function EtablissementEspacePage() {
   }
 
   return (
-    <div className="etablissement-dashboard overflow-x-hidden" style={{ ['--accent' as never]: accent }}>
-      <div className="min-h-[calc(100dvh-76px)] w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 xl:min-h-[calc(100dvh-96px)]">
-        <div className="mx-auto w-full max-w-6xl min-w-0 px-3 py-4 sm:px-6 sm:py-6 xl:py-10">
+    <div
+      className="etablissement-dashboard overflow-x-hidden"
+      style={{ ['--accent' as never]: accent }}
+      data-surface={prefs.surface}
+      data-anim={prefs.animations ? 'on' : 'off'}
+    >
+      <div className="relative min-h-[calc(100dvh-76px)] w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 xl:min-h-[calc(100dvh-96px)]">
+        {/* Halo décoratif (accent personnalisé) */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[42rem] max-w-full -translate-x-1/2 rounded-full blur-3xl"
+          style={{ background: `color-mix(in srgb, ${accent} 14%, transparent)` }}
+        />
+        <div className="relative mx-auto w-full max-w-6xl min-w-0 px-3 py-4 sm:px-6 sm:py-6 xl:py-10">
           {/* ═══ En-tête ═══ */}
-          <header className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-slate-900/80 sm:p-8">
-            <span
-              className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full opacity-20 blur-3xl"
-              style={{ backgroundColor: accent }}
-            />
-            <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                <div
-                  className="flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg"
-                  style={{ backgroundColor: accent }}
-                >
-                  <Building2 className="h-6 w-6" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t('etablissement.title')}
-                  </p>
-                  <h1 className="break-words font-display text-xl font-extrabold text-slate-900 dark:text-white sm:text-2xl">
-                    {mon?.centre?.nom || user?.etablissementNom || t('etablissement.subtitle')}
-                  </h1>
-                  {mon?.centre && (
-                    <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      {mon.centre.ville || ''}
-                      {mon.centre.region ? ` · ${mon.centre.region}` : ''}
-                      {mon.role ? ` · ${t(`etablissement.${ROLE_LABELS[mon.role] ?? 'roleLecture'}`)}` : ''}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {(isAdmin || mon?.centre) && (
-                  <HeaderChip
-                    icon={RefreshCw}
-                    onClick={reloadData}
-                    label={t('etablissement.refresh')}
-                    disabled={loadingMon}
-                  />
-                )}
-                {isAdmin && (
-                  <HeaderChip
-                    icon={syncLabelIcon(syncing)}
-                    onClick={runSync}
-                    label={syncing ? t('etablissement.syncing') : t('etablissement.syncRun')}
-                    spin={syncing}
-                    accent
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* Données de la carte (total + dernière synchro) */}
-            {statsTotal != null && (
-              <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 dark:bg-white/5">
-                  <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
-                  {statsTotal || 0} {t('etablissement.establishmentCount')}
-                </span>
-                {lastSync ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                    <Check className="h-3.5 w-3.5" />
-                    {t('etablissement.syncLast', { date: new Date(lastSync).toLocaleString() })}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 dark:bg-white/5">
-                    {t('etablissement.syncNever')}
-                  </span>
-                )}
-              </div>
-            )}
-          </header>
+          <DashboardHeader
+            accent={accent}
+            mon={mon}
+            userNom={user?.etablissementNom}
+            statsTotal={statsTotal}
+            lastSync={lastSync}
+            loadingMon={loadingMon}
+            syncing={syncing}
+            isAdmin={isAdmin}
+            onRefresh={reloadData}
+            onSync={runSync}
+          />
 
           {/* ═══ Chargement / erreur ═══ */}
           {loadError && (
@@ -603,22 +578,17 @@ export default function EtablissementEspacePage() {
           ) : prefs.compact ? (
             <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
               <div className="xl:col-span-3">
+                <KpiBand dashboard={dashboard} prefs={prefs} />
+              </div>
+              <div className="xl:col-span-3 grid grid-cols-1 gap-6 sm:grid-cols-3">
+                <StatsSosWidget dashboard={dashboard} prefs={prefs} />
+                <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
+                <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
+              </div>
+              <div className="xl:col-span-3">
                 <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
               </div>
-              <OverviewPanel dashboard={dashboard} prefs={prefs} accent={accent} />
-              <MediaPanel
-                items={media}
-                uploading={uploadingMedia}
-                onUpload={uploadMedia}
-                onDelete={deleteMedia}
-              />
-              <ReviewsPanel
-                items={reviews}
-                moderatingId={moderatingReview}
-                onModerate={moderateReview}
-              />
               <TeamPanel
-                accent={accent}
                 equipe={equipe}
                 memberEmail={memberEmail}
                 setMemberEmail={setMemberEmail}
@@ -630,36 +600,37 @@ export default function EtablissementEspacePage() {
                 onRemove={removeMember}
                 compact
               />
-              <PersonalizationPanel prefs={prefs} onChange={applyPrefs} />
+              <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
+              <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
+              <PersonalizationPanel prefs={prefs} onChange={applyPrefs} accent={accent} />
             </div>
           ) : (
             <div className="mt-6 space-y-6">
+              <KpiBand dashboard={dashboard} prefs={prefs} />
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <StatsSosWidget dashboard={dashboard} prefs={prefs} />
+                <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
+                <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
+              </div>
               <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
-              <OverviewPanel dashboard={dashboard} prefs={prefs} accent={accent} />
-              <MediaPanel
-                items={media}
-                uploading={uploadingMedia}
-                onUpload={uploadMedia}
-                onDelete={deleteMedia}
-              />
-              <ReviewsPanel
-                items={reviews}
-                moderatingId={moderatingReview}
-                onModerate={moderateReview}
-              />
-              <TeamPanel
-                accent={accent}
-                equipe={equipe}
-                memberEmail={memberEmail}
-                setMemberEmail={setMemberEmail}
-                memberRole={memberRole}
-                setMemberRole={setMemberRole}
-                onAdd={addMember}
-                adding={addingMember}
-                onRoleChange={updateMemberRole}
-                onRemove={removeMember}
-              />
-              <PersonalizationPanel prefs={prefs} onChange={applyPrefs} />
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <TeamPanel
+                  equipe={equipe}
+                  memberEmail={memberEmail}
+                  setMemberEmail={setMemberEmail}
+                  memberRole={memberRole}
+                  setMemberRole={setMemberRole}
+                  onAdd={addMember}
+                  adding={addingMember}
+                  onRoleChange={updateMemberRole}
+                  onRemove={removeMember}
+                />
+                <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
+              </div>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
+                <PersonalizationPanel prefs={prefs} onChange={applyPrefs} accent={accent} />
+              </div>
             </div>
           )}
         </div>
@@ -695,15 +666,15 @@ function GuardCard({
 }) {
   const Icon = primary.icon
   return (
-    <div className="rounded-2xl border border-white/80 bg-white/90 p-8 text-center shadow-sm dark:border-white/10 dark:bg-slate-900/80">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+    <div className="wdg wdg__glow rounded-2xl border border-white/80 bg-white/90 p-8 text-center shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+      <div className="wdg__tile mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-white">
         <ShieldCheck className="h-6 w-6" />
       </div>
       <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">{title}</h2>
       <div className="mt-6 flex flex-col gap-3">
         <Link
           href={primary.href}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-bold text-white transition hover:bg-indigo-700"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--accent,#10b981)] px-4 text-sm font-bold text-white transition hover:brightness-105"
         >
           <Icon className="h-4 w-4" />
           {primary.label}
@@ -747,13 +718,431 @@ function HeaderChip({
           ? 'border-transparent text-white hover:brightness-105'
           : 'border-white/80 bg-white/80 text-slate-700 hover:bg-white dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-200 dark:hover:bg-slate-900'
       }`}
-      style={isAccent ? { backgroundColor: 'var(--accent, #4f46e5)' } : undefined}
+      style={isAccent ? { backgroundColor: 'var(--accent, #10b981)' } : undefined}
     >
       <Icon className={`h-4 w-4 ${spin ? 'animate-spin' : ''}`} />
       {label}
     </button>
   )
 }
+
+function DashboardHeader({
+  accent,
+  mon,
+  userNom,
+  statsTotal,
+  lastSync,
+  loadingMon,
+  syncing,
+  isAdmin,
+  onRefresh,
+  onSync,
+}: {
+  accent: string
+  mon: MonEtablissement | null
+  userNom?: string | null
+  statsTotal: number | null
+  lastSync: string | null
+  loadingMon: boolean
+  syncing: boolean
+  isAdmin: boolean
+  onRefresh: () => void
+  onSync: () => void
+}) {
+  const { t } = useTranslation()
+  const centre = mon?.centre
+  const verification = centre?.verificationStatut
+
+  return (
+    <GlassCard as="header" glow className="p-4 sm:p-8">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-5">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <div className="wdg__tile flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg">
+            <Building2 className="h-7 w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="wdg__eyebrow text-slate-400 dark:text-slate-500">
+              {t('etablissement.title')}
+            </p>
+            <h1 className="break-words font-display text-xl font-extrabold text-slate-900 dark:text-white sm:text-[26px]">
+              {centre?.nom || userNom || t('etablissement.subtitle')}
+            </h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              {centre?.ville || centre?.region ? (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
+                  {[centre.ville, centre.region].filter(Boolean).join(' · ')}
+                </span>
+              ) : null}
+              {mon?.role ? (
+                <span className="wdg-chip wdg-chip--slate">{t(`etablissement.${ROLE_LABELS[mon.role] ?? 'roleLecture'}`)}</span>
+              ) : null}
+              {verification === 'VERIFIE' ? (
+                <span className="wdg-chip wdg-chip--mint">
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  {t('etablissement.verificationOk')}
+                </span>
+              ) : verification === 'EN_COURS' ? (
+                <span className="wdg-chip wdg-chip--amber">
+                  <Clock className="h-3.5 w-3.5" />
+                  {t('etablissement.verificationPending')}
+                </span>
+              ) : (verification && (
+                <span className="wdg-chip wdg-chip--slate">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  {t('etablissement.verificationNone')}
+                </span>
+              ))}
+              {centre?.urgences24h && (
+                <span className="wdg-chip wdg-chip--red">
+                  <Siren className="h-3.5 w-3.5" />
+                  {t('etablissement.urgencesLabel')}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {centre && (
+            <Link
+              href={`/carte?centre=${centre.id}`}
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-4 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-200 dark:hover:bg-slate-900"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              {t('etablissement.fichePublicLink')}
+            </Link>
+          )}
+          {(isAdmin || centre) && (
+            <HeaderChip icon={RefreshCw} onClick={onRefresh} label={t('etablissement.refresh')} disabled={loadingMon} />
+          )}
+          {isAdmin && (
+            <HeaderChip
+              icon={syncLabelIcon(syncing)}
+              onClick={onSync}
+              label={syncing ? t('etablissement.syncing') : t('etablissement.syncRun')}
+              spin={syncing}
+              accent
+            />
+          )}
+        </div>
+      </div>
+
+      {statsTotal != null && (
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <span className="wdg-chip wdg-chip--slate">
+            <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
+            {statsTotal || 0} {t('etablissement.establishmentCount')}
+          </span>
+          {lastSync ? (
+            <span className="wdg-chip wdg-chip--mint">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {t('etablissement.syncLast', { date: new Date(lastSync).toLocaleString() })}
+            </span>
+          ) : (
+            <span className="wdg-chip wdg-chip--slate">
+              <Clock className="h-3.5 w-3.5" />
+              {t('etablissement.syncNever')}
+            </span>
+          )}
+          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500">
+            <span className="wdg-live-dot" />
+            {t('etablissement.widgetLive')}
+          </span>
+        </div>
+      )}
+    </GlassCard>
+  )
+}
+
+/* ── Bandeau KPI ─────────────────────────────────────────────────────────── */
+
+function KpiBand({ dashboard, prefs }: { dashboard: DashboardData | null; prefs: Prefs }) {
+  const { t } = useTranslation()
+  const sos = dashboard?.sos
+  const avis = dashboard?.avis
+  const medecins = dashboard?.medecins
+  const equipe = dashboard?.equipe
+  const note = avis?.noteMoyenne
+  const count = avis?.totalEnBase ?? 0
+
+  return (
+    <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3`}>
+      <StatCard
+        icon={Siren}
+        tile={prefs.showSos ? 'red' : 'accent'}
+        highlight={prefs.showSos}
+        label={t('etablissement.sosLabel')}
+        value={sos?.total ?? 0}
+        caption={sos?.enCours ? `${sos.enCours} ${t('etablissement.sosEnCours')}` : undefined}
+        delay={0}
+      />
+      <StatCard
+        icon={MessageSquare}
+        tile="accent"
+        label={t('etablissement.avisTitle')}
+        value={count}
+        caption={note != null ? t('etablissement.avisScoreCaption', { note: Number(note).toFixed(1) }) : undefined}
+        delay={60}
+      />
+      <StatCard
+        icon={Star}
+        tile="amber"
+        label={t('etablissement.noteLabel')}
+        value={note != null ? `${Number(note).toFixed(1)}/5` : '—'}
+        caption={t('etablissement.noteCaption')}
+        delay={120}
+      />
+      <StatCard
+        icon={Stethoscope}
+        tile="sky"
+        label={t('etablissement.medecinsTitle')}
+        value={medecins?.acceptes ?? 0}
+        caption={medecins?.enAttente ? `${medecins.enAttente} ${t('etablissement.enAttenteLabel').toLowerCase()}` : undefined}
+        delay={180}
+      />
+      <StatCard
+        icon={Users}
+        tile="violet"
+        label={t('etablissement.equipeTitle')}
+        value={equipe?.total ?? 0}
+        caption={t('etablissement.teamCaption')}
+        delay={240}
+      />
+      <StatCard
+        icon={ShieldCheck}
+        tile="mint"
+        label={t('etablissement.ficheCompleteness')}
+        value="—"
+        caption={t('etablissement.ficheCompletenessHint')}
+        delay={300}
+      />
+    </div>
+  )
+}
+
+/* ── Widgets statistiques ────────────────────────────────────────────────── */
+
+function StatsSosWidget({ dashboard, prefs }: { dashboard: DashboardData | null; prefs: Prefs }) {
+  const { t } = useTranslation()
+  const sos = dashboard?.sos
+  const total = sos?.total ?? 0
+  const enCours = sos?.enCours ?? 0
+  const traitees = sos?.traitees ?? 0
+  const cloturees = sos?.cloturees ?? 0
+  const active = prefs.showSos
+  const donutColor = active ? '#ef4444' : 'var(--accent,#10b981)'
+  const share = total > 0 ? Math.min(100, Math.round((enCours / total) * 100)) : 0
+  const center = useCountUp(enCours)
+
+  const rows: { key: string; value: number; color: string }[] = [
+    { key: t('etablissement.sosEnCours'), value: enCours, color: active ? '#ef4444' : 'var(--accent,#10b981)' },
+    { key: t('etablissement.sosTraitees'), value: traitees, color: '#10b981' },
+    { key: t('etablissement.sosCloturees'), value: cloturees, color: '#0ea5e9' },
+  ]
+
+  return (
+    <GlassCard hover className="wdg-anim p-5" delay={60}>
+      <SectionHeader
+        eyebrow={t('etablissement.sosWidgetDesc')}
+        title={t('etablissement.sosWidgetTitle')}
+        action={
+          dashboard ? (
+            <span className="wdg-chip wdg-chip--red">
+              <span className="wdg-live-dot wdg-live-dot--red" />
+              {t('etablissement.widgetLive')}
+            </span>
+          ) : (
+            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+          )
+        }
+      />
+      <div className="mt-5 flex items-center justify-center gap-6">
+        <div
+          className="wdg-donut relative grid place-items-center"
+          style={{ ['--p' as never]: share, ['--dc' as never]: donutColor }}
+        >
+          <div className="absolute inset-0 grid place-items-center">
+            <div className="text-center">
+              <p className="wdg__value text-2xl">{center}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.sosEnCours')}</p>
+            </div>
+          </div>
+        </div>
+        <div className="min-w-0 flex-1 space-y-3">
+          {rows.map((row, index) => (
+            <div key={row.key}>
+              <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <span>{row.key}</span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">{row.value}</span>
+              </div>
+              <div className="wdg-progress" style={{ background: `color-mix(in srgb, ${row.color} 18%, transparent)` }}>
+                <div
+                  className="wdg-progress__bar"
+                  style={{
+                    width: `${total > 0 ? Math.max(4, Math.round((row.value / total) * 100)) : 0}%`,
+                    background: `linear-gradient(90deg, ${row.color}, ${row.color})`,
+                    animationDelay: `${150 + index * 120}ms`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {total === 0 && (
+        <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2.5 text-[11px] font-semibold text-slate-400 dark:bg-slate-950/50">
+          {t('etablissement.sosNoData')}
+        </p>
+      )}
+    </GlassCard>
+  )
+}
+
+function StatsAvisWidget({ dashboard, reviews }: { dashboard: DashboardData | null; reviews: ManagedReview[] }) {
+  const { t } = useTranslation()
+  const avis = dashboard?.avis
+  const note = avis?.noteMoyenne
+  const distribution = [5, 4, 3, 2, 1].map((n) => ({
+    note: n,
+    count: reviews.filter((item) => Math.round(item.note) === n).length,
+  }))
+  const max = Math.max(1, ...distribution.map((d) => d.count))
+  const notePct = note != null ? Math.max(2, Math.min(100, (note / 5) * 100)) : 0
+
+  return (
+    <GlassCard hover className="wdg-anim p-5" delay={120}>
+      <SectionHeader
+        eyebrow={t('etablissement.avisWidgetDesc')}
+        title={t('etablissement.avisWidgetTitle')}
+        action={
+          <span className="wdg-chip wdg-chip--amber">
+            <Star className="h-3 w-3 fill-current" />
+            {note != null ? Number(note).toFixed(1) : '—'}
+          </span>
+        }
+      />
+      <div className="mt-5 flex items-center gap-4">
+        <div className="text-center">
+          <p className="wdg__value text-4xl text-amber-500">{note != null ? Number(note).toFixed(1) : '—'}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">/ 5</p>
+          <div className="relative mt-1.5 inline-flex">
+            <div className="flex gap-0.5 text-slate-200 dark:text-slate-700">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Star key={n} className="h-4 w-4" />
+              ))}
+            </div>
+            <div className="absolute inset-0 flex gap-0.5 overflow-hidden" style={{ width: `${notePct}%` }}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Star key={n} className="h-4 w-4 shrink-0 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+          </div>
+          <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            {avis?.totalEnBase ?? 0} {t('etablissement.avisCountLabel')}
+          </p>
+        </div>
+        <div className="min-w-0 flex-1 space-y-2">
+          {distribution.map((d, index) => (
+            <div key={d.note} className="flex items-center gap-2">
+              <span className="w-7 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400">{d.note}</span>
+              <div className="wdg-progress flex-1" style={{ background: 'color-mix(in srgb, #f59e0b 14%, transparent)' }}>
+                <div
+                  className="wdg-progress__bar"
+                  style={{
+                    width: `${Math.max(d.count > 0 ? 6 : 0, Math.round((d.count / max) * 100))}%`,
+                    background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                    animationDelay: `${150 + index * 90}ms`,
+                  }}
+                />
+              </div>
+              <span className="w-7 text-right text-[11px] font-bold text-slate-400">{d.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {reviews.length === 0 && (
+        <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2.5 text-[11px] font-semibold text-slate-400 dark:bg-slate-950/50">
+          {t('etablissement.reviewsEmpty')}
+        </p>
+      )}
+    </GlassCard>
+  )
+}
+
+function StatsEquipeWidget({ dashboard, equipe }: { dashboard: DashboardData | null; equipe: EquipeMembre[] }) {
+  const { t } = useTranslation()
+  const roles = dashboard?.equipe
+  const total = roles?.total ?? 0
+  const max = Math.max(1, ...TEAM_ROLES.map((role) => roles?.[role] ?? 0))
+  const displayed = equipe.slice(0, 4)
+  const extra = Math.max(0, equipe.length - displayed.length)
+
+  return (
+    <GlassCard hover className="wdg-anim p-5" delay={180}>
+      <SectionHeader
+        eyebrow={t('etablissement.equipeWidgetDesc')}
+        title={t('etablissement.equipeWidgetTitle')}
+        action={
+          <span className="wdg-chip wdg-chip--violet">
+            <Users className="h-3 w-3" />
+            {total}
+          </span>
+        }
+      />
+      <div className="mt-5 space-y-3">
+        {TEAM_ROLES.map((role, index) => {
+          const value = roles?.[role] ?? 0
+          if (value === 0) return null
+          const tone = ROLE_TONE[role] ?? 'slate'
+          return (
+            <div key={role}>
+              <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <span className="wdg-chip wdg-chip--slate px-2 py-0.5 text-[10px]">
+                  {t(`etablissement.${ROLE_LABELS[role] ?? 'roleLecture'}`)}
+                </span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">{value}</span>
+              </div>
+              <div className={`wdg-progress mb-3 ${tone}`} style={{ background: 'color-mix(in srgb, var(--accent,#10b981) 14%, transparent)' }}>
+                <div
+                  className="wdg-progress__bar"
+                  style={{
+                    width: `${Math.max(6, Math.round((value / max) * 100))}%`,
+                    animationDelay: `${120 + index * 100}ms`,
+                  }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      {equipe.length > 0 && (
+        <div className="mt-4 flex items-center gap-3">
+          <div className="flex -space-x-2">
+            {displayed.map((member) => (
+              <Avatar
+                key={member.id}
+                name={`${member.prenom ?? ''} ${member.nom ?? ''}`.trim() || member.email}
+                src={member.photoProfil ? imgUrl(member.photoProfil) : null}
+                size="sm"
+              />
+            ))}
+            {extra > 0 && (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-200 text-[10px] font-extrabold text-slate-600 dark:border-slate-900 dark:bg-slate-700 dark:text-slate-200">
+                +{extra}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] font-semibold text-slate-400">
+            {equipe.length} {t('etablissement.teamCaption')}
+          </p>
+        </div>
+      )}
+    </GlassCard>
+  )
+}
+
+/* ── Réclamation d'établissement ─────────────────────────────────────────── */
 
 function ClaimWizard({
   accent,
@@ -782,12 +1171,9 @@ function ClaimWizard({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="mt-6 rounded-2xl border border-white/80 bg-white/90 p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+    <GlassCard glow className="wdg-anim mt-6 p-6">
       <div className="flex items-center gap-3">
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
-          style={{ backgroundColor: accent }}
-        >
+        <div className="wdg__tile flex h-11 w-11 items-center justify-center rounded-xl text-white">
           <Building2 className="h-5 w-5" />
         </div>
         <div>
@@ -839,7 +1225,7 @@ function ClaimWizard({
           return (
             <div
               key={centre.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 dark:border-slate-700 dark:bg-slate-950/40"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950/40 dark:hover:border-slate-600"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{centre.nom}</p>
@@ -863,104 +1249,13 @@ function ClaimWizard({
           )
         })}
       </div>
-    </div>
+    </GlassCard>
   )
 }
 
-function OverviewPanel({
-  dashboard,
-  prefs,
-  accent,
-}: {
-  dashboard: DashboardData | null
-  prefs: Prefs
-  accent: string
-}) {
-  const { t } = useTranslation()
-  const sosTotal = dashboard?.sos?.total ?? 0
-  const sosEnCours = dashboard?.sos?.enCours ?? 0
-  const avis = dashboard?.avis
-  const medecins = dashboard?.medecins
-
-  return (
-    <div className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          {t('etablissement.overviewTitle')}
-        </h2>
-        {dashboard ? (
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-            Live
-          </span>
-        ) : (
-          <span className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            {t('carte.updating')}
-          </span>
-        )}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-2">
-        <StatCard
-          icon={Activity}
-          label={t('etablissement.sosLabel')}
-          value={sosTotal}
-          extra={sosEnCours ? `${sosEnCours} ${t('etablissement.enAttenteLabel').toLowerCase()}` : undefined}
-          accent={accent}
-          highlight={prefs.showSos}
-        />
-        <StatCard icon={Star} label={t('etablissement.avisTitle')} value={avis?.totalEnBase ?? 0} accent={accent} />
-        <StatCard icon={Star} label={t('etablissement.noteLabel')} value={avis?.noteMoyenne != null ? `${avis.noteMoyenne} /5` : '—'} accent={accent} />
-        <StatCard
-          icon={Stethoscope}
-          label={t('etablissement.medecinsTitle')}
-          value={medecins?.acceptes ?? 0}
-          extra={medecins?.enAttente ? `${medecins.enAttente} ${t('etablissement.enAttenteLabel').toLowerCase()}` : undefined}
-          accent={accent}
-        />
-        <StatCard icon={Users} label={t('etablissement.equipeTitle')} value={dashboard?.equipe?.total ?? 0} accent={accent} wide />
-      </div>
-    </div>
-  )
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  extra,
-  accent,
-  wide,
-  highlight,
-}: {
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
-  label: string
-  value: string | number
-  extra?: string
-  accent: string
-  wide?: boolean
-  highlight?: boolean
-}) {
-  return (
-    <div
-      className={`rounded-xl border p-4 transition ${
-        highlight
-          ? 'border-red-200 bg-red-50/70 dark:border-red-900/40 dark:bg-red-950/20'
-          : 'border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-950/40'
-      } ${wide ? 'sm:col-span-2' : ''}`}
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</span>
-        <Icon className="h-4 w-4" style={{ color: highlight ? '#dc2626' : accent }} />
-      </div>
-      <p className="mt-1.5 text-2xl font-extrabold text-slate-900 dark:text-white">{value}</p>
-      {extra && <p className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">{extra}</p>}
-    </div>
-  )
-}
+/* ── Équipe ──────────────────────────────────────────────────────────────── */
 
 function TeamPanel({
-  accent,
   equipe,
   memberEmail,
   setMemberEmail,
@@ -972,7 +1267,6 @@ function TeamPanel({
   onRemove,
   compact,
 }: {
-  accent: string
   equipe: EquipeMembre[]
   memberEmail: string
   setMemberEmail: (value: string) => void
@@ -985,11 +1279,20 @@ function TeamPanel({
   compact?: boolean
 }) {
   const { t } = useTranslation()
+  const active = equipe.filter((m) => m.statut === 'ACTIF').length
   return (
-    <div className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
-      <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {t('etablissement.equipeTitle')}
-      </h2>
+    <GlassCard as="section" hover className="wdg-anim p-5" delay={220}>
+      <SectionHeader
+        eyebrow={t('etablissement.equipeWidgetDesc')}
+        title={t('etablissement.equipeTitle')}
+        description={t('etablissement.equipeDesc')}
+        action={
+          <span className="wdg-chip wdg-chip--mint">
+            <Users className="h-3 w-3" />
+            {active} {t('etablissement.teamActiveLabel')}
+          </span>
+        }
+      />
 
       <form
         className="mt-4 flex flex-col gap-2 sm:flex-row"
@@ -1019,69 +1322,84 @@ function TeamPanel({
         <button
           type="submit"
           disabled={adding || memberEmail.trim().length < 3}
-          className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-bold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ backgroundColor: accent }}
+          className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--accent,#10b981)] px-4 text-sm font-bold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           {t('etablissement.addMember')}
         </button>
       </form>
 
-      <div className={`mt-4 space-y-2 ${compact ? 'max-h-80 overflow-y-auto pr-1' : ''}`}>
+      <div className={`mt-4 space-y-2 ${compact ? 'max-h-72 overflow-y-auto pr-1' : ''}`}>
         {equipe.length === 0 && (
           <p className="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
             {t('etablissement.equipeEmpty')}
           </p>
         )}
-        {equipe.map((member) => (
-          <div
-            key={member.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/40"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
-                {member.prenom} {member.nom}
-              </p>
-              <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">{member.email}</p>
+        {equipe.map((member) => {
+          const tone = ROLE_TONE[member.role] ?? 'slate'
+          return (
+            <div
+              key={member.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950/40 dark:hover:border-slate-600"
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <Avatar
+                  name={`${member.prenom ?? ''} ${member.nom ?? ''}`.trim() || member.email}
+                  src={member.photoProfil ? imgUrl(member.photoProfil) : null}
+                  size="sm"
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                    {member.prenom} {member.nom}
+                  </p>
+                  <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">{member.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={`wdg-chip ${tone}`}>
+                  {t(`etablissement.${ROLE_LABELS[member.role] ?? 'roleLecture'}`)}
+                </span>
+                <select
+                  value={member.role}
+                  onChange={(event) => onRoleChange(member, event.target.value)}
+                  aria-label="Rôle"
+                  className="max-w-28 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {TEAM_ROLES.map((role) => (
+                    <option key={role} value={role}>
+                      {t(`etablissement.${ROLE_LABELS[role] ?? 'roleLecture'}`)}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    member.statut === 'ACTIF'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+                      : member.statut === 'REVOQUE'
+                        ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
+                        : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                  }`}
+                >
+                  {t(`etablissement.${STATUS_LABELS[member.statut] ?? 'statusInvite'}`)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(member)}
+                  aria-label={t('etablissement.mediaDeleteAlt')}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <select
-                value={member.role}
-                onChange={(event) => onRoleChange(member, event.target.value)}
-                className="max-w-32 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-              >
-                {TEAM_ROLES.map((role) => (
-                  <option key={role} value={role}>
-                    {t(`etablissement.role${role}`)}
-                  </option>
-                ))}
-              </select>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  member.statut === 'ACTIF'
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
-                    : member.statut === 'REVOQUE'
-                      ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
-                      : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                }`}
-              >
-                {t(`etablissement.${STATUS_LABELS[member.statut] ?? 'statusInvite'}`)}
-              </span>
-              <button
-                type="button"
-                onClick={() => onRemove(member)}
-                aria-label="Retirer le membre"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-300"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
-    </div>
+    </GlassCard>
   )
 }
+
+/* ── Galerie médias ──────────────────────────────────────────────────────── */
 
 function MediaPanel({
   items,
@@ -1096,35 +1414,37 @@ function MediaPanel({
 }) {
   const { t } = useTranslation()
   return (
-    <section className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            {t('etablissement.galleryTitle')}
-          </h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {t('etablissement.galleryDesc')}
-          </p>
-        </div>
-        <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 text-xs font-bold text-white transition hover:bg-indigo-700">
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-          {uploading ? t('etablissement.mediaUploading') : t('etablissement.mediaAdd')}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
-            className="sr-only"
-            disabled={uploading}
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) onUpload(file)
-              event.currentTarget.value = ''
-            }}
-          />
-        </label>
-      </div>
+    <GlassCard as="section" hover className="wdg-anim p-5" delay={280}>
+      <SectionHeader
+        eyebrow={t('etablissement.galleryDesc')}
+        title={t('etablissement.galleryTitle')}
+        action={
+          <>
+            <span className="wdg-chip wdg-chip--slate">
+              <FileImage className="h-3 w-3" />
+              {items.length}
+            </span>
+            <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent,#10b981)] px-4 text-xs font-bold text-white transition hover:brightness-105">
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploading ? t('etablissement.mediaUploading') : t('etablissement.mediaAdd')}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                className="sr-only"
+                disabled={uploading}
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) onUpload(file)
+                  event.currentTarget.value = ''
+                }}
+              />
+            </label>
+          </>
+        }
+      />
 
       {items.length === 0 ? (
-        <div className="mt-4 flex min-h-32 flex-col items-center justify-center border border-dashed border-slate-300 bg-slate-50 text-center dark:border-slate-700 dark:bg-slate-950/40">
+        <div className="mt-4 flex min-h-32 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-center dark:border-slate-700 dark:bg-slate-950/40">
           <FileImage className="h-7 w-7 text-slate-400" />
           <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">{t('etablissement.galleryEmpty')}</p>
           <p className="mt-1 text-xs text-slate-500">{t('etablissement.mediaSizeHint')}</p>
@@ -1134,14 +1454,14 @@ function MediaPanel({
           {items.map((item) => {
             const source = imgUrl(item.contentUrl) || item.contentUrl
             return (
-              <div key={item.id} className="group relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <div key={item.id} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
                 {item.kind === 'video' ? (
                   <>
                     <video src={source} muted preload="metadata" className="h-full w-full object-cover" />
                     <Video className="pointer-events-none absolute left-2 top-2 h-5 w-5 text-white drop-shadow" />
                   </>
                 ) : (
-                  <img src={source} alt={item.originalName || 'Media'} className="h-full w-full object-cover" />
+                  <img src={source} alt={item.originalName || 'Media'} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
                 )}
                 <button
                   type="button"
@@ -1159,8 +1479,16 @@ function MediaPanel({
           })}
         </div>
       )}
-    </section>
+    </GlassCard>
   )
+}
+
+/* ── Modération des avis ─────────────────────────────────────────────────── */
+
+const REVIEW_TONE: Record<ManagedReview['statut'], 'mint' | 'red' | 'amber'> = {
+  PUBLIE: 'mint',
+  REJETE: 'red',
+  EN_ATTENTE: 'amber',
 }
 
 function ReviewsPanel({
@@ -1174,55 +1502,50 @@ function ReviewsPanel({
 }) {
   const { t } = useTranslation()
   const published = items.filter((item) => item.statut === 'PUBLIE').length
-  const hidden = items.filter((item) => item.statut === 'REJETE').length
+  const pending = items.filter((item) => item.statut === 'EN_ATTENTE').length
 
   return (
-    <section className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            {t('etablissement.moderationTitle')}
-          </h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {t('etablissement.moderationDesc', { published, hidden })}
-          </p>
-        </div>
-        <div className="flex gap-2 text-[10px] font-bold">
-          <span className="bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-            {published} {t('etablissement.moderationVisible')}
+    <GlassCard as="section" hover className="wdg-anim p-5" delay={340}>
+      <SectionHeader
+        eyebrow={t('etablissement.moderationDesc', { published, hidden: items.length - published })}
+        title={t('etablissement.moderationTitle')}
+        action={
+          <span className="wdg-chip wdg-chip--amber">
+            <Clock className="h-3 w-3" />
+            {pending} {t('etablissement.reviewPendingLabel')}
           </span>
-          <span className="bg-slate-100 px-2 py-1 text-slate-600 dark:bg-white/10 dark:text-slate-300">
-            {hidden} {t('etablissement.moderationHidden')}
-          </span>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="mt-4 max-h-[28rem] divide-y divide-slate-100 overflow-y-auto border-y border-slate-100 dark:divide-white/10 dark:border-white/10">
+      <div className="mt-4 max-h-[28rem] divide-y divide-slate-100 overflow-y-auto rounded-xl border-y border-slate-100 dark:divide-white/10 dark:border-white/10">
         {items.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">{t('etablissement.moderationEmpty')}</p>
         ) : items.map((item) => (
           <article key={item.id} className="py-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">
-                  {item.auteurNom || t('etablissement.moderationUser')}
-                </p>
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
-                    <Star className="h-3.5 w-3.5 fill-current" />
-                    {item.note}/5
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </span>
+              <div className="flex min-w-0 items-start gap-3">
+                <Avatar name={item.auteurNom || 'U'} size="sm" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                    {item.auteurNom || t('etablissement.moderationUser')}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                      <Star className="h-3.5 w-3.5 fill-current" />
+                      {item.note}/5
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <span className={`px-2 py-1 text-[10px] font-bold ${
-                item.statut === 'PUBLIE'
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                  : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300'
-              }`}>
-                {item.statut === 'PUBLIE' ? t('etablissement.moderationStatusVisible') : t('etablissement.moderationStatusHidden')}
+              <span className={`wdg-chip ${REVIEW_TONE[item.statut]}`}>
+                {item.statut === 'PUBLIE'
+                  ? t('etablissement.moderationStatusVisible')
+                  : item.statut === 'EN_ATTENTE'
+                    ? t('etablissement.reviewPendingLabel')
+                    : t('etablissement.moderationStatusHidden')}
               </span>
             </div>
             {item.commentaire && (
@@ -1251,82 +1574,93 @@ function ReviewsPanel({
           </article>
         ))}
       </div>
-    </section>
+    </GlassCard>
   )
 }
+
+/* ── Personnalisation ────────────────────────────────────────────────────── */
 
 function PersonalizationPanel({
   prefs,
   onChange,
+  accent,
 }: {
   prefs: Prefs
   onChange: (prefs: Prefs) => void
+  accent: string
 }) {
   const { t } = useTranslation()
   return (
-    <div className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
-      <div className="flex items-center gap-2">
-        <Palette className="h-4 w-4 text-slate-400" />
-        <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          {t('etablissement.personalizationTitle')}
-        </h2>
-      </div>
+    <GlassCard as="section" hover glow className="wdg-anim p-5" delay={400}>
+      <SectionHeader
+        eyebrow={t('etablissement.personalizationEyebrow')}
+        title={t('etablissement.personalizationTitle')}
+        description={t('etablissement.personalizationDesc')}
+        action={
+          <span className="wdg__tile flex h-9 w-9 items-center justify-center rounded-xl text-white" style={{ ['--accent' as never]: accent }}>
+            <Palette className="h-4 w-4" />
+          </span>
+        }
+      />
 
-      <p className="mt-3 text-[11px] font-bold text-slate-400">{t('etablissement.accentColor')}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <p className="mt-5 text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.accentColor')}</p>
+      <div className="mt-2 flex flex-wrap gap-2.5">
         {ACCENTS.map((color) => (
           <button
             key={color}
             type="button"
             onClick={() => onChange({ ...prefs, accent: color })}
             aria-pressed={prefs.accent === color}
-            className="flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-110"
-            style={{ backgroundColor: color }}
+            className="flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+            style={{ backgroundColor: color, boxShadow: prefs.accent === color ? `0 0 0 3px white, 0 0 0 5px ${color}` : undefined }}
           >
             {prefs.accent === color && <Check className="h-4 w-4 text-white" />}
           </button>
         ))}
       </div>
 
-      <div className="mt-4 space-y-2">
-        <ToggleRow
+      <p className="mt-5 text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.surfaceStyle')}</p>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {(['glass', 'soft'] as const).map((surface) => (
+          <button
+            key={surface}
+            type="button"
+            onClick={() => onChange({ ...prefs, surface })}
+            aria-pressed={prefs.surface === surface}
+            className={`flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition ${
+              prefs.surface === surface
+                ? 'border-transparent text-white'
+                : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:bg-slate-900'
+            }`}
+            style={prefs.surface === surface ? { backgroundColor: 'var(--accent,#10b981)' } : undefined}
+          >
+            {surface === 'glass' ? <Sparkles className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+            {surface === 'glass' ? t('etablissement.surfaceGlass') : t('etablissement.surfaceSoft')}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-5 space-y-3">
+        <Toggle
           checked={prefs.showSos}
           onChange={(value) => onChange({ ...prefs, showSos: value })}
           label={t('etablissement.showSos')}
+          accent
         />
-        <ToggleRow
+        <Toggle
           checked={prefs.compact}
           onChange={(value) => onChange({ ...prefs, compact: value })}
           label={t('etablissement.compactMode')}
+          accent
+        />
+        <Toggle
+          checked={prefs.animations}
+          onChange={(value) => onChange({ ...prefs, animations: value })}
+          label={t('etablissement.animations')}
+          description={t('etablissement.animationsDesc')}
+          accent
         />
       </div>
-    </div>
-  )
-}
-
-function ToggleRow({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean
-  onChange: (value: boolean) => void
-  label: string
-}) {
-  return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/40">
-      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'}`}
-      >
-        <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? 'left-[22px]' : 'left-0.5'}`}
-        />
-      </button>
-    </label>
+    </GlassCard>
   )
 }

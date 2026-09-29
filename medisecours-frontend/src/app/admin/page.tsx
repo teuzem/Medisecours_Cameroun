@@ -8,6 +8,8 @@ import {
   ArrowRight,
   BookOpen,
   Building2,
+  CheckCircle2,
+  Clock,
   Download,
   FolderHeart,
   MessageSquare,
@@ -24,7 +26,7 @@ import { fetcher } from '../../lib/fetcher'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useToast } from '../../components/ui/Toast'
 
-const CHART_COLORS = ['#0f2418', '#2f6b45', '#66bb6a', '#b7dfb2', '#e7efe3']
+const CHART_COLORS = ['#1E3A5F', '#0EA274', '#10B981', '#A7F3D0', '#D1FAE5']
 
 export default function AdminOverview() {
   const { t } = useTranslation()
@@ -198,17 +200,17 @@ export default function AdminOverview() {
     <div className="space-y-6">
       <section className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7d8778]">{t('admin.dashboard.eyebrow')}</p>
-          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#152116]">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#64748B]">{t('admin.dashboard.eyebrow')}</p>
+          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#12263F]">
             {t('admin.dashboard.title')}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-[#6d786a]">
+          <p className="mt-2 max-w-2xl text-sm text-[#64748B]">
             {t('admin.dashboard.description')}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-full border border-[#dfe5db] bg-white p-1 shadow-[0_8px_20px_rgba(15,36,24,0.05)]">
+          <div className="flex rounded-full border border-[#E2E8F0] bg-white p-1 shadow-[0_8px_20px_rgba(30,58,95,0.05)]">
             {['7d', '30d', '90d'].map((option: string) => (
               <button
                 key={option}
@@ -216,8 +218,8 @@ export default function AdminOverview() {
                 onClick={() => setPeriod(option)}
                 className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
                   period === option
-                    ? 'bg-[#0f2418] text-white'
-                    : 'text-[#677266] hover:bg-[#edf2ea]'
+                    ? 'bg-[#1E3A5F] text-white'
+                    : 'text-[#64748B] hover:bg-[#F1F5F9]'
                 }`}
               >
                 {option.toUpperCase()}
@@ -246,10 +248,10 @@ export default function AdminOverview() {
         <SoftPanel className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-[#152116]">{t('admin.dashboard.distributionTitle')}</p>
-              <p className="mt-1 text-sm text-[#6f796c]">{t('admin.dashboard.distributionSubtitle')}</p>
+              <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.distributionTitle')}</p>
+              <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.distributionSubtitle')}</p>
             </div>
-            <span className="rounded-full border border-[#dfe5db] bg-[#f6f8f4] px-3 py-1 text-xs font-semibold text-[#5f6c5d]">
+            <span className="rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-xs font-semibold text-[#64748B]">
               {period.toUpperCase()}
             </span>
           </div>
@@ -277,8 +279,8 @@ export default function AdminOverview() {
                       formatter={(value) => formatNumber(value)}
                       contentStyle={{
                         borderRadius: 16,
-                        border: '1px solid #e2e7de',
-                        boxShadow: '0 10px 30px rgba(15,36,24,0.08)',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 10px 30px rgba(30,58,95,0.08)',
                       }}
                     />
                   </PieChart>
@@ -286,12 +288,12 @@ export default function AdminOverview() {
               </div>
 
               <div className="space-y-3">
-                <div className="rounded-[24px] bg-[#f4f6f1] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7d887a]">{t('admin.dashboard.volumeGlobal')}</p>
-                  <p className="mt-2 font-display text-3xl font-extrabold text-[#132014]">
+                <div className="rounded-[24px] bg-[#F8FAFC] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#64748B]">{t('admin.dashboard.volumeGlobal')}</p>
+                  <p className="mt-2 font-display text-3xl font-extrabold text-[#12263F]">
                     {formatNumber(distributionTotal)}
                   </p>
-                  <p className="mt-1 text-sm text-[#6f796c]">{t('admin.dashboard.volumeDescription')}</p>
+                  <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.volumeDescription')}</p>
                 </div>
                 {distributionData.map((item: any, index: number) => (
                   <LegendRow
@@ -314,8 +316,8 @@ export default function AdminOverview() {
           <SoftPanel className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg font-bold text-[#152116]">{t('admin.dashboard.quickActionsTitle')}</p>
-                <p className="mt-1 text-sm text-[#6f796c]">{t('admin.dashboard.quickActionsSubtitle')}</p>
+                <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.quickActionsTitle')}</p>
+                <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.quickActionsSubtitle')}</p>
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3">
@@ -327,14 +329,16 @@ export default function AdminOverview() {
         </div>
       </section>
 
+      <DoctorsActivityPanel />
+
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.45fr_1fr]">
         <SoftPanel className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-[#152116]">{t('admin.dashboard.recommendationsTitle')}</p>
-              <p className="mt-1 text-sm text-[#6f796c]">{t('admin.dashboard.recommendationsSubtitle')}</p>
+              <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.recommendationsTitle')}</p>
+              <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.recommendationsSubtitle')}</p>
             </div>
-            <span className="rounded-full border border-[#dfe5db] bg-[#f6f8f4] px-3 py-1 text-xs font-semibold text-[#5f6c5d]">
+            <span className="rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-xs font-semibold text-[#64748B]">
               {t('admin.dashboard.recommendationsPriority')}
             </span>
           </div>
@@ -348,10 +352,10 @@ export default function AdminOverview() {
         <SoftPanel className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-[#152116]">{t('admin.dashboard.activityTitle')}</p>
-              <p className="mt-1 text-sm text-[#6f796c]">{t('admin.dashboard.activitySubtitle')}</p>
+              <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.activityTitle')}</p>
+              <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.activitySubtitle')}</p>
             </div>
-            <Link href="/admin/avis" className="text-sm font-semibold text-[#1f5a3a] hover:text-[#0f2418]">
+            <Link href="/admin/avis" className="text-sm font-semibold text-[#059669] hover:text-[#1E3A5F]">
               {t('admin.dashboard.viewAll')}
             </Link>
           </div>
@@ -371,9 +375,144 @@ export default function AdminOverview() {
   )
 }
 
+function DoctorsActivityPanel() {
+  const { t } = useTranslation()
+  const { data, isLoading } = useSWR('/api/admin/medecins', fetcher, { revalidateOnFocus: false })
+
+  const medecins = useMemo(() => (Array.isArray(data?.medecins) ? data.medecins : []), [data])
+  const valides = useMemo(() => medecins.filter((m: any) => m.estValide), [medecins])
+  const enAttente = useMemo(() => medecins.filter((m: any) => !m.estValide), [medecins])
+
+  const specialites = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const med of valides) {
+      const key = String(med.specialite || '').trim() || '—'
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+  }, [valides])
+
+  const max = Math.max(1, ...specialites.map((item) => item[1]))
+
+  return (
+    <SoftPanel className="p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.docteursActivityTitle')}</p>
+          <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.docteursActivitySubtitle')}</p>
+        </div>
+        <Link
+          href="/admin/medecins"
+          className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#059669] shadow-[0_8px_20px_rgba(30,58,95,0.05)] transition hover:bg-[#F1F5F9]"
+        >
+          <Stethoscope className="h-4 w-4" />
+          {t('admin.dashboard.viewAll')}
+        </Link>
+      </div>
+
+      {isLoading && !data ? (
+        <div className="mt-5 rounded-[24px] bg-[#F8FAFC] px-4 py-10 text-center text-sm font-semibold text-[#64748B]">
+          {t('admin.dashboard.loading')}
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+          <div className="rounded-[24px] bg-[#F8FAFC] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#64748B]">
+                {t('admin.dashboard.docteursTopSpecialites')}
+              </p>
+              <div className="flex items-center gap-2 text-xs font-bold">
+                <span className="rounded-full bg-[#ECFDF5] px-3 py-1 text-[#047857]">
+                  {formatNumber(valides.length)} {t('admin.medecins.statValides')}
+                </span>
+                <span className="rounded-full bg-[#FEF2F2] px-3 py-1 text-[#B91C1C]">
+                  {formatNumber(enAttente.length)} {t('admin.medecins.statEnAttente')}
+                </span>
+              </div>
+            </div>
+
+            {specialites.length === 0 ? (
+              <p className="mt-4 rounded-[18px] border border-dashed border-[#CBD5E1] bg-white px-4 py-8 text-center text-sm text-[#64748B]">
+                {t('admin.dashboard.docteursEmpty')}
+              </p>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {specialites.map(([label, value], index) => (
+                  <div key={label}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="truncate font-semibold text-[#1E293B]">{label}</span>
+                      <span className="font-bold text-[#12263F]">{formatNumber(value)}</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#E2E8F0]">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${Math.max(4, Math.round((value / max) * 100))}%`,
+                          background:
+                            index === 0
+                              ? 'linear-gradient(90deg, #12263F, #1E3A5F)'
+                              : 'linear-gradient(90deg, #059669, #10B981)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-[24px] bg-[#F8FAFC] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#64748B]">
+              {t('admin.dashboard.docteursPendingTitle')}
+            </p>
+            {enAttente.length === 0 ? (
+              <div className="mt-4 rounded-[18px] border border-dashed border-[#CBD5E1] bg-white px-4 py-8 text-center text-sm text-[#64748B]">
+                <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-[#10B981]" />
+                {t('admin.dashboard.docteursEmpty')}
+              </div>
+            ) : (
+              <div className="mt-4 space-y-2">
+                {enAttente.slice(0, 4).map((med: any) => (
+                  <Link
+                    key={med.id}
+                    href="/admin/medecins"
+                    className="flex items-center justify-between gap-3 rounded-[18px] border border-[#E2E8F0] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:border-[#CBD5E1] hover:shadow-[0_10px_24px_rgba(30,58,95,0.08)]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-[#12263F]">
+                        Dr {med.prenom} {med.nom}
+                      </p>
+                      <p className="truncate text-xs text-[#64748B]">{med.specialite || t('admin.dashboard.docteursSpecialiteNone')}</p>
+                    </div>
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#FEF2F2] px-2.5 py-1 text-[10px] font-bold text-[#B91C1C]">
+                      <Clock className="h-3 w-3" />
+                      {t('admin.medecins.statEnAttente')}
+                    </span>
+                  </Link>
+                ))}
+                {enAttente.length > 4 && (
+                  <Link
+                    href="/admin/medecins"
+                    className="flex items-center justify-center gap-2 rounded-[18px] px-4 py-3 text-sm font-semibold text-[#059669] transition hover:bg-[#ECFDF5]"
+                  >
+                    {t('admin.dashboard.viewAll')}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </SoftPanel>
+  )
+}
+
 function SoftPanel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-[28px] border border-[#e3e7df] bg-white shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${className}`}>
+    <div className={`rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_18px_45px_rgba(30,58,95,0.05)] ${className}`}>
       {children}
     </div>
   )
@@ -385,7 +524,7 @@ function ToolbarButton({ children, onClick, disabled = false }: { children: Reac
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-2 rounded-full border border-[#dfe5db] bg-white px-4 py-2.5 text-sm font-semibold text-[#2b382b] shadow-[0_8px_20px_rgba(15,36,24,0.05)] transition hover:bg-[#edf2ea] disabled:cursor-not-allowed disabled:opacity-70"
+      className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#334155] shadow-[0_8px_20px_rgba(30,58,95,0.05)] transition hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-70"
     >
       {children}
     </button>
@@ -395,7 +534,7 @@ function ToolbarButton({ children, onClick, disabled = false }: { children: Reac
   function HeroCard({ heroValue, heroTrend, secondary = [] }: { heroValue?: number; heroTrend?: number; secondary?: { label: string; value: number }[] }) {
     const { t } = useTranslation()
   return (
-    <SoftPanel className="overflow-hidden bg-[linear-gradient(135deg,#09170f_0%,#0f2418_60%,#183626_100%)] p-5 text-white sm:p-6">
+    <SoftPanel className="overflow-hidden bg-[linear-gradient(135deg,#101F33_0%,#1E3A5F_60%,#24486F_100%)] p-5 text-white sm:p-6">
       <div className="flex h-full flex-col justify-between gap-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -407,7 +546,7 @@ function ToolbarButton({ children, onClick, disabled = false }: { children: Reac
               {t('admin.dashboard.heroDescription')}
             </p>
           </div>
-          <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-[#8de38d]">
+          <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-[#6EE7B7]">
             {t('admin.dashboard.heroTrend', { delta: formatDelta(heroTrend, t) })}
           </span>
                 </div>
@@ -429,19 +568,19 @@ function SummaryCard({ label, value, delta, tone }: { label: string; value?: num
   const { t } = useTranslation()
   const toneClasses = {
     green: {
-      dot: 'bg-[#b7efc3]',
-      text: 'text-[#2f6b45]',
-      pill: 'bg-[#e7f5ea]',
+      dot: 'bg-[#A7F3D0]',
+      text: 'text-[#0EA274]',
+      pill: 'bg-[#ECFDF5]',
     },
     rose: {
-      dot: 'bg-[#ffd7d7]',
-      text: 'text-[#b96b6b]',
-      pill: 'bg-[#fff2f2]',
+      dot: 'bg-[#FECACA]',
+      text: 'text-[#B91C1C]',
+      pill: 'bg-[#FEF2F2]',
     },
     lime: {
-      dot: 'bg-[#d7efbf]',
-      text: 'text-[#52713f]',
-      pill: 'bg-[#f1f8eb]',
+      dot: 'bg-[#D1FAE5]',
+      text: 'text-[#047857]',
+      pill: 'bg-[#ECFDF5]',
     },
   }
 
@@ -449,11 +588,11 @@ function SummaryCard({ label, value, delta, tone }: { label: string; value?: num
 
   return (
     <SoftPanel className="p-5">
-      <div className="flex items-center gap-2 text-sm font-semibold text-[#334033]">
+      <div className="flex items-center gap-2 text-sm font-semibold text-[#334155]">
         <span className={`h-2.5 w-2.5 rounded-full ${ui.dot}`} />
         {label}
       </div>
-      <p className="mt-4 font-display text-3xl font-extrabold tracking-tight text-[#152116]">
+      <p className="mt-4 font-display text-3xl font-extrabold tracking-tight text-[#12263F]">
         {formatNumber(value)}
       </p>
       <div className="mt-4">
@@ -472,9 +611,9 @@ function InsightCard({ alert }: { alert?: any }) {
   const count = alert?.count ?? 0
 
   return (
-    <div className="rounded-[28px] bg-[linear-gradient(135deg,#09170f_0%,#0f2418_55%,#132c1f_100%)] p-5 text-white shadow-[0_18px_45px_rgba(15,36,24,0.16)] sm:p-6">
+    <div className="rounded-[28px] bg-[linear-gradient(135deg,#101F33_0%,#1E3A5F_55%,#16324E_100%)] p-5 text-white shadow-[0_18px_45px_rgba(30,58,95,0.16)] sm:p-6">
       <div className="flex items-center gap-2 text-sm font-semibold text-white/70">
-        <Sparkles className="h-4 w-4 text-[#8ee18f]" />
+        <Sparkles className="h-4 w-4 text-[#6EE7B7]" />
         {t('admin.dashboard.insightLabel')}
       </div>
       <p className="mt-4 text-2xl font-bold leading-tight">
@@ -485,7 +624,7 @@ function InsightCard({ alert }: { alert?: any }) {
       </p>
       <Link
         href={href}
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#57c66b] px-4 py-3 text-sm font-semibold text-[#0f2418] transition hover:bg-[#6cda80]"
+        className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#10B981] px-4 py-3 text-sm font-semibold text-[#1E3A5F] transition hover:bg-[#34D399]"
       >
         {t('admin.dashboard.viewSuggestions')}
         <ArrowRight className="h-4 w-4" />
@@ -498,13 +637,13 @@ function QuickActionCard({ href, label, description, icon: Icon }: { href: strin
   return (
     <Link
       href={href}
-      className="rounded-[22px] border border-[#e4e8df] bg-[#f8faf6] p-4 transition hover:-translate-y-0.5 hover:border-[#cfd7cb] hover:bg-white"
+      className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4 transition hover:-translate-y-0.5 hover:border-[#CBD5E1] hover:bg-white"
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#1f5a3a] shadow-[0_8px_18px_rgba(15,36,24,0.06)]">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#059669] shadow-[0_8px_18px_rgba(30,58,95,0.06)]">
         <Icon className="h-5 w-5" />
       </div>
-      <p className="mt-4 text-sm font-bold text-[#162117]">{label}</p>
-      <p className="mt-1 text-xs leading-5 text-[#727d70]">{description}</p>
+      <p className="mt-4 text-sm font-bold text-[#12263F]">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-[#64748B]">{description}</p>
     </Link>
   )
 }
@@ -514,14 +653,14 @@ function RecommendationCard({ title, description, href, icon: Icon }: { title: s
   return (
     <Link
       href={href}
-      className="group rounded-[24px] border border-[#e5e9e1] bg-[#fbfcfa] p-4 transition hover:-translate-y-0.5 hover:border-[#d3dacf] hover:bg-white"
+      className="group rounded-[24px] border border-[#E2E8F0] bg-[#F8FAFC] p-4 transition hover:-translate-y-0.5 hover:border-[#CBD5E1] hover:bg-white"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4eb] text-[#1f5a3a]">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F0FDF4] text-[#059669]">
         <Icon className="h-5 w-5" />
       </div>
-      <p className="mt-4 text-lg font-bold text-[#152116]">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-[#707b6d]">{description}</p>
-      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1f5a3a]">
+      <p className="mt-4 text-lg font-bold text-[#12263F]">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-[#64748B]">{description}</p>
+      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#059669]">
         {t('admin.dashboard.open')}
         <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
       </div>
@@ -539,13 +678,13 @@ function ActivityRow({ item }: { item: any }) {
   const Icon = iconMap[item.type as keyof typeof iconMap] || AlertTriangle
 
   return (
-    <div className="flex items-start gap-3 rounded-[22px] border border-[#ebeee8] bg-[#fafbf8] p-4">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[#1f5a3a] shadow-[0_8px_18px_rgba(15,36,24,0.05)]">
+    <div className="flex items-start gap-3 rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[#059669] shadow-[0_8px_18px_rgba(30,58,95,0.05)]">
         <Icon className="h-4.5 w-4.5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-[#182417]">{item.message}</p>
-        <p className="mt-1 text-xs text-[#768172]">{formatDateTime(item.at, i18n.language) ?? t('admin.dashboard.dateUnavailable')}</p>
+        <p className="text-sm font-semibold text-[#12263F]">{item.message}</p>
+        <p className="mt-1 text-xs text-[#64748B]">{formatDateTime(item.at, i18n.language) ?? t('admin.dashboard.dateUnavailable')}</p>
       </div>
     </div>
   )
@@ -553,14 +692,14 @@ function ActivityRow({ item }: { item: any }) {
 
 function LegendRow({ color, label, value, share }: { color: string; label: string; value?: number; share?: number }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[18px] border border-[#e8ece4] bg-white px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-[18px] border border-[#E2E8F0] bg-white px-4 py-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
-        <span className="truncate text-sm font-medium text-[#263225]">{label}</span>
+        <span className="truncate text-sm font-medium text-[#1E293B]">{label}</span>
       </div>
       <div className="flex items-center gap-4 text-sm">
-        <span className="font-semibold text-[#152116]">{formatNumber(value)}</span>
-        <span className="text-[#7a8477]">{share}%</span>
+        <span className="font-semibold text-[#12263F]">{formatNumber(value)}</span>
+        <span className="text-[#64748B]">{share}%</span>
       </div>
     </div>
   )
@@ -568,7 +707,7 @@ function LegendRow({ color, label, value, share }: { color: string; label: strin
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className="rounded-[22px] border border-dashed border-[#dbe1d8] bg-[#f8faf6] px-4 py-10 text-center text-sm text-[#7a8578]">
+    <div className="rounded-[22px] border border-dashed border-[#E2E8F0] bg-[#F8FAFC] px-4 py-10 text-center text-sm text-[#64748B]">
       {label}
     </div>
   )

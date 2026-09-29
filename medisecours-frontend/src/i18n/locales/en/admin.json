@@ -111,6 +111,12 @@
       "csvMessages": "Messages",
       "csvAvis": "Reviews",
       "csvAvisSignales": "Flagged reviews",
+      "docteursActivityTitle": "Doctor activity",
+      "docteursActivitySubtitle": "Global view of the medical roster: validations and specialties.",
+      "docteursTopSpecialites": "Top specialties",
+      "docteursPendingTitle": "Pending validations",
+      "docteursEmpty": "No practitioners on file.",
+      "docteursSpecialiteNone": "Specialty not set",
       "loading": "Loading dashboard..."
     },
     "utilisateurs": {
