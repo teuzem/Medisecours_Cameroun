@@ -1772,6 +1772,11 @@ h1, h2, h3, h4 {
   outline: none;
 }
 
+.dashboard-section-nav__item.is-active {
+  background: #e7f7f2;
+  color: #047857;
+}
+
 .dark .dashboard-section-nav__item {
   color: #a8b7c8;
 }
@@ -1779,6 +1784,11 @@ h1, h2, h3, h4 {
 .dark .dashboard-section-nav__item:hover,
 .dark .dashboard-section-nav__item:focus-visible {
   background: rgba(148, 163, 184, 0.12);
+  color: #5eead4;
+}
+
+.dark .dashboard-section-nav__item.is-active {
+  background: rgba(45, 212, 191, 0.14);
   color: #5eead4;
 }
 

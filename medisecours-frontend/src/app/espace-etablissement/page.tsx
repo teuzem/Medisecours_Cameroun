@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
   FileImage,
+  Filter,
   Gauge,
   Loader2,
   LogIn,
@@ -31,6 +32,7 @@ import {
   Trash2,
   Upload,
   UserPlus,
+  UserCheck,
   Users,
   Video,
 } from 'lucide-react'
@@ -199,6 +201,15 @@ const PREFS_VERSION = 2
 
 type StoredPrefs = Prefs & { version: number }
 
+type DashboardSectionId =
+  | 'dashboard-overview'
+  | 'dashboard-fiche'
+  | 'dashboard-team'
+  | 'dashboard-media'
+  | 'dashboard-reviews'
+  | 'dashboard-analytics'
+  | 'dashboard-settings'
+
 function defaultPrefs(): Prefs {
   return { accent: ACCENTS[0], showSos: true, compact: false, animations: true, surface: 'glass' }
 }
@@ -245,6 +256,7 @@ export default function EtablissementEspacePage() {
   const [teamError, setTeamError] = useState(false)
   const [mediaError, setMediaError] = useState(false)
   const [reviewsError, setReviewsError] = useState(false)
+  const [activeSection, setActiveSection] = useState<DashboardSectionId>('dashboard-overview')
 
   // Claim wizard
   const [searchQuery, setSearchQuery] = useState('')
@@ -375,6 +387,37 @@ export default function EtablissementEspacePage() {
     void loadStats()
   }, [mounted, isAuthenticated, canAccess, loadMonEtablissement, loadStats, router])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const updateFromHash = () => {
+      const value = window.location.hash.replace(/^#/, '') as DashboardSectionId
+      if (
+        [
+          'dashboard-overview',
+          'dashboard-fiche',
+          'dashboard-team',
+          'dashboard-media',
+          'dashboard-reviews',
+          'dashboard-analytics',
+          'dashboard-settings',
+        ].includes(value)
+      ) {
+        setActiveSection(value)
+      }
+    }
+    updateFromHash()
+    window.addEventListener('hashchange', updateFromHash)
+    return () => window.removeEventListener('hashchange', updateFromHash)
+  }, [])
+
+  const selectDashboardSection = useCallback((section: DashboardSectionId) => {
+    setActiveSection(section)
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${section}`)
+      document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [])
+
   /* ── Recherche (réclamation) ───────────────────────────────────────────── */
   const runSearch = useCallback(async () => {
     const q = searchQuery.trim()
@@ -460,6 +503,21 @@ export default function EtablissementEspacePage() {
       try {
         await api.patch(`/api/carte/equipes/${member.id}`, { role })
         setEquipe((current) => current.map((m) => (m.id === member.id ? { ...m, role } : m)))
+        setTeamError(false)
+      } catch (error: any) {
+        toast.error(error.response?.data?.error || t('etablissement.teamUpdateFailed'))
+      }
+    },
+    [t, toast],
+  )
+
+  const updateMemberStatus = useCallback(
+    async (member: EquipeMembre, statut: string) => {
+      try {
+        const { data } = await api.patch<{ member: EquipeMembre }>(`/api/carte/equipes/${member.id}`, { statut })
+        setEquipe((current) =>
+          current.map((item) => (item.id === member.id ? { ...item, ...(data.member ?? { statut }) } : item)),
+        )
         setTeamError(false)
       } catch (error: any) {
         toast.error(error.response?.data?.error || t('etablissement.teamUpdateFailed'))
@@ -704,7 +762,7 @@ export default function EtablissementEspacePage() {
             />
           ) : (
             <>
-              <DashboardSectionNav />
+              <DashboardSectionNav activeSection={activeSection} onSelect={selectDashboardSection} />
               {prefs.compact ? (
             <div className="dashboard-workspace mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
               <div id="dashboard-overview" className="dashboard-section xl:col-span-3">
@@ -731,6 +789,7 @@ export default function EtablissementEspacePage() {
                   onAdd={addMember}
                   adding={addingMember}
                   onRoleChange={updateMemberRole}
+                  onStatusChange={updateMemberStatus}
                   onRemove={removeMember}
                   loading={teamLoading}
                   error={teamError}
@@ -789,6 +848,7 @@ export default function EtablissementEspacePage() {
                   onAdd={addMember}
                   adding={addingMember}
                   onRoleChange={updateMemberRole}
+                  onStatusChange={updateMemberStatus}
                   onRemove={removeMember}
                   loading={teamLoading}
                   error={teamError}
@@ -833,7 +893,13 @@ function syncLabelIcon(syncing: boolean) {
   return syncing ? Loader2 : RefreshCw
 }
 
-function DashboardSectionNav() {
+function DashboardSectionNav({
+  activeSection,
+  onSelect,
+}: {
+  activeSection: DashboardSectionId
+  onSelect: (section: DashboardSectionId) => void
+}) {
   const { t } = useTranslation()
   const items = [
     { id: 'dashboard-overview', label: t('etablissement.navOverview'), icon: Gauge },
@@ -849,7 +915,16 @@ function DashboardSectionNav() {
     <nav className="dashboard-section-nav" aria-label={t('etablissement.dashboardNavigation')}>
       <div className="dashboard-section-nav__scroll">
         {items.map(({ id, label, icon: Icon }) => (
-          <a key={id} href={`#${id}`} className="dashboard-section-nav__item">
+          <a
+            key={id}
+            href={`#${id}`}
+            onClick={(event) => {
+              event.preventDefault()
+              onSelect(id as DashboardSectionId)
+            }}
+            aria-current={activeSection === id ? 'page' : undefined}
+            className={`dashboard-section-nav__item ${activeSection === id ? 'is-active' : ''}`}
+          >
             <Icon className="h-4 w-4" aria-hidden="true" />
             <span>{label}</span>
           </a>
@@ -1480,6 +1555,7 @@ function TeamPanel({
   onAdd,
   adding,
   onRoleChange,
+  onStatusChange,
   onRemove,
   loading,
   error,
@@ -1494,6 +1570,7 @@ function TeamPanel({
   onAdd: () => void
   adding: boolean
   onRoleChange: (member: EquipeMembre, role: string) => void
+  onStatusChange: (member: EquipeMembre, statut: string) => void
   onRemove: (member: EquipeMembre) => void
   loading?: boolean
   error?: boolean
@@ -1501,7 +1578,19 @@ function TeamPanel({
   compact?: boolean
 }) {
   const { t } = useTranslation()
+  const [query, setQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState('ALL')
+  const [statusFilter, setStatusFilter] = useState('ALL')
   const active = equipe.filter((m) => m.statut === 'ACTIF').length
+  const doctors = equipe.filter((m) => m.role === 'MEDECIN').length
+  const filteredMembers = equipe.filter((member) => {
+    const haystack = `${member.prenom ?? ''} ${member.nom ?? ''} ${member.email}`.toLowerCase()
+    return (
+      (roleFilter === 'ALL' || member.role === roleFilter) &&
+      (statusFilter === 'ALL' || member.statut === statusFilter) &&
+      (!query.trim() || haystack.includes(query.trim().toLowerCase()))
+    )
+  })
   return (
     <GlassCard as="section" hover className="wdg-anim p-5" delay={220}>
       <SectionHeader
@@ -1509,10 +1598,16 @@ function TeamPanel({
         title={t('etablissement.equipeTitle')}
         description={t('etablissement.equipeDesc')}
         action={
-          <span className="wdg-chip wdg-chip--mint">
-            <Users className="h-3 w-3" />
-            {active} {t('etablissement.teamActiveLabel')}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="wdg-chip wdg-chip--mint">
+              <Users className="h-3 w-3" />
+              {active} {t('etablissement.teamActiveLabel')}
+            </span>
+            <span className="wdg-chip wdg-chip--blue">
+              <UserCheck className="h-3 w-3" />
+              {doctors} {t('etablissement.doctorCountLabel')}
+            </span>
+          </div>
         }
       />
 
@@ -1557,13 +1652,56 @@ function TeamPanel({
         </button>
       </form>
 
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="min-h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs font-semibold text-slate-800 outline-none focus:border-[var(--accent,#059669)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            placeholder={t('etablissement.teamSearchPlaceholder')}
+          />
+        </label>
+        <select
+          value={roleFilter}
+          onChange={(event) => setRoleFilter(event.target.value)}
+          className="min-h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          aria-label={t('etablissement.teamRoleFilter')}
+        >
+          <option value="ALL">{t('etablissement.allRoles')}</option>
+          {TEAM_ROLES.map((role) => (
+            <option key={role} value={role}>
+              {t(`etablissement.${ROLE_LABELS[role] ?? 'roleLecture'}`)}
+            </option>
+          ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(event) => setStatusFilter(event.target.value)}
+          className="min-h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          aria-label={t('etablissement.teamStatusFilter')}
+        >
+          <option value="ALL">{t('etablissement.allStatuses')}</option>
+          {Object.keys(STATUS_LABELS).map((status) => (
+            <option key={status} value={status}>
+              {t(`etablissement.${STATUS_LABELS[status]}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className={`mt-4 space-y-2 ${compact ? 'max-h-72 overflow-y-auto pr-1' : ''} ${error ? 'opacity-60' : ''}`}>
         {equipe.length === 0 && (
           <p className="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
             {t('etablissement.equipeEmpty')}
           </p>
         )}
-        {equipe.map((member) => {
+        {equipe.length > 0 && filteredMembers.length === 0 && (
+          <p className="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
+            {t('etablissement.teamFilterEmpty')}
+          </p>
+        )}
+        {filteredMembers.map((member) => {
           const tone = ROLE_TONE[member.role] ?? 'slate'
           return (
             <div
@@ -1596,6 +1734,18 @@ function TeamPanel({
                   {TEAM_ROLES.map((role) => (
                     <option key={role} value={role}>
                       {t(`etablissement.${ROLE_LABELS[role] ?? 'roleLecture'}`)}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={member.statut}
+                  onChange={(event) => onStatusChange(member, event.target.value)}
+                  aria-label={t('etablissement.statusSelectLabel')}
+                  className="max-w-24 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {Object.keys(STATUS_LABELS).map((status) => (
+                    <option key={status} value={status}>
+                      {t(`etablissement.${STATUS_LABELS[status]}`)}
                     </option>
                   ))}
                 </select>
@@ -1648,6 +1798,13 @@ function MediaPanel({
 }) {
   const { t } = useTranslation()
   const [dragActive, setDragActive] = useState(false)
+  const [query, setQuery] = useState('')
+  const [kindFilter, setKindFilter] = useState<'all' | 'image' | 'video'>('all')
+  const visibleItems = items.filter((item) => {
+    const matchesKind = kindFilter === 'all' || item.kind === kindFilter
+    const matchesQuery = !query.trim() || (item.originalName ?? '').toLowerCase().includes(query.trim().toLowerCase())
+    return matchesKind && matchesQuery
+  })
   return (
     <GlassCard as="section" hover className="wdg-anim p-5" delay={280}>
       <SectionHeader
@@ -1683,6 +1840,31 @@ function MediaPanel({
       ) : loading && items.length === 0 ? (
         <PanelState kind="loading" />
       ) : null}
+
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="min-h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs font-semibold text-slate-800 outline-none focus:border-[var(--accent,#059669)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            placeholder={t('etablissement.mediaSearchPlaceholder')}
+          />
+        </label>
+        <label className="relative block">
+          <Filter className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <select
+            value={kindFilter}
+            onChange={(event) => setKindFilter(event.target.value as 'all' | 'image' | 'video')}
+            className="min-h-9 rounded-lg border border-slate-200 bg-white pl-9 pr-7 text-xs font-semibold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            aria-label={t('etablissement.mediaTypeFilter')}
+          >
+            <option value="all">{t('etablissement.allMedia')}</option>
+            <option value="image">{t('etablissement.mediaImage')}</option>
+            <option value="video">{t('etablissement.mediaVideo')}</option>
+          </select>
+        </label>
+      </div>
 
       {items.length === 0 ? (
         <label
@@ -1720,9 +1902,13 @@ function MediaPanel({
             }}
           />
         </label>
+      ) : visibleItems.length === 0 ? (
+        <p className="mt-4 rounded-lg bg-slate-50 px-3 py-8 text-center text-xs font-semibold text-slate-500 dark:bg-slate-950/50 dark:text-slate-400">
+          {t('etablissement.mediaFilterEmpty')}
+        </p>
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const source = imgUrl(item.contentUrl) || item.contentUrl
             return (
               <div key={item.id} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
@@ -1778,8 +1964,17 @@ function ReviewsPanel({
   onModerate: (item: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
 }) {
   const { t, i18n } = useTranslation()
+  const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'ALL' | ManagedReview['statut']>('ALL')
   const published = items.filter((item) => item.statut === 'PUBLIE').length
   const pending = items.filter((item) => item.statut === 'EN_ATTENTE').length
+  const filteredItems = items.filter((item) => {
+    const search = query.trim().toLowerCase()
+    const matchesQuery =
+      !search ||
+      `${item.auteurNom ?? ''} ${item.commentaire ?? ''}`.toLowerCase().includes(search)
+    return matchesQuery && (statusFilter === 'ALL' || item.statut === statusFilter)
+  })
 
   return (
     <GlassCard as="section" hover className="wdg-anim p-5" delay={340}>
@@ -1800,10 +1995,38 @@ function ReviewsPanel({
         <PanelState kind="loading" />
       ) : null}
 
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="min-h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs font-semibold text-slate-800 outline-none focus:border-[var(--accent,#059669)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            placeholder={t('etablissement.reviewSearchPlaceholder')}
+          />
+        </label>
+        <label className="relative block">
+          <Filter className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value as 'ALL' | ManagedReview['statut'])}
+            className="min-h-9 rounded-lg border border-slate-200 bg-white pl-9 pr-7 text-xs font-semibold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            aria-label={t('etablissement.reviewStatusFilter')}
+          >
+            <option value="ALL">{t('etablissement.allStatuses')}</option>
+            <option value="EN_ATTENTE">{t('etablissement.reviewPendingLabel')}</option>
+            <option value="PUBLIE">{t('etablissement.moderationStatusVisible')}</option>
+            <option value="REJETE">{t('etablissement.moderationStatusHidden')}</option>
+          </select>
+        </label>
+      </div>
+
       <div className="mt-4 max-h-[28rem] divide-y divide-slate-100 overflow-y-auto rounded-xl border-y border-slate-100 dark:divide-white/10 dark:border-white/10">
         {items.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">{t('etablissement.moderationEmpty')}</p>
-        ) : items.map((item) => (
+        ) : filteredItems.length === 0 ? (
+          <p className="py-8 text-center text-sm text-slate-500">{t('etablissement.reviewFilterEmpty')}</p>
+        ) : filteredItems.map((item) => (
           <article key={item.id} className="py-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-start gap-3">

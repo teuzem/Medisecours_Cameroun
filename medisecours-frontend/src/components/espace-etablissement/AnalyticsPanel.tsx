@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import {
   BarChart3,
   Bookmark,
+  Download,
   Eye,
   Globe,
   Mail,
@@ -245,6 +246,25 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
     setError(false)
   }
 
+  const exportAnalytics = () => {
+    if (!data || typeof window === 'undefined') return
+    const headers = ['date', ...ANALYTIC_TYPES]
+    const rows = data.serie.map((point) => [
+      point.jour,
+      ...ANALYTIC_TYPES.map((type) => String(point[type] ?? 0)),
+    ])
+    const csv = [headers, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `medisecours-analytics-${centreId}-${period}d.csv`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
   const breakdown = useMemo(() => {
     if (!data) return []
     return ANALYTIC_TYPES.map((type) => ({ type, count: data.totaux[type] ?? 0 }))
@@ -300,6 +320,15 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/70 bg-white/80 text-slate-500 shadow-sm transition hover:text-slate-900 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-white"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              type="button"
+              onClick={exportAnalytics}
+              disabled={!data || loading}
+              aria-label={t('etablissement.analytics.export')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/70 bg-white/80 text-slate-500 transition hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-white"
+            >
+              <Download className="h-4 w-4" />
             </button>
           </div>
         }
