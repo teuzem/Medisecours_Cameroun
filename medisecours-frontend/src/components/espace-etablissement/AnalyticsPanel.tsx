@@ -96,7 +96,8 @@ const PERIOD_OPTIONS = [7, 30, 90] as const
  * ────────────────────────────────────────────────────────────────────────── */
 
 function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: string }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
   const gradientId = useId().replace(/:/g, '')
   const totals = serie.map((s) => ANALYTIC_TYPES.reduce((sum, k) => sum + (s[k] ?? 0), 0))
   const max = Math.max(...totals, 1)
@@ -169,9 +170,9 @@ function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: strin
       <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500">
         {serie.length > 0 ? (
           <>
-            <span>{shortDate(serie[0].jour)}</span>
-            <span>{shortDate(serie[Math.floor((serie.length - 1) / 2)]?.jour ?? serie[0].jour)}</span>
-            <span>{shortDate(serie[serie.length - 1].jour)}</span>
+            <span>{shortDate(serie[0].jour, locale)}</span>
+            <span>{shortDate(serie[Math.floor((serie.length - 1) / 2)]?.jour ?? serie[0].jour, locale)}</span>
+            <span>{shortDate(serie[serie.length - 1].jour, locale)}</span>
           </>
         ) : (
           <span>—</span>
@@ -181,17 +182,17 @@ function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: strin
   )
 }
 
-function shortDate(iso: string) {
+function shortDate(iso: string, locale = 'fr-FR') {
   const d = new Date(`${iso}T00:00:00`)
   if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(d)
+  return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(d)
 }
 
-function fullDate(iso: string | undefined) {
+function fullDate(iso: string | undefined, locale = 'fr-FR') {
   if (!iso) return '—'
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '—'
-  return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d)
+  return new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d)
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -199,7 +200,8 @@ function fullDate(iso: string | undefined) {
  * ────────────────────────────────────────────────────────────────────────── */
 
 export default function AnalyticsPanel({ centreId, accent }: { centreId: number; accent: string }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
   const [period, setPeriod] = useState<number>(30)
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -353,7 +355,7 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
                     <LiveNumber target={data.total} />
                   </p>
                   <p className="mt-1 text-xs font-semibold text-slate-400 dark:text-slate-500">
-                    {t('etablissement.analytics.since')} {shortDate(data.since.slice(0, 10))}
+                    {t('etablissement.analytics.since')} {shortDate(data.since.slice(0, 10), locale)}
                   </p>
                 </div>
                 <div className="mt-4 inline-flex w-fit items-center gap-3 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-500 dark:bg-slate-800/80 dark:text-slate-300">
@@ -530,7 +532,7 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
                         </div>
                         <p className="mt-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
                           {total > 0
-                            ? `${t('etablissement.analytics.lastActivity')} ${fullDate(m.dernierActivite)}`
+                            ? `${t('etablissement.analytics.lastActivity')} ${fullDate(m.dernierActivite, locale)}`
                             : t('etablissement.analytics.docsAucune')}
                         </p>
                       </div>
@@ -547,8 +549,9 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
 }
 
 function LiveNumber({ target }: { target: number }) {
+  const { i18n } = useTranslation()
   const animated = useCountUp(target, 500)
-  return <>{new Intl.NumberFormat('fr-FR').format(Math.round(animated))}</>
+  return <>{new Intl.NumberFormat(i18n.language === 'en' ? 'en-US' : 'fr-FR').format(Math.round(animated))}</>
 }
 
 function TypeIcon({ type, className }: { type: string; className?: string }) {

@@ -1365,7 +1365,7 @@ function TeamPanel({
         >
           {TEAM_ROLES.map((role) => (
             <option key={role} value={role}>
-              {t(`etablissement.role${role}`)}
+              {t(`etablissement.${ROLE_LABELS[role] ?? 'roleLecture'}`)}
             </option>
           ))}
         </select>

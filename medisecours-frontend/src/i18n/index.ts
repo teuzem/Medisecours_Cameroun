@@ -25,8 +25,26 @@ export const LOCALE_LABELS: Record<AppLocale, { label: string; flag: string }> =
   en: { label: 'English', flag: '🇬🇧' },
 }
 
-const fr = { ...frBase, ...frAdmin, ...frMedecin, ...frPatient, ...frVisitor }
-const en = { ...enBase, ...enAdmin, ...enMedecin, ...enPatient, ...enVisitor }
+// Keep feature dictionaries available at their historical root paths while
+// preserving the visitor namespace used by public pages. The establishment
+// dashboard intentionally calls `etablissement.*`; exposing this alias avoids
+// silently falling back to key names when the dashboard is rendered.
+const fr = {
+  ...frBase,
+  ...frAdmin,
+  ...frMedecin,
+  ...frPatient,
+  ...frVisitor,
+  etablissement: frVisitor.visitor.etablissement,
+}
+const en = {
+  ...enBase,
+  ...enAdmin,
+  ...enMedecin,
+  ...enPatient,
+  ...enVisitor,
+  etablissement: enVisitor.visitor.etablissement,
+}
 
 function isSupportedLocale(locale: string): locale is AppLocale {
   return (LOCALES as readonly string[]).includes(locale)
