@@ -10,12 +10,14 @@ import EmptyState from '../../../components/ui/EmptyState'
 import { useToast } from '../../../components/ui/Toast'
 import { CategoryIcon } from '../../../components/ui/CategoryIcon'
 import { useTranslation } from 'react-i18next'
+import { severityLabelKey } from '../../../lib/domainLabels'
 
 const GRAVITES = ['LÉGÈRE', 'MODÉRÉE', 'SÉVÈRE', 'CRITIQUE', 'VARIABLE']
 
 export default function CategoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { t } = useTranslation()
+  const sevLabel = (g: string) => { const k = severityLabelKey(g); return k ? t(k) : g }
   const [category, setCategory] = useState<any>(null)
   const [maladies, setMaladies] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -89,7 +91,7 @@ export default function CategoryDetailPage({ params }: { params: Promise<{ id: s
               onClick={() => setGravite(g)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold ${gravite === g ? 'bg-primary-500 text-white' : 'bg-primary-100 dark:bg-primary-700 text-primary-700 dark:text-sable'}`}
             >
-              {g}
+              {sevLabel(g)}
             </button>
           ))}
         </div>

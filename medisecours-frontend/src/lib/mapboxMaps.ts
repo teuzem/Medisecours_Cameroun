@@ -1,5 +1,7 @@
 'use client'
 
+import i18n from '../i18n'
+
 export interface MapboxLoadResult {
   loaded: boolean
   reason: string | null
@@ -39,7 +41,7 @@ export function loadMapbox(): Promise<MapboxLoadResult> {
   if (loadPromise) return loadPromise
   loadPromise = new Promise<MapboxLoadResult>((resolve) => {
     if (!MAPBOX_TOKEN) {
-      resolve({ loaded: false, reason: 'Mapbox access token absent au build.' })
+      resolve({ loaded: false, reason: i18n.t('common.map.mapboxTokenMissing') })
       return
     }
     if (window.mapboxgl) {
@@ -52,14 +54,14 @@ export function loadMapbox(): Promise<MapboxLoadResult> {
     const script = document.createElement('script')
     const timeout = window.setTimeout(() => {
       script.remove()
-      resolve({ loaded: false, reason: 'Chargement du SDK Mapbox expiré.' })
+      resolve({ loaded: false, reason: i18n.t('common.map.mapboxTimeout') })
     }, 15_000)
     script.src = MAPBOX_SCRIPT
     script.async = true
     script.onload = () => {
       window.clearTimeout(timeout)
       if (!window.mapboxgl) {
-        resolve({ loaded: false, reason: 'SDK Mapbox indisponible.' })
+        resolve({ loaded: false, reason: i18n.t('common.map.mapboxUnavailable') })
         return
       }
       window.mapboxgl.accessToken = MAPBOX_TOKEN
@@ -68,7 +70,7 @@ export function loadMapbox(): Promise<MapboxLoadResult> {
     }
     script.onerror = () => {
       window.clearTimeout(timeout)
-      resolve({ loaded: false, reason: 'Le SDK Mapbox a refusé le chargement.' })
+      resolve({ loaded: false, reason: i18n.t('common.map.mapboxLoadRejected') })
     }
     document.head.appendChild(script)
   })

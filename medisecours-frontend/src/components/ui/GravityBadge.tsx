@@ -1,3 +1,8 @@
+'use client'
+
+import { useTranslation } from 'react-i18next'
+import { severityLabelKey } from '../../lib/domainLabels'
+
 const STYLES: Record<string, string> = {
   'LÉGÈRE': 'bg-mint-100 text-mint-700 border-mint-500/30',
   'MODÉRÉE': 'bg-amber-100 text-amber-700 border-amber-500/30',
@@ -7,10 +12,12 @@ const STYLES: Record<string, string> = {
 }
 
 export default function GravityBadge({ level }: { level?: string }) {
+  const { t } = useTranslation()
   const style = STYLES[level ?? 'VARIABLE'] || STYLES['VARIABLE']
+  const key = severityLabelKey(level)
   return (
     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${style}`}>
-      {level}
+      {key ? t(key) : level}
     </span>
   )
 }

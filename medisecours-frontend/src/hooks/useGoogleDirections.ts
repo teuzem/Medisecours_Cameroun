@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Destination, Position, WayfindingMode, RouteStep } from './useWayfinding'
 import { isGoogleMapsLoaded } from '../lib/googleMaps'
+import i18n from '../i18n'
 
 interface RouteGeometry {
   type: 'LineString'
@@ -122,7 +123,7 @@ export function useGoogleDirections({
               setDistance(null)
               setDuration(null)
               setSteps([])
-              setError('Aucun itinéraire calculé par Google.')
+              setError(i18n.t('common.map.googleNotCalculated'))
               return
             }
 
@@ -151,7 +152,7 @@ export function useGoogleDirections({
             setSteps([])
             setError(
               status === 'ZERO_RESULTS'
-                ? 'Aucun itinéraire trouvé par Google.'
+                ? i18n.t('common.map.googleNotFound')
                 : `Directions indisponibles (${status}).`,
             )
           }

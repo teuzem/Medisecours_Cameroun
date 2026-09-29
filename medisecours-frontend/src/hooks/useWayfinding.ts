@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import i18n from '../i18n'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface Position {
@@ -169,7 +170,7 @@ export function useWayfinding({
       setDuration(cached.duration)
       setSteps(cached.steps)
       setIsFallback(cached.isFallback)
-      setError(cached.isFallback ? 'Itinéraire approximatif (hors ligne)' : null)
+      setError(cached.isFallback ? i18n.t('common.map.wayfindingApproximate') : null)
       setLoading(false)
       return
     }
@@ -205,7 +206,7 @@ export function useWayfinding({
         const data = await response.json()
 
         if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-          throw new Error('Aucun itinéraire trouvé par OSRM.')
+          throw new Error(i18n.t('common.map.osrmNotFound'))
         }
 
         const osrmRoute = data.routes[0]
@@ -273,7 +274,7 @@ export function useWayfinding({
         setDuration(fallbackDuration)
         setSteps([])
         setIsFallback(true)
-        setError('Itinéraire approximatif (hors ligne)')
+        setError(i18n.t('common.map.wayfindingApproximate'))
       } finally {
         clearTimeout(timeoutId)
         if (!controller.signal.aborted) {

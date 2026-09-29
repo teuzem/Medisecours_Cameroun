@@ -2,6 +2,7 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { severityLabelKey } from '../../lib/domainLabels'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertTriangle, AlertOctagon, Stethoscope, FlaskConical,
@@ -49,6 +50,7 @@ export default function DiseaseDetailModal({ maladie, onClose, onMutate }) {
   const fileInputRef = useRef(null)
   const toast = useToast()
   const { t } = useTranslation()
+  const sevLabel = (level?: string) => { const k = severityLabelKey(level); return k ? t(k) : level }
 
   const handleUpload = async () => {
     if (!selectedFiles || selectedFiles.length === 0) return
@@ -193,7 +195,7 @@ export default function DiseaseDetailModal({ maladie, onClose, onMutate }) {
               <div className="flex flex-wrap gap-2 shrink-0">
                 {maladie.niveauGravite && (
                   <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${GRAVITY_STYLES[maladie.niveauGravite] || 'bg-gray-100 text-gray-700'}`}>
-                    <AlertTriangle className="w-3 h-3" /> {maladie.niveauGravite}
+                    <AlertTriangle className="w-3 h-3" /> {sevLabel(maladie.niveauGravite)}
                   </span>
                 )}
                 {maladie.urgence && (

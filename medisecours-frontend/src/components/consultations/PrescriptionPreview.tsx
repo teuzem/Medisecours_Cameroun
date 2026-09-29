@@ -9,11 +9,13 @@ import PrescriptionPDFTemplate from '../admin/PrescriptionPDFTemplate'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { useToast } from '../ui/Toast'
+import { useTranslation } from 'react-i18next'
 
 export default function PrescriptionPreview({ prescription, consultation, medecin, onClose }) {
   const [zoom, setZoom] = useState(0.8)
   const [downloading, setDownloading] = useState(false)
   const toast = useToast()
+  const { t } = useTranslation()
 
   const generatePDF = async () => {
     try {
@@ -48,10 +50,10 @@ export default function PrescriptionPreview({ prescription, consultation, medeci
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
       
       const patientName = `${consultation?.patient?.prenom || ''}_${consultation?.patient?.nom || ''}`.trim()
-      pdf.save(`Ordonnance_${patientName || 'Patient'}.pdf`)
+      pdf.save(`Ordonnance_${patientName || t('consultations.prescriptionPreview.patientFallback')}.pdf`)
     } catch (err) {
       console.error('Erreur PDF:', err)
-      toast.error('La génération du PDF a échoué.')
+      toast.error(t('consultations.prescriptionPreview.pdfError'))
     } finally {
       setDownloading(false)
     }
@@ -75,16 +77,16 @@ export default function PrescriptionPreview({ prescription, consultation, medeci
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
-            <h3 className="font-display text-base font-bold text-[#0F2C52]">Ordonnance médicale</h3>
+            <h3 className="font-display text-base font-bold text-[#0F2C52]">{t('consultations.prescriptionPreview.title')}</h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={generatePDF}
                 disabled={downloading}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#E5ECEC] hover:bg-[#D1E0E0] text-[#0F4C5C] font-semibold text-sm transition-colors disabled:opacity-50"
-                title="Télécharger en PDF"
+                title={t('consultations.prescriptionPreview.downloadPdf')}
               >
                 {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                <span className="hidden sm:inline">{downloading ? 'Génération...' : 'Télécharger'}</span>
+                <span className="hidden sm:inline">{downloading ? t('consultations.prescriptionPreview.generating') : t('consultations.prescriptionPreview.download')}</span>
               </button>
               
               <div className="w-px h-5 bg-gray-200 mx-1" />
@@ -92,7 +94,7 @@ export default function PrescriptionPreview({ prescription, consultation, medeci
               <button
                 onClick={() => setZoom((z) => Math.max(0.4, z - 0.2))}
                 className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
-                title="Zoom arrière"
+                title={t('consultations.prescriptionPreview.zoomOut')}
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
@@ -100,7 +102,7 @@ export default function PrescriptionPreview({ prescription, consultation, medeci
               <button
                 onClick={() => setZoom((z) => Math.min(2, z + 0.2))}
                 className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
-                title="Zoom avant"
+                title={t('consultations.prescriptionPreview.zoomIn')}
               >
                 <ZoomIn className="w-4 h-4" />
               </button>

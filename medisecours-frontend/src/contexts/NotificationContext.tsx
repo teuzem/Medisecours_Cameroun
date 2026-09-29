@@ -18,7 +18,7 @@ import { useConsultationCount } from '../hooks/useConsultationCount'
 import { useWebSocket } from '../hooks/useWebSocket'
 import useSWR, { mutate as globalMutate } from 'swr'
 import api from '../api/axios'
-import { changeLanguage } from '../i18n'
+import i18n, { changeLanguage } from '../i18n'
 import {
   CONVERSATIONS_KEY,
   NOTIFICATIONS_KEY,
@@ -111,8 +111,8 @@ function notificationToItem(notification: any, user: any): NotifItem {
   return {
     id: `notif-${notification.id}`,
     type,
-    title: notification.title || 'Notification',
-    description: notification.body || 'Une nouvelle information est disponible.',
+    title: notification.title || i18n.t('common.notifications.fallbackTitle'),
+    description: notification.body || i18n.t('common.notifications.fallbackBody'),
     time: notification.createdAt,
     unread: !notification.readAt,
     href: notificationHref(notification.link, user),
@@ -123,8 +123,8 @@ function msgToItem(m: any, rawId: (v: any) => any, user?: any): NotifItem {
   return {
     id: `msg-${m.id}`,
     type: 'message' as const,
-    title: m.contenu?.slice(0, 80) || 'Message',
-    description: m.contenu?.slice(0, 80) || 'Message',
+    title: m.contenu?.slice(0, 80) || i18n.t('common.notifications.messageFallback'),
+    description: m.contenu?.slice(0, 80) || i18n.t('common.notifications.messageFallback'),
     time: m.createdAt,
     unread: true,
     href: msgHref(rawId(m.conversation), user),

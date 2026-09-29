@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { severityLabelKey } from '../../lib/domainLabels'
 import type { TFunction } from 'i18next'
 import { Search, ChevronDown, User, Loader2, Stethoscope, Building2, Activity, MessageCircle, Bell, MessageSquare, Clock, LogOut } from 'lucide-react'
 import Avatar from '../ui/Avatar'
@@ -95,6 +96,7 @@ export default function MedecinHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const { t } = useTranslation()
+  const sevLabel = (level?: string) => { const k = severityLabelKey(level); return k ? t(k) : level }
   const estSurPageNotifications = pathname?.includes('/medecin/notifications')
   const {
     notifications, notifLoading, notifOpen, notificationCount, msgDisplayCount,
@@ -238,7 +240,7 @@ export default function MedecinHeader() {
                             <>
                               <p className="font-medium truncate">{item.nom}</p>
                               <p className="text-xs text-[#9CA3AF] truncate">
-                                {item.niveauGravite} {item.urgence ? ` · ${t('medecin.header.urgency')}` : ''}
+                                {sevLabel(item.niveauGravite)} {item.urgence ? ` · ${t('medecin.header.urgency')}` : ''}
                               </p>
                             </>
                           )}

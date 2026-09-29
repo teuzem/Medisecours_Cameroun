@@ -49,6 +49,17 @@
     "floatingHelp": {
       "guide": "User guide"
     },
+    "carte": {
+      "searchPlaceholder": "Search for an establishment or a city",
+      "searchAria": "Search on the map",
+      "savedOffline": "The favorite is still available locally, but could not be synchronized.",
+      "contributionsHint": "Open a card then use Suggest to send a contribution.",
+      "menuSaved": "Saved",
+      "menuRecent": "Recent",
+      "menuContributions": "Your contributions",
+      "menuSharePosition": "Share your position",
+      "menuRoutes": "Your routes"
+    },
     "notFound": {
       "title": "Diagnosis: page not found",
       "description": "No first aid can fix this broken link. Let's get back to somewhere safer.",

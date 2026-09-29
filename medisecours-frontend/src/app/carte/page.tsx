@@ -177,12 +177,12 @@ export default function CartePage() {
       }
       if (isAuthenticated) {
         void api.request({ url: `/api/carte/saved/${id}`, method: next.includes(id) ? 'PUT' : 'DELETE' }).catch(() => {
-          toast.info('Le favori reste disponible localement, mais n’a pas pu être synchronisé.')
+          toast.info(t('visitor.carte.savedOffline'))
         })
       }
       return next
     })
-  }, [isAuthenticated, toast])
+  }, [isAuthenticated, toast, t])
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -470,9 +470,9 @@ export default function CartePage() {
             value={searchQuery}
             onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true) }}
             type="search"
-            placeholder="Rechercher un établissement ou une ville"
+            placeholder={t('visitor.carte.searchPlaceholder')}
             className="h-11 min-w-0 flex-1 bg-transparent px-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
-            aria-label="Rechercher sur la carte"
+            aria-label={t('visitor.carte.searchAria')}
           />
           <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true) }} title="Afficher les resultats" aria-label="Afficher les resultats" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
           {searchQuery && (
@@ -514,11 +514,11 @@ export default function CartePage() {
               <button type="button" onClick={() => { setRailOpen(true); setMenuOpen(false) }} className="maps-menu-link"><Menu className="h-5 w-5" />Afficher le panneau lateral</button>
               <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('explore'); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
             </div>
-            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('saved'); setMenuOpen(false) }} className="maps-menu-link"><Bookmark className="h-5 w-5" />Enregistres</button>
-            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><History className="h-5 w-5" />Recents</button>
-            <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false); toast.info('Ouvrez une fiche puis utilisez Suggérer pour envoyer une contribution.') }} className="maps-menu-link"><MessageCircle className="h-5 w-5" />Vos contributions</button>
-            <button type="button" onClick={() => { void sharePosition(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />Partager votre position</button>
-            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Route className="h-5 w-5" />Vos trajets</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('saved'); setMenuOpen(false) }} className="maps-menu-link"><Bookmark className="h-5 w-5" />{t('visitor.carte.menuSaved')}</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><History className="h-5 w-5" />{t('visitor.carte.menuRecent')}</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false); toast.info(t('visitor.carte.contributionsHint')) }} className="maps-menu-link"><MessageCircle className="h-5 w-5" />{t('visitor.carte.menuContributions')}</button>
+            <button type="button" onClick={() => { void sharePosition(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />{t('visitor.carte.menuSharePosition')}</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Route className="h-5 w-5" />{t('visitor.carte.menuRoutes')}</button>
             <a href={isAuthenticated ? '/profil' : '/login'} onClick={() => setMenuOpen(false)} className="maps-menu-link"><Database className="h-5 w-5" />Vos donnees</a>
             <button type="button" onClick={() => { void shareMap(); setMenuOpen(false) }} className="maps-menu-link"><Share2 className="h-5 w-5" />Partager la carte ou integrer</button>
             <button type="button" onClick={() => { window.print(); setMenuOpen(false) }} className="maps-menu-link"><Printer className="h-5 w-5" />Imprimer</button>

@@ -49,6 +49,17 @@
     "floatingHelp": {
       "guide": "Guide d'utilisation"
     },
+    "carte": {
+      "searchPlaceholder": "Rechercher un établissement ou une ville",
+      "searchAria": "Rechercher sur la carte",
+      "savedOffline": "Le favori reste disponible localement, mais n'a pas pu être synchronisé.",
+      "contributionsHint": "Ouvrez une fiche puis utilisez Suggérer pour envoyer une contribution.",
+      "menuSaved": "Enregistrés",
+      "menuRecent": "Récents",
+      "menuContributions": "Vos contributions",
+      "menuSharePosition": "Partager votre position",
+      "menuRoutes": "Vos trajets"
+    },
     "notFound": {
       "title": "Diagnostic : page introuvable",
       "description": "Aucun premier soin ne répare ce lien cassé. Retournons à un endroit plus sûr.",

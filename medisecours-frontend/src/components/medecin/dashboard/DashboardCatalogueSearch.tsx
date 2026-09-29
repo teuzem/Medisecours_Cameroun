@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, BookOpen, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { severityLabelKey } from '../../../lib/domainLabels'
 import api from '../../../api/axios'
 import { useDebounce } from '../../../hooks/useDebounce'
 import useSWR from 'swr'
@@ -20,6 +21,7 @@ interface MaladieResult {
 export default function DashboardCatalogueSearch() {
   const router = useRouter()
   const { t } = useTranslation()
+  const sevLabel = (level?: string) => { const k = severityLabelKey(level); return k ? t(k) : level }
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -83,7 +85,7 @@ export default function DashboardCatalogueSearch() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{m.nom}</p>
-                  <p className="text-[11px] text-[#9CA3AF]">{m.niveauGravite}</p>
+                  <p className="text-[11px] text-[#9CA3AF]">{sevLabel(m.niveauGravite)}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-[#D1D5DB]" />
               </button>

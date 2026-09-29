@@ -15,7 +15,41 @@
     "yes": "Oui",
     "no": "Non",
     "success": "Action effectuée avec succès.",
-    "error": "Échec de l'opération."
+    "error": "Échec de l'opération.",
+    "severity": {
+      "leger": "Légère",
+      "moderee": "Modérée",
+      "severe": "Sévère",
+      "critique": "Critique",
+      "variable": "Variable"
+    },
+    "geo": {
+      "denied": "Accès à la localisation refusé.",
+      "unavailablePosition": "Position introuvable.",
+      "timeout": "Délai dépassé.",
+      "unknown": "Impossible d'obtenir votre position.",
+      "notSupported": "La géolocalisation n'est pas disponible sur cet appareil."
+    },
+    "map": {
+      "noKey": "Aucune clé Google Maps ou Mapbox configurée au build — mode hors-ligne (Leaflet). Reconstruire l'image avec les variables publiques.",
+      "mapboxTokenMissing": "Mapbox access token absent au build.",
+      "mapboxTimeout": "Chargement du SDK Mapbox expiré.",
+      "mapboxUnavailable": "SDK Mapbox indisponible.",
+      "mapboxLoadRejected": "Le SDK Mapbox a refusé le chargement.",
+      "googleUnavailable": "Services Google Maps indisponibles — mode hors-ligne (Leaflet).",
+      "googleUnavailableWithReason": "Services Google Maps indisponibles ({{reason}}) — mode hors-ligne (Leaflet).",
+      "offlineFallbackWithReason": "{{reason}} — mode hors-ligne (Leaflet).",
+      "youAreHere": "Vous êtes ici",
+      "wayfindingApproximate": "Itinéraire approximatif (hors ligne)",
+      "osrmNotFound": "Aucun itinéraire trouvé par OSRM.",
+      "googleNotCalculated": "Aucun itinéraire calculé par Google.",
+      "googleNotFound": "Aucun itinéraire trouvé par Google."
+    },
+    "notifications": {
+      "fallbackTitle": "Notification",
+      "fallbackBody": "Une nouvelle information est disponible.",
+      "messageFallback": "Message"
+    }
   },
   "layout": {
     "overview": "Vue d'ensemble",
@@ -68,7 +102,39 @@
     "updateError": "Échec de la mise à jour.",
     "deleteError": "Échec de la suppression.",
     "newRequest": "Nouvelle demande de consultation reçue.",
-    "finishedOn": "Terminée le {{date}}"
+    "finishedOn": "Terminée le {{date}}",
+    "detail": {
+      "title": "Détails de la consultation",
+      "loadError": "Impossible de charger les détails.",
+      "reason": "Motif",
+      "reasonFallback": "Motif non précisé",
+      "patient": "Patient",
+      "doctor": "Médecin",
+      "noDoctor": "Aucun médecin assigné",
+      "timeline": "Chronologie",
+      "createdAt": "Créée le",
+      "appointmentAt": "Rendez-vous prévu le",
+      "closedAt": "Clôturée le",
+      "prescriptions": "Prescriptions",
+      "prescriptionFallback": "Prescription",
+      "view": "Voir",
+      "statusOuverte": "En attente",
+      "statusEnCours": "En cours",
+      "statusTerminee": "Terminée",
+      "statusAnnulee": "Annulée",
+      "priorityUrgent": "Urgent",
+      "priorityCritique": "Critique"
+    },
+    "prescriptionPreview": {
+      "title": "Ordonnance médicale",
+      "downloadPdf": "Télécharger en PDF",
+      "generating": "Génération...",
+      "download": "Télécharger",
+      "zoomOut": "Zoom arrière",
+      "zoomIn": "Zoom avant",
+      "pdfError": "La génération du PDF a échoué.",
+      "patientFallback": "Patient"
+    }
   },
   "prescriptions": {
     "title": "Prescriptions",

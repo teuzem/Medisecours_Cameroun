@@ -8,12 +8,13 @@ import PrescriptionPreview from './PrescriptionPreview'
 import { createPortal } from 'react-dom'
 import api from '../../api/axios'
 import { API_BASE } from '../../lib/config'
+import { useTranslation } from 'react-i18next'
 
-const STATUT_LABEL = {
-  OUVERTE: 'En attente',
-  EN_COURS: 'En cours',
-  TERMINEE: 'Terminée',
-  ANNULEE: 'Annulée',
+const STATUT_KEY = {
+  OUVERTE: 'statusOuverte',
+  EN_COURS: 'statusEnCours',
+  TERMINEE: 'statusTerminee',
+  ANNULEE: 'statusAnnulee',
 }
 
 const STATUT_COLOR = {
@@ -25,8 +26,8 @@ const STATUT_COLOR = {
 
 const PRIORITE_CONFIG = {
   NORMALE: null,
-  URGENTE: { label: 'Urgent', class: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-200 dark:ring-amber-500/30' },
-  CRITIQUE: { label: 'Critique', class: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 ring-1 ring-red-200 dark:ring-red-500/30' },
+  URGENTE: { key: 'priorityUrgent', class: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-200 dark:ring-amber-500/30' },
+  CRITIQUE: { key: 'priorityCritique', class: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 ring-1 ring-red-200 dark:ring-red-500/30' },
 }
 
 function imgUrl(path) {
@@ -35,6 +36,8 @@ function imgUrl(path) {
 }
 
 export default function ConsultationDetailModal({ consultationId, onClose }) {
+  const { t, i18n } = useTranslation()
+  const dateLocale = i18n.language.startsWith('en') ? 'en-GB' : 'fr-FR'
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [previewPrescription, setPreviewPrescription] = useState(null)
@@ -68,7 +71,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
         >
           {/* Header */}
           <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-primary-900">
-            <h2 className="font-display text-lg font-bold text-[#0F2C52] dark:text-sable">Détails de la consultation</h2>
+            <h2 className="font-display text-lg font-bold text-[#0F2C52] dark:text-sable">{t('consultations.detail.title')}</h2>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-primary-800 text-gray-400 dark:text-primary-300 transition-colors">
               <X className="w-5 h-5" />
             </button>
@@ -79,30 +82,30 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
               <div className="w-8 h-8 border-2 border-[#3B6EF8] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : !c ? (
-            <div className="text-center py-16 text-gray-500 dark:text-primary-300 text-sm">Impossible de charger les détails.</div>
+            <div className="text-center py-16 text-gray-500 dark:text-primary-300 text-sm">{t('consultations.detail.loadError')}</div>
           ) : (
             <div className="p-5 space-y-6">
               {/* Statut + Priorité */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUT_COLOR[c.statut] || STATUT_COLOR.OUVERTE}`}>
-                  {STATUT_LABEL[c.statut] || c.statut}
+                  {STATUT_KEY[c.statut] ? t(`consultations.detail.${STATUT_KEY[c.statut]}`) : c.statut}
                 </span>
                 {PRIORITE_CONFIG[c.priorite] && (
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${PRIORITE_CONFIG[c.priorite].class}`}>
-                    {PRIORITE_CONFIG[c.priorite].label}
+                    {t(`consultations.detail.${PRIORITE_CONFIG[c.priorite].key}`)}
                   </span>
                 )}
               </div>
 
               {/* Motif */}
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-1.5">Motif</h3>
-                <p className="text-sm text-[#374151] dark:text-sable/90 leading-relaxed">{c.motif || 'Motif non précisé'}</p>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-1.5">{t('consultations.detail.reason')}</h3>
+                <p className="text-sm text-[#374151] dark:text-sable/90 leading-relaxed">{c.motif || t('consultations.detail.reasonFallback')}</p>
               </div>
 
               {/* Patient */}
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-2">Patient</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-2">{t('consultations.detail.patient')}</h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#3B6EF8] flex items-center justify-center text-white text-sm font-bold shrink-0">
                     {c.patient?.prenom?.[0]}{c.patient?.nom?.[0]}
@@ -120,7 +123,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
 
               {/* Médecin */}
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-2">Médecin</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-2">{t('consultations.detail.doctor')}</h3>
                 {c.medecin ? (
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
@@ -136,22 +139,22 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 dark:text-primary-400 italic">Aucun médecin assigné</p>
+                  <p className="text-sm text-gray-400 dark:text-primary-400 italic">{t('consultations.detail.noDoctor')}</p>
                 )}
               </div>
 
               {/* Chronologie */}
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-3">Chronologie</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-3">{t('consultations.detail.timeline')}</h3>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 mt-0.5">
                       <Calendar className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-gray-500 dark:text-primary-300">Créée le</p>
+                      <p className="text-xs font-medium text-gray-500 dark:text-primary-300">{t('consultations.detail.createdAt')}</p>
                       <p className="text-sm text-[#374151] dark:text-sable/90">
-                        {new Date(c.createdAt).toLocaleDateString('fr-FR', {
+                        {new Date(c.createdAt).toLocaleDateString(dateLocale, {
                           weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
                           hour: '2-digit', minute: '2-digit',
                         })}
@@ -164,9 +167,9 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                         <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-gray-500 dark:text-primary-300">Rendez-vous prévu le</p>
+                        <p className="text-xs font-medium text-gray-500 dark:text-primary-300">{t('consultations.detail.appointmentAt')}</p>
                         <p className="text-sm text-[#374151] dark:text-sable/90">
-                          {new Date(c.dateConsultation).toLocaleDateString('fr-FR', {
+                          {new Date(c.dateConsultation).toLocaleDateString(dateLocale, {
                             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
                             hour: '2-digit', minute: '2-digit',
                           })}
@@ -180,9 +183,9 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                         <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-gray-500 dark:text-primary-300">Clôturée le</p>
+                        <p className="text-xs font-medium text-gray-500 dark:text-primary-300">{t('consultations.detail.closedAt')}</p>
                         <p className="text-sm text-[#374151] dark:text-sable/90">
-                          {new Date(c.closedAt).toLocaleDateString('fr-FR', {
+                          {new Date(c.closedAt).toLocaleDateString(dateLocale, {
                             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
                             hour: '2-digit', minute: '2-digit',
                           })}
@@ -196,14 +199,14 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
               {/* Prescriptions */}
               {c.prescriptions?.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-3">Prescriptions</h3>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-3">{t('consultations.detail.prescriptions')}</h3>
                   <div className="space-y-2">
                     {c.prescriptions.map((p) => (
                       <div key={p.id} className="p-3 rounded-xl bg-gray-50 dark:bg-primary-800 border border-gray-100 dark:border-white/10">
                         <div className="flex items-start gap-2">
                           <FileText className="w-4 h-4 text-[#3B6EF8] dark:text-blue-400 shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-[#0F2C52] dark:text-sable">{p.diagnostic || 'Prescription'}</p>
+                            <p className="text-sm font-semibold text-[#0F2C52] dark:text-sable">{p.diagnostic || t('consultations.detail.prescriptionFallback')}</p>
                             {p.medicaments?.length > 0 && (
                               <ul className="mt-1 space-y-0.5">
                                 {p.medicaments.map((m, i) => (
@@ -222,7 +225,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#3B6EF8] text-white hover:bg-[#2D5CD8] transition shrink-0"
                           >
                             <Eye className="w-3.5 h-3.5" />
-                            Voir
+                            {t('consultations.detail.view')}
                           </button>
                         </div>
                       </div>

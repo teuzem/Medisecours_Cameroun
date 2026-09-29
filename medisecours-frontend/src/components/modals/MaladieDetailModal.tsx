@@ -8,6 +8,7 @@ import {
   X, AlertTriangle, ShieldCheck, Activity,
   Stethoscope, Pill, Siren, FileText, Bug
 } from 'lucide-react'
+import { severityLabelKey } from '../../lib/domainLabels'
 
 /* ─── Configuration des niveaux de gravité ─── */
 const SEVERITY_CONFIG: Record<string, { label: string; color: string; bg: string; text: string }> = {
@@ -49,6 +50,8 @@ export default function MaladieDetailModal({ maladie, onClose }: MaladieDetailMo
   /* ─── Données de la maladie ─── */
   const severityKey = maladie.niveauGravite?.toUpperCase() || 'DEFAULT'
   const severity = SEVERITY_CONFIG[severityKey] || SEVERITY_CONFIG['DEFAULT']
+  const severityI18nKey = severityLabelKey(severityKey)
+  const severityLabel = severityI18nKey ? t(severityI18nKey) : severity.label
   const imgSrc = maladie.imageUrl || maladie.photo || PLACEHOLDER_IMG
   const categorieName = maladie.categorie?.nom || t('visitor.components.maladieDetail.categoryFallback')
   const isUrgent = maladie.urgence === true
@@ -112,7 +115,7 @@ export default function MaladieDetailModal({ maladie, onClose }: MaladieDetailMo
             <div className="absolute bottom-4 left-5">
               <span className={`inline-flex items-center gap-1.5 ${severity.color} text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg`}>
                 <Activity className="w-3.5 h-3.5" />
-                {severity.label}
+                {severityLabel}
               </span>
             </div>
 
@@ -145,7 +148,7 @@ export default function MaladieDetailModal({ maladie, onClose }: MaladieDetailMo
             <div className="flex flex-wrap gap-2">
               <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full ${severity.bg} ${severity.text} border ${severity.bg.replace('bg-', 'border-')}`}>
                 <Activity className="w-3.5 h-3.5" />
-                {t('visitor.components.maladieDetail.severity', { label: severity.label })}
+                {t('visitor.components.maladieDetail.severity', { label: severityLabel })}
               </span>
               <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full ${isContagieux ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'} border`}>
                 <Bug className="w-3.5 h-3.5" />

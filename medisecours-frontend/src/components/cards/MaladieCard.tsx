@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, ShieldCheck, AlertTriangle, Activity } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { severityLabelKey } from '../../lib/domainLabels'
 
 const SEVERITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
   'CRITIQUE':  { label: 'CRITIQUE',  color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-100' },
@@ -24,6 +25,8 @@ export default function MaladieCard({ maladie }: MaladieCardProps) {
   const { t } = useTranslation()
   const severityKey = maladie.niveauGravite?.toUpperCase() || 'DEFAULT'
   const severity = SEVERITY_CONFIG[severityKey] || SEVERITY_CONFIG['DEFAULT']
+  const severityI18nKey = severityLabelKey(severityKey)
+  const severityLabel = severityI18nKey ? t(severityI18nKey) : severity.label
 
   const imgSrc = maladie.imageUrl || maladie.photo || PLACEHOLDER_IMG
   const categorieName = maladie.categorie?.nom || t('visitor.components.maladieCard.categoryFallback')
@@ -82,7 +85,7 @@ export default function MaladieCard({ maladie }: MaladieCardProps) {
         <div className="grid grid-cols-3 gap-2 mb-4 py-3 border-t border-b border-gray-100 dark:border-white/[0.06]">
           <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-400">
             <Activity className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-xs font-medium truncate">{severity.label}</span>
+            <span className="text-xs font-medium truncate">{severityLabel}</span>
           </div>
           <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-400">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
@@ -97,7 +100,7 @@ export default function MaladieCard({ maladie }: MaladieCardProps) {
         {/* Footer : gravité + bouton */}
         <div className="flex items-center justify-between mt-auto">
           <span className={`text-sm font-extrabold ${severity.color}`}>
-            {severity.label}
+            {severityLabel}
           </span>
 
           <span className="inline-flex items-center gap-1.5 bg-[#143d2c] dark:bg-mint-500 text-white dark:text-slate-900 px-4 py-2.5 rounded-xl font-bold text-sm group-hover:bg-[#1a5038] dark:group-hover:bg-mint-400 transition-colors">

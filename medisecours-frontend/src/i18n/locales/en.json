@@ -15,7 +15,41 @@
     "yes": "Yes",
     "no": "No",
     "success": "Action completed successfully.",
-    "error": "Operation failed."
+    "error": "Operation failed.",
+    "severity": {
+      "leger": "Mild",
+      "moderee": "Moderate",
+      "severe": "Severe",
+      "critique": "Critical",
+      "variable": "Variable"
+    },
+    "geo": {
+      "denied": "Location access denied.",
+      "unavailablePosition": "Position unavailable.",
+      "timeout": "Timed out.",
+      "unknown": "Unable to get your position.",
+      "notSupported": "Geolocation is not available on this device."
+    },
+    "map": {
+      "noKey": "No Google Maps or Mapbox key configured at build time — offline mode (Leaflet). Rebuild the image with the public variables.",
+      "mapboxTokenMissing": "Mapbox access token missing at build time.",
+      "mapboxTimeout": "Mapbox SDK load timed out.",
+      "mapboxUnavailable": "Mapbox SDK unavailable.",
+      "mapboxLoadRejected": "The Mapbox SDK refused to load.",
+      "googleUnavailable": "Google Maps services unavailable — offline mode (Leaflet).",
+      "googleUnavailableWithReason": "Google Maps services unavailable ({{reason}}) — offline mode (Leaflet).",
+      "offlineFallbackWithReason": "{{reason}} — offline mode (Leaflet).",
+      "youAreHere": "You are here",
+      "wayfindingApproximate": "Approximate route (offline)",
+      "osrmNotFound": "No route found by OSRM.",
+      "googleNotCalculated": "No route calculated by Google.",
+      "googleNotFound": "No route found by Google."
+    },
+    "notifications": {
+      "fallbackTitle": "Notification",
+      "fallbackBody": "A new update is available.",
+      "messageFallback": "Message"
+    }
   },
   "layout": {
     "overview": "Overview",
@@ -68,7 +102,39 @@
     "updateError": "Failed to update.",
     "deleteError": "Failed to delete.",
     "newRequest": "New consultation request received.",
-    "finishedOn": "Finished on {{date}}"
+    "finishedOn": "Finished on {{date}}",
+    "detail": {
+      "title": "Consultation details",
+      "loadError": "Unable to load details.",
+      "reason": "Reason",
+      "reasonFallback": "Reason not specified",
+      "patient": "Patient",
+      "doctor": "Doctor",
+      "noDoctor": "No doctor assigned",
+      "timeline": "Timeline",
+      "createdAt": "Created on",
+      "appointmentAt": "Appointment scheduled for",
+      "closedAt": "Closed on",
+      "prescriptions": "Prescriptions",
+      "prescriptionFallback": "Prescription",
+      "view": "View",
+      "statusOuverte": "Pending",
+      "statusEnCours": "In progress",
+      "statusTerminee": "Finished",
+      "statusAnnulee": "Cancelled",
+      "priorityUrgent": "Urgent",
+      "priorityCritique": "Critical"
+    },
+    "prescriptionPreview": {
+      "title": "Medical prescription",
+      "downloadPdf": "Download as PDF",
+      "generating": "Generating...",
+      "download": "Download",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "pdfError": "PDF generation failed.",
+      "patientFallback": "Patient"
+    }
   },
   "prescriptions": {
     "title": "Prescriptions",

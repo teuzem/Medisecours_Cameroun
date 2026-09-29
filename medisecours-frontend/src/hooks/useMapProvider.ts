@@ -8,6 +8,7 @@ import {
   type MapProvider,
 } from '../lib/googleMaps'
 import { getMapboxToken, loadMapbox } from '../lib/mapboxMaps'
+import i18n from '../i18n'
 
 type ProviderState = 'checking' | 'ready'
 export type ExtendedMapProvider = MapProvider | 'mapbox'
@@ -19,8 +20,7 @@ export interface MapProviderResult {
   googleKind: GoogleMapKind | null
 }
 
-const NO_KEY_MESSAGE =
-  'Aucune clé Google Maps ou Mapbox configurée au build — mode hors-ligne (Leaflet). Reconstruire l’image avec les variables publiques.'
+const noKeyMessage = () => i18n.t('common.map.noKey')
 
 export function useMapProvider(): MapProviderResult {
   const [result, setResult] = useState<MapProviderResult>(() => {
@@ -29,7 +29,7 @@ export function useMapProvider(): MapProviderResult {
     return {
       provider: 'leaflet',
       state: hasGoogle || hasMapbox ? 'checking' : 'ready',
-      fallbackReason: hasGoogle || hasMapbox ? null : NO_KEY_MESSAGE,
+      fallbackReason: hasGoogle || hasMapbox ? null : noKeyMessage(),
       googleKind: null,
     }
   })
@@ -45,8 +45,8 @@ export function useMapProvider(): MapProviderResult {
           provider: 'leaflet',
           state: 'ready',
           fallbackReason: reason
-            ? `Services Google Maps indisponibles (${reason}) — mode hors-ligne (Leaflet).`
-            : 'Services Google Maps indisponibles — mode hors-ligne (Leaflet).',
+            ? i18n.t('common.map.googleUnavailableWithReason', { reason })
+            : i18n.t('common.map.googleUnavailable'),
           googleKind: null,
         })
         return
@@ -59,14 +59,16 @@ export function useMapProvider(): MapProviderResult {
           state: 'ready',
           fallbackReason: mapbox.loaded
             ? null
-            : `${reason ? `${reason} ` : ''}${mapbox.reason ?? 'Mapbox indisponible'} — mode hors-ligne (Leaflet).`,
+            : i18n.t('common.map.offlineFallbackWithReason', {
+              reason: `${reason ? `${reason} ` : ''}${mapbox.reason ?? i18n.t('common.map.mapboxUnavailable')}`,
+            }),
           googleKind: null,
         })
       })
     }
 
     if (configs.length === 0) {
-      finishMapboxOrLeaflet(NO_KEY_MESSAGE)
+      finishMapboxOrLeaflet(noKeyMessage())
       return () => {
         alive = false
       }

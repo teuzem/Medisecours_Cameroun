@@ -11,6 +11,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { useToast } from '../../components/ui/Toast'
 import { useTranslation } from 'react-i18next'
+import { severityLabelKey } from '../../lib/domainLabels'
 
 const ITEMS_PER_PAGE = 12
 
@@ -19,6 +20,7 @@ const fetcher = (url: string) => api.get(url).then((res) => res.data)
 
 export default function CategoriesPage() {
   const { t } = useTranslation()
+  const sevLabel = (level?: string) => { const k = severityLabelKey(level); return k ? t(k) : level }
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<any>(null)
@@ -169,7 +171,7 @@ export default function CategoriesPage() {
                         </div>
                         {m.niveauGravite && (
                           <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/30">
-                            {m.niveauGravite}
+                            {sevLabel(m.niveauGravite)}
                           </span>
                         )}
                       </div>

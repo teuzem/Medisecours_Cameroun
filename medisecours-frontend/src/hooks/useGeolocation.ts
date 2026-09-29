@@ -1,5 +1,6 @@
 'use client'
 import { useState, useCallback, useRef } from 'react'
+import i18n from '../i18n'
 
 export function useGeolocation() {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null)
@@ -7,20 +8,21 @@ export function useGeolocation() {
   const [loading, setLoading] = useState(false)
   const watchIdRef = useRef<number | null>(null)
 
-  const errorMessages: Record<number, string> = {
-    1: 'Accès à la localisation refusé.',
-    2: 'Position introuvable.',
-    3: 'Délai dépassé.',
+  const errorMessageKeys: Record<number, string> = {
+    1: 'common.geo.denied',
+    2: 'common.geo.unavailablePosition',
+    3: 'common.geo.timeout',
   }
 
   const handleError = useCallback((err: GeolocationPositionError) => {
-    setError(errorMessages[err.code] ?? "Impossible d'obtenir votre position.")
+    const key = errorMessageKeys[err.code]
+    setError(key ? i18n.t(key) : i18n.t('common.geo.unknown'))
     setLoading(false)
   }, [])
 
   const locate = useCallback(() => {
     if (!navigator.geolocation) {
-      setError("La géolocalisation n'est pas disponible sur cet appareil.")
+      setError(i18n.t('common.geo.notSupported'))
       return
     }
     setLoading(true)
@@ -38,7 +40,7 @@ export function useGeolocation() {
   /** Start continuous GPS tracking (essential for mobile users walking to a clinic). */
   const watch = useCallback(() => {
     if (!navigator.geolocation) {
-      setError("La géolocalisation n'est pas disponible sur cet appareil.")
+      setError(i18n.t('common.geo.notSupported'))
       return
     }
     // Stop any existing watch before starting a new one
