@@ -621,49 +621,66 @@ export default function EtablissementEspacePage() {
               onClaim={claim}
               isManager={Boolean(mon?.centre)}
             />
-          ) : prefs.compact ? (
-            <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-              <div className="xl:col-span-3">
+          ) : (
+            <>
+              <DashboardSectionNav />
+              {prefs.compact ? (
+            <div className="dashboard-workspace mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
+              <div id="dashboard-overview" className="dashboard-section xl:col-span-3">
                 <KpiBand dashboard={dashboard} prefs={prefs} />
               </div>
-              <div className="xl:col-span-3 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <div className="dashboard-section xl:col-span-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <StatsSosWidget dashboard={dashboard} prefs={prefs} />
                 <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
                 <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
               </div>
-              <div className="xl:col-span-3">
+              <div id="dashboard-analytics" className="dashboard-section xl:col-span-3">
                 <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
               </div>
-              <div className="xl:col-span-3">
+              <div id="dashboard-fiche" className="dashboard-section xl:col-span-3">
                 <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
               </div>
-              <TeamPanel
-                equipe={equipe}
-                memberEmail={memberEmail}
-                setMemberEmail={setMemberEmail}
-                memberRole={memberRole}
-                setMemberRole={setMemberRole}
-                onAdd={addMember}
-                adding={addingMember}
-                onRoleChange={updateMemberRole}
-                onRemove={removeMember}
-                compact
-              />
-              <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
-              <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
-              <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
+              <div id="dashboard-team" className="dashboard-section">
+                <TeamPanel
+                  equipe={equipe}
+                  memberEmail={memberEmail}
+                  setMemberEmail={setMemberEmail}
+                  memberRole={memberRole}
+                  setMemberRole={setMemberRole}
+                  onAdd={addMember}
+                  adding={addingMember}
+                  onRoleChange={updateMemberRole}
+                  onRemove={removeMember}
+                  compact
+                />
+              </div>
+              <div id="dashboard-media" className="dashboard-section">
+                <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
+              </div>
+              <div id="dashboard-reviews" className="dashboard-section">
+                <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
+              </div>
+              <div id="dashboard-settings" className="dashboard-section">
+                <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
+              </div>
             </div>
-          ) : (
-            <div className="mt-6 space-y-6">
-              <KpiBand dashboard={dashboard} prefs={prefs} />
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              ) : (
+            <div className="dashboard-workspace mt-4 space-y-4">
+              <div id="dashboard-overview" className="dashboard-section">
+                <KpiBand dashboard={dashboard} prefs={prefs} />
+              </div>
+              <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <StatsSosWidget dashboard={dashboard} prefs={prefs} />
                 <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
                 <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
               </div>
-              <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
-              <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div id="dashboard-analytics" className="dashboard-section">
+                <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
+              </div>
+              <div id="dashboard-fiche" className="dashboard-section">
+                <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
+              </div>
+              <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <TeamPanel
                   equipe={equipe}
                   memberEmail={memberEmail}
@@ -677,11 +694,17 @@ export default function EtablissementEspacePage() {
                 />
                 <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
               </div>
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
-                <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
+              <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div id="dashboard-reviews">
+                  <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
+                </div>
+                <div id="dashboard-settings">
+                  <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
+                </div>
               </div>
             </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -691,6 +714,32 @@ export default function EtablissementEspacePage() {
 
 function syncLabelIcon(syncing: boolean) {
   return syncing ? Loader2 : RefreshCw
+}
+
+function DashboardSectionNav() {
+  const { t } = useTranslation()
+  const items = [
+    { id: 'dashboard-overview', label: t('etablissement.navOverview'), icon: Gauge },
+    { id: 'dashboard-fiche', label: t('etablissement.navFiche'), icon: Building2 },
+    { id: 'dashboard-team', label: t('etablissement.navTeam'), icon: Users },
+    { id: 'dashboard-media', label: t('etablissement.navMedia'), icon: FileImage },
+    { id: 'dashboard-reviews', label: t('etablissement.navReviews'), icon: MessageSquare },
+    { id: 'dashboard-analytics', label: t('etablissement.navAnalytics'), icon: Activity },
+    { id: 'dashboard-settings', label: t('etablissement.navSettings'), icon: Palette },
+  ]
+
+  return (
+    <nav className="dashboard-section-nav" aria-label={t('etablissement.dashboardNavigation')}>
+      <div className="dashboard-section-nav__scroll">
+        {items.map(({ id, label, icon: Icon }) => (
+          <a key={id} href={`#${id}`} className="dashboard-section-nav__item">
+            <Icon className="h-4 w-4" aria-hidden="true" />
+            <span>{label}</span>
+          </a>
+        ))}
+      </div>
+    </nav>
+  )
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
