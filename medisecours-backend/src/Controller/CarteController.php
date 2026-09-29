@@ -880,6 +880,10 @@ class CarteController extends AbstractController
             'auteurNom' => $avis->getAuteurNom(),
             'createdAt' => $avis->getCreatedAt()->format('c'),
             'updatedAt' => $avis->getUpdatedAt()?->format('c'),
+            'images' => array_map(
+                fn (MediaObject $media): array => $this->serializeMedia($media),
+                $avis->getImages()->toArray()
+            ),
         ];
     }
 }

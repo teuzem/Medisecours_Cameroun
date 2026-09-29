@@ -118,6 +118,14 @@ type ManagedReview = {
   raisonSignalement?: string | null
   auteurNom?: string | null
   createdAt: string
+  images?: Array<{
+    id: number
+    contentUrl: string
+    originalName?: string | null
+    mimeType?: string | null
+    size?: number | null
+    kind?: 'image' | 'video'
+  }>
 }
 
 type Prefs = {
@@ -231,6 +239,12 @@ export default function EtablissementEspacePage() {
   const [equipe, setEquipe] = useState<EquipeMembre[]>([])
   const [loadingMon, setLoadingMon] = useState(true)
   const [loadError, setLoadError] = useState(false)
+  const [teamLoading, setTeamLoading] = useState(false)
+  const [mediaLoading, setMediaLoading] = useState(false)
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [teamError, setTeamError] = useState(false)
+  const [mediaError, setMediaError] = useState(false)
+  const [reviewsError, setReviewsError] = useState(false)
 
   // Claim wizard
   const [searchQuery, setSearchQuery] = useState('')
@@ -301,18 +315,36 @@ export default function EtablissementEspacePage() {
             .get<DashboardData>('/api/carte/dashboard', { params: { centre: centreId } })
             .then(({ data: dash }) => setDashboard(dash))
             .catch(() => undefined)
+          setTeamLoading(true)
+          setTeamError(false)
           void api
             .get<{ members: EquipeMembre[] }>('/api/carte/equipes', { params: { centre: centreId } })
-            .then(({ data: team }) => setEquipe(team.members))
-            .catch(() => undefined)
+            .then(({ data: team }) => {
+              setEquipe(team.members)
+              setTeamError(false)
+            })
+            .catch(() => setTeamError(true))
+            .finally(() => setTeamLoading(false))
+          setMediaLoading(true)
+          setMediaError(false)
           void api
             .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: centreId } })
-            .then(({ data: gallery }) => setMedia(gallery.items ?? []))
-            .catch(() => undefined)
+            .then(({ data: gallery }) => {
+              setMedia(gallery.items ?? [])
+              setMediaError(false)
+            })
+            .catch(() => setMediaError(true))
+            .finally(() => setMediaLoading(false))
+          setReviewsLoading(true)
+          setReviewsError(false)
           void api
             .get<{ items: ManagedReview[] }>('/api/carte/avis', { params: { centre: centreId } })
-            .then(({ data: reviewData }) => setReviews(reviewData.items ?? []))
-            .catch(() => undefined)
+            .then(({ data: reviewData }) => {
+              setReviews(reviewData.items ?? [])
+              setReviewsError(false)
+            })
+            .catch(() => setReviewsError(true))
+            .finally(() => setReviewsLoading(false))
         }
       })
       .catch(() => setLoadError(true))
@@ -372,6 +404,7 @@ export default function EtablissementEspacePage() {
           force: isOther,
         })
         setMon({ centre: data.centre, role: data.role, via: 'equipe', statut: 'ACTIF' })
+        void loadMonEtablissement()
         toast.success(t('etablissement.claimedToast'))
         setResults([])
         setSearchQuery('')
@@ -391,7 +424,7 @@ export default function EtablissementEspacePage() {
         setClaimedId(null)
       }
     },
-    [mon, t, toast, loadStats],
+    [mon, t, toast, loadStats, loadMonEtablissement],
   )
 
   /* ── Équipe ───────────────────────────────────────────────────────────── */
@@ -406,9 +439,17 @@ export default function EtablissementEspacePage() {
         params: { centre: mon?.centre?.id },
       })
       setEquipe(data.members)
+      setTeamError(false)
       toast.success(t('etablissement.teamAdded'))
     } catch (error: any) {
-      toast.error(error.response?.data?.error || t('etablissement.teamAddFailed'))
+      const status = error.response?.status
+      toast.error(
+        status === 404
+          ? t('etablissement.teamUserNotFound')
+          : status === 409
+            ? t('etablissement.teamAlreadyMember')
+            : error.response?.data?.error || t('etablissement.teamAddFailed'),
+      )
     } finally {
       setAddingMember(false)
     }
@@ -419,6 +460,7 @@ export default function EtablissementEspacePage() {
       try {
         await api.patch(`/api/carte/equipes/${member.id}`, { role })
         setEquipe((current) => current.map((m) => (m.id === member.id ? { ...m, role } : m)))
+        setTeamError(false)
       } catch (error: any) {
         toast.error(error.response?.data?.error || t('etablissement.teamUpdateFailed'))
       }
@@ -431,6 +473,7 @@ export default function EtablissementEspacePage() {
       try {
         await api.delete(`/api/carte/equipes/${member.id}`)
         setEquipe((current) => current.filter((m) => m.id !== member.id))
+        setTeamError(false)
       } catch (error: any) {
         toast.error(error.response?.data?.error || t('etablissement.teamRemoveFailed'))
       }
@@ -459,6 +502,25 @@ export default function EtablissementEspacePage() {
 
   const uploadMedia = useCallback(async (file: File) => {
     if (!mon?.centre?.id || uploadingMedia) return
+    const allowed = new Set([
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
+    ])
+    const isVideo = file.type.startsWith('video/')
+    const maxBytes = isVideo ? 30 * 1024 * 1024 : 10 * 1024 * 1024
+    if (!allowed.has(file.type)) {
+      toast.error(t('etablissement.mediaFormatInvalid'))
+      return
+    }
+    if (file.size > maxBytes) {
+      toast.error(isVideo ? t('etablissement.mediaVideoTooLarge') : t('etablissement.mediaImageTooLarge'))
+      return
+    }
     setUploadingMedia(true)
     try {
       const form = new FormData()
@@ -466,6 +528,7 @@ export default function EtablissementEspacePage() {
       form.append('centre', String(mon.centre.id))
       const { data } = await api.post<{ media: ManagedMedia }>('/api/carte/medias', form)
       setMedia((current) => [data.media, ...current])
+      setMediaError(false)
       toast.success(t('etablissement.mediaAdded'))
     } catch (error: any) {
       toast.error(error.response?.data?.detail || error.response?.data?.error || t('etablissement.mediaAddFailed'))
@@ -507,18 +570,36 @@ export default function EtablissementEspacePage() {
         .get<DashboardData>('/api/carte/dashboard', { params: { centre: mon.centre.id } })
         .then(({ data: dash }) => setDashboard(dash))
         .catch(() => undefined)
+      setTeamLoading(true)
+      setTeamError(false)
       void api
         .get<{ members: EquipeMembre[] }>('/api/carte/equipes', { params: { centre: mon.centre.id } })
-        .then(({ data: team }) => setEquipe(team.members))
-        .catch(() => undefined)
+        .then(({ data: team }) => {
+          setEquipe(team.members)
+          setTeamError(false)
+        })
+        .catch(() => setTeamError(true))
+        .finally(() => setTeamLoading(false))
+      setMediaLoading(true)
+      setMediaError(false)
       void api
         .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: mon.centre.id } })
-        .then(({ data: gallery }) => setMedia(gallery.items ?? []))
-        .catch(() => undefined)
+        .then(({ data: gallery }) => {
+          setMedia(gallery.items ?? [])
+          setMediaError(false)
+        })
+        .catch(() => setMediaError(true))
+        .finally(() => setMediaLoading(false))
+      setReviewsLoading(true)
+      setReviewsError(false)
       void api
         .get<{ items: ManagedReview[] }>('/api/carte/avis', { params: { centre: mon.centre.id } })
-        .then(({ data: reviewData }) => setReviews(reviewData.items ?? []))
-        .catch(() => undefined)
+        .then(({ data: reviewData }) => {
+          setReviews(reviewData.items ?? [])
+          setReviewsError(false)
+        })
+        .catch(() => setReviewsError(true))
+        .finally(() => setReviewsLoading(false))
       void loadStats()
     }
   }, [mon, loadStats])
@@ -651,14 +732,32 @@ export default function EtablissementEspacePage() {
                   adding={addingMember}
                   onRoleChange={updateMemberRole}
                   onRemove={removeMember}
+                  loading={teamLoading}
+                  error={teamError}
+                  onRetry={reloadData}
                   compact
                 />
               </div>
               <div id="dashboard-media" className="dashboard-section">
-                <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
+                <MediaPanel
+                  items={media}
+                  uploading={uploadingMedia}
+                  loading={mediaLoading}
+                  error={mediaError}
+                  onRetry={reloadData}
+                  onUpload={uploadMedia}
+                  onDelete={deleteMedia}
+                />
               </div>
               <div id="dashboard-reviews" className="dashboard-section">
-                <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
+                <ReviewsPanel
+                  items={reviews}
+                  moderatingId={moderatingReview}
+                  loading={reviewsLoading}
+                  error={reviewsError}
+                  onRetry={reloadData}
+                  onModerate={moderateReview}
+                />
               </div>
               <div id="dashboard-settings" className="dashboard-section">
                 <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
@@ -691,12 +790,30 @@ export default function EtablissementEspacePage() {
                   adding={addingMember}
                   onRoleChange={updateMemberRole}
                   onRemove={removeMember}
+                  loading={teamLoading}
+                  error={teamError}
+                  onRetry={reloadData}
                 />
-                <MediaPanel items={media} uploading={uploadingMedia} onUpload={uploadMedia} onDelete={deleteMedia} />
+                <MediaPanel
+                  items={media}
+                  uploading={uploadingMedia}
+                  loading={mediaLoading}
+                  error={mediaError}
+                  onRetry={reloadData}
+                  onUpload={uploadMedia}
+                  onDelete={deleteMedia}
+                />
               </div>
               <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div id="dashboard-reviews">
-                  <ReviewsPanel items={reviews} moderatingId={moderatingReview} onModerate={moderateReview} />
+                  <ReviewsPanel
+                    items={reviews}
+                    moderatingId={moderatingReview}
+                    loading={reviewsLoading}
+                    error={reviewsError}
+                    onRetry={reloadData}
+                    onModerate={moderateReview}
+                  />
                 </div>
                 <div id="dashboard-settings">
                   <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
@@ -1364,6 +1481,9 @@ function TeamPanel({
   adding,
   onRoleChange,
   onRemove,
+  loading,
+  error,
+  onRetry,
   compact,
 }: {
   equipe: EquipeMembre[]
@@ -1375,6 +1495,9 @@ function TeamPanel({
   adding: boolean
   onRoleChange: (member: EquipeMembre, role: string) => void
   onRemove: (member: EquipeMembre) => void
+  loading?: boolean
+  error?: boolean
+  onRetry?: () => void
   compact?: boolean
 }) {
   const { t } = useTranslation()
@@ -1392,6 +1515,12 @@ function TeamPanel({
           </span>
         }
       />
+
+      {error ? (
+        <PanelState kind="error" onRetry={onRetry} />
+      ) : loading && equipe.length === 0 ? (
+        <PanelState kind="loading" />
+      ) : null}
 
       <form
         className="mt-4 flex flex-col gap-2 sm:flex-row"
@@ -1428,7 +1557,7 @@ function TeamPanel({
         </button>
       </form>
 
-      <div className={`mt-4 space-y-2 ${compact ? 'max-h-72 overflow-y-auto pr-1' : ''}`}>
+      <div className={`mt-4 space-y-2 ${compact ? 'max-h-72 overflow-y-auto pr-1' : ''} ${error ? 'opacity-60' : ''}`}>
         {equipe.length === 0 && (
           <p className="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
             {t('etablissement.equipeEmpty')}
@@ -1503,15 +1632,22 @@ function TeamPanel({
 function MediaPanel({
   items,
   uploading,
+  loading,
+  error,
+  onRetry,
   onUpload,
   onDelete,
 }: {
   items: ManagedMedia[]
   uploading: boolean
+  loading?: boolean
+  error?: boolean
+  onRetry?: () => void
   onUpload: (file: File) => void
   onDelete: (item: ManagedMedia) => void
 }) {
   const { t } = useTranslation()
+  const [dragActive, setDragActive] = useState(false)
   return (
     <GlassCard as="section" hover className="wdg-anim p-5" delay={280}>
       <SectionHeader
@@ -1542,12 +1678,48 @@ function MediaPanel({
         }
       />
 
+      {error ? (
+        <PanelState kind="error" onRetry={onRetry} />
+      ) : loading && items.length === 0 ? (
+        <PanelState kind="loading" />
+      ) : null}
+
       {items.length === 0 ? (
-        <div className="mt-4 flex min-h-32 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-center dark:border-slate-700 dark:bg-slate-950/40">
+        <label
+          className={`mt-4 flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
+            dragActive
+              ? 'border-[var(--accent,#059669)] bg-emerald-50/70 dark:bg-emerald-950/20'
+              : 'border-slate-300 bg-slate-50 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-950/40'
+          }`}
+          onDragOver={(event) => {
+            event.preventDefault()
+            setDragActive(true)
+          }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={(event) => {
+            event.preventDefault()
+            setDragActive(false)
+            const file = event.dataTransfer.files?.[0]
+            if (file) onUpload(file)
+          }}
+        >
           <FileImage className="h-7 w-7 text-slate-400" />
-          <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">{t('etablissement.galleryEmpty')}</p>
+          <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+            {dragActive ? t('etablissement.mediaDropActive') : t('etablissement.galleryEmpty')}
+          </p>
           <p className="mt-1 text-xs text-slate-500">{t('etablissement.mediaSizeHint')}</p>
-        </div>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+            className="sr-only"
+            disabled={uploading}
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) onUpload(file)
+              event.currentTarget.value = ''
+            }}
+          />
+        </label>
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => {
@@ -1557,10 +1729,10 @@ function MediaPanel({
                 {item.kind === 'video' ? (
                   <>
                     <video src={source} muted preload="metadata" className="h-full w-full object-cover" />
-                    <Video className="pointer-events-none absolute left-2 top-2 h-5 w-5 text-white drop-shadow" />
+                    <Video className="pointer-events-none absolute left-2 top-2 h-5 w-5 text-white" />
                   </>
                 ) : (
-                  <img src={source} alt={item.originalName || 'Media'} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                  <img src={source} alt={item.originalName || t('etablissement.mediaImage')} className="h-full w-full object-cover" />
                 )}
                 <button
                   type="button"
@@ -1570,7 +1742,7 @@ function MediaPanel({
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
-                <p className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/80 to-transparent px-2 pb-2 pt-6 text-[10px] font-semibold text-white">
+                <p className="absolute inset-x-0 bottom-0 truncate bg-slate-950/75 px-2 py-2 text-[10px] font-semibold text-white">
                   {item.originalName || (item.kind === 'video' ? t('etablissement.mediaVideo') : t('etablissement.mediaImage'))}
                 </p>
               </div>
@@ -1593,10 +1765,16 @@ const REVIEW_TONE: Record<ManagedReview['statut'], 'mint' | 'red' | 'amber'> = {
 function ReviewsPanel({
   items,
   moderatingId,
+  loading,
+  error,
+  onRetry,
   onModerate,
 }: {
   items: ManagedReview[]
   moderatingId: number | null
+  loading?: boolean
+  error?: boolean
+  onRetry?: () => void
   onModerate: (item: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
 }) {
   const { t, i18n } = useTranslation()
@@ -1615,6 +1793,12 @@ function ReviewsPanel({
           </span>
         }
       />
+
+      {error ? (
+        <PanelState kind="error" onRetry={onRetry} />
+      ) : loading && items.length === 0 ? (
+        <PanelState kind="loading" />
+      ) : null}
 
       <div className="mt-4 max-h-[28rem] divide-y divide-slate-100 overflow-y-auto rounded-xl border-y border-slate-100 dark:divide-white/10 dark:border-white/10">
         {items.length === 0 ? (
@@ -1650,6 +1834,26 @@ function ReviewsPanel({
             {item.commentaire && (
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.commentaire}</p>
             )}
+            {item.images && item.images.length > 0 && (
+              <div className="mt-3 grid grid-cols-5 gap-1.5">
+                {item.images.map((image) => (
+                  <a
+                    key={image.id}
+                    href={imgUrl(image.contentUrl) || image.contentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+                    aria-label={image.originalName || t('etablissement.reviewMedia')}
+                  >
+                    <img
+                      src={imgUrl(image.contentUrl) || image.contentUrl}
+                      alt={image.originalName || t('etablissement.reviewMedia')}
+                      className="h-full w-full object-cover transition group-hover:opacity-80"
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
             <div className="mt-3 flex gap-2">
               <button
                 type="button"
@@ -1674,6 +1878,36 @@ function ReviewsPanel({
         ))}
       </div>
     </GlassCard>
+  )
+}
+
+function PanelState({ kind, onRetry }: { kind: 'loading' | 'error'; onRetry?: () => void }) {
+  const { t } = useTranslation()
+  if (kind === 'loading') {
+    return (
+      <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {t('etablissement.loading')}
+      </div>
+    )
+  }
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-xs font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-300">
+      <span className="inline-flex items-center gap-2">
+        <AlertCircle className="h-4 w-4" />
+        {t('etablissement.panelLoadError')}
+      </span>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex min-h-8 items-center gap-1.5 rounded-md border border-red-300 px-2.5 text-[11px] font-bold hover:bg-red-100 dark:border-red-800 dark:hover:bg-red-950/40"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          {t('etablissement.retry')}
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -1714,7 +1948,11 @@ function PersonalizationPanel({
             aria-pressed={prefs.accent === color}
             aria-label={t(`etablissement.accentNames.${ACCENT_NAMES[color] ?? 'emerald'}`)}
             className="flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
-            style={{ backgroundColor: color, boxShadow: prefs.accent === color ? `0 0 0 3px white, 0 0 0 5px ${color}` : undefined }}
+            style={{
+              backgroundColor: color,
+              outline: prefs.accent === color ? `2px solid ${color}` : undefined,
+              outlineOffset: prefs.accent === color ? 3 : undefined,
+            }}
           >
             {prefs.accent === color && <Check className="h-4 w-4 text-white" />}
           </button>
