@@ -190,6 +190,7 @@ export function formatRelativeDate(iso: string, locale: string): string {
 // ─── Photo ───────────────────────────────────────────────────────────────────
 
 export function getEtablissementPhoto(centre: CarteCentre): string | null {
+  if (centre.imageUrl) return centre.imageUrl
   const image = centre.images?.find((media) => media.kind !== 'video' && media.contentUrl)
   if (image?.contentUrl) return image.contentUrl
   if (centre.photo) return centre.photo

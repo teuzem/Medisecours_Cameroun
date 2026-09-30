@@ -288,6 +288,7 @@ export default function EtablissementEspacePage() {
   const [reviews, setReviews] = useState<ManagedReview[]>([])
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [moderatingReview, setModeratingReview] = useState<number | null>(null)
+  const [settingCover, setSettingCover] = useState(false)
 
   // Personnalisation
   const [prefs, setPrefs] = useState<Prefs>(readPrefs)
@@ -610,7 +611,14 @@ export default function EtablissementEspacePage() {
       setMedia((current) => current.filter((mediaItem) => mediaItem.id !== item.id))
       setMon((current) =>
         current?.centre
-          ? { ...current, centre: { ...current.centre, images: (current.centre.images ?? []).filter((image) => image.id !== item.id) } }
+          ? {
+              ...current,
+              centre: {
+                ...current.centre,
+                imageUrl: current.centre.imageUrl === item.contentUrl ? null : current.centre.imageUrl,
+                images: (current.centre.images ?? []).filter((image) => image.id !== item.id),
+              },
+            }
           : current,
       )
       toast.success(t('etablissement.mediaDeleted'))
@@ -618,6 +626,22 @@ export default function EtablissementEspacePage() {
       toast.error(t('etablissement.mediaDeleteFailed'))
     }
   }, [t, toast])
+
+  const setCoverMedia = useCallback(async (item: ManagedMedia | null) => {
+    if (!mon?.centre?.id || settingCover) return
+    setSettingCover(true)
+    try {
+      const { data } = await api.patch<{ centre: FicheCentre }>('/api/carte/mon-etablissement', {
+        imageUrl: item?.contentUrl ?? null,
+      })
+      setMon((current) => (current ? { ...current, centre: data.centre } : current))
+      toast.success(t(item ? 'etablissement.coverSelected' : 'etablissement.coverRemoved'))
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || t('etablissement.coverSaveFailed'))
+    } finally {
+      setSettingCover(false)
+    }
+  }, [mon, settingCover, t, toast])
 
   const moderateReview = useCallback(async (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => {
     setModeratingReview(review.id)
@@ -811,6 +835,9 @@ export default function EtablissementEspacePage() {
                 uploadingMedia={uploadingMedia}
                 uploadMedia={uploadMedia}
                 deleteMedia={deleteMedia}
+                coverUrl={mon.centre.imageUrl ?? null}
+                settingCover={settingCover}
+                setCoverMedia={setCoverMedia}
                 moderatingReview={moderatingReview}
                 moderateReview={moderateReview}
                 applyPrefs={applyPrefs}
@@ -854,6 +881,9 @@ function DashboardWorkspace({
   uploadingMedia,
   uploadMedia,
   deleteMedia,
+  coverUrl,
+  settingCover,
+  setCoverMedia,
   moderatingReview,
   moderateReview,
   applyPrefs,
@@ -888,6 +918,9 @@ function DashboardWorkspace({
   uploadingMedia: boolean
   uploadMedia: (file: File) => void
   deleteMedia: (item: ManagedMedia) => void
+  coverUrl: string | null
+  settingCover: boolean
+  setCoverMedia: (item: ManagedMedia | null) => void
   moderatingReview: number | null
   moderateReview: (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
   applyPrefs: (prefs: Prefs) => void
@@ -945,6 +978,9 @@ function DashboardWorkspace({
               onRetry={reloadData}
               onUpload={uploadMedia}
               onDelete={deleteMedia}
+              coverUrl={coverUrl}
+              settingCover={settingCover}
+              onSetCover={setCoverMedia}
             />
           </div>
         </div>
@@ -1932,17 +1968,23 @@ function MediaPanel({
   uploading,
   loading,
   error,
+  coverUrl,
+  settingCover,
   onRetry,
   onUpload,
   onDelete,
+  onSetCover,
 }: {
   items: ManagedMedia[]
   uploading: boolean
   loading?: boolean
   error?: boolean
+  coverUrl?: string | null
+  settingCover?: boolean
   onRetry?: () => void
   onUpload: (file: File) => void
   onDelete: (item: ManagedMedia) => void
+  onSetCover: (item: ManagedMedia | null) => void
 }) {
   const { t } = useTranslation()
   const [dragActive, setDragActive] = useState(false)
@@ -2059,7 +2101,7 @@ function MediaPanel({
           {visibleItems.map((item) => {
             const source = imgUrl(item.contentUrl) || item.contentUrl
             return (
-              <div key={item.id} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+              <div key={item.id} className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-slate-100 dark:bg-slate-800 ${coverUrl === item.contentUrl ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700'}`}>
                 {item.kind === 'video' ? (
                   <>
                     <video src={source} muted preload="metadata" className="h-full w-full object-cover" />
@@ -2076,6 +2118,18 @@ function MediaPanel({
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
+                {item.kind === 'image' && (
+                  <button
+                    type="button"
+                    disabled={settingCover}
+                    onClick={() => onSetCover(coverUrl === item.contentUrl ? null : item)}
+                    className={`absolute left-2 top-2 inline-flex min-h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold transition ${coverUrl === item.contentUrl ? 'bg-emerald-600 text-white' : 'bg-white/90 text-slate-700 hover:bg-emerald-50 dark:bg-slate-950/85 dark:text-slate-200 dark:hover:bg-emerald-950/50'}`}
+                    aria-pressed={coverUrl === item.contentUrl}
+                  >
+                    <Building2 className="h-3 w-3" />
+                    {coverUrl === item.contentUrl ? t('etablissement.coverActive') : t('etablissement.setAsCover')}
+                  </button>
+                )}
                 <p className="absolute inset-x-0 bottom-0 truncate bg-slate-950/75 px-2 py-2 text-[10px] font-semibold text-white">
                   {item.originalName || (item.kind === 'video' ? t('etablissement.mediaVideo') : t('etablissement.mediaImage'))}
                 </p>

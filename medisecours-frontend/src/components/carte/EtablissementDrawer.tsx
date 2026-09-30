@@ -139,6 +139,11 @@ function mediaUrl(media: EtablissementMedia): string {
   return imgUrl(media.contentUrl) || media.contentUrl
 }
 
+function normalizedMediaUrl(value?: string | null): string {
+  if (!value) return ''
+  return (imgUrl(value) || value).trim().replace(/\/+$/, '').toLowerCase()
+}
+
 export function MediaGallery({
   centre,
   compact = false,
@@ -147,7 +152,26 @@ export function MediaGallery({
   compact?: boolean
 }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
-  const medias = centre.images?.filter((media) => media.contentUrl) ?? []
+  const uploadedMedias = centre.images?.filter((media) => media.contentUrl) ?? []
+  const coverUrl = centre.imageUrl?.trim() || ''
+  const coverKey = normalizedMediaUrl(coverUrl)
+  const coverIndex = coverKey
+    ? uploadedMedias.findIndex((media) => normalizedMediaUrl(media.contentUrl) === coverKey && media.kind !== 'video' && !media.mimeType?.startsWith('video/'))
+    : -1
+  const coverMedia = coverIndex >= 0
+    ? uploadedMedias[coverIndex]
+    : coverUrl
+      ? {
+          id: -2,
+          contentUrl: coverUrl,
+          originalName: null,
+          mimeType: 'image/*',
+          kind: 'image' as const,
+        }
+      : null
+  const medias = coverMedia
+    ? [coverMedia, ...uploadedMedias.filter((media) => media.id !== coverMedia.id)]
+    : uploadedMedias
   const legacyPhoto = getEtablissementPhoto({ ...centre, images: [] })
 
   if (medias.length === 0 && !legacyPhoto) {

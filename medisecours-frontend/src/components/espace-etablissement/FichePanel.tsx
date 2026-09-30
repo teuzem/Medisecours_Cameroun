@@ -40,6 +40,7 @@ export type FicheCentre = {
   telephone?: string | null
   email?: string | null
   siteWeb?: string | null
+  imageUrl?: string | null
   horaires?: string | null
   urgences24h?: boolean
   description?: string | null
@@ -98,6 +99,81 @@ const SERVICE_RELATIONS: Record<string, string[]> = {
   rehabilitation: ['physiotherapy-unit', 'prosthetics', 'occupational-therapy', 'speech-therapy-service'],
 }
 
+/**
+ * Clinical service suggestions keyed by speciality. The catalogue remains
+ * extensible: unknown/custom specialities still participate through the
+ * multilingual token matcher below, while these explicit relations provide
+ * high-confidence defaults for the common facility profiles.
+ */
+const SPECIALITY_SERVICE_RELATIONS: Record<string, string[]> = {
+  'general-medicine': ['outpatient-consultations', 'emergency-department', 'follow-up', 'screening', 'vaccination', 'health-education'],
+  'internal-medicine': ['outpatient-consultations', 'inpatient-care', 'laboratory', 'medical-imaging', 'follow-up'],
+  cardiology: ['outpatient-consultations', 'emergency-department', 'medical-imaging', 'laboratory', 'cardiac-rehabilitation'],
+  'cardiovascular-surgery': ['operating-room', 'intensive-care', 'inpatient-care', 'medical-imaging', 'laboratory'],
+  'general-surgery': ['operating-room', 'inpatient-care', 'anesthesia', 'wound-care', 'emergency-department'],
+  'digestive-surgery': ['operating-room', 'endoscopy', 'colonoscopy', 'inpatient-care', 'anesthesia'],
+  'orthopedic-surgery': ['operating-room', 'medical-imaging', 'physiotherapy-unit', 'rehabilitation', 'prosthetics'],
+  traumatology: ['emergency-department', 'operating-room', 'medical-imaging', 'wound-care', 'rehabilitation'],
+  'pediatric-surgery': ['operating-room', 'child-health', 'anesthesia', 'inpatient-care'],
+  'urologic-surgery': ['operating-room', 'endoscopy', 'inpatient-care', 'medical-imaging'],
+  'plastic-surgery': ['operating-room', 'wound-care', 'burns-care', 'minor-surgery'],
+  'maxillofacial-surgery': ['operating-room', 'dental-emergency', 'medical-imaging', 'wound-care'],
+  'thoracic-surgery': ['operating-room', 'intensive-care', 'inpatient-care', 'medical-imaging'],
+  neurosurgery: ['operating-room', 'intensive-care', 'medical-imaging', 'rehabilitation', 'inpatient-care'],
+  pediatrics: ['child-health', 'vaccination', 'screening', 'neonatal-intensive-care', 'outpatient-consultations'],
+  neonatology: ['neonatal-intensive-care', 'maternity', 'delivery', 'child-health', 'inpatient-care'],
+  gynecology: ['maternity', 'prenatal-care', 'family-planning', 'outpatient-consultations', 'screening'],
+  obstetrics: ['maternity', 'prenatal-care', 'delivery', 'cesarean-section', 'postnatal-care'],
+  fertility: ['ivf', 'outpatient-consultations', 'laboratory', 'ultrasound', 'follow-up'],
+  oncology: ['chemotherapy', 'radiotherapy', 'medical-imaging', 'laboratory', 'palliative-care-unit'],
+  hematology: ['laboratory', 'blood-bank', 'inpatient-care', 'outpatient-consultations', 'follow-up'],
+  nephrology: ['dialysis', 'laboratory', 'medical-imaging', 'outpatient-consultations', 'patient-transport'],
+  urology: ['endoscopy', 'laboratory', 'medical-imaging', 'outpatient-consultations', 'minor-surgery'],
+  gastroenterology: ['endoscopy', 'colonoscopy', 'medical-imaging', 'laboratory', 'outpatient-consultations'],
+  hepatology: ['laboratory', 'medical-imaging', 'endoscopy', 'outpatient-consultations', 'follow-up'],
+  pneumology: ['medical-imaging', 'laboratory', 'outpatient-consultations', 'emergency-department', 'follow-up'],
+  endocrinology: ['outpatient-consultations', 'laboratory', 'follow-up', 'nutrition-counselling', 'screening'],
+  diabetology: ['diabetes-clinic', 'laboratory', 'nutrition-counselling', 'follow-up', 'screening'],
+  rheumatology: ['outpatient-consultations', 'laboratory', 'medical-imaging', 'physiotherapy-unit', 'follow-up'],
+  dermatology: ['outpatient-consultations', 'screening', 'minor-surgery', 'follow-up', 'laboratory'],
+  ophthalmology: ['eye-screening', 'outpatient-consultations', 'minor-surgery', 'medical-imaging', 'follow-up'],
+  ent: ['hearing-test', 'outpatient-consultations', 'minor-surgery', 'speech-therapy-service', 'medical-imaging'],
+  odontology: ['dental-emergency', 'oral-hygiene', 'outpatient-consultations', 'screening', 'minor-surgery'],
+  psychiatry: ['mental-health', 'psychological-support', 'social-work', 'teleconsultation', 'follow-up'],
+  psychology: ['psychological-support', 'mental-health', 'teleconsultation', 'follow-up', 'social-work'],
+  'infectious-diseases': ['infectious-disease-clinic', 'hiv-care', 'tuberculosis-care', 'malaria-care', 'laboratory'],
+  'tropical-medicine': ['malaria-care', 'infectious-disease-clinic', 'vaccination', 'screening', 'laboratory'],
+  'emergency-medicine': ['emergency-department', 'ambulance', 'medical-imaging', 'laboratory', 'inpatient-care'],
+  anesthesia: ['operating-room', 'intensive-care', 'critical-care', 'inpatient-care', 'emergency-department'],
+  radiology: ['medical-imaging', 'x-ray', 'ultrasound', 'ct-scan', 'mri'],
+  'nuclear-medicine': ['medical-imaging', 'oncology', 'screening', 'laboratory', 'follow-up'],
+  pathology: ['pathology-lab', 'laboratory', 'rapid-tests', 'genetic-testing', 'home-sampling'],
+  'medical-biology': ['laboratory', 'rapid-tests', 'home-sampling', 'genetic-testing', 'blood-bank'],
+  'physical-rehabilitation': ['rehabilitation', 'physiotherapy-unit', 'prosthetics', 'occupational-therapy', 'speech-therapy-service'],
+  physiotherapy: ['physiotherapy-unit', 'rehabilitation', 'home-care', 'follow-up', 'medical-imaging'],
+  nutrition: ['nutrition-counselling', 'diabetes-clinic', 'maternal-health', 'child-health', 'follow-up'],
+  geriatrics: ['outpatient-consultations', 'follow-up', 'home-care', 'physiotherapy-unit', 'social-work'],
+  'occupational-medicine': ['occupational-health', 'screening', 'medical-certificates', 'follow-up', 'health-education'],
+  'forensic-medicine': ['medical-certificates', 'laboratory', 'pathology-lab', 'follow-up'],
+  allergology: ['outpatient-consultations', 'laboratory', 'emergency-department', 'follow-up', 'screening'],
+  immunology: ['laboratory', 'vaccination', 'screening', 'follow-up', 'outpatient-consultations'],
+  'medical-genetics': ['genetic-testing', 'laboratory', 'follow-up', 'screening', 'outpatient-consultations'],
+  'vascular-medicine': ['medical-imaging', 'outpatient-consultations', 'wound-care', 'follow-up', 'laboratory'],
+  angiology: ['medical-imaging', 'outpatient-consultations', 'wound-care', 'follow-up', 'laboratory'],
+  'public-health': ['vaccination', 'screening', 'health-education', 'community-outreach', 'rapid-tests'],
+  'community-medicine': ['community-outreach', 'health-education', 'vaccination', 'screening', 'maternal-health'],
+  'family-medicine': ['outpatient-consultations', 'vaccination', 'maternal-health', 'child-health', 'follow-up'],
+  'sports-medicine': ['physiotherapy-unit', 'rehabilitation', 'medical-imaging', 'follow-up', 'wound-care'],
+  sexology: ['outpatient-consultations', 'psychological-support', 'family-planning', 'screening', 'follow-up'],
+  addictology: ['mental-health', 'psychological-support', 'social-work', 'follow-up', 'teleconsultation'],
+  'pain-medicine': ['pain-clinic', 'palliative-care-unit', 'physiotherapy-unit', 'follow-up', 'home-care'],
+  'palliative-care': ['palliative-care-unit', 'pain-clinic', 'home-care', 'social-work', 'follow-up'],
+  'sleep-medicine': ['outpatient-consultations', 'follow-up', 'medical-imaging', 'laboratory', 'teleconsultation'],
+  'geriatric-psychiatry': ['mental-health', 'psychological-support', 'social-work', 'home-care', 'follow-up'],
+  'speech-therapy': ['speech-therapy-service', 'occupational-therapy', 'rehabilitation', 'follow-up', 'child-health'],
+  'occupational-therapy': ['occupational-therapy', 'rehabilitation', 'physiotherapy-unit', 'prosthetics', 'follow-up'],
+}
+
 const canonicalize = (value: string) =>
   value
     .normalize('NFD')
@@ -114,15 +190,23 @@ function getCatalogItem(label: string, catalog: HealthCatalogItem[]) {
   )
 }
 
-function recommendedServices(selected: string[]): HealthCatalogItem[] {
-  const selectedItems = selected
+function recommendedServices(selectedSpecialities: string[], selectedServices: string[]): HealthCatalogItem[] {
+  const specialityItems = selectedSpecialities
+    .map((label) => getCatalogItem(label, SPECIALITY_CATALOG))
+    .filter(Boolean) as HealthCatalogItem[]
+  const selectedItems = selectedServices
     .map((label) => getCatalogItem(label, SERVICE_CATALOG))
     .filter(Boolean) as HealthCatalogItem[]
-  const selectedIds = new Set(selectedItems.map((item) => item.id))
-  const relatedIds = new Set(selectedItems.flatMap((item) => SERVICE_RELATIONS[item.id] ?? []))
-  const selectedTokens = selectedItems.flatMap((item) =>
-    `${item.id} ${item.fr} ${item.en}`.split(/[-\s/&,]+/).filter((token) => token.length > 3),
+  const selectedIds = new Set([...selectedItems.map((item) => item.id)])
+  const specialityRelatedIds = new Set(
+    specialityItems.flatMap((item) => SPECIALITY_SERVICE_RELATIONS[item.id] ?? []),
   )
+  const serviceRelatedIds = new Set(selectedItems.flatMap((item) => SERVICE_RELATIONS[item.id] ?? []))
+  const selectedTokens = [
+    ...[...specialityItems, ...selectedItems].map((item) => `${item.id} ${item.fr} ${item.en}`),
+    ...selectedSpecialities,
+    ...selectedServices,
+  ].flatMap((value) => value.split(/[-\s/&,]+/).filter((token) => token.length > 3))
 
   const ranked = SERVICE_CATALOG
     .filter((item) => !selectedIds.has(item.id))
@@ -132,12 +216,16 @@ function recommendedServices(selected: string[]): HealthCatalogItem[] {
         (score, token) => score + (text.includes(token.toLocaleLowerCase()) ? 1 : 0),
         0,
       )
-      return { item, score: (relatedIds.has(item.id) ? 10 : 0) + tokenScore }
+      const specialityScore = specialityRelatedIds.has(item.id) ? 30 : 0
+      const serviceScore = serviceRelatedIds.has(item.id) ? 12 : 0
+      return { item, score: specialityScore + serviceScore + tokenScore }
     })
     .sort((left, right) => right.score - left.score || left.item.fr.localeCompare(right.item.fr))
     .slice(0, 8)
     .map(({ item }) => item)
-  return ranked.length > 0 ? ranked : SERVICE_CATALOG.slice(0, 8)
+  return ranked.length > 0
+    ? ranked
+    : SERVICE_CATALOG.filter((item) => !selectedIds.has(item.id)).slice(0, 8)
 }
 
 type Draft = {
@@ -363,7 +451,10 @@ export default function FichePanel({
   const hasGps = centre.latitude != null && centre.longitude != null
   const mapsUrl =
     hasGps ? `https://www.google.com/maps?q=${centre.latitude},${centre.longitude}` : null
-  const serviceRecommendations = useMemo(() => recommendedServices(services), [services])
+  const serviceRecommendations = useMemo(
+    () => recommendedServices(specialites, services),
+    [services, specialites],
+  )
   const completionItems = [
     { key: 'identity', label: t('etablissement.ficheCompletionIdentity'), complete: draft.nom.trim().length >= 2 && Boolean(draft.type) },
     { key: 'location', label: t('etablissement.ficheCompletionLocation'), complete: draft.adresse.trim().length >= 5 && draft.ville.trim().length >= 2 && Boolean(draft.region) },

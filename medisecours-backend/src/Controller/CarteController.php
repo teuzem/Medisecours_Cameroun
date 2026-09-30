@@ -240,6 +240,29 @@ class CarteController extends AbstractController
             $centre->setSiteWeb($nonEmpty($data['siteWeb']));
         }
 
+        if (array_key_exists('imageUrl', $data)) {
+            $imageUrl = $nonEmpty($data['imageUrl']);
+            if ($imageUrl !== null && mb_strlen($imageUrl) > 500) {
+                throw new BadRequestHttpException('La couverture sélectionnée est invalide.');
+            }
+            if ($imageUrl !== null) {
+                $selectedMedia = null;
+                foreach ($centre->getImages() as $media) {
+                    if ($media->getContentUrl() === $imageUrl) {
+                        $selectedMedia = $media;
+                        break;
+                    }
+                }
+                if (
+                    !$selectedMedia instanceof MediaObject
+                    || str_starts_with((string) $selectedMedia->getMimeType(), 'video/')
+                ) {
+                    throw new BadRequestHttpException('La couverture doit être une image déjà téléversée dans la galerie.');
+                }
+            }
+            $centre->setImageUrl($imageUrl);
+        }
+
         if (isset($data['horaires'])) {
             $horaires = trim((string) $data['horaires']);
             if ($horaires === '' || mb_strlen($horaires) > 255) {
@@ -625,6 +648,10 @@ class CarteController extends AbstractController
         }
         $this->assertCanManage($user, $media->getCentre());
 
+        $centre = $media->getCentre();
+        if ($centre->getImageUrl() === $media->getContentUrl()) {
+            $centre->setImageUrl(null);
+        }
         $this->em->remove($media);
         $this->em->flush();
 
@@ -837,6 +864,7 @@ class CarteController extends AbstractController
             'telephone' => $centre->getTelephone(),
             'email' => $centre->getEmail(),
             'siteWeb' => $centre->getSiteWeb(),
+            'imageUrl' => $centre->getImageUrl(),
             'horaires' => $centre->getHoraires(),
             'urgences24h' => $centre->isUrgences24h(),
             'noteMoyenne' => $centre->getNoteMoyenne(),
