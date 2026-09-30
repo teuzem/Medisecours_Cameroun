@@ -275,6 +275,18 @@ class MediaObject
         return $this->uploadedBy;
     }
 
+    #[Groups(['media:read', 'centre_sante:read', 'categorie:read', 'maladie:read', 'avis_etablissement:read'])]
+    public function getUploadedByName(): ?string
+    {
+        if (!$this->uploadedBy) {
+            return null;
+        }
+
+        $name = trim(sprintf('%s %s', (string) $this->uploadedBy->getPrenom(), (string) $this->uploadedBy->getNom()));
+
+        return $name !== '' ? $name : $this->uploadedBy->getEmail();
+    }
+
     public function setUploadedBy(?User $uploadedBy): static
     {
         $this->uploadedBy = $uploadedBy;

@@ -294,6 +294,7 @@ export default function EtablissementEspacePage() {
   const [prefs, setPrefs] = useState<Prefs>(readPrefs)
 
   const canAccess = isEtablissement || isAdmin
+  const canManageMedia = isAdmin || mon?.role === 'DIRECTEUR' || mon?.role === 'GESTIONNAIRE'
   const accent = prefs.accent
 
   const applyPrefs = useCallback((next: Prefs) => {
@@ -835,6 +836,7 @@ export default function EtablissementEspacePage() {
                 uploadingMedia={uploadingMedia}
                 uploadMedia={uploadMedia}
                 deleteMedia={deleteMedia}
+                canManageMedia={canManageMedia}
                 coverUrl={mon.centre.imageUrl ?? null}
                 settingCover={settingCover}
                 setCoverMedia={setCoverMedia}
@@ -881,6 +883,7 @@ function DashboardWorkspace({
   uploadingMedia,
   uploadMedia,
   deleteMedia,
+  canManageMedia,
   coverUrl,
   settingCover,
   setCoverMedia,
@@ -918,6 +921,7 @@ function DashboardWorkspace({
   uploadingMedia: boolean
   uploadMedia: (file: File) => void
   deleteMedia: (item: ManagedMedia) => void
+  canManageMedia: boolean
   coverUrl: string | null
   settingCover: boolean
   setCoverMedia: (item: ManagedMedia | null) => void
@@ -978,6 +982,7 @@ function DashboardWorkspace({
               onRetry={reloadData}
               onUpload={uploadMedia}
               onDelete={deleteMedia}
+              canManageMedia={canManageMedia}
               coverUrl={coverUrl}
               settingCover={settingCover}
               onSetCover={setCoverMedia}
@@ -1968,6 +1973,7 @@ function MediaPanel({
   uploading,
   loading,
   error,
+  canManageMedia,
   coverUrl,
   settingCover,
   onRetry,
@@ -1979,6 +1985,7 @@ function MediaPanel({
   uploading: boolean
   loading?: boolean
   error?: boolean
+  canManageMedia: boolean
   coverUrl?: string | null
   settingCover?: boolean
   onRetry?: () => void
@@ -1995,6 +2002,7 @@ function MediaPanel({
     const matchesQuery = !query.trim() || (item.originalName ?? '').toLowerCase().includes(query.trim().toLowerCase())
     return matchesKind && matchesQuery
   })
+  const normalizedCoverUrl = coverUrl ? (imgUrl(coverUrl) || coverUrl).replace(/\/+$/, '').toLowerCase() : ''
   return (
     <GlassCard as="section" hover className="wdg-anim p-5" delay={280}>
       <SectionHeader
@@ -2006,21 +2014,23 @@ function MediaPanel({
               <FileImage className="h-3 w-3" />
               {items.length}
             </span>
-            <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent,#10b981)] px-4 text-xs font-bold text-white transition hover:brightness-105">
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {uploading ? t('etablissement.mediaUploading') : t('etablissement.mediaAdd')}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
-                className="sr-only"
-                disabled={uploading}
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (file) onUpload(file)
-                  event.currentTarget.value = ''
-                }}
-              />
-            </label>
+            {canManageMedia && (
+              <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent,#10b981)] px-4 text-xs font-bold text-white transition hover:brightness-105">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {uploading ? t('etablissement.mediaUploading') : t('etablissement.mediaAdd')}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                  className="sr-only"
+                  disabled={uploading}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    if (file) onUpload(file)
+                    event.currentTarget.value = ''
+                  }}
+                />
+              </label>
+            )}
           </>
         }
       />
@@ -2057,41 +2067,47 @@ function MediaPanel({
       </div>
 
       {items.length === 0 ? (
-        <label
-          className={`mt-4 flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
-            dragActive
-              ? 'border-[var(--accent,#059669)] bg-emerald-50/70 dark:bg-emerald-950/20'
-              : 'border-slate-300 bg-slate-50 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-950/40'
-          }`}
-          onDragOver={(event) => {
-            event.preventDefault()
-            setDragActive(true)
-          }}
-          onDragLeave={() => setDragActive(false)}
-          onDrop={(event) => {
-            event.preventDefault()
-            setDragActive(false)
-            const file = event.dataTransfer.files?.[0]
-            if (file) onUpload(file)
-          }}
-        >
-          <FileImage className="h-7 w-7 text-slate-400" />
-          <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
-            {dragActive ? t('etablissement.mediaDropActive') : t('etablissement.galleryEmpty')}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">{t('etablissement.mediaSizeHint')}</p>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
-            className="sr-only"
-            disabled={uploading}
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) onUpload(file)
-              event.currentTarget.value = ''
+        canManageMedia ? (
+          <label
+            className={`mt-4 flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
+              dragActive
+                ? 'border-[var(--accent,#059669)] bg-emerald-50/70 dark:bg-emerald-950/20'
+                : 'border-slate-300 bg-slate-50 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-950/40'
+            }`}
+            onDragOver={(event) => {
+              event.preventDefault()
+              setDragActive(true)
             }}
-          />
-        </label>
+            onDragLeave={() => setDragActive(false)}
+            onDrop={(event) => {
+              event.preventDefault()
+              setDragActive(false)
+              const file = event.dataTransfer.files?.[0]
+              if (file) onUpload(file)
+            }}
+          >
+            <FileImage className="h-7 w-7 text-slate-400" />
+            <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+              {dragActive ? t('etablissement.mediaDropActive') : t('etablissement.galleryEmpty')}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">{t('etablissement.mediaSizeHint')}</p>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+              className="sr-only"
+              disabled={uploading}
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) onUpload(file)
+                event.currentTarget.value = ''
+              }}
+            />
+          </label>
+        ) : (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-400">
+            {t('etablissement.galleryEmpty')}
+          </p>
+        )
       ) : visibleItems.length === 0 ? (
         <p className="mt-4 rounded-lg bg-slate-50 px-3 py-8 text-center text-xs font-semibold text-slate-500 dark:bg-slate-950/50 dark:text-slate-400">
           {t('etablissement.mediaFilterEmpty')}
@@ -2100,8 +2116,10 @@ function MediaPanel({
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {visibleItems.map((item) => {
             const source = imgUrl(item.contentUrl) || item.contentUrl
+            const itemUrl = (imgUrl(item.contentUrl) || item.contentUrl).replace(/\/+$/, '').toLowerCase()
+            const isCover = Boolean(normalizedCoverUrl && normalizedCoverUrl === itemUrl)
             return (
-              <div key={item.id} className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-slate-100 dark:bg-slate-800 ${coverUrl === item.contentUrl ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700'}`}>
+              <div key={item.id} className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-slate-100 dark:bg-slate-800 ${isCover ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700'}`}>
                 {item.kind === 'video' ? (
                   <>
                     <video src={source} muted preload="metadata" className="h-full w-full object-cover" />
@@ -2110,24 +2128,26 @@ function MediaPanel({
                 ) : (
                   <img src={source} alt={item.originalName || t('etablissement.mediaImage')} className="h-full w-full object-cover" />
                 )}
-                <button
-                  type="button"
-                  onClick={() => onDelete(item)}
-                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-slate-950/75 text-white opacity-100 transition hover:bg-red-600 sm:opacity-0 sm:group-hover:opacity-100"
-                  aria-label={t('etablissement.mediaDeleteAlt')}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-                {item.kind === 'image' && (
+                {canManageMedia && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(item)}
+                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-slate-950/75 text-white opacity-100 transition hover:bg-red-600 sm:opacity-0 sm:group-hover:opacity-100"
+                    aria-label={t('etablissement.mediaDeleteAlt')}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+                {canManageMedia && item.kind === 'image' && (
                   <button
                     type="button"
                     disabled={settingCover}
-                    onClick={() => onSetCover(coverUrl === item.contentUrl ? null : item)}
-                    className={`absolute left-2 top-2 inline-flex min-h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold transition ${coverUrl === item.contentUrl ? 'bg-emerald-600 text-white' : 'bg-white/90 text-slate-700 hover:bg-emerald-50 dark:bg-slate-950/85 dark:text-slate-200 dark:hover:bg-emerald-950/50'}`}
-                    aria-pressed={coverUrl === item.contentUrl}
+                    onClick={() => onSetCover(isCover ? null : item)}
+                    className={`absolute left-2 top-2 inline-flex min-h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold transition ${isCover ? 'bg-emerald-600 text-white' : 'bg-white/90 text-slate-700 hover:bg-emerald-50 dark:bg-slate-950/85 dark:text-slate-200 dark:hover:bg-emerald-950/50'}`}
+                    aria-pressed={isCover}
                   >
-                    <Building2 className="h-3 w-3" />
-                    {coverUrl === item.contentUrl ? t('etablissement.coverActive') : t('etablissement.setAsCover')}
+                    <FileImage className="h-3 w-3" />
+                    {isCover ? t('etablissement.coverActive') : t('etablissement.setAsCover')}
                   </button>
                 )}
                 <p className="absolute inset-x-0 bottom-0 truncate bg-slate-950/75 px-2 py-2 text-[10px] font-semibold text-white">

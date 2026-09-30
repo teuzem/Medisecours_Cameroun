@@ -147,9 +147,13 @@ function normalizedMediaUrl(value?: string | null): string {
 export function MediaGallery({
   centre,
   compact = false,
+  disableLightbox = false,
+  onOpen,
 }: {
   centre: CarteCentre
   compact?: boolean
+  disableLightbox?: boolean
+  onOpen?: () => void
 }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const uploadedMedias = centre.images?.filter((media) => media.contentUrl) ?? []
@@ -195,7 +199,13 @@ export function MediaGallery({
             <button
               key={media.id}
               type="button"
-              onClick={() => setActiveIndex(Math.max(0, medias.findIndex((item) => item.id === media.id)))}
+              onClick={() => {
+                if (onOpen) {
+                  onOpen()
+                  return
+                }
+                if (!disableLightbox) setActiveIndex(Math.max(0, medias.findIndex((item) => item.id === media.id)))
+              }}
               className={`relative overflow-hidden bg-slate-200 text-left dark:bg-slate-800 ${
                 compact || preview.length === 1
                   ? 'h-40'

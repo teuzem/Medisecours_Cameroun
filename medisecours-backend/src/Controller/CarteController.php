@@ -885,6 +885,11 @@ class CarteController extends AbstractController
 
     private function serializeMedia(MediaObject $media): array
     {
+        $uploadedBy = $media->getUploadedBy();
+        $uploadedByName = $uploadedBy
+            ? trim(sprintf('%s %s', (string) $uploadedBy->getPrenom(), (string) $uploadedBy->getNom()))
+            : '';
+
         return [
             'id' => $media->getId(),
             'contentUrl' => $media->getContentUrl(),
@@ -893,6 +898,11 @@ class CarteController extends AbstractController
             'size' => $media->getSize(),
             'kind' => str_starts_with((string) $media->getMimeType(), 'video/') ? 'video' : 'image',
             'createdAt' => $media->getCreatedAt()->format('c'),
+            'uploadedByName' => $uploadedByName !== '' ? $uploadedByName : null,
+            'uploadedBy' => $uploadedBy ? [
+                'id' => $uploadedBy->getId(),
+                'name' => $uploadedByName !== '' ? $uploadedByName : $uploadedBy->getEmail(),
+            ] : null,
         ];
     }
 

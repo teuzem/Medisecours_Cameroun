@@ -82,6 +82,11 @@ export interface EtablissementMedia {
   size?: number | null
   kind?: 'image' | 'video'
   createdAt?: string
+  uploadedBy?: {
+    id?: number | string | null
+    name?: string | null
+  } | null
+  uploadedByName?: string | null
 }
 
 export interface Avis {

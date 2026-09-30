@@ -305,6 +305,15 @@ export default function CartePage() {
   )
 
   useEffect(() => {
+    if (selectedId == null) return
+    const selectedCentre = centres.find((centre) => centre.id === selectedId)
+    if (!selectedCentre?.nom) return
+    // Keep the visible search term synchronized with the selected place.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearchQuery((current) => current === selectedCentre.nom ? current : selectedCentre.nom)
+  }, [centres, selectedId])
+
+  useEffect(() => {
     if (sharedCentreHandled.current || loading) return
     const rawId = new URLSearchParams(window.location.search).get('centre')
     const id = rawId ? Number(rawId) : NaN
