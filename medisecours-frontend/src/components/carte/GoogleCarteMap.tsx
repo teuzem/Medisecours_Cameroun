@@ -35,6 +35,9 @@ interface GoogleCarteMapProps {
   isFallback?: boolean
   destination?: { lat: number; lng: number; nom?: string } | null
   satellite?: boolean
+  onRequestDirections?: (id: number) => void
+  onToggleFavorite?: (id: number) => void
+  favoriteIds?: number[]
 }
 
 const CAMEROUN_CENTER = { lat: 4.05, lng: 11.65 }
@@ -122,6 +125,9 @@ export default function GoogleCarteMap({
   isFallback = false,
   destination,
   satellite = false,
+  onRequestDirections,
+  onToggleFavorite,
+  favoriteIds = [],
 }: GoogleCarteMapProps) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -194,7 +200,10 @@ export default function GoogleCarteMap({
       const markerContent = marker.content as HTMLElement | null
       const popupElement = document.createElement('div')
       popupElement.innerHTML = facilityMarkerPopupHtml(centre, {
-        viewDetails: t('visitor.carte.viewDetails'),
+        directions: t('visitor.carte.markerDirections'),
+        save: t('visitor.carte.markerSave'),
+        saved: t('visitor.carte.markerSaved'),
+        isSaved: favoriteIds.includes(centre.id),
         open: t('visitor.carte.markerOpen'),
         closed: t('visitor.carte.markerClosed'),
         unknown: t('visitor.carte.markerUnknown'),
@@ -239,6 +248,8 @@ export default function GoogleCarteMap({
           popupCleanup?.()
           popupCleanup = bindFacilityPopupInteractions(popupElement, centre.id, {
             onSelect,
+            onDirections: onRequestDirections,
+            onToggleFavorite,
             onEnter: clearCloseTimer,
             onLeave: scheduleClose,
           })
@@ -268,7 +279,7 @@ export default function GoogleCarteMap({
     } else {
       clustererRef.current = new MarkerClusterer({ map, markers })
     }
-  }, [centres, onSelect, selectedId, t])
+  }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t])
 
   // ── Dot patient "Vous êtes ici" ─────────────────────────────────────────
   useEffect(() => {

@@ -21,6 +21,9 @@ interface Props {
   route?: RouteGeometry | null
   destination?: { lat: number; lng: number; nom?: string } | null
   satellite?: boolean
+  onRequestDirections?: (id: number) => void
+  onToggleFavorite?: (id: number) => void
+  favoriteIds?: number[]
 }
 
 const CAMEROUN_CENTER: [number, number] = [11.65, 4.05]
@@ -34,7 +37,7 @@ function markerElement(color: string, selected: boolean, name: string) {
   return el
 }
 
-export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, destination, satellite = false }: Props) {
+export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, destination, satellite = false, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
@@ -78,7 +81,10 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
       .map((centre) => {
         const popupElement = document.createElement('div')
         popupElement.innerHTML = facilityMarkerPopupHtml(centre, {
-          viewDetails: t('visitor.carte.viewDetails'),
+          directions: t('visitor.carte.markerDirections'),
+          save: t('visitor.carte.markerSave'),
+          saved: t('visitor.carte.markerSaved'),
+          isSaved: favoriteIds.includes(centre.id),
           open: t('visitor.carte.markerOpen'),
           closed: t('visitor.carte.markerClosed'),
           unknown: t('visitor.carte.markerUnknown'),
@@ -91,7 +97,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           holiday: t('visitor.carte.markerHoliday'),
           emergency: t('visitor.carte.markerEmergency'),
         })
-        const popup = new window.mapboxgl.Popup({ offset: 18 }).setDOMContent(popupElement)
+        const popup = new window.mapboxgl.Popup({ offset: 18, closeButton: false, closeOnClick: false }).setDOMContent(popupElement)
         let closeTimer: number | null = null
         let popupCleanup: (() => void) | null = null
         const clearCloseTimer = () => {
@@ -131,6 +137,8 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           popupCleanup?.()
           popupCleanup = bindFacilityPopupInteractions(popupElement, centre.id, {
             onSelect,
+            onDirections: onRequestDirections,
+            onToggleFavorite,
             onEnter: clearCloseTimer,
             onLeave: scheduleClose,
           })
@@ -153,7 +161,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
         ;(marker as any).__medisecoursCleanup = cleanup
         return marker
       })
-  }, [centres, onSelect, selectedId, t])
+  }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t])
 
   useEffect(() => {
     const map = mapRef.current

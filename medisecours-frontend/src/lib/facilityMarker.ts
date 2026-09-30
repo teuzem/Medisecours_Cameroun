@@ -1,7 +1,10 @@
 import type { CarteCentre, EtablissementMedia } from './carte'
 
 type MarkerLabels = {
-  viewDetails?: string
+  directions?: string
+  save?: string
+  saved?: string
+  isSaved?: boolean
   open?: string
   closed?: string
   unknown?: string
@@ -17,6 +20,9 @@ type MarkerLabels = {
 
 type PopupInteractionOptions = {
   onSelect?: (id: number) => void
+  onDirections?: (id: number) => void
+  onToggleFavorite?: (id: number) => void
+  isSaved?: boolean
   onEnter?: () => void
   onLeave?: () => void
 }
@@ -31,13 +37,15 @@ export function escapeMarkerHtml(value: string): string {
   })[char]!)
 }
 
-function iconSvg(kind: 'pin' | 'accessibility' | 'ambulance' | 'image' | 'clock'): string {
+function iconSvg(kind: 'pin' | 'accessibility' | 'ambulance' | 'image' | 'clock' | 'navigation' | 'bookmark'): string {
   const paths: Record<typeof kind, string> = {
     pin: '<path d="M12 21s7-5.4 7-11A7 7 0 0 0 5 10c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
     accessibility: '<circle cx="12" cy="4" r="1.8"/><path d="M5 8.5h14M12 7v5m0 0-4 8m4-8 4 8M8 12l-3 4m11-4 3 4"/>',
     ambulance: '<path d="M3 16V8.5h10.5L17 12h3v4"/><path d="M6 16a2 2 0 1 0 4 0m6 0a2 2 0 1 0 4 0M13.5 8.5V12H17M15.5 10.25h-4"/>',
     image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    navigation: '<path d="m4 4 16 7-7 2-2 7-7-16Z"/>',
+    bookmark: '<path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z"/>',
   }
   return `<svg class="maps-marker-icon maps-marker-icon-${kind}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[kind]}</svg>`
 }
@@ -124,7 +132,9 @@ function availabilityState(centre: CarteCentre): {
 
 export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: MarkerLabels): string {
   const text = {
-    viewDetails: labels?.viewDetails ?? 'Voir la fiche',
+    directions: labels?.directions ?? 'Itinéraire',
+    save: labels?.save ?? 'Enregistrer',
+    saved: labels?.saved ?? 'Enregistré',
     open: labels?.open ?? 'Ouvert',
     closed: labels?.closed ?? 'Fermé',
     unknown: labels?.unknown ?? 'Horaires inconnus',
@@ -170,7 +180,8 @@ export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: MarkerLabe
   const statusClass = availability.open === true ? 'is-open' : availability.open === false ? 'is-closed' : 'is-unknown'
   const typeLabel = String(centre.type).replaceAll('_', ' ')
 
-  return `<article class="maps-marker-popup" data-centre-id="${centre.id}">
+  const isSaved = Boolean(labels?.isSaved)
+  return `<article class="maps-marker-popup" data-centre-id="${centre.id}" role="button" tabindex="0" aria-label="${escapeMarkerHtml(centre.nom)}">
     ${mediaHtml}
     <div class="maps-marker-popup-body">
       <h3>${escapeMarkerHtml(centre.nom)}</h3>
@@ -185,7 +196,10 @@ export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: MarkerLabe
         ${access ? `<span class="maps-marker-capability maps-marker-capability-access" title="${escapeMarkerHtml(text.accessibility)}">${iconSvg('accessibility')}<span>${escapeMarkerHtml(access)}</span></span>` : ''}
         ${centre.ambulancesDisponibles ? `<span class="maps-marker-capability maps-marker-capability-ambulance" title="${escapeMarkerHtml(text.ambulances)}">${iconSvg('ambulance')}<span>${escapeMarkerHtml(text.ambulances)}</span></span>` : ''}
       </div>
-      <button class="maps-marker-details" type="button" data-centre-id="${centre.id}">${escapeMarkerHtml(text.viewDetails)}</button>
+      <div class="maps-marker-actions" role="group" aria-label="${escapeMarkerHtml(text.directions)}">
+        <button class="maps-marker-action maps-marker-action-directions" type="button" data-marker-action="directions" data-centre-id="${centre.id}">${iconSvg('navigation')}<span>${escapeMarkerHtml(text.directions)}</span></button>
+        <button class="maps-marker-action maps-marker-action-save${isSaved ? ' is-saved' : ''}" type="button" data-marker-action="save" data-centre-id="${centre.id}" data-label-save="${escapeMarkerHtml(text.save)}" data-label-saved="${escapeMarkerHtml(text.saved)}" aria-pressed="${isSaved ? 'true' : 'false'}">${iconSvg('bookmark')}<span>${escapeMarkerHtml(isSaved ? text.saved : text.save)}</span></button>
+      </div>
     </div>
   </article>`
 }
@@ -196,7 +210,8 @@ export function bindFacilityPopupInteractions(
   options: PopupInteractionOptions | ((id: number) => void) = {},
 ): () => void {
   const normalized: PopupInteractionOptions = typeof options === 'function' ? { onSelect: options } : options
-  const details = root.querySelector<HTMLButtonElement>('.maps-marker-details')
+  const directions = root.querySelector<HTMLButtonElement>('[data-marker-action="directions"]')
+  const save = root.querySelector<HTMLButtonElement>('[data-marker-action="save"]')
   const media = Array.from(root.querySelectorAll<HTMLElement>('.maps-marker-gallery-media'))
   const count = root.querySelector<HTMLElement>('.maps-marker-gallery-count')
   const previous = root.querySelector<HTMLButtonElement>('.maps-marker-gallery-prev')
@@ -218,12 +233,41 @@ export function bindFacilityPopupInteractions(
   const handlePrevious = () => showMedia(activeIndex - 1)
   const handleNext = () => showMedia(activeIndex + 1)
   const handleDetails = () => normalized.onSelect?.(centreId)
+  const handleDirections = (event: Event) => {
+    event.stopPropagation()
+    normalized.onDirections?.(centreId)
+  }
+  const handleSave = (event: Event) => {
+    event.stopPropagation()
+    normalized.onToggleFavorite?.(centreId)
+    if (save) {
+      const next = save.getAttribute('aria-pressed') !== 'true'
+      save.setAttribute('aria-pressed', String(next))
+      save.classList.toggle('is-saved', next)
+      const label = save.querySelector('span')
+      if (label) label.textContent = next ? save.dataset.labelSaved ?? '' : save.dataset.labelSave ?? ''
+    }
+  }
+  const handleRootClick = (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null
+    if (target?.closest('button, a, video')) return
+    handleDetails()
+  }
+  const handleRootKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleDetails()
+    }
+  }
   const handleEnter = () => normalized.onEnter?.()
   const handleLeave = () => normalized.onLeave?.()
 
   previous?.addEventListener('click', handlePrevious)
   next?.addEventListener('click', handleNext)
-  details?.addEventListener('click', handleDetails)
+  directions?.addEventListener('click', handleDirections)
+  save?.addEventListener('click', handleSave)
+  root.addEventListener('click', handleRootClick)
+  root.addEventListener('keydown', handleRootKeyDown)
   root.addEventListener('mouseenter', handleEnter)
   root.addEventListener('mouseleave', handleLeave)
   showMedia(0)
@@ -231,7 +275,10 @@ export function bindFacilityPopupInteractions(
   return () => {
     previous?.removeEventListener('click', handlePrevious)
     next?.removeEventListener('click', handleNext)
-    details?.removeEventListener('click', handleDetails)
+    directions?.removeEventListener('click', handleDirections)
+    save?.removeEventListener('click', handleSave)
+    root.removeEventListener('click', handleRootClick)
+    root.removeEventListener('keydown', handleRootKeyDown)
     root.removeEventListener('mouseenter', handleEnter)
     root.removeEventListener('mouseleave', handleLeave)
     media.forEach((item) => {

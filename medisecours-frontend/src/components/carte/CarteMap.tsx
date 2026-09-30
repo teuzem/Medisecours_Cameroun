@@ -183,16 +183,25 @@ interface CarteMapProps {
   route?: RouteGeometry | null
   isFallback?: boolean
   destination?: { lat: number; lng: number; nom?: string } | null
+  onRequestDirections?: (id: number) => void
+  onToggleFavorite?: (id: number) => void
+  favoriteIds?: number[]
 }
 
 const FacilityMarker = React.memo(function FacilityMarker({
   c,
   selected,
   onSelect,
+  onRequestDirections,
+  onToggleFavorite,
+  favoriteIds = [],
 }: {
   c: CarteCentre
   selected: boolean
   onSelect?: (id: number) => void
+  onRequestDirections?: (id: number) => void
+  onToggleFavorite?: (id: number) => void
+  favoriteIds?: number[]
 }) {
   const { t } = useTranslation()
   const color = FACILITY_COLORS[c.type] ?? '#64748B'
@@ -242,6 +251,8 @@ const FacilityMarker = React.memo(function FacilityMarker({
             popupCleanup.current?.()
             popupCleanup.current = bindFacilityPopupInteractions(popupElement, c.id, {
               onSelect,
+              onDirections: onRequestDirections,
+              onToggleFavorite,
               onEnter: clearCloseTimer,
               onLeave: () => scheduleClose(event.target),
             })
@@ -254,11 +265,14 @@ const FacilityMarker = React.memo(function FacilityMarker({
         },
       }}
     >
-      <Popup>
+      <Popup closeButton={false}>
         <div
           dangerouslySetInnerHTML={{
             __html: facilityMarkerPopupHtml(c, {
-              viewDetails: t('visitor.carte.viewDetails'),
+              directions: t('visitor.carte.markerDirections'),
+              save: t('visitor.carte.markerSave'),
+              saved: t('visitor.carte.markerSaved'),
+              isSaved: favoriteIds.includes(c.id),
               open: t('visitor.carte.markerOpen'),
               closed: t('visitor.carte.markerClosed'),
               unknown: t('visitor.carte.markerUnknown'),
@@ -288,6 +302,9 @@ export default function CarteMap({
   route,
   isFallback = false,
   destination,
+  onRequestDirections,
+  onToggleFavorite,
+  favoriteIds = [],
 }: CarteMapProps) {
   const { t } = useTranslation()
   const routePositions: [number, number][] | null = useMemo(() => {
@@ -335,6 +352,9 @@ export default function CarteMap({
           c={c}
           selected={selectedId === c.id}
           onSelect={onSelect}
+          onRequestDirections={onRequestDirections}
+          onToggleFavorite={onToggleFavorite}
+          favoriteIds={favoriteIds}
         />
       ))}
 

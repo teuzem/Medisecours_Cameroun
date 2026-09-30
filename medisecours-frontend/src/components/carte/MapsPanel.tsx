@@ -142,6 +142,26 @@ function FacilityMediaViewer({
         </div>
         <button type="button" className="maps-media-nav maps-media-nav-next" onClick={() => onIndexChange((safeIndex + 1) % filtered.length)} aria-label={t('visitor.carte.galleryNext')}><ChevronRight size={25} /></button>
       </div>
+      <div className="maps-media-thumbnails" role="listbox" aria-label={t('visitor.carte.galleryTitle')}>
+        {filtered.map((item, index) => {
+          const itemIsVideo = item.kind === 'video' || item.mimeType?.startsWith('video/')
+          const itemSource = imgUrl(item.contentUrl) || item.contentUrl
+          return (
+            <button
+              type="button"
+              key={`${item.id}-${index}`}
+              className="maps-media-thumbnail"
+              role="option"
+              aria-selected={index === safeIndex}
+              aria-label={`${facility.nom} ${index + 1}`}
+              onClick={() => onIndexChange(index)}
+            >
+              {itemIsVideo ? <video src={itemSource} muted preload="metadata" aria-hidden="true" /> : <img src={itemSource} alt="" loading="lazy" />}
+              {itemIsVideo && <span aria-hidden="true">▶</span>}
+            </button>
+          )
+        })}
+      </div>
       <footer className="maps-media-viewer-footer">
         <span>{safeIndex + 1} / {filtered.length}</span>
         <span>{current.originalName || (isVideo ? t('visitor.carte.galleryVideo') : t('visitor.carte.galleryPhoto'))}</span>

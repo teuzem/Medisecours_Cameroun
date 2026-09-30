@@ -362,6 +362,24 @@ export default function CartePage() {
     }
   }, [centreById, isAuthenticated, locate, mode, position, selectedId, t, toast])
 
+  const handleMarkerDirections = useCallback((id: number) => {
+    const centre = centreById.get(id)
+    if (!centre) return
+    setSelectedId(id)
+    setDrawerOpen(false)
+    setRecentIds((current) => writeRecentCentre(id, current))
+    if (centre.latitude != null && centre.longitude != null) {
+      setDestination({ lat: centre.latitude, lng: centre.longitude, nom: centre.nom })
+      if (isAuthenticated) {
+        void api.post('/api/carte/history', { type: 'route', centre: centre.id, metadata: { mode, source: 'marker-preview' } }).catch(() => undefined)
+      }
+    }
+    if (!position) {
+      toast.info(t('visitor.carte.directions.needPosition'))
+      locate()
+    }
+  }, [centreById, isAuthenticated, locate, mode, position, t, toast])
+
   const clearRoute = useCallback(() => {
     setDestination(null)
   }, [])
@@ -445,6 +463,9 @@ export default function CartePage() {
             selectedId={selectedId}
             position={position}
             onSelect={handleSelect}
+            onRequestDirections={handleMarkerDirections}
+            onToggleFavorite={toggleFavorite}
+            favoriteIds={favorites}
             route={route}
             isFallback={isFallback}
             destination={destination}
@@ -456,6 +477,9 @@ export default function CartePage() {
             selectedId={selectedId}
             position={position}
             onSelect={handleSelect}
+            onRequestDirections={handleMarkerDirections}
+            onToggleFavorite={toggleFavorite}
+            favoriteIds={favorites}
             route={route}
             destination={destination}
           />
@@ -467,6 +491,9 @@ export default function CartePage() {
             selectedId={selectedId}
             position={position}
             onSelect={handleSelect}
+            onRequestDirections={handleMarkerDirections}
+            onToggleFavorite={toggleFavorite}
+            favoriteIds={favorites}
             route={route}
             isFallback={isFallback}
             destination={destination}
