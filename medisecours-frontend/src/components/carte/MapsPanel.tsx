@@ -1,7 +1,7 @@
 'use client'
 /* eslint-disable react/no-unescaped-entities -- intentional French apostrophes in compact map copy. */
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clock, ExternalLink, FolderPlus, History, Image as ImageIcon, Images, Info, MapPin, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
 import useSWR, { mutate } from 'swr'
 import { useTranslation } from 'react-i18next'
@@ -78,6 +78,7 @@ function FacilityMediaViewer({
   onShare: (media: NonNullable<FicheCentre['images']>[number]) => void
 }) {
   const { t, i18n } = useTranslation()
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
   const media = orderedFacilityMedia(facility)
   const filtered = useMemo(() => {
     if (filter === 'videos') return media.filter((item) => item.kind === 'video' || item.mimeType?.startsWith('video/'))
@@ -87,10 +88,26 @@ function FacilityMediaViewer({
   const safeIndex = Math.min(Math.max(activeIndex, 0), Math.max(filtered.length - 1, 0))
   const current = filtered[safeIndex]
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    const previousActive = document.activeElement as HTMLElement | null
+    document.body.style.overflow = 'hidden'
+    closeButtonRef.current?.focus()
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+      previousActive?.focus?.()
+    }
+  }, [onClose])
+
   if (!current) {
     return (
       <div className="maps-media-viewer" role="dialog" aria-modal="true" aria-label={t('visitor.carte.galleryTitle')}>
-        <button type="button" className="maps-media-viewer-close" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><X size={22} /></button>
+        <button ref={closeButtonRef} type="button" className="maps-media-viewer-close" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><X size={22} /></button>
         <p className="maps-media-empty">{t('visitor.carte.galleryEmpty')}</p>
       </div>
     )
@@ -110,7 +127,7 @@ function FacilityMediaViewer({
         </div>
         <div className="maps-media-viewer-header-actions">
           <button type="button" onClick={() => onShare(current)} aria-label={t('visitor.carte.galleryShare')}><Share2 size={19} /></button>
-          <button type="button" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><X size={22} /></button>
+          <button ref={closeButtonRef} type="button" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><X size={22} /></button>
         </div>
       </header>
       <div className="maps-media-filters" role="tablist" aria-label={t('visitor.carte.galleryFilters')}>
@@ -365,7 +382,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         </div>}
         {detailError && <p role="status" className="maps-inline-status">Les details complementaires ne sont pas disponibles.</p>}
         <section className="maps-panel-content" role="tabpanel">
-          {(tab === 'presentation' || tab === 'about') && <><FicheInfos fiche={facility as FicheCentre} isMedecin={isMedecin} medecinJoined={joined || Boolean(detail?.medecins?.some(medecin => String(medecin.medecinId) === String(user?.id)))} onJoin={() => void join()} joining={joining} onServiceSelect={(label) => trackInteraction(facility.id, 'service', { service: label })} />{tab === 'presentation' && (facility.images?.length ?? 0) > 1 && <section className="maps-gallery-section"><div className="maps-gallery-section-heading"><h2>{t('visitor.carte.galleryTitle')}</h2><button type="button" onClick={() => { setGalleryFilter('images'); setGalleryIndex(0); setGalleryOpen(true) }}><Images size={16} /> {t('visitor.carte.viewPhotos')}</button></div><MediaGallery centre={facility} /></section>}</>}
+          {(tab === 'presentation' || tab === 'about') && <><FicheInfos fiche={facility as FicheCentre} isMedecin={isMedecin} medecinJoined={joined || Boolean(detail?.medecins?.some(medecin => String(medecin.medecinId) === String(user?.id)))} onJoin={() => void join()} joining={joining} onServiceSelect={(label) => trackInteraction(facility.id, 'service', { service: label })} />{tab === 'presentation' && (facility.images?.length ?? 0) > 1 && <section className="maps-gallery-section"><div className="maps-gallery-section-heading"><h2>{t('visitor.carte.galleryTitle')}</h2><button type="button" onClick={() => { setGalleryFilter('images'); setGalleryIndex(0); setGalleryOpen(true) }}><Images size={16} /> {t('visitor.carte.viewPhotos')}</button></div><MediaGallery centre={facility} disableLightbox onOpen={() => { setGalleryFilter('images'); setGalleryIndex(0); setGalleryOpen(true) }} /></section>}</>}
           {tab === 'directions' && <div className="maps-directions">
             <h2>Itineraire</h2>
             {!hasCoords && <p role="status">Cet etablissement ne dispose pas encore de coordonnees verifiees.</p>}

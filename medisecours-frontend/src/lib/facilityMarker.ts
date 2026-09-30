@@ -1,4 +1,25 @@
-import type { CarteCentre } from './carte'
+import type { CarteCentre, EtablissementMedia } from './carte'
+
+type MarkerLabels = {
+  viewDetails?: string
+  open?: string
+  closed?: string
+  unknown?: string
+  closesAt?: string
+  accessibility?: string
+  ambulances?: string
+  gallery?: string
+  galleryPrevious?: string
+  galleryNext?: string
+  holiday?: string
+  emergency?: string
+}
+
+type PopupInteractionOptions = {
+  onSelect?: (id: number) => void
+  onEnter?: () => void
+  onLeave?: () => void
+}
 
 export function escapeMarkerHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => ({
@@ -10,20 +31,31 @@ export function escapeMarkerHtml(value: string): string {
   })[char]!)
 }
 
+function iconSvg(kind: 'pin' | 'accessibility' | 'ambulance' | 'image' | 'clock'): string {
+  const paths: Record<typeof kind, string> = {
+    pin: '<path d="M12 21s7-5.4 7-11A7 7 0 0 0 5 10c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+    accessibility: '<circle cx="12" cy="4" r="1.8"/><path d="M5 8.5h14M12 7v5m0 0-4 8m4-8 4 8M8 12l-3 4m11-4 3 4"/>',
+    ambulance: '<path d="M3 16V8.5h10.5L17 12h3v4"/><path d="M6 16a2 2 0 1 0 4 0m6 0a2 2 0 1 0 4 0M13.5 8.5V12H17M15.5 10.25h-4"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  }
+  return `<svg class="maps-marker-icon maps-marker-icon-${kind}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[kind]}</svg>`
+}
+
 export function facilityMarkerHtml(color: string, selected: boolean, name: string) {
   const safeColor = /^#[0-9a-f]{6}$/i.test(color) ? color : '#1a73e8'
   const safeName = escapeMarkerHtml(name)
-  return `<div class="maps-marker-label${selected ? ' is-selected' : ''}" style="--marker-color:${safeColor};">
-    <span class="maps-marker-pin" aria-hidden="true">+</span>
+  return `<div class="maps-marker-label${selected ? ' is-selected' : ''}" style="--marker-color:${safeColor};" tabindex="0">
+    <span class="maps-marker-pin" aria-hidden="true">${iconSvg('pin')}</span>
     <span class="maps-marker-name">${safeName}</span>
   </div>`
 }
 
-function mediaKind(item: NonNullable<CarteCentre['images']>[number]): 'image' | 'video' {
+function mediaKind(item: EtablissementMedia): 'image' | 'video' {
   return item.kind === 'video' || item.mimeType?.startsWith('video/') ? 'video' : 'image'
 }
 
-function markerMedia(centre: CarteCentre): NonNullable<CarteCentre['images']> {
+function markerMedia(centre: CarteCentre): EtablissementMedia[] {
   const media = (centre.images ?? []).filter((item) => item.contentUrl)
   const cover = centre.imageUrl?.trim()
   if (!cover) return media
@@ -39,88 +71,119 @@ function markerMedia(centre: CarteCentre): NonNullable<CarteCentre['images']> {
 
 function toMinutes(value?: string | null): number | null {
   if (!value) return null
-  const match = value.match(/(\d{1,2})(?:h|:)?(\d{2})?/)
+  const match = value.trim().match(/^(\d{1,2})(?:h|:)?(\d{2})?$/i)
   if (!match) return null
   const hour = Number(match[1])
   const minute = Number(match[2] ?? 0)
   return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 ? hour * 60 + minute : null
 }
 
-function availabilityState(centre: CarteCentre): { open: boolean | null; closing?: string } {
+function isWithinSchedule(current: number, opening: number, closing: number): boolean {
+  if (opening === closing) return true
+  if (closing > opening) return current >= opening && current <= closing
+  return current >= opening || current <= closing
+}
+
+function availabilityState(centre: CarteCentre): {
+  open: boolean | null
+  opening?: string
+  closing?: string
+} {
   const details = centre.horairesDetails
   const now = new Date()
   const dayKeys = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
   const day = details?.weekly?.[dayKeys[now.getDay()]]
   if (day) {
     if (day.closed) return { open: false }
-    const current = now.getHours() * 60 + now.getMinutes()
     const opening = toMinutes(day.open)
     const closing = toMinutes(day.close)
     if (opening != null && closing != null) {
-      return { open: current >= opening && current <= closing, closing: day.close ?? undefined }
+      return {
+        open: isWithinSchedule(now.getHours() * 60 + now.getMinutes(), opening, closing),
+        opening: day.open ?? undefined,
+        closing: day.close ?? undefined,
+      }
     }
   }
+
   const match = centre.horaires?.match(/(\d{1,2}(?:h|:)\d{0,2})\s*[-–]\s*(\d{1,2}(?:h|:)\d{0,2})/i)
   if (match) {
     const opening = toMinutes(match[1])
     const closing = toMinutes(match[2])
-    const current = now.getHours() * 60 + now.getMinutes()
-    if (opening != null && closing != null) return { open: current >= opening && current <= closing, closing: match[2] }
+    if (opening != null && closing != null) {
+      return {
+        open: isWithinSchedule(now.getHours() * 60 + now.getMinutes(), opening, closing),
+        opening: match[1],
+        closing: match[2],
+      }
+    }
   }
+
   return centre.urgences24h ? { open: true } : { open: null }
 }
 
-export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: {
-  viewDetails?: string
-  open?: string
-  closed?: string
-  accessibility?: string
-  ambulances?: string
-  gallery?: string
-  holiday?: string
-}): string {
+export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: MarkerLabels): string {
   const text = {
     viewDetails: labels?.viewDetails ?? 'Voir la fiche',
     open: labels?.open ?? 'Ouvert',
-    closed: labels?.closed ?? 'Ferme',
-    accessibility: labels?.accessibility ?? 'Accessible',
+    closed: labels?.closed ?? 'Fermé',
+    unknown: labels?.unknown ?? 'Horaires inconnus',
+    closesAt: labels?.closesAt ?? 'Ferme à',
+    accessibility: labels?.accessibility ?? 'Accessibilité',
     ambulances: labels?.ambulances ?? 'Ambulances disponibles',
     gallery: labels?.gallery ?? 'Galerie',
+    galleryPrevious: labels?.galleryPrevious ?? 'Média précédent',
+    galleryNext: labels?.galleryNext ?? 'Média suivant',
     holiday: labels?.holiday ?? 'Fermetures exceptionnelles',
+    emergency: labels?.emergency ?? 'Urgences 24 h',
   }
+
   const gallery = markerMedia(centre).slice(0, 5)
   const mediaHtml = gallery.length > 0
-    ? `<div class="maps-marker-gallery" data-gallery-count="${gallery.length}">
+    ? `<div class="maps-marker-gallery" data-gallery-count="${gallery.length}" aria-label="${escapeMarkerHtml(text.gallery)}">
         ${gallery.map((item, index) => {
           const source = escapeMarkerHtml(item.contentUrl)
+          const mediaLabel = `${escapeMarkerHtml(centre.nom)} ${index + 1}`
           return mediaKind(item) === 'video'
-            ? `<video class="maps-marker-gallery-media" src="${source}" muted preload="metadata" aria-label="${escapeMarkerHtml(centre.nom)} ${index + 1}"></video>`
-            : `<img class="maps-marker-gallery-media" src="${source}" alt="${escapeMarkerHtml(centre.nom)} ${index + 1}" loading="lazy" />`
+            ? `<video class="maps-marker-gallery-media" data-gallery-index="${index}" src="${source}" muted preload="metadata" playsinline aria-label="${mediaLabel}"></video>`
+            : `<img class="maps-marker-gallery-media" data-gallery-index="${index}" src="${source}" alt="${mediaLabel}" loading="lazy" />`
         }).join('')}
-        ${gallery.length > 1 ? `<button class="maps-marker-gallery-prev" type="button" aria-label="Previous ${text.gallery}">&#8249;</button><button class="maps-marker-gallery-next" type="button" aria-label="Next ${text.gallery}">&#8250;</button>` : ''}
+        ${gallery.length > 1
+          ? `<button class="maps-marker-gallery-prev" type="button" aria-label="${escapeMarkerHtml(text.galleryPrevious)}">&lsaquo;</button>
+             <span class="maps-marker-gallery-count" aria-live="polite">1 / ${gallery.length}</span>
+             <button class="maps-marker-gallery-next" type="button" aria-label="${escapeMarkerHtml(text.galleryNext)}">&rsaquo;</button>`
+          : ''}
       </div>`
     : ''
+
   const access = Array.isArray(centre.accessibilite)
     ? centre.accessibilite.join(', ')
     : centre.accessibilite
-  const hours = centre.horaires?.trim() || ''
   const availability = availabilityState(centre)
   const details = centre.horairesDetails
   const exceptionText = [...(details?.holidays ?? []), ...(details?.exceptions ?? [])].filter(Boolean).slice(0, 2)
-  return `<article class="maps-marker-popup">
+  const statusText = availability.open === true
+    ? `${text.open}${availability.closing ? ` · ${text.closesAt} ${availability.closing}` : ''}`
+    : availability.open === false
+      ? `${text.closed}${availability.closing ? ` · ${text.closesAt} ${availability.closing}` : ''}`
+      : text.unknown
+  const statusClass = availability.open === true ? 'is-open' : availability.open === false ? 'is-closed' : 'is-unknown'
+  const typeLabel = String(centre.type).replaceAll('_', ' ')
+
+  return `<article class="maps-marker-popup" data-centre-id="${centre.id}">
     ${mediaHtml}
     <div class="maps-marker-popup-body">
       <h3>${escapeMarkerHtml(centre.nom)}</h3>
-      <p class="maps-marker-popup-type">${escapeMarkerHtml(String(centre.type).replaceAll('_', ' '))}</p>
-      <p class="maps-marker-popup-address">${escapeMarkerHtml(centre.adresse || '')}${centre.ville ? ` · ${escapeMarkerHtml(centre.ville)}` : ''}</p>
+      <p class="maps-marker-popup-type">${escapeMarkerHtml(typeLabel)}</p>
+      <p class="maps-marker-popup-address">${escapeMarkerHtml(centre.adresse || '')}${centre.ville ? ` &middot; ${escapeMarkerHtml(centre.ville)}` : ''}</p>
       <div class="maps-marker-status-row">
-        ${hours ? `<span class="maps-marker-hours ${availability.open === true ? 'is-open' : availability.open === false ? 'is-closed' : ''}"><i></i>${availability.open === true ? text.open : availability.open === false ? text.closed : ''}${availability.closing && availability.open === false ? ` ${escapeMarkerHtml(availability.closing)}` : ''}${availability.open !== null ? ': ' : ''}${escapeMarkerHtml(hours)}</span>` : ''}
-        ${centre.urgences24h ? `<span class="maps-marker-badge maps-marker-badge-emergency">24h</span>` : ''}
+        <span class="maps-marker-hours ${statusClass}"><i></i>${escapeMarkerHtml(statusText)}</span>
+        ${centre.urgences24h ? `<span class="maps-marker-badge maps-marker-badge-emergency">${escapeMarkerHtml(text.emergency)}</span>` : ''}
       </div>
-      ${exceptionText.length ? `<p class="maps-marker-exception"><strong>${text.holiday}:</strong> ${escapeMarkerHtml(exceptionText.join(' · '))}</p>` : ''}
+      ${exceptionText.length ? `<p class="maps-marker-exception"><strong>${escapeMarkerHtml(text.holiday)}:</strong> ${escapeMarkerHtml(exceptionText.join(' · '))}</p>` : ''}
       <div class="maps-marker-capabilities">
-        ${access ? `<span title="${escapeMarkerHtml(text.accessibility)}">♿ ${escapeMarkerHtml(access)}</span>` : ''}
-        ${centre.ambulancesDisponibles ? `<span class="is-ambulance" title="${escapeMarkerHtml(text.ambulances)}">🚑 ${escapeMarkerHtml(text.ambulances)}</span>` : ''}
+        ${access ? `<span class="maps-marker-capability maps-marker-capability-access" title="${escapeMarkerHtml(text.accessibility)}">${iconSvg('accessibility')}<span>${escapeMarkerHtml(access)}</span></span>` : ''}
+        ${centre.ambulancesDisponibles ? `<span class="maps-marker-capability maps-marker-capability-ambulance" title="${escapeMarkerHtml(text.ambulances)}">${iconSvg('ambulance')}<span>${escapeMarkerHtml(text.ambulances)}</span></span>` : ''}
       </div>
       <button class="maps-marker-details" type="button" data-centre-id="${centre.id}">${escapeMarkerHtml(text.viewDetails)}</button>
     </div>
@@ -130,28 +193,52 @@ export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: {
 export function bindFacilityPopupInteractions(
   root: HTMLElement,
   centreId: number,
-  onSelect?: (id: number) => void,
+  options: PopupInteractionOptions | ((id: number) => void) = {},
 ): () => void {
-  const details = root.querySelector<HTMLElement>('[data-centre-id]')
+  const normalized: PopupInteractionOptions = typeof options === 'function' ? { onSelect: options } : options
+  const details = root.querySelector<HTMLButtonElement>('.maps-marker-details')
   const media = Array.from(root.querySelectorAll<HTMLElement>('.maps-marker-gallery-media'))
+  const count = root.querySelector<HTMLElement>('.maps-marker-gallery-count')
+  const previous = root.querySelector<HTMLButtonElement>('.maps-marker-gallery-prev')
+  const next = root.querySelector<HTMLButtonElement>('.maps-marker-gallery-next')
   let activeIndex = 0
+
   const showMedia = (index: number) => {
     if (media.length === 0) return
     activeIndex = (index + media.length) % media.length
-    media.forEach((item, itemIndex) => { item.style.display = itemIndex === activeIndex ? 'block' : 'none' })
+    media.forEach((item, itemIndex) => {
+      item.style.display = itemIndex === activeIndex ? 'block' : 'none'
+      if (itemIndex !== activeIndex && item instanceof HTMLVideoElement) {
+        item.pause()
+        item.currentTime = 0
+      }
+    })
+    if (count) count.textContent = `${activeIndex + 1} / ${media.length}`
   }
-  const previous = root.querySelector<HTMLButtonElement>('.maps-marker-gallery-prev')
-  const next = root.querySelector<HTMLButtonElement>('.maps-marker-gallery-next')
   const handlePrevious = () => showMedia(activeIndex - 1)
   const handleNext = () => showMedia(activeIndex + 1)
-  const handleDetails = () => onSelect?.(centreId)
+  const handleDetails = () => normalized.onSelect?.(centreId)
+  const handleEnter = () => normalized.onEnter?.()
+  const handleLeave = () => normalized.onLeave?.()
+
   previous?.addEventListener('click', handlePrevious)
   next?.addEventListener('click', handleNext)
   details?.addEventListener('click', handleDetails)
+  root.addEventListener('mouseenter', handleEnter)
+  root.addEventListener('mouseleave', handleLeave)
   showMedia(0)
+
   return () => {
     previous?.removeEventListener('click', handlePrevious)
     next?.removeEventListener('click', handleNext)
     details?.removeEventListener('click', handleDetails)
+    root.removeEventListener('mouseenter', handleEnter)
+    root.removeEventListener('mouseleave', handleLeave)
+    media.forEach((item) => {
+      if (item instanceof HTMLVideoElement) {
+        item.pause()
+        item.currentTime = 0
+      }
+    })
   }
 }

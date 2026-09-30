@@ -69,7 +69,10 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    markersRef.current.forEach((marker) => marker.remove())
+    markersRef.current.forEach((marker) => {
+      marker.__medisecoursCleanup?.()
+      marker.remove()
+    })
     markersRef.current = centres
       .filter((centre) => centre.latitude != null && centre.longitude != null)
       .map((centre) => {
@@ -78,20 +81,76 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           viewDetails: t('visitor.carte.viewDetails'),
           open: t('visitor.carte.markerOpen'),
           closed: t('visitor.carte.markerClosed'),
+          unknown: t('visitor.carte.markerUnknown'),
+          closesAt: t('visitor.carte.markerClosesAt'),
           accessibility: t('visitor.carte.markerAccessibility'),
           ambulances: t('visitor.carte.markerAmbulances'),
           gallery: t('visitor.carte.markerGallery'),
+          galleryPrevious: t('visitor.carte.markerGalleryPrevious'),
+          galleryNext: t('visitor.carte.markerGalleryNext'),
           holiday: t('visitor.carte.markerHoliday'),
+          emergency: t('visitor.carte.markerEmergency'),
         })
         const popup = new window.mapboxgl.Popup({ offset: 18 }).setDOMContent(popupElement)
+        let closeTimer: number | null = null
+        let popupCleanup: (() => void) | null = null
+        const clearCloseTimer = () => {
+          if (closeTimer != null) {
+            window.clearTimeout(closeTimer)
+            closeTimer = null
+          }
+        }
+        const scheduleClose = () => {
+          clearCloseTimer()
+          closeTimer = window.setTimeout(() => {
+            popup.remove()
+            closeTimer = null
+          }, 220)
+        }
         const marker = new window.mapboxgl.Marker({
           element: markerElement(FACILITY_COLORS[centre.type] ?? '#64748B', centre.id === selectedId, centre.nom),
         })
           .setLngLat([centre.longitude!, centre.latitude!])
           .setPopup(popup)
           .addTo(map)
-        marker.getElement().addEventListener('click', () => onSelect?.(centre.id))
-        popup.on('open', () => bindFacilityPopupInteractions(popupElement, centre.id, onSelect))
+        const markerElementNode = marker.getElement()
+        const handleMarkerEnter = () => {
+          clearCloseTimer()
+          popup.setLngLat([centre.longitude!, centre.latitude!]).addTo(map)
+        }
+        const handleMarkerLeave = () => scheduleClose()
+        const handleMarkerClick = () => {
+          clearCloseTimer()
+          popup.setLngLat([centre.longitude!, centre.latitude!]).addTo(map)
+        }
+        markerElementNode.addEventListener('mouseenter', handleMarkerEnter)
+        markerElementNode.addEventListener('mouseleave', handleMarkerLeave)
+        markerElementNode.addEventListener('click', handleMarkerClick)
+        popup.on('open', () => {
+          clearCloseTimer()
+          popupCleanup?.()
+          popupCleanup = bindFacilityPopupInteractions(popupElement, centre.id, {
+            onSelect,
+            onEnter: clearCloseTimer,
+            onLeave: scheduleClose,
+          })
+        })
+        popup.on('close', () => {
+          clearCloseTimer()
+          popupCleanup?.()
+          popupCleanup = null
+        })
+        const cleanup = () => {
+          clearCloseTimer()
+          popupCleanup?.()
+          popupCleanup = null
+          markerElementNode.removeEventListener('mouseenter', handleMarkerEnter)
+          markerElementNode.removeEventListener('mouseleave', handleMarkerLeave)
+          markerElementNode.removeEventListener('click', handleMarkerClick)
+          popup.remove()
+          marker.remove()
+        }
+        ;(marker as any).__medisecoursCleanup = cleanup
         return marker
       })
   }, [centres, onSelect, selectedId, t])

@@ -175,6 +175,7 @@ export default function GoogleCarteMap({
     if (!map) return
 
     markersRef.current.forEach((marker) => {
+      ;(marker as any).__medisecoursCleanup?.()
       marker.map = null
     })
     markersRef.current = []
@@ -190,25 +191,73 @@ export default function GoogleCarteMap({
         content: makePinContent(FACILITY_COLOR(centre.type), selected, centre.nom),
         zIndex: selected ? 1000 : undefined,
       })
-      marker.addEventListener('click', () => onSelect?.(centre.id))
-      const popup = new window.google.maps.InfoWindow({
-        content: facilityMarkerPopupHtml(centre, {
-          viewDetails: t('visitor.carte.viewDetails'),
-          open: t('visitor.carte.markerOpen'),
-          closed: t('visitor.carte.markerClosed'),
-          accessibility: t('visitor.carte.markerAccessibility'),
-          ambulances: t('visitor.carte.markerAmbulances'),
-          gallery: t('visitor.carte.markerGallery'),
-          holiday: t('visitor.carte.markerHoliday'),
-        }),
+      const markerContent = marker.content as HTMLElement | null
+      const popupElement = document.createElement('div')
+      popupElement.innerHTML = facilityMarkerPopupHtml(centre, {
+        viewDetails: t('visitor.carte.viewDetails'),
+        open: t('visitor.carte.markerOpen'),
+        closed: t('visitor.carte.markerClosed'),
+        unknown: t('visitor.carte.markerUnknown'),
+        closesAt: t('visitor.carte.markerClosesAt'),
+        accessibility: t('visitor.carte.markerAccessibility'),
+        ambulances: t('visitor.carte.markerAmbulances'),
+        gallery: t('visitor.carte.markerGallery'),
+        galleryPrevious: t('visitor.carte.markerGalleryPrevious'),
+        galleryNext: t('visitor.carte.markerGalleryNext'),
+        holiday: t('visitor.carte.markerHoliday'),
+        emergency: t('visitor.carte.markerEmergency'),
       })
-      marker.addEventListener('gmp-click', () => {
+      const popup = new window.google.maps.InfoWindow({
+        content: popupElement,
+      })
+      let closeTimer: number | null = null
+      let popupCleanup: (() => void) | null = null
+      const clearCloseTimer = () => {
+        if (closeTimer != null) {
+          window.clearTimeout(closeTimer)
+          closeTimer = null
+        }
+      }
+      const scheduleClose = () => {
+        clearCloseTimer()
+        closeTimer = window.setTimeout(() => {
+          popup.close()
+          closeTimer = null
+        }, 220)
+      }
+      const openPopup = () => {
+        clearCloseTimer()
         popup.open({ map, anchor: marker })
+      }
+      const handleMarkerEnter = () => openPopup()
+      const handleMarkerLeave = () => scheduleClose()
+      markerContent?.addEventListener('mouseenter', handleMarkerEnter)
+      markerContent?.addEventListener('mouseleave', handleMarkerLeave)
+      marker.addEventListener('gmp-click', () => {
+        openPopup()
         window.google.maps.event.addListenerOnce(popup, 'domready', () => {
-          const root = document.querySelector('.gm-style-iw-content .maps-marker-popup')?.parentElement
-          if (root) bindFacilityPopupInteractions(root, centre.id, onSelect)
+          popupCleanup?.()
+          popupCleanup = bindFacilityPopupInteractions(popupElement, centre.id, {
+            onSelect,
+            onEnter: clearCloseTimer,
+            onLeave: scheduleClose,
+          })
         })
       })
+      const closeListener = popup.addListener('closeclick', () => {
+        clearCloseTimer()
+        popupCleanup?.()
+        popupCleanup = null
+      })
+      ;(marker as any).__medisecoursCleanup = () => {
+        clearCloseTimer()
+        popupCleanup?.()
+        popupCleanup = null
+        closeListener.remove()
+        markerContent?.removeEventListener('mouseenter', handleMarkerEnter)
+        markerContent?.removeEventListener('mouseleave', handleMarkerLeave)
+        popup.close()
+      }
       markers.push(marker)
     })
     markersRef.current = markers

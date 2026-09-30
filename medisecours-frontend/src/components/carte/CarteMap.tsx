@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
@@ -196,11 +196,28 @@ const FacilityMarker = React.memo(function FacilityMarker({
 }) {
   const { t } = useTranslation()
   const color = FACILITY_COLORS[c.type] ?? '#64748B'
+  const closeTimer = useRef<number | null>(null)
+  const popupCleanup = useRef<(() => void) | null>(null)
   const icon = useMemo(() => L.divIcon({
     html: facilityMarkerHtml(color, selected, c.nom),
     iconSize: [180, 30], iconAnchor: [15, 15], className: '',
   }), [color, selected, c.nom])
   if (c.latitude == null || c.longitude == null) return null
+
+  const clearCloseTimer = () => {
+    if (closeTimer.current != null) {
+      window.clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+  }
+
+  const scheduleClose = (marker: L.Marker) => {
+    clearCloseTimer()
+    closeTimer.current = window.setTimeout(() => {
+      marker.closePopup()
+      closeTimer.current = null
+    }, 220)
+  }
 
   return (
     <Marker
@@ -209,10 +226,31 @@ const FacilityMarker = React.memo(function FacilityMarker({
       zIndexOffset={selected ? 1000 : 0}
       title={c.nom}
       eventHandlers={{
-        click: () => onSelect?.(c.id),
+        click: (event: any) => {
+          clearCloseTimer()
+          event.target.openPopup()
+        },
+        mouseover: (event: any) => {
+          clearCloseTimer()
+          event.target.openPopup()
+        },
+        mouseout: (event: any) => scheduleClose(event.target),
         popupopen: (event: any) => {
+          clearCloseTimer()
           const popupElement = event.popup?.getElement?.()
-          if (popupElement) bindFacilityPopupInteractions(popupElement, c.id, onSelect)
+          if (popupElement) {
+            popupCleanup.current?.()
+            popupCleanup.current = bindFacilityPopupInteractions(popupElement, c.id, {
+              onSelect,
+              onEnter: clearCloseTimer,
+              onLeave: () => scheduleClose(event.target),
+            })
+          }
+        },
+        popupclose: () => {
+          clearCloseTimer()
+          popupCleanup.current?.()
+          popupCleanup.current = null
         },
       }}
     >
@@ -223,10 +261,15 @@ const FacilityMarker = React.memo(function FacilityMarker({
               viewDetails: t('visitor.carte.viewDetails'),
               open: t('visitor.carte.markerOpen'),
               closed: t('visitor.carte.markerClosed'),
+              unknown: t('visitor.carte.markerUnknown'),
+              closesAt: t('visitor.carte.markerClosesAt'),
               accessibility: t('visitor.carte.markerAccessibility'),
               ambulances: t('visitor.carte.markerAmbulances'),
               gallery: t('visitor.carte.markerGallery'),
+              galleryPrevious: t('visitor.carte.markerGalleryPrevious'),
+              galleryNext: t('visitor.carte.markerGalleryNext'),
               holiday: t('visitor.carte.markerHoliday'),
+              emergency: t('visitor.carte.markerEmergency'),
             }),
           }}
           role="dialog"
