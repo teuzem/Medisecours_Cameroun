@@ -410,41 +410,10 @@ export default function EtablissementEspacePage() {
     return () => window.removeEventListener('hashchange', updateFromHash)
   }, [])
 
-  useEffect(() => {
-    if (!mon?.centre?.id || typeof window === 'undefined') return
-    const hash = window.location.hash.replace(/^#/, '') as DashboardSectionId
-    if (!DASHBOARD_SECTION_IDS.includes(hash)) return
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-    return () => window.cancelAnimationFrame(frame)
-  }, [mon?.centre?.id, prefs.compact])
-
-  useEffect(() => {
-    if (!mon?.centre?.id || typeof window === 'undefined') return
-    const sections = Array.from(
-      document.querySelectorAll<HTMLElement>('.etablissement-dashboard .dashboard-section[id]'),
-    )
-    if (!sections.length || !('IntersectionObserver' in window)) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-        const id = visible[0]?.target.id as DashboardSectionId | undefined
-        if (id && DASHBOARD_SECTION_IDS.includes(id)) setActiveSection(id)
-      },
-      { rootMargin: '-20% 0px -65% 0px', threshold: [0, 0.15, 0.5] },
-    )
-    sections.forEach((section) => observer.observe(section))
-    return () => observer.disconnect()
-  }, [mon?.centre?.id, prefs.compact])
-
   const selectDashboardSection = useCallback((section: DashboardSectionId) => {
     setActiveSection(section)
     if (typeof window !== 'undefined') {
       window.history.replaceState(null, '', `#${section}`)
-      document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [])
 
@@ -793,204 +762,219 @@ export default function EtablissementEspacePage() {
           ) : (
             <>
               <DashboardSectionNav activeSection={activeSection} onSelect={selectDashboardSection} />
-              {prefs.compact ? (
-            <div className="dashboard-workspace mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
-              <div
-                id="dashboard-overview"
-                className="dashboard-section xl:col-span-3"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-overview"
-              >
-                <KpiBand dashboard={dashboard} prefs={prefs} />
-              </div>
-              <div className="dashboard-section xl:col-span-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <StatsSosWidget dashboard={dashboard} prefs={prefs} />
-                <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
-                <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
-              </div>
-              <div
-                id="dashboard-analytics"
-                className="dashboard-section xl:col-span-3"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-analytics"
-              >
-                <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
-              </div>
-              <div
-                id="dashboard-fiche"
-                className="dashboard-section xl:col-span-3"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-fiche"
-              >
-                <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
-              </div>
-              <div
-                id="dashboard-team"
-                className="dashboard-section"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-team"
-              >
-                <TeamPanel
-                  equipe={equipe}
-                  memberEmail={memberEmail}
-                  setMemberEmail={setMemberEmail}
-                  memberRole={memberRole}
-                  setMemberRole={setMemberRole}
-                  onAdd={addMember}
-                  adding={addingMember}
-                  onRoleChange={updateMemberRole}
-                  onStatusChange={updateMemberStatus}
-                  onRemove={removeMember}
-                  loading={teamLoading}
-                  error={teamError}
-                  onRetry={reloadData}
-                  compact
-                />
-              </div>
-              <div
-                id="dashboard-media"
-                className="dashboard-section"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-media"
-              >
-                <MediaPanel
-                  items={media}
-                  uploading={uploadingMedia}
-                  loading={mediaLoading}
-                  error={mediaError}
-                  onRetry={reloadData}
-                  onUpload={uploadMedia}
-                  onDelete={deleteMedia}
-                />
-              </div>
-              <div
-                id="dashboard-reviews"
-                className="dashboard-section"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-reviews"
-              >
-                <ReviewsPanel
-                  items={reviews}
-                  moderatingId={moderatingReview}
-                  loading={reviewsLoading}
-                  error={reviewsError}
-                  onRetry={reloadData}
-                  onModerate={moderateReview}
-                />
-              </div>
-              <div
-                id="dashboard-settings"
-                className="dashboard-section"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-settings"
-              >
-                <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
-              </div>
-            </div>
-              ) : (
-            <div className="dashboard-workspace mt-4 space-y-4">
-              <div
-                id="dashboard-overview"
-                className="dashboard-section"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-overview"
-              >
-                <KpiBand dashboard={dashboard} prefs={prefs} />
-              </div>
-              <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-3">
-                <StatsSosWidget dashboard={dashboard} prefs={prefs} />
-                <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
-                <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
-              </div>
-              <div
-                id="dashboard-analytics"
-                className="dashboard-section"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-analytics"
-              >
-                <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
-              </div>
-              <div
-                id="dashboard-fiche"
-                className="dashboard-section"
-                role="tabpanel"
-                aria-labelledby="dashboard-tab-dashboard-fiche"
-              >
-                <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
-              </div>
-              <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div
-                  id="dashboard-team"
-                  className="dashboard-section min-w-0"
-                  role="tabpanel"
-                  aria-labelledby="dashboard-tab-dashboard-team"
-                >
-                  <TeamPanel
-                    equipe={equipe}
-                    memberEmail={memberEmail}
-                    setMemberEmail={setMemberEmail}
-                    memberRole={memberRole}
-                    setMemberRole={setMemberRole}
-                    onAdd={addMember}
-                    adding={addingMember}
-                    onRoleChange={updateMemberRole}
-                    onStatusChange={updateMemberStatus}
-                    onRemove={removeMember}
-                    loading={teamLoading}
-                    error={teamError}
-                    onRetry={reloadData}
-                  />
-                </div>
-                <div
-                  id="dashboard-media"
-                  className="dashboard-section min-w-0"
-                  role="tabpanel"
-                  aria-labelledby="dashboard-tab-dashboard-media"
-                >
-                  <MediaPanel
-                    items={media}
-                    uploading={uploadingMedia}
-                    loading={mediaLoading}
-                    error={mediaError}
-                    onRetry={reloadData}
-                    onUpload={uploadMedia}
-                    onDelete={deleteMedia}
-                  />
-                </div>
-              </div>
-              <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div
-                  id="dashboard-reviews"
-                  className="dashboard-section min-w-0"
-                  role="tabpanel"
-                  aria-labelledby="dashboard-tab-dashboard-reviews"
-                >
-                  <ReviewsPanel
-                    items={reviews}
-                    moderatingId={moderatingReview}
-                    loading={reviewsLoading}
-                    error={reviewsError}
-                    onRetry={reloadData}
-                    onModerate={moderateReview}
-                  />
-                </div>
-                <div
-                  id="dashboard-settings"
-                  className="dashboard-section min-w-0"
-                  role="tabpanel"
-                  aria-labelledby="dashboard-tab-dashboard-settings"
-                >
-                  <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
-                </div>
-              </div>
-            </div>
-              )}
+              <DashboardWorkspace
+                activeSection={activeSection}
+                compact={prefs.compact}
+                dashboard={dashboard}
+                prefs={prefs}
+                mon={mon}
+                accent={accent}
+                reviews={reviews}
+                equipe={equipe}
+                media={media}
+                memberEmail={memberEmail}
+                setMemberEmail={setMemberEmail}
+                memberRole={memberRole}
+                setMemberRole={setMemberRole}
+                addMember={addMember}
+                addingMember={addingMember}
+                updateMemberRole={updateMemberRole}
+                updateMemberStatus={updateMemberStatus}
+                removeMember={removeMember}
+                teamLoading={teamLoading}
+                teamError={teamError}
+                mediaLoading={mediaLoading}
+                mediaError={mediaError}
+                reviewsLoading={reviewsLoading}
+                reviewsError={reviewsError}
+                reloadData={reloadData}
+                uploadingMedia={uploadingMedia}
+                uploadMedia={uploadMedia}
+                deleteMedia={deleteMedia}
+                moderatingReview={moderatingReview}
+                moderateReview={moderateReview}
+                applyPrefs={applyPrefs}
+                resetPrefs={resetPrefs}
+                handleFicheSaved={handleFicheSaved}
+              />
             </>
           )}
         </div>
       </div>
     </div>
   )
+}
+
+function DashboardWorkspace({
+  activeSection,
+  compact,
+  dashboard,
+  prefs,
+  mon,
+  accent,
+  reviews,
+  equipe,
+  media,
+  memberEmail,
+  setMemberEmail,
+  memberRole,
+  setMemberRole,
+  addMember,
+  addingMember,
+  updateMemberRole,
+  updateMemberStatus,
+  removeMember,
+  teamLoading,
+  teamError,
+  mediaLoading,
+  mediaError,
+  reviewsLoading,
+  reviewsError,
+  reloadData,
+  uploadingMedia,
+  uploadMedia,
+  deleteMedia,
+  moderatingReview,
+  moderateReview,
+  applyPrefs,
+  resetPrefs,
+  handleFicheSaved,
+}: {
+  activeSection: DashboardSectionId
+  compact: boolean
+  dashboard: DashboardData | null
+  prefs: Prefs
+  mon: MonEtablissement & { centre: FicheCentre }
+  accent: string
+  reviews: ManagedReview[]
+  equipe: EquipeMembre[]
+  media: ManagedMedia[]
+  memberEmail: string
+  setMemberEmail: (value: string) => void
+  memberRole: string
+  setMemberRole: (value: string) => void
+  addMember: () => void
+  addingMember: boolean
+  updateMemberRole: (member: EquipeMembre, role: string) => void
+  updateMemberStatus: (member: EquipeMembre, statut: string) => void
+  removeMember: (member: EquipeMembre) => void
+  teamLoading: boolean
+  teamError: boolean
+  mediaLoading: boolean
+  mediaError: boolean
+  reviewsLoading: boolean
+  reviewsError: boolean
+  reloadData: () => void
+  uploadingMedia: boolean
+  uploadMedia: (file: File) => void
+  deleteMedia: (item: ManagedMedia) => void
+  moderatingReview: number | null
+  moderateReview: (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
+  applyPrefs: (prefs: Prefs) => void
+  resetPrefs: () => void
+  handleFicheSaved: (centre: FicheCentre) => void
+}) {
+  const panelClass = compact ? 'dashboard-workspace mt-4' : 'dashboard-workspace mt-4'
+  const panelProps = {
+    role: 'tabpanel' as const,
+    'aria-labelledby': `dashboard-tab-${activeSection}`,
+    className: 'dashboard-section',
+  }
+
+  switch (activeSection) {
+    case 'dashboard-fiche':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-fiche" {...panelProps}>
+            <FichePanel centre={mon.centre} accent={accent} onSaved={handleFicheSaved} />
+          </div>
+        </div>
+      )
+    case 'dashboard-team':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-team" {...panelProps}>
+            <TeamPanel
+              equipe={equipe}
+              memberEmail={memberEmail}
+              setMemberEmail={setMemberEmail}
+              memberRole={memberRole}
+              setMemberRole={setMemberRole}
+              onAdd={addMember}
+              adding={addingMember}
+              onRoleChange={updateMemberRole}
+              onStatusChange={updateMemberStatus}
+              onRemove={removeMember}
+              loading={teamLoading}
+              error={teamError}
+              onRetry={reloadData}
+              compact={compact}
+            />
+          </div>
+        </div>
+      )
+    case 'dashboard-media':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-media" {...panelProps}>
+            <MediaPanel
+              items={media}
+              uploading={uploadingMedia}
+              loading={mediaLoading}
+              error={mediaError}
+              onRetry={reloadData}
+              onUpload={uploadMedia}
+              onDelete={deleteMedia}
+            />
+          </div>
+        </div>
+      )
+    case 'dashboard-reviews':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-reviews" {...panelProps}>
+            <ReviewsPanel
+              items={reviews}
+              moderatingId={moderatingReview}
+              loading={reviewsLoading}
+              error={reviewsError}
+              onRetry={reloadData}
+              onModerate={moderateReview}
+            />
+          </div>
+        </div>
+      )
+    case 'dashboard-analytics':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-analytics" {...panelProps}>
+            <AnalyticsPanel centreId={mon.centre.id} accent={accent} />
+          </div>
+        </div>
+      )
+    case 'dashboard-settings':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-settings" {...panelProps}>
+            <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
+          </div>
+        </div>
+      )
+    case 'dashboard-overview':
+    default:
+      return (
+        <div className={`${panelClass} space-y-4`}>
+          <div id="dashboard-overview" {...panelProps}>
+            <KpiBand dashboard={dashboard} prefs={prefs} />
+          </div>
+          <div className="dashboard-section grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <StatsSosWidget dashboard={dashboard} prefs={prefs} />
+            <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
+            <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
+          </div>
+        </div>
+      )
+  }
 }
 
 function syncLabelIcon(syncing: boolean) {

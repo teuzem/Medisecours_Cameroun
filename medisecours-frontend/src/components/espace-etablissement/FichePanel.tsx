@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   BadgeCheck,
@@ -12,6 +12,7 @@ import {
   MapPin,
   Navigation,
   Plus,
+  Search,
   Save,
   ShieldCheck,
   Star,
@@ -21,6 +22,12 @@ import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import { useToast } from '../ui/Toast'
 import { FACILITY_TYPES } from '../../lib/carte'
+import {
+  SERVICE_CATALOG,
+  SPECIALITY_CATALOG,
+  type HealthCatalogItem,
+  type HealthCatalogKind,
+} from '../../lib/healthCatalog'
 
 export type FicheCentre = {
   id: number
@@ -125,27 +132,60 @@ const emptyDraft = (centre: FicheCentre): Draft => ({
   description: centre.description ?? '',
 })
 
-function TagEditor({
+function CatalogTagEditor({
   value,
   onChange,
   placeholder,
+  kind,
+  accent,
 }: {
   value: string[]
   onChange: (next: string[]) => void
   placeholder: string
+  kind: HealthCatalogKind
+  accent: string
 }) {
   const [draft, setDraft] = useState('')
-  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const { t, i18n } = useTranslation()
+  const language = i18n.language === 'en' ? 'en' : 'fr'
+  const catalog = kind === 'service' ? SERVICE_CATALOG : SPECIALITY_CATALOG
+  const normalized = draft.trim().toLocaleLowerCase(language)
+  const canonical = (label: string) =>
+    label
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase(language)
+  const suggestions = useMemo(
+    () =>
+      catalog
+        .filter((item) => !value.some((existing) => canonical(existing) === canonical(item.fr) || canonical(existing) === canonical(item.en)))
+        .filter((item) => {
+          if (!normalized) return true
+          return [item.fr, item.en, item.id].some((candidate) =>
+            canonical(candidate).includes(canonical(normalized)),
+          )
+        })
+        .slice(0, 10),
+    [catalog, language, normalized, value],
+  )
 
-  const commit = () => {
-    const item = draft.trim()
+  const commit = (label = draft) => {
+    const item = label.trim()
     if (!item) return
-    if (value.includes(item)) {
+    const match = catalog.find(
+      (candidate) =>
+        canonical(candidate.fr) === canonical(item) ||
+        canonical(candidate.en) === canonical(item),
+    )
+    const valueToAdd = match?.fr ?? item
+    if (value.some((existing) => canonical(existing) === canonical(valueToAdd))) {
       setDraft('')
       return
     }
-    onChange([...value, item])
+    onChange([...value, valueToAdd])
     setDraft('')
+    setOpen(false)
   }
 
   return (
@@ -157,11 +197,21 @@ function TagEditor({
               key={item}
               className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:bg-white/10 dark:text-slate-200"
             >
-              {item}
+              {(() => {
+                const known = catalog.find(
+                  (candidate) => canonical(candidate.fr) === canonical(item) || canonical(candidate.en) === canonical(item),
+                )
+                return known ? (language === 'en' ? known.en : known.fr) : item
+              })()}
               <button
                 type="button"
                 onClick={() => onChange(value.filter((existing) => existing !== item))}
-                aria-label={t('etablissement.removeTag', { item })}
+                aria-label={t('etablissement.removeTag', { item: (() => {
+                  const known = catalog.find(
+                    (candidate) => canonical(candidate.fr) === canonical(item) || canonical(candidate.en) === canonical(item),
+                  )
+                  return known ? (language === 'en' ? known.en : known.fr) : item
+                })() })}
                 className="text-slate-400 transition hover:text-red-600"
               >
                 <X className="h-3 w-3" />
@@ -170,22 +220,56 @@ function TagEditor({
           ))}
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="relative flex gap-2">
+        <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" aria-hidden="true" />
         <input
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            setOpen(true)
+          }}
+          onFocus={() => setOpen(true)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ',') {
               event.preventDefault()
               commit()
             }
           }}
-          className="min-h-10 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-900"
+          className="min-h-10 flex-1 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-900"
           placeholder={placeholder}
+          aria-label={placeholder}
+          aria-autocomplete="list"
         />
+        {open && suggestions.length > 0 && (
+          <div className="absolute left-0 right-12 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
+            {suggestions.map((item: HealthCatalogItem) => (
+              <button
+                key={item.id}
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault()
+                  commit(language === 'en' ? item.en : item.fr)
+                }}
+                className="flex w-full items-start justify-between gap-3 rounded-md px-3 py-2 text-left text-xs transition hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-bold text-slate-800 dark:text-slate-100">
+                    {language === 'en' ? item.en : item.fr}
+                  </span>
+                  <span className="block truncate text-[10px] text-slate-400">
+                    {language === 'en' ? item.fr : item.en}
+                  </span>
+                </span>
+                <span className="shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white" style={{ backgroundColor: accent }}>
+                  {kind === 'service' ? t('etablissement.ficheServicesLabel') : t('etablissement.ficheSpecialitiesLabel')}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <button
           type="button"
-          onClick={commit}
+          onClick={() => commit()}
           disabled={!draft.trim()}
           className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
         >
@@ -522,18 +606,22 @@ export default function FichePanel({
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <FieldLabel>{t('etablissement.ficheSpecialitiesLabel')}</FieldLabel>
-              <TagEditor
+              <CatalogTagEditor
                 value={specialites}
                 onChange={setSpecialites}
                 placeholder={t('etablissement.ficheTagsHint')}
+                kind="speciality"
+                accent={accent}
               />
             </div>
             <div>
               <FieldLabel>{t('etablissement.ficheServicesLabel')}</FieldLabel>
-              <TagEditor
+              <CatalogTagEditor
                 value={services}
                 onChange={setServices}
                 placeholder={t('etablissement.ficheTagsHint')}
+                kind="service"
+                accent={accent}
               />
               <p className="mb-1.5 mt-3 block text-[11px] font-bold uppercase tracking-wide text-slate-400">
                 {t('etablissement.ficheServicePresets')}

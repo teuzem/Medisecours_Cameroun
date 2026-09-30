@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import {
   BarChart3,
   Bookmark,
+  CalendarDays,
   Download,
   Eye,
   Globe,
@@ -19,6 +20,9 @@ import {
   Siren,
   Star,
   Stethoscope,
+  Target,
+  TrendingUp,
+  UsersRound,
   UserRound,
 } from 'lucide-react'
 import api from '../../api/axios'
@@ -90,7 +94,194 @@ type AnalyticsData = {
   equipe?: { actifs: Record<string, number>; total: number; medecinsAffilies: number }
 }
 
-const PERIOD_OPTIONS = [7, 30, 90] as const
+const PERIOD_OPTIONS = [7, 30, 90, 360] as const
+const METRIC_OPTIONS = ['all', ...ANALYTIC_TYPES] as const
+const LIVE_REFRESH_INTERVAL_MS = 30_000
+
+function sampleSerie(serie: SeriePoint[], maxPoints = 56) {
+  if (serie.length <= maxPoints) return serie
+  const stride = Math.ceil(serie.length / maxPoints)
+  return serie.filter((_, index) => index % stride === 0 || index === serie.length - 1)
+}
+
+function StackedActivityChart({
+  serie,
+  accent,
+  metric,
+}: {
+  serie: SeriePoint[]
+  accent: string
+  metric: (typeof METRIC_OPTIONS)[number]
+}) {
+  const { t } = useTranslation()
+  const points = sampleSerie(serie)
+  const keys: readonly string[] = metric === 'all' ? ANALYTIC_TYPES : [metric]
+  const totals = points.map((point) => keys.reduce((sum, key) => sum + (point[key] ?? 0), 0))
+  const max = Math.max(...totals, 1)
+  const W = 720
+  const H = 190
+  const P = 14
+  const gap = points.length > 1 ? 2 : 0
+  const barWidth = Math.max(3, (W - P * 2 - gap * Math.max(points.length - 1, 0)) / Math.max(points.length, 1))
+  const palette = keys.map((key) => TYPE_COLORS[key] ?? accent)
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full" role="img" aria-label={t('etablissement.analytics.stackAria')}>
+        {[0.25, 0.5, 0.75].map((ratio) => (
+          <line
+            key={ratio}
+            x1={P}
+            x2={W - P}
+            y1={H - P - ratio * (H - P * 2)}
+            y2={H - P - ratio * (H - P * 2)}
+            className="stroke-slate-200 dark:stroke-slate-800"
+            strokeWidth="1"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+        {points.map((point, index) => {
+          const x = P + index * (barWidth + gap)
+          let offset = 0
+          return (
+            <g key={`${point.jour}-${index}`}>
+              {keys.map((key, keyIndex) => {
+                const value = point[key] ?? 0
+                const height = (value / max) * (H - P * 2)
+                const y = H - P - offset - height
+                offset += height
+                return (
+                  <rect
+                    key={key}
+                    x={x}
+                    y={y}
+                    width={barWidth}
+                    height={Math.max(height, value > 0 ? 1 : 0)}
+                    rx="1.5"
+                    fill={palette[keyIndex]}
+                    fillOpacity={metric === 'all' ? 0.82 : 0.9}
+                  >
+                    <title>
+                      {point.jour} · {t(`etablissement.analytics.types.${key}`)} · {value}
+                    </title>
+                  </rect>
+                )
+              })}
+            </g>
+          )
+        })}
+      </svg>
+      <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+        <span>{points[0]?.jour ?? '—'}</span>
+        <span>{points[Math.floor(points.length / 2)]?.jour ?? '—'}</span>
+        <span>{points[points.length - 1]?.jour ?? '—'}</span>
+      </div>
+      {metric === 'all' && (
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5">
+          {ANALYTIC_TYPES.slice(0, 8).map((key) => (
+            <span key={key} className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: TYPE_COLORS[key] }} />
+              {t(`etablissement.analytics.types.${key}`)}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EngagementFunnel({ totals }: { totals: Record<string, number> }) {
+  const { t } = useTranslation()
+  const stages = [
+    {
+      key: 'reach',
+      icon: Eye,
+      label: t('etablissement.analytics.funnelReach'),
+      value: totals.fiche ?? 0,
+      color: '#2563a8',
+    },
+    {
+      key: 'contact',
+      icon: Phone,
+      label: t('etablissement.analytics.funnelContact'),
+      value: (totals.telephone ?? 0) + (totals.email ?? 0) + (totals.site_web ?? 0),
+      color: '#059669',
+    },
+    {
+      key: 'intent',
+      icon: Target,
+      label: t('etablissement.analytics.funnelIntent'),
+      value: (totals.itineraire ?? 0) + (totals.sauvegarde ?? 0) + (totals.partage ?? 0),
+      color: '#7c3aed',
+    },
+    {
+      key: 'care',
+      icon: Siren,
+      label: t('etablissement.analytics.funnelCare'),
+      value: (totals.sos ?? 0) + (totals.avis ?? 0) + (totals.service ?? 0),
+      color: '#dc2626',
+    },
+  ]
+  const max = Math.max(stages[0]?.value ?? 0, 1)
+  return (
+    <div className="space-y-3">
+      {stages.map(({ key, icon: Icon, label, value, color }) => (
+        <div key={key} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg text-white" style={{ backgroundColor: color }}>
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-xs font-bold text-slate-700 dark:text-slate-200">{label}</span>
+              <span className="text-xs font-black tabular-nums text-slate-900 dark:text-white">{value}</span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div className="h-full rounded-full transition-all" style={{ width: `${Math.max((value / max) * 100, value > 0 ? 4 : 0)}%`, backgroundColor: color }} />
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-slate-400">{max > 0 ? `${Math.round((value / max) * 100)}%` : '0%'}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function WeekdayActivity({ serie, accent }: { serie: SeriePoint[]; accent: string }) {
+  const { i18n, t } = useTranslation()
+  const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
+  const days = useMemo(() => {
+    const values = Array.from({ length: 7 }, (_, index) => ({
+      index,
+      label: new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2024, 0, 7 + index)),
+      total: 0,
+    }))
+    for (const point of serie) {
+      const date = new Date(`${point.jour}T00:00:00`)
+      const mondayIndex = (date.getDay() + 6) % 7
+      values[mondayIndex].total += ANALYTIC_TYPES.reduce((sum, key) => sum + (point[key] ?? 0), 0)
+    }
+    return values
+  }, [locale, serie])
+  const max = Math.max(...days.map((day) => day.total), 1)
+  return (
+    <div className="grid grid-cols-7 gap-2">
+      {days.map((day) => (
+        <div key={day.index} className="min-w-0 text-center">
+          <div className="flex h-24 items-end justify-center rounded-md bg-slate-50 p-1 dark:bg-slate-950/40">
+            <div
+              className="w-full max-w-6 rounded-sm transition-all"
+              style={{ height: `${Math.max((day.total / max) * 100, day.total > 0 ? 6 : 2)}%`, backgroundColor: accent }}
+              title={`${day.label}: ${day.total}`}
+            />
+          </div>
+          <p className="mt-1 truncate text-[10px] font-bold uppercase text-slate-400">{day.label}</p>
+          <p className="text-xs font-black tabular-nums text-slate-700 dark:text-slate-200">{day.total}</p>
+        </div>
+      ))}
+      <p className="col-span-full mt-1 text-[10px] font-semibold text-slate-400">{t('etablissement.analytics.weekdayHint')}</p>
+    </div>
+  )
+}
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Aire d'évolution (SVG natif, aucune dépendance)
@@ -208,6 +399,7 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
+  const [metric, setMetric] = useState<(typeof METRIC_OPTIONS)[number]>('all')
 
   useEffect(() => {
     let cancelled = false
@@ -227,7 +419,7 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
         })
     }
     load()
-    const timer = window.setInterval(load, 60_000)
+    const timer = window.setInterval(load, LIVE_REFRESH_INTERVAL_MS)
     return () => {
       cancelled = true
       window.clearInterval(timer)
@@ -372,6 +564,55 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
             ))}
           </div>
 
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <GlassCard className="!p-5 lg:col-span-2">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" style={{ color: accent }} />
+                    <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                      {t('etablissement.analytics.stackTitle')}
+                    </p>
+                  </div>
+                  <p className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                    {t('etablissement.analytics.stackSubtitle')}
+                  </p>
+                </div>
+                <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                  <span>{t('etablissement.analytics.metricLabel')}</span>
+                  <select
+                    value={metric}
+                    onChange={(event) => setMetric(event.target.value as (typeof METRIC_OPTIONS)[number])}
+                    className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold normal-case tracking-normal text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  >
+                    {METRIC_OPTIONS.map((key) => (
+                      <option key={key} value={key}>
+                        {key === 'all' ? t('etablissement.analytics.metricAll') : t(`etablissement.analytics.types.${key}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="mt-4">
+                <StackedActivityChart serie={data.serie} accent={accent} metric={metric} />
+              </div>
+            </GlassCard>
+            <GlassCard className="!p-5">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-violet-600" />
+                <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  {t('etablissement.analytics.funnelTitle')}
+                </p>
+              </div>
+              <p className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                {t('etablissement.analytics.funnelSubtitle')}
+              </p>
+              <div className="mt-5">
+                <EngagementFunnel totals={data.totaux} />
+              </div>
+            </GlassCard>
+          </div>
+
           {/* Stock : total + evolution */}
           {data.total > 0 ? (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -492,6 +733,43 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
             </GlassCard>
           </div>
 
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <GlassCard className="!p-5 lg:col-span-2">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" style={{ color: accent }} />
+                <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  {t('etablissement.analytics.weekdayTitle')}
+                </p>
+              </div>
+              <p className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                {t('etablissement.analytics.weekdaySubtitle')}
+              </p>
+              <div className="mt-4">
+                <WeekdayActivity serie={data.serie} accent={accent} />
+              </div>
+            </GlassCard>
+            <GlassCard className="!p-5">
+              <div className="flex items-center gap-2">
+                <UsersRound className="h-4 w-4 text-sky-600" />
+                <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  {t('etablissement.analytics.teamSignalTitle')}
+                </p>
+              </div>
+              <p className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                {t('etablissement.analytics.teamSignalSubtitle')}
+              </p>
+              <div className="mt-5 space-y-3">
+                <SignalRow label={t('etablissement.analytics.teamMembers')} value={data.equipe?.total ?? 0} />
+                <SignalRow label={t('etablissement.analytics.teamDoctors')} value={data.equipe?.medecinsAffilies ?? data.medecinsActivite.length} />
+                <SignalRow label={t('etablissement.analytics.teamActive')} value={Object.values(data.equipe?.actifs ?? {}).reduce((sum, count) => sum + count, 0)} />
+                <div className="flex items-center gap-2 pt-2 text-[10px] font-semibold text-slate-400">
+                  <span className="h-2 w-2 rounded-full bg-mint-500" />
+                  {t('etablissement.analytics.generatedAt', { date: fullDate(data.generatedAt, locale) })}
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+
           {/* Activité des médecins */}
           <GlassCard className="!p-5">
             <div className="flex items-center justify-between gap-2">
@@ -581,6 +859,17 @@ function LiveNumber({ target }: { target: number }) {
   const { i18n } = useTranslation()
   const animated = useCountUp(target, 500)
   return <>{new Intl.NumberFormat(i18n.language === 'en' ? 'en-US' : 'fr-FR').format(Math.round(animated))}</>
+}
+
+function SignalRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2.5 last:border-0 last:pb-0 dark:border-slate-800">
+      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-lg font-black tabular-nums text-slate-900 dark:text-white">
+        <LiveNumber target={value} />
+      </span>
+    </div>
+  )
 }
 
 function TypeIcon({ type, className }: { type: string; className?: string }) {
