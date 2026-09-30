@@ -80,26 +80,64 @@ const REGION_KEYS = [
   'sudOuest',
 ] as const
 
-const SERVICE_PRESETS = [
-  'Urgences',
-  'Consultations',
-  'Maternité',
-  'Pédiatrie',
-  'Imagerie',
-  'Laboratoire',
-  'Bloc opératoire',
-  'Hospitalisation',
-]
+const SERVICE_RELATIONS: Record<string, string[]> = {
+  'emergency-department': ['intensive-care', 'critical-care', 'ambulance', 'medical-imaging', 'laboratory', 'inpatient-care'],
+  'outpatient-consultations': ['follow-up', 'second-opinion', 'teleconsultation', 'medical-certificates'],
+  maternity: ['prenatal-care', 'delivery', 'postnatal-care', 'neonatal-intensive-care', 'family-planning'],
+  'prenatal-care': ['maternity', 'delivery', 'postnatal-care', 'maternal-health', 'family-planning'],
+  delivery: ['maternity', 'prenatal-care', 'postnatal-care', 'neonatal-intensive-care'],
+  pediatrics: ['child-health', 'vaccination', 'neonatal-intensive-care', 'screening'],
+  laboratory: ['rapid-tests', 'blood-bank', 'pathology-lab', 'home-sampling', 'genetic-testing'],
+  'medical-imaging': ['x-ray', 'ultrasound', 'ct-scan', 'mri', 'mammography'],
+  'operating-room': ['anesthesia', 'inpatient-care', 'wound-care', 'burns-care'],
+  'intensive-care': ['critical-care', 'emergency-department', 'inpatient-care', 'medical-imaging'],
+  pharmacy: ['vaccination', 'medical-device-rental', 'rapid-tests', 'follow-up'],
+  dialysis: ['laboratory', 'medical-imaging', 'patient-transport', 'follow-up'],
+  oncology: ['chemotherapy', 'radiotherapy', 'medical-imaging', 'laboratory', 'palliative-care-unit'],
+  'mental-health': ['psychological-support', 'social-work', 'teleconsultation', 'follow-up'],
+  rehabilitation: ['physiotherapy-unit', 'prosthetics', 'occupational-therapy', 'speech-therapy-service'],
+}
 
-const SERVICE_PRESET_KEYS: Record<string, string> = {
-  Urgences: 'urgences',
-  Consultations: 'consultations',
-  'Maternité': 'maternite',
-  Pédiatrie: 'pediatrie',
-  Imagerie: 'imagerie',
-  Laboratoire: 'laboratoire',
-  'Bloc opératoire': 'blocOperatoire',
-  Hospitalisation: 'hospitalisation',
+const canonicalize = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase()
+
+function getCatalogItem(label: string, catalog: HealthCatalogItem[]) {
+  const normalized = canonicalize(label)
+  return catalog.find(
+    (item) =>
+      canonicalize(item.id) === normalized ||
+      canonicalize(item.fr) === normalized ||
+      canonicalize(item.en) === normalized,
+  )
+}
+
+function recommendedServices(selected: string[]): HealthCatalogItem[] {
+  const selectedItems = selected
+    .map((label) => getCatalogItem(label, SERVICE_CATALOG))
+    .filter(Boolean) as HealthCatalogItem[]
+  const selectedIds = new Set(selectedItems.map((item) => item.id))
+  const relatedIds = new Set(selectedItems.flatMap((item) => SERVICE_RELATIONS[item.id] ?? []))
+  const selectedTokens = selectedItems.flatMap((item) =>
+    `${item.id} ${item.fr} ${item.en}`.split(/[-\s/&,]+/).filter((token) => token.length > 3),
+  )
+
+  const ranked = SERVICE_CATALOG
+    .filter((item) => !selectedIds.has(item.id))
+    .map((item) => {
+      const text = `${item.id} ${item.fr} ${item.en}`.toLocaleLowerCase()
+      const tokenScore = selectedTokens.reduce(
+        (score, token) => score + (text.includes(token.toLocaleLowerCase()) ? 1 : 0),
+        0,
+      )
+      return { item, score: (relatedIds.has(item.id) ? 10 : 0) + tokenScore }
+    })
+    .sort((left, right) => right.score - left.score || left.item.fr.localeCompare(right.item.fr))
+    .slice(0, 8)
+    .map(({ item }) => item)
+  return ranked.length > 0 ? ranked : SERVICE_CATALOG.slice(0, 8)
 }
 
 type Draft = {
@@ -138,12 +176,14 @@ function CatalogTagEditor({
   placeholder,
   kind,
   accent,
+  recommendations = [],
 }: {
   value: string[]
   onChange: (next: string[]) => void
   placeholder: string
   kind: HealthCatalogKind
   accent: string
+  recommendations?: HealthCatalogItem[]
 }) {
   const [draft, setDraft] = useState('')
   const [open, setOpen] = useState(false)
@@ -151,23 +191,18 @@ function CatalogTagEditor({
   const language = i18n.language === 'en' ? 'en' : 'fr'
   const catalog = kind === 'service' ? SERVICE_CATALOG : SPECIALITY_CATALOG
   const normalized = draft.trim().toLocaleLowerCase(language)
-  const canonical = (label: string) =>
-    label
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLocaleLowerCase(language)
   const suggestions = useMemo(
     () =>
       catalog
-        .filter((item) => !value.some((existing) => canonical(existing) === canonical(item.fr) || canonical(existing) === canonical(item.en)))
+        .filter((item) => !value.some((existing) => canonicalize(existing) === canonicalize(item.fr) || canonicalize(existing) === canonicalize(item.en)))
         .filter((item) => {
           if (!normalized) return true
           return [item.fr, item.en, item.id].some((candidate) =>
-            canonical(candidate).includes(canonical(normalized)),
+            canonicalize(candidate).includes(canonicalize(normalized)),
           )
         })
         .slice(0, 10),
-    [catalog, language, normalized, value],
+    [catalog, normalized, value],
   )
 
   const commit = (label = draft) => {
@@ -175,11 +210,11 @@ function CatalogTagEditor({
     if (!item) return
     const match = catalog.find(
       (candidate) =>
-        canonical(candidate.fr) === canonical(item) ||
-        canonical(candidate.en) === canonical(item),
+        canonicalize(candidate.fr) === canonicalize(item) ||
+        canonicalize(candidate.en) === canonicalize(item),
     )
     const valueToAdd = match?.fr ?? item
-    if (value.some((existing) => canonical(existing) === canonical(valueToAdd))) {
+    if (value.some((existing) => canonicalize(existing) === canonicalize(valueToAdd))) {
       setDraft('')
       return
     }
@@ -199,7 +234,7 @@ function CatalogTagEditor({
             >
               {(() => {
                 const known = catalog.find(
-                  (candidate) => canonical(candidate.fr) === canonical(item) || canonical(candidate.en) === canonical(item),
+                  (candidate) => canonicalize(candidate.fr) === canonicalize(item) || canonicalize(candidate.en) === canonicalize(item),
                 )
                 return known ? (language === 'en' ? known.en : known.fr) : item
               })()}
@@ -208,7 +243,7 @@ function CatalogTagEditor({
                 onClick={() => onChange(value.filter((existing) => existing !== item))}
                 aria-label={t('etablissement.removeTag', { item: (() => {
                   const known = catalog.find(
-                    (candidate) => canonical(candidate.fr) === canonical(item) || canonical(candidate.en) === canonical(item),
+                    (candidate) => canonicalize(candidate.fr) === canonicalize(item) || canonicalize(candidate.en) === canonicalize(item),
                   )
                   return known ? (language === 'en' ? known.en : known.fr) : item
                 })() })}
@@ -218,6 +253,27 @@ function CatalogTagEditor({
               </button>
             </span>
           ))}
+        </div>
+      )}
+      {kind === 'service' && recommendations.length > 0 && (
+        <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/70 p-2.5 dark:border-slate-700 dark:bg-slate-950/40">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            {value.length > 0 ? t('etablissement.ficheRelatedServices') : t('etablissement.fichePopularServices')}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {recommendations.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => commit(item.fr)}
+                className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600 transition hover:border-transparent hover:text-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                onMouseEnter={(event) => { event.currentTarget.style.backgroundColor = accent }}
+                onMouseLeave={(event) => { event.currentTarget.style.backgroundColor = '' }}
+              >
+                {language === 'en' ? item.en : item.fr}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       <div className="relative flex gap-2">
@@ -307,6 +363,20 @@ export default function FichePanel({
   const hasGps = centre.latitude != null && centre.longitude != null
   const mapsUrl =
     hasGps ? `https://www.google.com/maps?q=${centre.latitude},${centre.longitude}` : null
+  const serviceRecommendations = useMemo(() => recommendedServices(services), [services])
+  const completionItems = [
+    { key: 'identity', label: t('etablissement.ficheCompletionIdentity'), complete: draft.nom.trim().length >= 2 && Boolean(draft.type) },
+    { key: 'location', label: t('etablissement.ficheCompletionLocation'), complete: draft.adresse.trim().length >= 5 && draft.ville.trim().length >= 2 && Boolean(draft.region) },
+    { key: 'coordinates', label: t('etablissement.ficheCompletionCoordinates'), complete: hasGps },
+    { key: 'contact', label: t('etablissement.ficheCompletionContact'), complete: Boolean(draft.telephone.trim() || draft.email.trim()) },
+    { key: 'hours', label: t('etablissement.ficheCompletionHours'), complete: Boolean(draft.horaires.trim()) },
+    { key: 'description', label: t('etablissement.ficheCompletionDescription'), complete: draft.description.trim().length >= 40 },
+    { key: 'specialities', label: t('etablissement.ficheCompletionSpecialities'), complete: specialites.length > 0 },
+    { key: 'services', label: t('etablissement.ficheCompletionServices'), complete: services.length > 0 },
+    { key: 'media', label: t('etablissement.ficheCompletionMedia'), complete: (centre.images?.length ?? 0) > 0 },
+  ]
+  const completionCount = completionItems.filter((item) => item.complete).length
+  const completionPercent = Math.round((completionCount / completionItems.length) * 100)
 
   const verificationChip = (() => {
     const status = centre.verificationStatut
@@ -437,6 +507,38 @@ export default function FichePanel({
           )}
         </div>
       )}
+
+      <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950/40">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              {t('etablissement.ficheCompletionTitle')}
+            </p>
+            <p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
+              {completionPercent === 100
+                ? t('etablissement.ficheCompletionReady')
+                : t('etablissement.ficheCompletionProgress', { count: completionPercent })}
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {t('etablissement.ficheCompletionHint')}
+            </p>
+          </div>
+          <span className="text-2xl font-black text-slate-900 dark:text-white">{completionPercent}%</span>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+          <div className="h-full rounded-full transition-all" style={{ width: `${completionPercent}%`, backgroundColor: accent }} />
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {completionItems.map((item) => (
+            <div key={item.key} className={`flex items-center gap-2 text-xs font-semibold ${item.complete ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'}`}>
+              <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ${item.complete ? 'bg-emerald-100 dark:bg-emerald-500/20' : 'bg-slate-200 dark:bg-slate-800'}`}>
+                {item.complete ? '✓' : '·'}
+              </span>
+              {item.label}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* ── Informations générales ── */}
@@ -622,30 +724,8 @@ export default function FichePanel({
                 placeholder={t('etablissement.ficheTagsHint')}
                 kind="service"
                 accent={accent}
+                recommendations={serviceRecommendations}
               />
-              <p className="mb-1.5 mt-3 block text-[11px] font-bold uppercase tracking-wide text-slate-400">
-                {t('etablissement.ficheServicePresets')}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {SERVICE_PRESETS.map((item) => {
-                  const active = services.includes(item)
-                  return (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setServices(active ? services.filter((s) => s !== item) : [...services, item])}
-                      className={`rounded-full border px-2.5 py-1 text-[10px] font-bold transition ${
-                        active
-                          ? 'border-transparent text-white'
-                          : 'border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:bg-slate-900'
-                      }`}
-                      style={active ? { backgroundColor: accent } : undefined}
-                    >
-                      {t(`etablissement.servicePresets.${SERVICE_PRESET_KEYS[item] ?? 'other'}`, { defaultValue: item })}
-                    </button>
-                  )
-                })}
-              </div>
             </div>
           </div>
         </div>

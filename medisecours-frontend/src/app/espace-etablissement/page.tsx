@@ -353,6 +353,11 @@ export default function EtablissementEspacePage() {
             .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: centreId } })
             .then(({ data: gallery }) => {
               setMedia(gallery.items ?? [])
+              setMon((current) =>
+                current?.centre
+                  ? { ...current, centre: { ...current.centre, images: gallery.items ?? [] } }
+                  : current,
+              )
               setMediaError(false)
             })
             .catch(() => setMediaError(true))
@@ -585,6 +590,11 @@ export default function EtablissementEspacePage() {
       form.append('centre', String(mon.centre.id))
       const { data } = await api.post<{ media: ManagedMedia }>('/api/carte/medias', form)
       setMedia((current) => [data.media, ...current])
+      setMon((current) =>
+        current?.centre
+          ? { ...current, centre: { ...current.centre, images: [data.media, ...(current.centre.images ?? [])] } }
+          : current,
+      )
       setMediaError(false)
       toast.success(t('etablissement.mediaAdded'))
     } catch (error: any) {
@@ -598,6 +608,11 @@ export default function EtablissementEspacePage() {
     try {
       await api.delete(`/api/carte/medias/${item.id}`)
       setMedia((current) => current.filter((mediaItem) => mediaItem.id !== item.id))
+      setMon((current) =>
+        current?.centre
+          ? { ...current, centre: { ...current.centre, images: (current.centre.images ?? []).filter((image) => image.id !== item.id) } }
+          : current,
+      )
       toast.success(t('etablissement.mediaDeleted'))
     } catch {
       toast.error(t('etablissement.mediaDeleteFailed'))
@@ -643,6 +658,11 @@ export default function EtablissementEspacePage() {
         .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: mon.centre.id } })
         .then(({ data: gallery }) => {
           setMedia(gallery.items ?? [])
+          setMon((current) =>
+            current?.centre
+              ? { ...current, centre: { ...current.centre, images: gallery.items ?? [] } }
+              : current,
+          )
           setMediaError(false)
         })
         .catch(() => setMediaError(true))
