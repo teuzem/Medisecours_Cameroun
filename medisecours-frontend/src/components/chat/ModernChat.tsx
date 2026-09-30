@@ -313,17 +313,12 @@ export default function ModernChat() {
   const [typing, setTyping] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Simulate typing indicator briefly after opening a conversation
-  useEffect(() => {
+  const selectContact = useCallback((contactId: number) => {
+    setActiveContactId(contactId)
+    setMessages(MESSAGES_BY_CONVERSATION[contactId] || [])
     setTyping(true)
-    const t = setTimeout(() => setTyping(false), 2000)
-    return () => clearTimeout(t)
-  }, [activeContactId])
-
-  // Load messages when conversation changes
-  useEffect(() => {
-    setMessages(MESSAGES_BY_CONVERSATION[activeContactId] || [])
-  }, [activeContactId])
+    window.setTimeout(() => setTyping(false), 2000)
+  }, [])
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -366,7 +361,7 @@ export default function ModernChat() {
                   contact={contact}
                   active={activeContactId === contact.id}
                   dimmed={idx === CONTACTS.length - 1}
-                  onClick={() => setActiveContactId(contact.id)}
+                  onClick={() => selectContact(contact.id)}
                 />
               ))}
             </div>

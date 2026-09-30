@@ -123,6 +123,8 @@ export default function MedecinPrescriptionsPage() {
     return filtered.slice(start, start + ITEMS_PER_PAGE)
   }, [filtered, safePage])
 
+  // Reset pagination when the active filter changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setPage(1) }, [tab, query])
 
   const callAction = useCallback(async (url: string, payload?: any) => {

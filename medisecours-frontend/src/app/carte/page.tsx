@@ -301,7 +301,7 @@ export default function CartePage() {
       setSosOpen(false)
       setDestination(null)
     },
-    [centreById],
+    [],
   )
 
   useEffect(() => {
@@ -315,6 +315,8 @@ export default function CartePage() {
     const localCentre = centres.find(centre => centre.id === id)
     if (localCentre) {
       sharedCentreHandled.current = true
+      // Selecting a shared place synchronizes the external URL with local map state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleSelect(id)
       return
     }
@@ -523,7 +525,7 @@ export default function CartePage() {
             <button type="button" onClick={() => { void shareMap(); setMenuOpen(false) }} className="maps-menu-link"><Share2 className="h-5 w-5" />Partager la carte ou integrer</button>
             <button type="button" onClick={() => { window.print(); setMenuOpen(false) }} className="maps-menu-link"><Printer className="h-5 w-5" />Imprimer</button>
             <button type="button" onClick={() => { void locate(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />Ajouter une position precise</button>
-            <a href="/guide-utilisation" onClick={() => setMenuOpen(false)} className="maps-menu-link"><HelpCircle className="h-5 w-5" />Obtenir de l'aide</a>
+             <a href="/guide-utilisation" onClick={() => setMenuOpen(false)} className="maps-menu-link"><HelpCircle className="h-5 w-5" />Obtenir de l&apos;aide</a>
             <button type="button" onClick={() => { toast.info('La langue suit les preferences de votre compte.'); setMenuOpen(false) }} className="maps-menu-link"><Languages className="h-5 w-5" />Langue</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Clock className="h-5 w-5" />Historique MediSecours Maps</button>
             <nav className="flex flex-col">

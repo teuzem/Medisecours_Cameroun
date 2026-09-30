@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react/no-unescaped-entities -- intentional French apostrophes in compact map copy. */
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Bookmark, ChevronLeft, Clock, ExternalLink, FolderPlus, History, Image as ImageIcon, Info, MapPin, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
@@ -73,9 +74,13 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   }, [reviewResponse, reviewSearch, sort])
 
   useEffect(() => {
+    // Reset the drawer workflow when a different establishment is selected.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false)
   }, [props.selectedId])
   useEffect(() => {
+    // Review notice state is scoped to the selected establishment and tab.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNoticeOpen(false)
   }, [props.selectedId, tab])
   const selectedIdForTracking = selected?.id
@@ -84,13 +89,19 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   }, [props.open, selectedIdForTracking])
   useEffect(() => {
     const urls = files.map(file => URL.createObjectURL(file))
+    // Object URLs are derived from the current file selection.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFilePreviews(urls)
     return () => urls.forEach(url => URL.revokeObjectURL(url))
   }, [files])
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(COLLECTION_KEY) ?? '[]')
-      if (Array.isArray(stored)) setCollections(stored.filter(item => typeof item?.id === 'string' && typeof item.name === 'string' && Array.isArray(item.places)))
+      if (Array.isArray(stored)) {
+        // Local storage is an external source and is loaded once on mount.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCollections(stored.filter(item => typeof item?.id === 'string' && typeof item.name === 'string' && Array.isArray(item.places)))
+      }
     } catch { /* Local storage may be disabled. */ }
     if (isAuthenticated) {
       void api.get('/api/carte/collections').then(response => {

@@ -34,6 +34,8 @@ export default function EstablishmentLocation({ onSelect }: { onSelect: (value: 
   useEffect(() => {
     const id = ++requestId.current
     const controller = new AbortController()
+    // Clear stale suggestions immediately when the query changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSuggestions([])
     if (query.trim().length < 3) { setBusy(false); return }
     const timer = setTimeout(async () => {

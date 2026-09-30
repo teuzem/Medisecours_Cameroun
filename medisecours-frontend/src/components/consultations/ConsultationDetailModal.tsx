@@ -44,6 +44,8 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
 
   useEffect(() => {
     if (!consultationId) return
+    // The request lifecycle intentionally enters a loading state before the fetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     api.get(`/api/consultations/${consultationId}`)
       .then((res) => setData(res.data))

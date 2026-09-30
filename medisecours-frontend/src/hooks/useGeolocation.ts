@@ -2,22 +2,24 @@
 import { useState, useCallback, useRef } from 'react'
 import i18n from '../i18n'
 
+const ERROR_MESSAGE_KEYS: Record<number, string> = {
+  1: 'common.geo.denied',
+  2: 'common.geo.unavailablePosition',
+  3: 'common.geo.timeout',
+}
+
 export function useGeolocation() {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isWatching, setIsWatching] = useState(false)
   const watchIdRef = useRef<number | null>(null)
 
-  const errorMessageKeys: Record<number, string> = {
-    1: 'common.geo.denied',
-    2: 'common.geo.unavailablePosition',
-    3: 'common.geo.timeout',
-  }
-
   const handleError = useCallback((err: GeolocationPositionError) => {
-    const key = errorMessageKeys[err.code]
+    const key = ERROR_MESSAGE_KEYS[err.code]
     setError(key ? i18n.t(key) : i18n.t('common.geo.unknown'))
     setLoading(false)
+    setIsWatching(false)
   }, [])
 
   const locate = useCallback(() => {
@@ -58,6 +60,7 @@ export function useGeolocation() {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000, distanceFilter: 1 } as PositionOptions & { distanceFilter?: number }
     )
     watchIdRef.current = id
+    setIsWatching(true)
   }, [handleError])
 
   /** Stop continuous GPS tracking. */
@@ -66,6 +69,7 @@ export function useGeolocation() {
       navigator.geolocation.clearWatch(watchIdRef.current)
       watchIdRef.current = null
     }
+    setIsWatching(false)
   }, [])
 
   return {
@@ -75,6 +79,6 @@ export function useGeolocation() {
     locate,
     watch,
     stopWatch,
-    isWatching: watchIdRef.current !== null,
+    isWatching,
   }
 }
