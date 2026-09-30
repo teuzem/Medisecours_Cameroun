@@ -1805,6 +1805,7 @@ h1, h2, h3, h4 {
 
 .etablissement-dashboard .wdg-anim {
   animation-duration: 320ms;
+  animation-fill-mode: both;
 }
 
 @media (max-width: 768px) {

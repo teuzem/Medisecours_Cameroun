@@ -34,7 +34,7 @@ export default function GlassCard({
     .join(' ')
 
   return (
-    <Tag className={classes} style={delay != null ? { animationDelay: `${delay}ms`, animationFillMode: 'backwards' } : undefined}>
+    <Tag className={classes} style={delay != null ? { animationDelay: `${delay}ms` } : undefined}>
       {halo && <span className="wdg__halo" aria-hidden="true" />}
       <div className="relative">{children}</div>
     </Tag>
