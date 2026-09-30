@@ -6,7 +6,7 @@ import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
 import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
 import type { Position } from '../../hooks/useWayfinding'
-import { facilityMarkerHtml } from '../../lib/facilityMarker'
+import { bindFacilityPopupInteractions, facilityMarkerHtml, facilityMarkerPopupHtml } from '../../lib/facilityMarker'
 
 // ─── Fix default Leaflet icon paths ─────────────────────────────────────────
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -208,20 +208,30 @@ const FacilityMarker = React.memo(function FacilityMarker({
       icon={icon}
       zIndexOffset={selected ? 1000 : 0}
       title={c.nom}
-      eventHandlers={{ click: () => onSelect?.(c.id) }}
+      eventHandlers={{
+        click: () => onSelect?.(c.id),
+        popupopen: (event: any) => {
+          const popupElement = event.popup?.getElement?.()
+          if (popupElement) bindFacilityPopupInteractions(popupElement, c.id, onSelect)
+        },
+      }}
     >
       <Popup>
-        <div className="w-44 text-sm" role="dialog" aria-label={t('visitor.components.centresMap.detailsFor', { name: c.nom })}>
-          <p className="font-semibold text-slate-950">{c.nom}</p>
-          <p className="text-slate-500">{c.adresse}</p>
-          <button
-            type="button"
-            onClick={() => onSelect?.(c.id)}
-            className="mt-2 w-full rounded-md bg-primary-600 px-2 py-1.5 text-xs font-bold text-white"
-          >
-            {t('visitor.carte.viewDetails')}
-          </button>
-        </div>
+        <div
+          dangerouslySetInnerHTML={{
+            __html: facilityMarkerPopupHtml(c, {
+              viewDetails: t('visitor.carte.viewDetails'),
+              open: t('visitor.carte.markerOpen'),
+              closed: t('visitor.carte.markerClosed'),
+              accessibility: t('visitor.carte.markerAccessibility'),
+              ambulances: t('visitor.carte.markerAmbulances'),
+              gallery: t('visitor.carte.markerGallery'),
+              holiday: t('visitor.carte.markerHoliday'),
+            }),
+          }}
+          role="dialog"
+          aria-label={t('visitor.components.centresMap.detailsFor', { name: c.nom })}
+        />
       </Popup>
     </Marker>
   )

@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react'
 import {
   Bike,
+  Accessibility,
+  Ambulance,
   Bookmark,
   Building2,
   Car,
@@ -345,6 +347,21 @@ export function FicheInfos({
           </div>
         ))}
       </div>
+
+      {(fiche.accessibilite?.length || fiche.ambulancesDisponibles) && (
+        <div className="flex flex-wrap gap-2">
+          {fiche.accessibilite && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" title="Accessibilité pour les personnes handicapées">
+              <Accessibility className="h-3.5 w-3.5" /> {Array.isArray(fiche.accessibilite) ? fiche.accessibilite.join(', ') : fiche.accessibilite}
+            </span>
+          )}
+          {fiche.ambulancesDisponibles && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-500/15 dark:text-red-300" title="Ambulances disponibles">
+              <Ambulance className="h-3.5 w-3.5" /> Ambulances disponibles
+            </span>
+          )}
+        </div>
+      )}
 
       {fiche.siteWeb && (
         <a

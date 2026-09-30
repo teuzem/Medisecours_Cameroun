@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   BadgeCheck,
+  Accessibility,
+  Ambulance,
   Building2,
   Clock,
   ExternalLink,
@@ -42,6 +44,13 @@ export type FicheCentre = {
   siteWeb?: string | null
   imageUrl?: string | null
   horaires?: string | null
+  horairesDetails?: {
+    weekly?: Record<string, { open?: string | null; close?: string | null; closed?: boolean }>
+    holidays?: string[]
+    exceptions?: string[]
+  } | null
+  accessibilite?: string[] | string
+  ambulancesDisponibles?: boolean
   urgences24h?: boolean
   description?: string | null
   services?: string[]
@@ -239,6 +248,13 @@ type Draft = {
   email: string
   siteWeb: string
   horaires: string
+  horairesDetails: {
+    weekly: Record<string, { open: string; close: string; closed: boolean }>
+    holidays: string[]
+    exceptions: string[]
+  }
+  accessibilite: string[]
+  ambulancesDisponibles: boolean
   urgences24h: boolean
   description: string
 }
@@ -254,6 +270,22 @@ const emptyDraft = (centre: FicheCentre): Draft => ({
   email: centre.email ?? '',
   siteWeb: centre.siteWeb ?? '',
   horaires: centre.horaires ?? '',
+  horairesDetails: {
+    weekly: Object.fromEntries(
+      ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'].map((day) => [
+        day,
+        {
+          open: centre.horairesDetails?.weekly?.[day]?.open ?? '',
+          close: centre.horairesDetails?.weekly?.[day]?.close ?? '',
+          closed: Boolean(centre.horairesDetails?.weekly?.[day]?.closed),
+        },
+      ]),
+    ),
+    holidays: centre.horairesDetails?.holidays ?? [],
+    exceptions: centre.horairesDetails?.exceptions ?? [],
+  },
+  accessibilite: Array.isArray(centre.accessibilite) ? centre.accessibilite : typeof centre.accessibilite === 'string' ? centre.accessibilite.split(',').map((item) => item.trim()).filter(Boolean) : [],
+  ambulancesDisponibles: Boolean(centre.ambulancesDisponibles),
   urgences24h: Boolean(centre.urgences24h),
   description: centre.description ?? '',
 })
@@ -534,6 +566,9 @@ export default function FichePanel({
         email: draft.email.trim() || null,
         siteWeb: draft.siteWeb.trim() || null,
         horaires: draft.horaires.trim() || null,
+        horairesDetails: draft.horairesDetails,
+        accessibilite: draft.accessibilite,
+        ambulancesDisponibles: draft.ambulancesDisponibles,
         urgences24h: draft.urgences24h,
         description: draft.description.trim() || null,
         specialites,
@@ -738,6 +773,24 @@ export default function FichePanel({
             placeholder={t('etablissement.ficheHoursPlaceholder')}
           />
 
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-950/40">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.ficheHoursDetailsTitle')}</p>
+            <div className="space-y-2">
+              {Object.entries(draft.horairesDetails.weekly).map(([day, value]) => (
+                <div key={day} className="grid grid-cols-[84px_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
+                  <span className="text-xs font-semibold capitalize text-slate-600 dark:text-slate-300">{day}</span>
+                  <input type="time" value={value.open} disabled={value.closed} onChange={(event) => setDraft((current) => ({ ...current, horairesDetails: { ...current.horairesDetails, weekly: { ...current.horairesDetails.weekly, [day]: { ...value, open: event.target.value } } } }))} className={inputCls} />
+                  <input type="time" value={value.close} disabled={value.closed} onChange={(event) => setDraft((current) => ({ ...current, horairesDetails: { ...current.horairesDetails, weekly: { ...current.horairesDetails.weekly, [day]: { ...value, close: event.target.value } } } }))} className={inputCls} />
+                  <label className="flex items-center gap-1 text-[10px] font-semibold text-slate-500"><input type="checkbox" checked={value.closed} onChange={(event) => setDraft((current) => ({ ...current, horairesDetails: { ...current.horairesDetails, weekly: { ...current.horairesDetails.weekly, [day]: { ...value, closed: event.target.checked } } } }))} />{t('etablissement.ficheClosedLabel')}</label>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <input value={draft.horairesDetails.holidays.join(', ')} onChange={(event) => setDraft((current) => ({ ...current, horairesDetails: { ...current.horairesDetails, holidays: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) } }))} className={inputCls} placeholder={t('etablissement.ficheHolidaysPlaceholder')} />
+              <input value={draft.horairesDetails.exceptions.join(', ')} onChange={(event) => setDraft((current) => ({ ...current, horairesDetails: { ...current.horairesDetails, exceptions: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) } }))} className={inputCls} placeholder={t('etablissement.ficheExceptionsPlaceholder')} />
+            </div>
+          </div>
+
           <div
             className={`flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 text-xs font-semibold ${
               hasGps
@@ -782,6 +835,29 @@ export default function FichePanel({
                   draft.urgences24h ? 'left-[22px]' : 'left-0.5'
                 }`}
               />
+            </button>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-950/40">
+            <div className="flex items-center gap-2">
+              <Accessibility className="h-4 w-4 text-blue-600" />
+              <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('etablissement.ficheAccessibilityLabel')}</p>
+            </div>
+            <input
+              value={draft.accessibilite.join(', ')}
+              onChange={(event) => setDraft((current) => ({ ...current, accessibilite: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) }))}
+              className={`${inputCls} mt-2`}
+              placeholder={t('etablissement.ficheAccessibilityPlaceholder')}
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 dark:border-slate-700 dark:bg-slate-950/40">
+            <span className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+              <Ambulance className="h-4 w-4 text-red-600" />
+              {t('etablissement.ficheAmbulanceLabel')}
+            </span>
+            <button type="button" role="switch" aria-checked={draft.ambulancesDisponibles} onClick={() => update('ambulancesDisponibles', !draft.ambulancesDisponibles)} className={`relative h-6 w-11 shrink-0 rounded-full transition ${draft.ambulancesDisponibles ? 'bg-red-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${draft.ambulancesDisponibles ? 'left-[22px]' : 'left-0.5'}`} />
             </button>
           </div>
 

@@ -18,7 +18,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
 import type { Position } from '../../hooks/useWayfinding'
-import { facilityMarkerHtml } from '../../lib/facilityMarker'
+import { bindFacilityPopupInteractions, facilityMarkerHtml, facilityMarkerPopupHtml } from '../../lib/facilityMarker'
+import { useTranslation } from 'react-i18next'
 
 interface RouteGeometry {
   type: 'LineString'
@@ -122,6 +123,7 @@ export default function GoogleCarteMap({
   destination,
   satellite = false,
 }: GoogleCarteMapProps) {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<google.maps.Map | null>(null)
   const clustererRef = useRef<MarkerClusterer | null>(null)
@@ -189,6 +191,24 @@ export default function GoogleCarteMap({
         zIndex: selected ? 1000 : undefined,
       })
       marker.addEventListener('click', () => onSelect?.(centre.id))
+      const popup = new window.google.maps.InfoWindow({
+        content: facilityMarkerPopupHtml(centre, {
+          viewDetails: t('visitor.carte.viewDetails'),
+          open: t('visitor.carte.markerOpen'),
+          closed: t('visitor.carte.markerClosed'),
+          accessibility: t('visitor.carte.markerAccessibility'),
+          ambulances: t('visitor.carte.markerAmbulances'),
+          gallery: t('visitor.carte.markerGallery'),
+          holiday: t('visitor.carte.markerHoliday'),
+        }),
+      })
+      marker.addEventListener('gmp-click', () => {
+        popup.open({ map, anchor: marker })
+        window.google.maps.event.addListenerOnce(popup, 'domready', () => {
+          const root = document.querySelector('.gm-style-iw-content .maps-marker-popup')?.parentElement
+          if (root) bindFacilityPopupInteractions(root, centre.id, onSelect)
+        })
+      })
       markers.push(marker)
     })
     markersRef.current = markers
@@ -199,7 +219,7 @@ export default function GoogleCarteMap({
     } else {
       clustererRef.current = new MarkerClusterer({ map, markers })
     }
-  }, [centres, onSelect, selectedId])
+  }, [centres, onSelect, selectedId, t])
 
   // ── Dot patient "Vous êtes ici" ─────────────────────────────────────────
   useEffect(() => {

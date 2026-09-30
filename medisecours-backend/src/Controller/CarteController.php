@@ -271,6 +271,14 @@ class CarteController extends AbstractController
             $centre->setHoraires($horaires);
         }
 
+        if (array_key_exists('horairesDetails', $data)) {
+            $details = is_array($data['horairesDetails']) ? $data['horairesDetails'] : null;
+            if ($details !== null && mb_strlen((string) json_encode($details)) > 12000) {
+                throw new BadRequestHttpException('Les détails des horaires sont trop volumineux.');
+            }
+            $centre->setHorairesDetails($details);
+        }
+
         if (isset($data['description'])) {
             $description = trim((string) $data['description']);
             $centre->setDescription(mb_strlen($description) > 4000 ? mb_substr($description, 0, 4000) : $description);
@@ -286,6 +294,14 @@ class CarteController extends AbstractController
 
         if (array_key_exists('services', $data)) {
             $centre->setServices($this->cleanStringList($data['services'], 40));
+        }
+
+        if (array_key_exists('accessibilite', $data)) {
+            $centre->setAccessibilite($this->cleanStringList($data['accessibilite'], 20));
+        }
+
+        if (isset($data['ambulancesDisponibles'])) {
+            $centre->setAmbulancesDisponibles((bool) $data['ambulancesDisponibles']);
         }
 
         $this->em->flush();
@@ -866,7 +882,10 @@ class CarteController extends AbstractController
             'siteWeb' => $centre->getSiteWeb(),
             'imageUrl' => $centre->getImageUrl(),
             'horaires' => $centre->getHoraires(),
+            'horairesDetails' => $centre->getHorairesDetails(),
             'urgences24h' => $centre->isUrgences24h(),
+            'accessibilite' => $centre->getAccessibilite(),
+            'ambulancesDisponibles' => $centre->hasAmbulancesDisponibles(),
             'noteMoyenne' => $centre->getNoteMoyenne(),
             'totalAvis' => $centre->getTotalAvis(),
             'verificationStatut' => $centre->getVerificationStatut(),

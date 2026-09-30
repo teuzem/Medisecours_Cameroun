@@ -23,6 +23,11 @@ export interface CarteCentre {
   quartier?: string
   telephone?: string
   horaires?: string
+  horairesDetails?: {
+    weekly?: Record<string, { open?: string | null; close?: string | null; closed?: boolean }>
+    holidays?: string[]
+    exceptions?: string[]
+  } | null
   email?: string
   siteWeb?: string
   description?: string
@@ -36,6 +41,7 @@ export interface CarteCentre {
   services?: string[] | string
   equipements?: string[] | string
   accessibilite?: string[] | string
+  ambulancesDisponibles?: boolean
   accesRoute?: string | null
   parking?: string | null
   langues?: string[] | string

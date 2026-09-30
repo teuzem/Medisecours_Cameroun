@@ -149,6 +149,10 @@ class CentreDeSante
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private ?string $horaires = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?array $horairesDetails = null;
+
     #[ORM\Column(type: 'json')]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private array $specialites = [];
@@ -156,6 +160,14 @@ class CentreDeSante
     #[ORM\Column(type: 'json')]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private array $services = [];
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private array $accessibilite = [];
+
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private bool $ambulancesDisponibles = false;
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
@@ -274,11 +286,20 @@ class CentreDeSante
     public function getHoraires(): ?string { return $this->horaires; }
     public function setHoraires(string $horaires): static { $this->horaires = $horaires; return $this; }
 
+    public function getHorairesDetails(): ?array { return $this->horairesDetails; }
+    public function setHorairesDetails(?array $horairesDetails): static { $this->horairesDetails = $horairesDetails; return $this; }
+
     public function getSpecialites(): array { return $this->specialites; }
     public function setSpecialites(array $specialites): static { $this->specialites = $specialites; return $this; }
 
     public function getServices(): array { return $this->services; }
     public function setServices(array $services): static { $this->services = $services; return $this; }
+
+    public function getAccessibilite(): array { return $this->accessibilite; }
+    public function setAccessibilite(array $accessibilite): static { $this->accessibilite = $accessibilite; return $this; }
+
+    public function hasAmbulancesDisponibles(): bool { return $this->ambulancesDisponibles; }
+    public function setAmbulancesDisponibles(bool $ambulancesDisponibles): static { $this->ambulancesDisponibles = $ambulancesDisponibles; return $this; }
 
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $description): static { $this->description = $description; return $this; }
