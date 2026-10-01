@@ -104,68 +104,63 @@ function FacilityMediaViewer({
     }
   }, [onClose])
 
-  if (!current) {
-    return (
-      <div className="maps-media-viewer" role="dialog" aria-modal="true" aria-label={t('visitor.carte.galleryTitle')}>
-        <button ref={closeButtonRef} type="button" className="maps-media-viewer-close" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><X size={22} /></button>
-        <p className="maps-media-empty">{t('visitor.carte.galleryEmpty')}</p>
+  const sidebar = (empty = false) => (
+    <aside className="maps-media-sidebar">
+      <div className="maps-media-sidebar-top">
+        <button ref={closeButtonRef} type="button" className="maps-media-sidebar-close" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><ChevronLeft size={21} /></button>
+        {!empty && <div className="maps-media-sidebar-title">
+          <span className="maps-media-viewer-kicker"><Images size={14} /> {t('visitor.carte.galleryTitle')}</span>
+          <h2>{facility.nom}</h2>
+        </div>}
       </div>
-    )
+      {empty ? <div className="maps-media-sidebar-empty"><Images size={30} /><p>{t('visitor.carte.galleryEmpty')}</p></div> : <>
+        <div className="maps-media-sidebar-meta">
+          <strong>{current?.uploadedBy?.name || current?.uploadedByName || t('visitor.carte.galleryMember')}</strong>
+          <span>{current && formatMediaDate(current.createdAt, i18n.language)}</span>
+        </div>
+        <div className="maps-media-filters" role="tablist" aria-label={t('visitor.carte.galleryFilters')}>
+          {([['images', t('visitor.carte.galleryImages')], ['recent', t('visitor.carte.galleryRecent')], ['videos', t('visitor.carte.galleryVideos')]] as const).map(([key, label]) => (
+            <button type="button" key={key} role="tab" aria-selected={filter === key} onClick={() => { onFilterChange(key); onIndexChange(0) }}>{label}</button>
+          ))}
+        </div>
+        <div className="maps-media-sidebar-list" role="listbox" aria-label={t('visitor.carte.galleryTitle')}>
+          {filtered.map((item, index) => {
+            const itemIsVideo = item.kind === 'video' || item.mimeType?.startsWith('video/')
+            const itemSource = imgUrl(item.contentUrl) || item.contentUrl
+            return <button type="button" key={`${item.id}-${index}`} className="maps-media-sidebar-item" role="option" aria-selected={index === safeIndex} onClick={() => onIndexChange(index)}>
+              {itemIsVideo ? <video src={itemSource} muted preload="metadata" aria-hidden="true" /> : <img src={itemSource} alt="" loading="lazy" />}
+              <span className="maps-media-sidebar-item-copy"><strong>{item.originalName || (itemIsVideo ? t('visitor.carte.galleryVideo') : t('visitor.carte.galleryPhoto'))}</strong><small>{formatMediaDate(item.createdAt, i18n.language) || t('visitor.carte.galleryMember')}</small></span>
+            </button>
+          })}
+        </div>
+      </>}
+    </aside>
+  )
+
+  if (!current) {
+    return <div className="maps-media-viewer" role="dialog" aria-modal="true" aria-label={t('visitor.carte.galleryTitle')}>{sidebar(true)}<main className="maps-media-main maps-media-main-empty" /></div>
   }
 
   const isVideo = current.kind === 'video' || current.mimeType?.startsWith('video/')
   const source = imgUrl(current.contentUrl) || current.contentUrl
-  const memberName = current.uploadedBy?.name || current.uploadedByName || t('visitor.carte.galleryMember')
-
   return (
     <div className="maps-media-viewer" role="dialog" aria-modal="true" aria-label={`${t('visitor.carte.galleryTitle')} - ${facility.nom}`}>
-      <header className="maps-media-viewer-header">
-        <div className="maps-media-viewer-heading">
-          <span className="maps-media-viewer-kicker"><Images size={15} /> {t('visitor.carte.galleryTitle')}</span>
-          <h2>{facility.nom}</h2>
-          <p><span>{memberName}</span>{formatMediaDate(current.createdAt, i18n.language) && <><span aria-hidden="true">-</span><span><CalendarDays size={13} /> {formatMediaDate(current.createdAt, i18n.language)}</span></>}</p>
-        </div>
-        <div className="maps-media-viewer-header-actions">
+      {sidebar()}
+      <main className="maps-media-main">
+        <div className="maps-media-main-actions">
           <button type="button" onClick={() => onShare(current)} aria-label={t('visitor.carte.galleryShare')}><Share2 size={19} /></button>
-          <button ref={closeButtonRef} type="button" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><X size={22} /></button>
+          <button type="button" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}><X size={22} /></button>
         </div>
-      </header>
-      <div className="maps-media-filters" role="tablist" aria-label={t('visitor.carte.galleryFilters')}>
-        {([['images', t('visitor.carte.galleryImages')], ['recent', t('visitor.carte.galleryRecent')], ['videos', t('visitor.carte.galleryVideos')]] as const).map(([key, label]) => (
-          <button type="button" key={key} role="tab" aria-selected={filter === key} onClick={() => { onFilterChange(key); onIndexChange(0) }}>{label}</button>
-        ))}
-      </div>
-      <div className="maps-media-viewer-stage">
-        <button type="button" className="maps-media-nav maps-media-nav-prev" onClick={() => onIndexChange((safeIndex - 1 + filtered.length) % filtered.length)} aria-label={t('visitor.carte.galleryPrevious')}><ChevronLeft size={25} /></button>
-        <div className="maps-media-canvas">
-          {isVideo ? <video src={source} controls autoPlay playsInline className="maps-media-player" /> : <img src={source} alt={`${facility.nom} - ${current.originalName || t('visitor.carte.galleryPhoto')}`} className="maps-media-player" />}
+        <div className="maps-media-viewer-stage">
+          <button type="button" className="maps-media-nav maps-media-nav-prev" onClick={() => onIndexChange((safeIndex - 1 + filtered.length) % filtered.length)} aria-label={t('visitor.carte.galleryPrevious')}><ChevronLeft size={25} /></button>
+          <div className="maps-media-canvas">{isVideo ? <video src={source} controls autoPlay playsInline className="maps-media-player" /> : <img src={source} alt={`${facility.nom} - ${current.originalName || t('visitor.carte.galleryPhoto')}`} className="maps-media-player" />}</div>
+          <button type="button" className="maps-media-nav maps-media-nav-next" onClick={() => onIndexChange((safeIndex + 1) % filtered.length)} aria-label={t('visitor.carte.galleryNext')}><ChevronRight size={25} /></button>
         </div>
-        <button type="button" className="maps-media-nav maps-media-nav-next" onClick={() => onIndexChange((safeIndex + 1) % filtered.length)} aria-label={t('visitor.carte.galleryNext')}><ChevronRight size={25} /></button>
-      </div>
-      <div className="maps-media-thumbnails" role="listbox" aria-label={t('visitor.carte.galleryTitle')}>
-        {filtered.map((item, index) => {
-          const itemIsVideo = item.kind === 'video' || item.mimeType?.startsWith('video/')
-          const itemSource = imgUrl(item.contentUrl) || item.contentUrl
-          return (
-            <button
-              type="button"
-              key={`${item.id}-${index}`}
-              className="maps-media-thumbnail"
-              role="option"
-              aria-selected={index === safeIndex}
-              aria-label={`${facility.nom} ${index + 1}`}
-              onClick={() => onIndexChange(index)}
-            >
-              {itemIsVideo ? <video src={itemSource} muted preload="metadata" aria-hidden="true" /> : <img src={itemSource} alt="" loading="lazy" />}
-              {itemIsVideo && <span aria-hidden="true">▶</span>}
-            </button>
-          )
-        })}
-      </div>
-      <footer className="maps-media-viewer-footer">
-        <span>{safeIndex + 1} / {filtered.length}</span>
-        <span>{current.originalName || (isVideo ? t('visitor.carte.galleryVideo') : t('visitor.carte.galleryPhoto'))}</span>
-      </footer>
+        <footer className="maps-media-main-footer">
+          <span>{safeIndex + 1} / {filtered.length}</span>
+          <span>{current.originalName || (isVideo ? t('visitor.carte.galleryVideo') : t('visitor.carte.galleryPhoto'))}</span>
+        </footer>
+      </main>
     </div>
   )
 }
