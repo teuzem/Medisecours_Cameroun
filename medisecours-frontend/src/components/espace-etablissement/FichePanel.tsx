@@ -30,6 +30,11 @@ import {
   type HealthCatalogItem,
   type HealthCatalogKind,
 } from '../../lib/healthCatalog'
+import {
+  getFacilityOptions,
+  normalizeFacilityOptions,
+  type FacilityOptionGroup,
+} from '../../lib/facilityOptions'
 
 export type FicheCentre = {
   id: number
@@ -51,6 +56,14 @@ export type FicheCentre = {
   } | null
   accessibilite?: string[] | string
   ambulancesDisponibles?: boolean
+  paiement?: string[] | string
+  assurance?: string[] | string
+  evacuationSanitaire?: string[] | string
+  accesRoute?: string[] | string
+  parking?: string[] | string
+  langues?: string[] | string
+  teleconsultation?: boolean
+  priseRendezVous?: boolean
   urgences24h?: boolean
   description?: string | null
   services?: string[]
@@ -255,6 +268,14 @@ type Draft = {
   }
   accessibilite: string[]
   ambulancesDisponibles: boolean
+  paiement: string[]
+  assurance: string[]
+  evacuationSanitaire: string[]
+  accesRoute: string[]
+  parking: string[]
+  langues: string[]
+  teleconsultation: boolean
+  priseRendezVous: boolean
   urgences24h: boolean
   description: string
 }
@@ -286,6 +307,14 @@ const emptyDraft = (centre: FicheCentre): Draft => ({
   },
   accessibilite: Array.isArray(centre.accessibilite) ? centre.accessibilite : typeof centre.accessibilite === 'string' ? centre.accessibilite.split(',').map((item) => item.trim()).filter(Boolean) : [],
   ambulancesDisponibles: Boolean(centre.ambulancesDisponibles),
+  paiement: normalizeFacilityOptions(centre.paiement),
+  assurance: normalizeFacilityOptions(centre.assurance),
+  evacuationSanitaire: normalizeFacilityOptions(centre.evacuationSanitaire),
+  accesRoute: normalizeFacilityOptions(centre.accesRoute),
+  parking: normalizeFacilityOptions(centre.parking),
+  langues: normalizeFacilityOptions(centre.langues),
+  teleconsultation: Boolean(centre.teleconsultation),
+  priseRendezVous: Boolean(centre.priseRendezVous),
   urgences24h: Boolean(centre.urgences24h),
   description: centre.description ?? '',
 })
@@ -456,6 +485,44 @@ function CatalogTagEditor({
   )
 }
 
+function OptionMultiSelect({
+  group,
+  value,
+  onChange,
+  label,
+  description,
+}: {
+  group: FacilityOptionGroup
+  value: string[]
+  onChange: (next: string[]) => void
+  label: string
+  description?: string
+}) {
+  const { t } = useTranslation()
+  const selected = new Set(value)
+  const options = getFacilityOptions(group)
+  const toggle = (id: string) => {
+    const next = new Set(selected)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    onChange([...next])
+  }
+  return (
+    <fieldset className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-950/40">
+      <legend className="px-1 text-xs font-bold text-slate-700 dark:text-slate-200">{label}</legend>
+      {description && <p className="mb-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{description}</p>}
+      <div className="grid gap-1.5 sm:grid-cols-2">
+        {options.map((option) => (
+          <label key={option.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-semibold transition ${selected.has(option.id) ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-500/50 dark:bg-blue-500/10 dark:text-blue-200' : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'}`}>
+            <input type="checkbox" checked={selected.has(option.id)} onChange={() => toggle(option.id)} className="mt-0.5 accent-blue-600" />
+            <span>{t(option.labelKey)}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
 export default function FichePanel({
   centre,
   accent,
@@ -569,6 +636,14 @@ export default function FichePanel({
         horairesDetails: draft.horairesDetails,
         accessibilite: draft.accessibilite,
         ambulancesDisponibles: draft.ambulancesDisponibles,
+        paiement: draft.paiement,
+        assurance: draft.assurance,
+        evacuationSanitaire: draft.evacuationSanitaire,
+        accesRoute: draft.accesRoute,
+        parking: draft.parking,
+        langues: draft.langues,
+        teleconsultation: draft.teleconsultation,
+        priseRendezVous: draft.priseRendezVous,
         urgences24h: draft.urgences24h,
         description: draft.description.trim() || null,
         specialites,
@@ -843,12 +918,15 @@ export default function FichePanel({
               <Accessibility className="h-4 w-4 text-blue-600" />
               <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('etablissement.ficheAccessibilityLabel')}</p>
             </div>
-            <input
-              value={draft.accessibilite.join(', ')}
-              onChange={(event) => setDraft((current) => ({ ...current, accessibilite: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) }))}
-              className={`${inputCls} mt-2`}
-              placeholder={t('etablissement.ficheAccessibilityPlaceholder')}
-            />
+            <p className="mt-1 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{t('etablissement.ficheAccessibilityDescription')}</p>
+            <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+              {getFacilityOptions('accessibility').map((option) => (
+                <label key={option.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-semibold transition ${draft.accessibilite.includes(option.id) ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-500/50 dark:bg-blue-500/10 dark:text-blue-200' : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'}`}>
+                  <input type="checkbox" checked={draft.accessibilite.includes(option.id)} onChange={() => setDraft((current) => ({ ...current, accessibilite: current.accessibilite.includes(option.id) ? current.accessibilite.filter((item) => item !== option.id) : [...current.accessibilite, option.id] }))} className="mt-0.5 accent-blue-600" />
+                  <span>{t(option.labelKey)}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 dark:border-slate-700 dark:bg-slate-950/40">
@@ -859,6 +937,62 @@ export default function FichePanel({
             <button type="button" role="switch" aria-checked={draft.ambulancesDisponibles} onClick={() => update('ambulancesDisponibles', !draft.ambulancesDisponibles)} className={`relative h-6 w-11 shrink-0 rounded-full transition ${draft.ambulancesDisponibles ? 'bg-red-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
               <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${draft.ambulancesDisponibles ? 'left-[22px]' : 'left-0.5'}`} />
             </button>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-2">
+            <OptionMultiSelect
+              group="payment"
+              value={draft.paiement}
+              onChange={(value) => setDraft((current) => ({ ...current, paiement: value }))}
+              label={t('etablissement.fichePaymentLabel')}
+              description={t('etablissement.fichePaymentDescription')}
+            />
+            <OptionMultiSelect
+              group="insurance"
+              value={draft.assurance}
+              onChange={(value) => setDraft((current) => ({ ...current, assurance: value }))}
+              label={t('etablissement.ficheInsuranceLabel')}
+              description={t('etablissement.ficheInsuranceDescription')}
+            />
+            <OptionMultiSelect
+              group="evacuation"
+              value={draft.evacuationSanitaire}
+              onChange={(value) => setDraft((current) => ({ ...current, evacuationSanitaire: value }))}
+              label={t('etablissement.ficheEvacuationLabel')}
+              description={t('etablissement.ficheEvacuationDescription')}
+            />
+            <OptionMultiSelect
+              group="roadAccess"
+              value={draft.accesRoute}
+              onChange={(value) => setDraft((current) => ({ ...current, accesRoute: value }))}
+              label={t('etablissement.ficheRoadAccessLabel')}
+              description={t('etablissement.ficheRoadAccessDescription')}
+            />
+            <OptionMultiSelect
+              group="parking"
+              value={draft.parking}
+              onChange={(value) => setDraft((current) => ({ ...current, parking: value }))}
+              label={t('etablissement.ficheParkingLabel')}
+              description={t('etablissement.ficheParkingDescription')}
+            />
+            <OptionMultiSelect
+              group="languages"
+              value={draft.langues}
+              onChange={(value) => setDraft((current) => ({ ...current, langues: value }))}
+              label={t('etablissement.ficheLanguagesLabel')}
+              description={t('etablissement.ficheLanguagesDescription')}
+            />
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+              <span>{t('etablissement.ficheTeleconsultationLabel')}</span>
+              <input type="checkbox" checked={draft.teleconsultation} onChange={(event) => setDraft((current) => ({ ...current, teleconsultation: event.target.checked }))} className="h-4 w-4 accent-blue-600" />
+            </label>
+            <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+              <span>{t('etablissement.ficheAppointmentsLabel')}</span>
+              <input type="checkbox" checked={draft.priseRendezVous} onChange={(event) => setDraft((current) => ({ ...current, priseRendezVous: event.target.checked }))} className="h-4 w-4 accent-blue-600" />
+            </label>
           </div>
 
           <FieldLabel>{t('etablissement.ficheDescriptionLabel')}</FieldLabel>

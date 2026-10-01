@@ -111,7 +111,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           closeTimer = window.setTimeout(() => {
             popup.remove()
             closeTimer = null
-        }, 900)
+        }, 1800)
         }
         const marker = new window.mapboxgl.Marker({
           element: markerElement(FACILITY_COLORS[centre.type] ?? '#64748B', centre.id === selectedId, centre.nom),
@@ -129,9 +129,20 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           clearCloseTimer()
           popup.setLngLat([centre.longitude!, centre.latitude!]).addTo(map)
         }
+        const handleMarkerNameClick = (event: Event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          clearCloseTimer()
+          onSelect(centre.id)
+        }
         markerElementNode.addEventListener('mouseenter', handleMarkerEnter)
         markerElementNode.addEventListener('mouseleave', handleMarkerLeave)
         markerElementNode.addEventListener('click', handleMarkerClick)
+        ;(markerElementNode as HTMLElement).querySelector('.maps-marker-name')?.addEventListener('click', handleMarkerNameClick)
+        const handlePopupEnter = () => clearCloseTimer()
+        const handlePopupLeave = () => scheduleClose()
+        popupElement.addEventListener('mouseenter', handlePopupEnter)
+        popupElement.addEventListener('mouseleave', handlePopupLeave)
         popup.on('open', () => {
           clearCloseTimer()
           popupCleanup?.()
@@ -155,6 +166,9 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           markerElementNode.removeEventListener('mouseenter', handleMarkerEnter)
           markerElementNode.removeEventListener('mouseleave', handleMarkerLeave)
           markerElementNode.removeEventListener('click', handleMarkerClick)
+          ;(markerElementNode as HTMLElement).querySelector('.maps-marker-name')?.removeEventListener('click', handleMarkerNameClick)
+          popupElement.removeEventListener('mouseenter', handlePopupEnter)
+          popupElement.removeEventListener('mouseleave', handlePopupLeave)
           popup.remove()
           marker.remove()
         }

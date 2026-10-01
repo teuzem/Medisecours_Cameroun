@@ -57,6 +57,7 @@ import {
 } from '../../lib/carte'
 import { imgUrl } from '../../lib/config'
 import { useToast } from '../ui/Toast'
+import { FACILITY_OPTION_GROUPS, type FacilityOptionGroup } from '../../lib/facilityOptions'
 
 // ─── Helpers UI ──────────────────────────────────────────────────────────────
 
@@ -319,6 +320,13 @@ export function FicheInfos({
   const langues = listValue(fiche.langues)
   const paiement = listValue(fiche.paiement)
   const assurance = listValue(fiche.assurance)
+  const evacuation = listValue(fiche.evacuationSanitaire)
+  const routeAccess = listValue(fiche.accesRoute)
+  const parking = listValue(fiche.parking)
+  const optionLabel = (group: FacilityOptionGroup, value: string) => {
+    const option = FACILITY_OPTION_GROUPS[group].find(item => item.id === value)
+    return option ? t(option.labelKey) : value
+  }
 
   const rows = [
     { key: 'address', icon: MapPin, value: fiche.adresse, extra: [fiche.quartier, fiche.ville, fiche.region].filter(Boolean).join(', ') },
@@ -423,21 +431,22 @@ export function FicheInfos({
         </div>
       )}
 
-      {(equipements.length > 0 || accessibilite.length > 0 || fiche.accesRoute || fiche.parking || langues.length > 0 || paiement.length > 0 || assurance.length > 0 || fiche.teleconsultation || fiche.priseRendezVous || fiche.urgence) && (
+      {(equipements.length > 0 || accessibilite.length > 0 || routeAccess.length > 0 || parking.length > 0 || langues.length > 0 || paiement.length > 0 || assurance.length > 0 || evacuation.length > 0 || fiche.teleconsultation || fiche.priseRendezVous || fiche.urgence) && (
         <div className="maps-about-facts">
-          <p className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-100">Informations pratiques</p>
+          <p className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-100">{t('visitor.carte.info.practicalInformation')}</p>
           <div className="maps-fact-grid">
-            {fiche.accesRoute && <div><strong>Acces routier</strong><span>{fiche.accesRoute}</span></div>}
-            {fiche.parking && <div><strong>Stationnement</strong><span>{fiche.parking}</span></div>}
-            {fiche.urgence && <div><strong>Urgences</strong><span>{fiche.urgence}</span></div>}
-            {fiche.teleconsultation && <div><strong>Teleconsultation</strong><span>Disponible</span></div>}
-            {fiche.priseRendezVous && <div><strong>Rendez-vous</strong><span>Prise de rendez-vous disponible</span></div>}
+            {routeAccess.length > 0 && <div><strong>{t('visitor.carte.info.roadAccess')}</strong><span>{routeAccess.map(item => optionLabel('roadAccess', item)).join(', ')}</span></div>}
+            {parking.length > 0 && <div><strong>{t('visitor.carte.info.parking')}</strong><span>{parking.map(item => optionLabel('parking', item)).join(', ')}</span></div>}
+            {evacuation.length > 0 && <div><strong>{t('visitor.carte.info.evacuation')}</strong><span>{evacuation.map(item => optionLabel('evacuation', item)).join(', ')}</span></div>}
+            {fiche.urgence && <div><strong>{t('visitor.carte.info.urgences24h')}</strong><span>{fiche.urgence}</span></div>}
+            {fiche.teleconsultation && <div><strong>{t('visitor.carte.info.consultations')}</strong><span>{t('visitor.carte.info.available')}</span></div>}
+            {fiche.priseRendezVous && <div><strong>{t('visitor.carte.info.appointments')}</strong><span>{t('visitor.carte.info.available')}</span></div>}
           </div>
-          {equipements.length > 0 && <div className="maps-fact-list"><strong>Equipements</strong><div>{equipements.map(item => <span key={item}>{item}</span>)}</div></div>}
-          {accessibilite.length > 0 && <div className="maps-fact-list"><strong>Accessibilite</strong><div>{accessibilite.map(item => <span key={item}>{item}</span>)}</div></div>}
-          {langues.length > 0 && <div className="maps-fact-list"><strong>Langues</strong><div>{langues.map(item => <span key={item}>{item}</span>)}</div></div>}
-          {paiement.length > 0 && <div className="maps-fact-list"><strong>Paiement</strong><div>{paiement.map(item => <span key={item}>{item}</span>)}</div></div>}
-          {assurance.length > 0 && <div className="maps-fact-list"><strong>Assurances</strong><div>{assurance.map(item => <span key={item}>{item}</span>)}</div></div>}
+          {equipements.length > 0 && <div className="maps-fact-list"><strong>{t('visitor.carte.info.equipment')}</strong><div>{equipements.map(item => <span key={item}>{item}</span>)}</div></div>}
+          {accessibilite.length > 0 && <div className="maps-fact-list"><strong>{t('visitor.carte.info.accessibility')}</strong><div>{accessibilite.map(item => <span key={item}>{optionLabel('accessibility', item)}</span>)}</div></div>}
+          {langues.length > 0 && <div className="maps-fact-list"><strong>{t('visitor.carte.info.languages')}</strong><div>{langues.map(item => <span key={item}>{optionLabel('languages', item)}</span>)}</div></div>}
+          {paiement.length > 0 && <div className="maps-fact-list"><strong>{t('visitor.carte.info.payment')}</strong><div>{paiement.map(item => <span key={item}>{optionLabel('payment', item)}</span>)}</div></div>}
+          {assurance.length > 0 && <div className="maps-fact-list"><strong>{t('visitor.carte.info.insurance')}</strong><div>{assurance.map(item => <span key={item}>{optionLabel('insurance', item)}</span>)}</div></div>}
         </div>
       )}
 

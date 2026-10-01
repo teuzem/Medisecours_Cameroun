@@ -42,11 +42,12 @@ export interface CarteCentre {
   equipements?: string[] | string
   accessibilite?: string[] | string
   ambulancesDisponibles?: boolean
-  accesRoute?: string | null
-  parking?: string | null
+  accesRoute?: string[] | string | null
+  parking?: string[] | string | null
   langues?: string[] | string
   paiement?: string[] | string
   assurance?: string[] | string
+  evacuationSanitaire?: string[] | string
   teleconsultation?: boolean
   priseRendezVous?: boolean
   urgence?: string | null

@@ -225,7 +225,7 @@ const FacilityMarker = React.memo(function FacilityMarker({
     closeTimer.current = window.setTimeout(() => {
       marker.closePopup()
       closeTimer.current = null
-    }, 900)
+    }, 1800)
   }
 
   return (
@@ -237,6 +237,11 @@ const FacilityMarker = React.memo(function FacilityMarker({
       eventHandlers={{
         click: (event: any) => {
           clearCloseTimer()
+          const target = event.originalEvent?.target as HTMLElement | null
+          if (target?.closest('.maps-marker-name')) {
+            onSelect?.(c.id)
+            return
+          }
           event.target.openPopup()
         },
         mouseover: (event: any) => {

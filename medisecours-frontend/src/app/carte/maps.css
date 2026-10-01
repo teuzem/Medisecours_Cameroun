@@ -83,7 +83,8 @@
 .maps-marker-action-save.is-saved:hover, .maps-marker-action-save.is-saved:focus-visible { background: #137333; color: #fff; }
 .mapboxgl-popup-content { padding: 0 !important; border: 0 !important; border-radius: 12px !important; overflow: hidden; }
 .mapboxgl-popup-tip { border-top-color: #fff !important; border-bottom-color: #fff !important; }
-.gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; }
+.gm-style-iw-c, .gm-style-iw-ch { padding: 0 !important; border-radius: 12px !important; }
+.gm-style-iw-chr { display: none !important; height: 0 !important; }
 .gm-style-iw-d { max-height: none !important; overflow: visible !important; padding: 0 !important; }
 .mapboxgl-popup:has(.maps-marker-popup) .mapboxgl-popup-close-button,
 .leaflet-popup:has(.maps-marker-popup) .leaflet-popup-close-button,

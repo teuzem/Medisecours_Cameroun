@@ -165,6 +165,38 @@ class CentreDeSante
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private array $accessibilite = [];
 
+    #[ORM\Column(type: 'json')]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private array $paiement = [];
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private array $assurance = [];
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private array $evacuationSanitaire = [];
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private array $accesRoute = [];
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private array $parking = [];
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private array $langues = [];
+
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private bool $teleconsultation = false;
+
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private bool $priseRendezVous = false;
+
     #[ORM\Column(options: ['default' => false])]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private bool $ambulancesDisponibles = false;
@@ -297,6 +329,30 @@ class CentreDeSante
 
     public function getAccessibilite(): array { return $this->accessibilite; }
     public function setAccessibilite(array $accessibilite): static { $this->accessibilite = $accessibilite; return $this; }
+
+    public function getPaiement(): array { return $this->paiement; }
+    public function setPaiement(array $paiement): static { $this->paiement = $paiement; return $this; }
+
+    public function getAssurance(): array { return $this->assurance; }
+    public function setAssurance(array $assurance): static { $this->assurance = $assurance; return $this; }
+
+    public function getEvacuationSanitaire(): array { return $this->evacuationSanitaire; }
+    public function setEvacuationSanitaire(array $evacuationSanitaire): static { $this->evacuationSanitaire = $evacuationSanitaire; return $this; }
+
+    public function getAccesRoute(): array { return $this->accesRoute; }
+    public function setAccesRoute(array $accesRoute): static { $this->accesRoute = $accesRoute; return $this; }
+
+    public function getParking(): array { return $this->parking; }
+    public function setParking(array $parking): static { $this->parking = $parking; return $this; }
+
+    public function getLangues(): array { return $this->langues; }
+    public function setLangues(array $langues): static { $this->langues = $langues; return $this; }
+
+    public function hasTeleconsultation(): bool { return $this->teleconsultation; }
+    public function setTeleconsultation(bool $teleconsultation): static { $this->teleconsultation = $teleconsultation; return $this; }
+
+    public function hasPriseRendezVous(): bool { return $this->priseRendezVous; }
+    public function setPriseRendezVous(bool $priseRendezVous): static { $this->priseRendezVous = $priseRendezVous; return $this; }
 
     public function hasAmbulancesDisponibles(): bool { return $this->ambulancesDisponibles; }
     public function setAmbulancesDisponibles(bool $ambulancesDisponibles): static { $this->ambulancesDisponibles = $ambulancesDisponibles; return $this; }

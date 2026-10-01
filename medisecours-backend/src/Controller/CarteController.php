@@ -300,6 +300,38 @@ class CarteController extends AbstractController
             $centre->setAccessibilite($this->cleanStringList($data['accessibilite'], 20));
         }
 
+        if (array_key_exists('paiement', $data)) {
+            $centre->setPaiement($this->cleanStringList($data['paiement'], 20));
+        }
+
+        if (array_key_exists('assurance', $data)) {
+            $centre->setAssurance($this->cleanStringList($data['assurance'], 20));
+        }
+
+        if (array_key_exists('evacuationSanitaire', $data)) {
+            $centre->setEvacuationSanitaire($this->cleanStringList($data['evacuationSanitaire'], 20));
+        }
+
+        if (array_key_exists('accesRoute', $data)) {
+            $centre->setAccesRoute($this->cleanStringList($data['accesRoute'], 20));
+        }
+
+        if (array_key_exists('parking', $data)) {
+            $centre->setParking($this->cleanStringList($data['parking'], 20));
+        }
+
+        if (array_key_exists('langues', $data)) {
+            $centre->setLangues($this->cleanStringList($data['langues'], 20));
+        }
+
+        if (isset($data['teleconsultation'])) {
+            $centre->setTeleconsultation((bool) $data['teleconsultation']);
+        }
+
+        if (isset($data['priseRendezVous'])) {
+            $centre->setPriseRendezVous((bool) $data['priseRendezVous']);
+        }
+
         if (isset($data['ambulancesDisponibles'])) {
             $centre->setAmbulancesDisponibles((bool) $data['ambulancesDisponibles']);
         }
@@ -885,6 +917,14 @@ class CarteController extends AbstractController
             'horairesDetails' => $centre->getHorairesDetails(),
             'urgences24h' => $centre->isUrgences24h(),
             'accessibilite' => $centre->getAccessibilite(),
+            'paiement' => $centre->getPaiement(),
+            'assurance' => $centre->getAssurance(),
+            'evacuationSanitaire' => $centre->getEvacuationSanitaire(),
+            'accesRoute' => $centre->getAccesRoute(),
+            'parking' => $centre->getParking(),
+            'langues' => $centre->getLangues(),
+            'teleconsultation' => $centre->hasTeleconsultation(),
+            'priseRendezVous' => $centre->hasPriseRendezVous(),
             'ambulancesDisponibles' => $centre->hasAmbulancesDisponibles(),
             'noteMoyenne' => $centre->getNoteMoyenne(),
             'totalAvis' => $centre->getTotalAvis(),

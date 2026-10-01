@@ -232,7 +232,7 @@ export default function GoogleCarteMap({
         closeTimer = window.setTimeout(() => {
           popup.close()
           closeTimer = null
-        }, 900)
+        }, 1800)
       }
       const openPopup = () => {
         clearCloseTimer()
@@ -240,20 +240,33 @@ export default function GoogleCarteMap({
       }
       const handleMarkerEnter = () => openPopup()
       const handleMarkerLeave = () => scheduleClose()
+      const handleMarkerNameClick = (event: Event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        clearCloseTimer()
+        onSelect(centre.id)
+      }
       markerContent?.addEventListener('mouseenter', handleMarkerEnter)
       markerContent?.addEventListener('mouseleave', handleMarkerLeave)
+      const markerName = markerContent?.querySelector<HTMLElement>('.maps-marker-name')
+      markerName?.addEventListener('click', handleMarkerNameClick)
+      const handlePopupEnter = () => clearCloseTimer()
+      const handlePopupLeave = () => scheduleClose()
+      popupElement.addEventListener('mouseenter', handlePopupEnter)
+      popupElement.addEventListener('mouseleave', handlePopupLeave)
+      const bindPopup = () => {
+        popupCleanup?.()
+        popupCleanup = bindFacilityPopupInteractions(popupElement, centre.id, {
+          onSelect,
+          onDirections: onRequestDirections,
+          onToggleFavorite,
+          onEnter: clearCloseTimer,
+          onLeave: scheduleClose,
+        })
+      }
+      const domReadyListener = popup.addListener('domready', bindPopup)
       marker.addEventListener('gmp-click', () => {
         openPopup()
-        window.google.maps.event.addListenerOnce(popup, 'domready', () => {
-          popupCleanup?.()
-          popupCleanup = bindFacilityPopupInteractions(popupElement, centre.id, {
-            onSelect,
-            onDirections: onRequestDirections,
-            onToggleFavorite,
-            onEnter: clearCloseTimer,
-            onLeave: scheduleClose,
-          })
-        })
       })
       const closeListener = popup.addListener('closeclick', () => {
         clearCloseTimer()
@@ -265,8 +278,12 @@ export default function GoogleCarteMap({
         popupCleanup?.()
         popupCleanup = null
         closeListener.remove()
+        domReadyListener.remove()
         markerContent?.removeEventListener('mouseenter', handleMarkerEnter)
         markerContent?.removeEventListener('mouseleave', handleMarkerLeave)
+        markerName?.removeEventListener('click', handleMarkerNameClick)
+        popupElement.removeEventListener('mouseenter', handlePopupEnter)
+        popupElement.removeEventListener('mouseleave', handlePopupLeave)
         popup.close()
       }
       markers.push(marker)
