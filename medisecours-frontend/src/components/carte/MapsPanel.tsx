@@ -57,7 +57,22 @@ function formatMediaDate(value?: string, language = 'fr'): string {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
-      })
+  })
+}
+
+function mediaUploaderName(media: NonNullable<FicheCentre['images']>[number] | undefined, fallback: string): string {
+  return media?.uploadedBy?.name || media?.uploadedByName || fallback
+}
+
+function mediaUploaderInitials(name: string): string {
+  const initials = name
+    .split(/\s+/)
+    .map(part => part.trim().charAt(0))
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+  return initials || 'MC'
 }
 
 function FacilityMediaViewer({
@@ -114,9 +129,18 @@ function FacilityMediaViewer({
         </div>}
       </div>
       {empty ? <div className="maps-media-sidebar-empty"><Images size={30} /><p>{t('visitor.carte.galleryEmpty')}</p></div> : <>
-        <div className="maps-media-sidebar-meta">
-          <strong>{current?.uploadedBy?.name || current?.uploadedByName || t('visitor.carte.galleryMember')}</strong>
-          <span>{current && formatMediaDate(current.createdAt, i18n.language)}</span>
+        <div className="maps-media-sidebar-current">
+          <div className="maps-media-sidebar-current-copy">
+            <span>{current?.kind === 'video' || current?.mimeType?.startsWith('video/') ? t('visitor.carte.galleryVideo') : t('visitor.carte.galleryPhoto')}</span>
+            <strong>{current?.originalName || t('visitor.carte.galleryPhoto')}</strong>
+          </div>
+          <div className="maps-media-sidebar-uploader">
+            <span className="maps-media-sidebar-avatar" aria-hidden="true">{mediaUploaderInitials(mediaUploaderName(current, t('visitor.carte.galleryMember')))}</span>
+            <span className="maps-media-sidebar-uploader-copy">
+              <strong>{mediaUploaderName(current, t('visitor.carte.galleryMember'))}</strong>
+              <small>{current && formatMediaDate(current.createdAt, i18n.language)}</small>
+            </span>
+          </div>
         </div>
         <div className="maps-media-filters" role="tablist" aria-label={t('visitor.carte.galleryFilters')}>
           {([['images', t('visitor.carte.galleryImages')], ['recent', t('visitor.carte.galleryRecent')], ['videos', t('visitor.carte.galleryVideos')]] as const).map(([key, label]) => (
