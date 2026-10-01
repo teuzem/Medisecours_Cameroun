@@ -232,7 +232,7 @@ export default function GoogleCarteMap({
         closeTimer = window.setTimeout(() => {
           popup.close()
           closeTimer = null
-        }, 220)
+        }, 900)
       }
       const openPopup = () => {
         clearCloseTimer()

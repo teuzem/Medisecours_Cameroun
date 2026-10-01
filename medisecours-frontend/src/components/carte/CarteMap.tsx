@@ -225,7 +225,7 @@ const FacilityMarker = React.memo(function FacilityMarker({
     closeTimer.current = window.setTimeout(() => {
       marker.closePopup()
       closeTimer.current = null
-    }, 220)
+    }, 900)
   }
 
   return (
@@ -265,7 +265,7 @@ const FacilityMarker = React.memo(function FacilityMarker({
         },
       }}
     >
-      <Popup closeButton={false}>
+      <Popup closeButton={false} closeOnClick={false} autoClose={false}>
         <div
           dangerouslySetInnerHTML={{
             __html: facilityMarkerPopupHtml(c, {

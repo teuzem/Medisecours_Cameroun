@@ -111,7 +111,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           closeTimer = window.setTimeout(() => {
             popup.remove()
             closeTimer = null
-          }, 220)
+        }, 900)
         }
         const marker = new window.mapboxgl.Marker({
           element: markerElement(FACILITY_COLORS[centre.type] ?? '#64748B', centre.id === selectedId, centre.nom),
