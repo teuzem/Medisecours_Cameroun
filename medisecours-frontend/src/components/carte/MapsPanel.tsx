@@ -147,13 +147,22 @@ function FacilityMediaViewer({
             <button type="button" key={key} role="tab" aria-selected={filter === key} onClick={() => { onFilterChange(key); onIndexChange(0) }}>{label}</button>
           ))}
         </div>
+        <div className="maps-media-sidebar-list-heading">
+          <span>{t('visitor.carte.galleryTitle')}</span>
+          <strong>{filtered.length}</strong>
+        </div>
         <div className="maps-media-sidebar-list" role="listbox" aria-label={t('visitor.carte.galleryTitle')}>
           {filtered.map((item, index) => {
             const itemIsVideo = item.kind === 'video' || item.mimeType?.startsWith('video/')
             const itemSource = imgUrl(item.contentUrl) || item.contentUrl
+            const itemUploader = mediaUploaderName(item, t('visitor.carte.galleryMember'))
             return <button type="button" key={`${item.id}-${index}`} className="maps-media-sidebar-item" role="option" aria-selected={index === safeIndex} onClick={() => onIndexChange(index)}>
               {itemIsVideo ? <video src={itemSource} muted preload="metadata" aria-hidden="true" /> : <img src={itemSource} alt="" loading="lazy" />}
-              <span className="maps-media-sidebar-item-copy"><strong>{item.originalName || (itemIsVideo ? t('visitor.carte.galleryVideo') : t('visitor.carte.galleryPhoto'))}</strong><small>{formatMediaDate(item.createdAt, i18n.language) || t('visitor.carte.galleryMember')}</small></span>
+              <span className="maps-media-sidebar-item-copy">
+                <strong>{item.originalName || (itemIsVideo ? t('visitor.carte.galleryVideo') : t('visitor.carte.galleryPhoto'))}</strong>
+                <small>{itemUploader}</small>
+                <em>{formatMediaDate(item.createdAt, i18n.language) || t('visitor.carte.galleryMember')}</em>
+              </span>
             </button>
           })}
         </div>
