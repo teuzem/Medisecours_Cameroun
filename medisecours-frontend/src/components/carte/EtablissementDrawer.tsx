@@ -57,6 +57,7 @@ import {
 import { imgUrl } from '../../lib/config'
 import { useToast } from '../ui/Toast'
 import { FACILITY_OPTION_GROUPS, type FacilityOptionGroup } from '../../lib/facilityOptions'
+import { findCameroonLanguage } from '../../lib/cameroonLanguages'
 
 // ─── Helpers UI ──────────────────────────────────────────────────────────────
 
@@ -308,7 +309,7 @@ export function FicheInfos({
   joining: boolean
   onServiceSelect?: (label: string, kind: 'service' | 'specialite') => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const services = getServicesList(fiche)
   const specialites = getSpecialitesList(fiche)
   const listValue = (value: unknown): string[] => Array.isArray(value)
@@ -323,6 +324,10 @@ export function FicheInfos({
   const routeAccess = listValue(fiche.accesRoute)
   const parking = listValue(fiche.parking)
   const optionLabel = (group: FacilityOptionGroup, value: string) => {
+    if (group === 'languages') {
+      const language = findCameroonLanguage(value)
+      if (language) return i18n.language.toLowerCase().startsWith('fr') ? language.french : language.name
+    }
     const option = FACILITY_OPTION_GROUPS[group].find(item => item.id === value)
     return option ? t(option.labelKey) : value
   }

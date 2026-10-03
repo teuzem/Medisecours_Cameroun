@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   BadgeCheck,
-  Accessibility,
+  Check,
   Ambulance,
   Building2,
   Clock,
   ExternalLink,
   FileImage,
   Loader2,
+  Languages,
   MapPin,
   Navigation,
   Plus,
@@ -36,6 +37,11 @@ import {
   type FacilityOptionGroup,
 } from '../../lib/facilityOptions'
 import CameroonGeographyFields, { type GeographyValue } from '../auth/CameroonGeographyFields'
+import {
+  CAMEROON_LANGUAGES,
+  CAMEROON_LANGUAGE_SOURCE,
+  normalizeLanguageSearch,
+} from '../../lib/cameroonLanguages'
 
 export type FicheCentre = {
   id: number
@@ -529,17 +535,168 @@ function OptionMultiSelect({
     onChange([...next])
   }
   return (
-    <fieldset className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-950/40">
-      <legend className="px-1 text-xs font-bold text-slate-700 dark:text-slate-200">{label}</legend>
-      {description && <p className="mb-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{description}</p>}
-      <div className="grid gap-1.5 sm:grid-cols-2">
+    <fieldset className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-700 dark:bg-slate-950/40">
+      <legend className="px-1 text-xs font-bold text-slate-800 dark:text-slate-100">{label}</legend>
+      {description && <p className="mb-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{description}</p>}
+      <div className="grid gap-2 sm:grid-cols-2">
         {options.map((option) => (
-          <label key={option.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-semibold transition ${selected.has(option.id) ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-500/50 dark:bg-blue-500/10 dark:text-blue-200' : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'}`}>
-            <input type="checkbox" checked={selected.has(option.id)} onChange={() => toggle(option.id)} className="mt-0.5 accent-blue-600" />
-            <span>{t(option.labelKey)}</span>
+          <label key={option.id} className={`group relative flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-[11px] font-semibold transition-colors focus-within:ring-2 focus-within:ring-blue-500/30 ${selected.has(option.id) ? 'border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-500/10 dark:text-blue-100' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/40 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:border-blue-500/60'}`}>
+            <input
+              type="checkbox"
+              checked={selected.has(option.id)}
+              onChange={() => toggle(option.id)}
+              className="peer sr-only"
+            />
+            <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${selected.has(option.id) ? 'border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950' : 'border-slate-300 bg-white text-transparent group-hover:border-blue-400 dark:border-slate-600 dark:bg-slate-900'}`}>
+              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+            </span>
+            <span className="leading-4">{t(option.labelKey)}</span>
           </label>
         ))}
       </div>
+    </fieldset>
+  )
+}
+
+const LEGACY_LANGUAGE_OPTIONS = [
+  { id: 'french', name: 'French', french: 'Français' },
+  { id: 'english', name: 'English', french: 'Anglais' },
+  { id: 'fulfulde', name: 'Fulfulde', french: 'Fulfulde' },
+  { id: 'ewondo', name: 'Ewondo', french: 'Ewondo' },
+  { id: 'duala', name: 'Duala', french: 'Duala' },
+  { id: 'pidgin_english', name: 'Pidgin English', french: 'Pidgin-English' },
+  { id: 'local_languages', name: 'Local languages', french: 'Langues locales' },
+  { id: 'sign_language', name: 'Sign language', french: 'Langue des signes' },
+]
+
+function LanguageMultiSelect({
+  value,
+  onChange,
+  label,
+  description,
+}: {
+  value: string[]
+  onChange: (next: string[]) => void
+  label: string
+  description?: string
+}) {
+  const { t, i18n } = useTranslation()
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const selected = new Set(value)
+  const isFrench = i18n.language.toLowerCase().startsWith('fr')
+  const normalizedQuery = normalizeLanguageSearch(query)
+  const filtered = useMemo(() => {
+    const catalogue = CAMEROON_LANGUAGES.filter((language) => {
+      if (!normalizedQuery) return true
+      return [language.name, language.french, language.classification, language.code]
+        .map(normalizeLanguageSearch)
+        .some((candidate) => candidate.includes(normalizedQuery))
+    })
+    const legacy = LEGACY_LANGUAGE_OPTIONS.filter((language) => {
+      if (!normalizedQuery) return true
+      return [language.name, language.french].map(normalizeLanguageSearch).some((candidate) => candidate.includes(normalizedQuery))
+    })
+    return [...legacy, ...catalogue].slice(0, 80)
+  }, [normalizedQuery])
+
+  const toggle = (id: string) => {
+    const next = new Set(selected)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    onChange([...next])
+  }
+
+  const labelFor = (id: string) => {
+    const legacy = LEGACY_LANGUAGE_OPTIONS.find((item) => item.id === id)
+    if (legacy) return isFrench ? legacy.french : legacy.name
+    const language = CAMEROON_LANGUAGES.find((item) => item.id === id || item.code === id)
+    return language ? (isFrench ? language.french : language.name) : id
+  }
+
+  return (
+    <fieldset className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-700 dark:bg-slate-950/40">
+      <legend className="flex items-center gap-1.5 px-1 text-xs font-bold text-slate-800 dark:text-slate-100">
+        <Languages className="h-3.5 w-3.5 text-blue-600" />
+        {label}
+      </legend>
+      {description && <p className="mb-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{description}</p>}
+
+      {value.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {value.map((id) => (
+            <button
+              type="button"
+              key={id}
+              onClick={() => toggle(id)}
+              className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-800 transition-colors hover:border-blue-400 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-100"
+              aria-label={t('etablissement.removeLanguage', { language: labelFor(id) })}
+            >
+              {labelFor(id)}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setOpen(true)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setOpen(false)
+          }}
+          placeholder={t('etablissement.ficheLanguagesSearch')}
+          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          aria-controls="cameroon-language-options"
+        />
+        {open && (
+          <div
+            id="cameroon-language-options"
+            role="listbox"
+            className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          >
+            {filtered.length > 0 ? filtered.map((language) => {
+              const id = language.id
+              const languageName = 'code' in language
+                ? (isFrench ? language.french : language.name)
+                : (isFrench ? language.french : language.name)
+              const checked = selected.has(id)
+              return (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={checked}
+                  key={id}
+                  onClick={() => toggle(id)}
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[11px] transition-colors ${checked ? 'bg-blue-50 text-blue-900 dark:bg-blue-500/10 dark:text-blue-100' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">{languageName}</span>
+                    {'classification' in language && <span className="block truncate text-[10px] text-slate-400">{String(language.classification)}</span>}
+                  </span>
+                  <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${checked ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 text-transparent dark:border-slate-600'}`}>
+                    <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                  </span>
+                </button>
+              )
+            }) : (
+              <p className="px-3 py-4 text-center text-[11px] text-slate-500">{t('etablissement.ficheLanguagesNoResults')}</p>
+            )}
+            <p className="border-t border-slate-100 px-3 py-2 text-[10px] text-slate-400 dark:border-slate-800">
+              {t('etablissement.ficheLanguagesSource', { count: CAMEROON_LANGUAGE_SOURCE.count })}
+            </p>
+          </div>
+        )}
+      </div>
+      <button type="button" className="mt-2 text-[10px] font-semibold text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-blue-700" onClick={() => setOpen((current) => !current)}>
+        {open ? t('etablissement.ficheLanguagesClose') : t('etablissement.ficheLanguagesBrowse')}
+      </button>
     </fieldset>
   )
 }
@@ -955,21 +1112,13 @@ export default function FichePanel({
             </button>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-950/40">
-            <div className="flex items-center gap-2">
-              <Accessibility className="h-4 w-4 text-blue-600" />
-              <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('etablissement.ficheAccessibilityLabel')}</p>
-            </div>
-            <p className="mt-1 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{t('etablissement.ficheAccessibilityDescription')}</p>
-            <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-              {getFacilityOptions('accessibility').map((option) => (
-                <label key={option.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-semibold transition ${draft.accessibilite.includes(option.id) ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-500/50 dark:bg-blue-500/10 dark:text-blue-200' : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'}`}>
-                  <input type="checkbox" checked={draft.accessibilite.includes(option.id)} onChange={() => setDraft((current) => ({ ...current, accessibilite: current.accessibilite.includes(option.id) ? current.accessibilite.filter((item) => item !== option.id) : [...current.accessibilite, option.id] }))} className="mt-0.5 accent-blue-600" />
-                  <span>{t(option.labelKey)}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          <OptionMultiSelect
+            group="accessibility"
+            value={draft.accessibilite}
+            onChange={(value) => setDraft((current) => ({ ...current, accessibilite: value }))}
+            label={t('etablissement.ficheAccessibilityLabel')}
+            description={t('etablissement.ficheAccessibilityDescription')}
+          />
 
           <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 dark:border-slate-700 dark:bg-slate-950/40">
             <span className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -1017,8 +1166,7 @@ export default function FichePanel({
               label={t('etablissement.ficheParkingLabel')}
               description={t('etablissement.ficheParkingDescription')}
             />
-            <OptionMultiSelect
-              group="languages"
+            <LanguageMultiSelect
               value={draft.langues}
               onChange={(value) => setDraft((current) => ({ ...current, langues: value }))}
               label={t('etablissement.ficheLanguagesLabel')}

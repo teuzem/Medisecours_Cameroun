@@ -1371,6 +1371,12 @@
       "ficheLanguagesDescription": "Languages used to welcome and orient patients.",
       "ficheTeleconsultationLabel": "Teleconsultation available",
       "ficheAppointmentsLabel": "Appointment booking",
+      "ficheLanguagesSearch": "Search a language or language family",
+      "ficheLanguagesBrowse": "Browse the Cameroon catalogue",
+      "ficheLanguagesClose": "Hide catalogue",
+      "ficheLanguagesNoResults": "No language matches this search.",
+      "ficheLanguagesSource": "{{count}} controlled languages - ALCAM 2012 inventory",
+      "removeLanguage": "Remove {{language}}",
       "options": {
         "accessibility": {
           "wheelchairEntrance": "Wheelchair-accessible entrance",

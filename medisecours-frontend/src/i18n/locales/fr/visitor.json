@@ -1371,6 +1371,12 @@
       "ficheLanguagesDescription": "Langues utilisées pour accueillir et orienter les patients.",
       "ficheTeleconsultationLabel": "Téléconsultation disponible",
       "ficheAppointmentsLabel": "Prise de rendez-vous",
+      "ficheLanguagesSearch": "Rechercher une langue ou une famille linguistique",
+      "ficheLanguagesBrowse": "Parcourir le catalogue camerounais",
+      "ficheLanguagesClose": "Masquer le catalogue",
+      "ficheLanguagesNoResults": "Aucune langue ne correspond à cette recherche.",
+      "ficheLanguagesSource": "{{count}} langues contrôlées - inventaire ALCAM 2012",
+      "removeLanguage": "Retirer {{language}}",
       "options": {
         "accessibility": {
           "wheelchairEntrance": "Entrée accessible en fauteuil",
