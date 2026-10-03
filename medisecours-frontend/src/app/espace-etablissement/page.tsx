@@ -21,6 +21,7 @@ import {
   MapPin,
   MessageSquare,
   Palette,
+  Image as ImageIcon,
   Plus,
   RefreshCw,
   Search,
@@ -111,6 +112,14 @@ type ManagedMedia = {
   createdAt: string
 }
 
+type CoverSearchResult = {
+  id: string
+  url: string
+  previewUrl: string
+  sourceUrl: string
+  author: string
+}
+
 type ManagedReview = {
   id: number
   note: number
@@ -136,6 +145,7 @@ type Prefs = {
   compact: boolean
   animations: boolean
   surface: 'glass' | 'soft'
+  showHeroCover: boolean
 }
 
 const ACCENTS = ['#059669', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706']
@@ -221,7 +231,7 @@ const DASHBOARD_SECTION_IDS: DashboardSectionId[] = [
 ]
 
 function defaultPrefs(): Prefs {
-  return { accent: ACCENTS[0], showSos: true, compact: false, animations: true, surface: 'glass' }
+  return { accent: ACCENTS[0], showSos: true, compact: false, animations: true, surface: 'glass', showHeroCover: true }
 }
 
 function normalizePrefs(parsed: Partial<Prefs> | null | undefined): Prefs {
@@ -231,6 +241,7 @@ function normalizePrefs(parsed: Partial<Prefs> | null | undefined): Prefs {
     compact: Boolean(parsed?.compact),
     animations: parsed?.animations !== false,
     surface: parsed?.surface === 'soft' ? 'soft' : 'glass',
+    showHeroCover: parsed?.showHeroCover !== false,
   }
 }
 
@@ -564,8 +575,8 @@ export default function EtablissementEspacePage() {
     }
   }, [loadMonEtablissement, loadStats, t, toast])
 
-  const uploadMedia = useCallback(async (file: File) => {
-    if (!mon?.centre?.id || uploadingMedia) return
+  const uploadMedia = useCallback(async (file: File): Promise<ManagedMedia | null> => {
+    if (!mon?.centre?.id || uploadingMedia) return null
     const allowed = new Set([
       'image/jpeg',
       'image/png',
@@ -579,11 +590,11 @@ export default function EtablissementEspacePage() {
     const maxBytes = isVideo ? 30 * 1024 * 1024 : 10 * 1024 * 1024
     if (!allowed.has(file.type)) {
       toast.error(t('etablissement.mediaFormatInvalid'))
-      return
+      return null
     }
     if (file.size > maxBytes) {
       toast.error(isVideo ? t('etablissement.mediaVideoTooLarge') : t('etablissement.mediaImageTooLarge'))
-      return
+      return null
     }
     setUploadingMedia(true)
     try {
@@ -599,8 +610,10 @@ export default function EtablissementEspacePage() {
       )
       setMediaError(false)
       toast.success(t('etablissement.mediaAdded'))
+      return data.media
     } catch (error: any) {
       toast.error(error.response?.data?.detail || error.response?.data?.error || t('etablissement.mediaAddFailed'))
+      return null
     } finally {
       setUploadingMedia(false)
     }
@@ -617,6 +630,7 @@ export default function EtablissementEspacePage() {
               centre: {
                 ...current.centre,
                 imageUrl: current.centre.imageUrl === item.contentUrl ? null : current.centre.imageUrl,
+                logoUrl: current.centre.logoUrl === item.contentUrl ? null : current.centre.logoUrl,
                 images: (current.centre.images ?? []).filter((image) => image.id !== item.id),
               },
             }
@@ -628,8 +642,8 @@ export default function EtablissementEspacePage() {
     }
   }, [t, toast])
 
-  const setCoverMedia = useCallback(async (item: ManagedMedia | null) => {
-    if (!mon?.centre?.id || settingCover) return
+  const setCoverMedia = useCallback(async (item: ManagedMedia | null): Promise<boolean> => {
+    if (!mon?.centre?.id || settingCover) return false
     setSettingCover(true)
     try {
       const { data } = await api.patch<{ centre: FicheCentre }>('/api/carte/mon-etablissement', {
@@ -637,12 +651,27 @@ export default function EtablissementEspacePage() {
       })
       setMon((current) => (current ? { ...current, centre: data.centre } : current))
       toast.success(t(item ? 'etablissement.coverSelected' : 'etablissement.coverRemoved'))
+      return true
     } catch (error: any) {
       toast.error(error.response?.data?.error || t('etablissement.coverSaveFailed'))
+      return false
     } finally {
       setSettingCover(false)
     }
   }, [mon, settingCover, t, toast])
+
+  const setLogoUrl = useCallback(async (logoUrl: string | null): Promise<boolean> => {
+    if (!mon?.centre?.id) return false
+    try {
+      const { data } = await api.patch<{ centre: FicheCentre }>('/api/carte/mon-etablissement', { logoUrl })
+      setMon(current => current ? { ...current, centre: data.centre } : current)
+      toast.success(t('etablissement.logoSaved'))
+      return true
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || t('etablissement.logoSaveFailed'))
+      return false
+    }
+  }, [mon, t, toast])
 
   const moderateReview = useCallback(async (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => {
     setModeratingReview(review.id)
@@ -662,49 +691,11 @@ export default function EtablissementEspacePage() {
   }, [loadMonEtablissement, t, toast])
 
   const reloadData = useCallback(() => {
-    if (mon?.centre?.id != null) {
-      void api
-        .get<DashboardData>('/api/carte/dashboard', { params: { centre: mon.centre.id } })
-        .then(({ data: dash }) => setDashboard(dash))
-        .catch(() => undefined)
-      setTeamLoading(true)
-      setTeamError(false)
-      void api
-        .get<{ members: EquipeMembre[] }>('/api/carte/equipes', { params: { centre: mon.centre.id } })
-        .then(({ data: team }) => {
-          setEquipe(team.members)
-          setTeamError(false)
-        })
-        .catch(() => setTeamError(true))
-        .finally(() => setTeamLoading(false))
-      setMediaLoading(true)
-      setMediaError(false)
-      void api
-        .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: mon.centre.id } })
-        .then(({ data: gallery }) => {
-          setMedia(gallery.items ?? [])
-          setMon((current) =>
-            current?.centre
-              ? { ...current, centre: { ...current.centre, images: gallery.items ?? [] } }
-              : current,
-          )
-          setMediaError(false)
-        })
-        .catch(() => setMediaError(true))
-        .finally(() => setMediaLoading(false))
-      setReviewsLoading(true)
-      setReviewsError(false)
-      void api
-        .get<{ items: ManagedReview[] }>('/api/carte/avis', { params: { centre: mon.centre.id } })
-        .then(({ data: reviewData }) => {
-          setReviews(reviewData.items ?? [])
-          setReviewsError(false)
-        })
-        .catch(() => setReviewsError(true))
-        .finally(() => setReviewsLoading(false))
-      void loadStats()
-    }
-  }, [mon, loadStats])
+    if (mon?.centre?.id == null) return
+    void loadMonEtablissement()
+    void loadStats()
+    router.refresh()
+  }, [loadMonEtablissement, loadStats, mon?.centre?.id, router])
 
   const handleFicheSaved = useCallback((centre: FicheCentre) => {
     setMon((current) => (current ? { ...current, centre } : current))
@@ -776,6 +767,7 @@ export default function EtablissementEspacePage() {
             isAdmin={isAdmin}
             onRefresh={reloadData}
             onSync={runSync}
+            prefs={prefs}
           />
 
           {/* ═══ Chargement / erreur ═══ */}
@@ -844,6 +836,7 @@ export default function EtablissementEspacePage() {
                 moderateReview={moderateReview}
                 applyPrefs={applyPrefs}
                 resetPrefs={resetPrefs}
+                setLogoUrl={setLogoUrl}
                 handleFicheSaved={handleFicheSaved}
               />
             </>
@@ -891,6 +884,7 @@ function DashboardWorkspace({
   moderateReview,
   applyPrefs,
   resetPrefs,
+  setLogoUrl,
   handleFicheSaved,
 }: {
   activeSection: DashboardSectionId
@@ -919,16 +913,17 @@ function DashboardWorkspace({
   reviewsError: boolean
   reloadData: () => void
   uploadingMedia: boolean
-  uploadMedia: (file: File) => void
+  uploadMedia: (file: File) => Promise<ManagedMedia | null>
   deleteMedia: (item: ManagedMedia) => void
   canManageMedia: boolean
   coverUrl: string | null
   settingCover: boolean
-  setCoverMedia: (item: ManagedMedia | null) => void
+  setCoverMedia: (item: ManagedMedia | null) => Promise<boolean>
   moderatingReview: number | null
   moderateReview: (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
   applyPrefs: (prefs: Prefs) => void
   resetPrefs: () => void
+  setLogoUrl: (url: string | null) => Promise<boolean>
   handleFicheSaved: (centre: FicheCentre) => void
 }) {
   const panelClass = compact ? 'dashboard-workspace mt-4' : 'dashboard-workspace mt-4'
@@ -1017,7 +1012,21 @@ function DashboardWorkspace({
       return (
         <div className={panelClass}>
           <div id="dashboard-settings" {...panelProps}>
-            <PersonalizationPanel prefs={prefs} onChange={applyPrefs} onReset={resetPrefs} accent={accent} />
+            <PersonalizationPanel
+              key={`${mon.centre.id}:${mon.centre.logoUrl ?? ''}`}
+              prefs={prefs}
+              onChange={applyPrefs}
+              onReset={resetPrefs}
+              accent={accent}
+              centre={mon.centre}
+              media={media}
+              onSetCover={setCoverMedia}
+              onSetLogo={setLogoUrl}
+              onUploadImage={uploadMedia}
+              uploadingMedia={uploadingMedia}
+              settingCover={settingCover}
+              canManageBranding={canManageMedia}
+            />
           </div>
         </div>
       )
@@ -1206,6 +1215,34 @@ function HeaderChip({
   )
 }
 
+function FacilityLogo({
+  url,
+  name,
+  accent,
+  className,
+}: {
+  url?: string | null
+  name: string
+  accent: string
+  className?: string
+}) {
+  const [failed, setFailed] = useState(false)
+  const source = imgUrl(url) || url
+
+  if (!source || failed) {
+    return <Building2 className={className ?? 'h-8 w-8'} style={{ color: accent }} aria-hidden="true" />
+  }
+
+  return (
+    <img
+      src={source}
+      alt={name}
+      className={className ?? 'max-h-16 max-w-24 object-contain'}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 function DashboardHeader({
   accent,
   mon,
@@ -1217,6 +1254,7 @@ function DashboardHeader({
   isAdmin,
   onRefresh,
   onSync,
+  prefs,
 }: {
   accent: string
   mon: MonEtablissement | null
@@ -1228,28 +1266,46 @@ function DashboardHeader({
   isAdmin: boolean
   onRefresh: () => void
   onSync: () => void
+  prefs: Prefs
 }) {
   const { t, i18n } = useTranslation()
   const centre = mon?.centre
   const verification = centre?.verificationStatut
 
   return (
-    <GlassCard as="header" glow className="p-4 sm:p-8">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-5">
+    <GlassCard as="header" glow className="relative isolate overflow-hidden p-4 sm:p-8">
+      {prefs.showHeroCover && centre?.imageUrl && (
+        <img
+          src={imgUrl(centre.imageUrl) || centre.imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 h-full w-full object-cover"
+        />
+      )}
+      <div className={`absolute inset-0 -z-10 ${prefs.showHeroCover && centre?.imageUrl ? 'bg-slate-950/65' : 'bg-white/80 dark:bg-slate-950/70'}`} />
+      <div className="relative flex min-w-0 flex-wrap items-center justify-between gap-5">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          <div className="wdg__tile flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg">
-            <Building2 className="h-7 w-7" />
+          <div className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden">
+            <FacilityLogo
+              key={centre?.logoUrl ?? 'facility-logo-fallback'}
+              url={centre?.logoUrl}
+              name={t('etablissement.currentLogoAlt', { name: centre?.nom || userNom || t('etablissement.subtitle') })}
+              accent={accent}
+              className="max-h-16 max-w-24 object-contain"
+            />
           </div>
           <div className="min-w-0">
-            <p className="wdg__eyebrow text-slate-400 dark:text-slate-500">
+            <p className={`wdg__eyebrow ${prefs.showHeroCover && centre?.imageUrl ? 'text-white/75' : 'text-slate-400 dark:text-slate-500'}`}>
               {t('etablissement.title')}
             </p>
-            <h1 className="break-words font-display text-xl font-extrabold text-slate-900 dark:text-white sm:text-[26px]">
+            <h1 className={`break-words font-display text-xl font-extrabold sm:text-[26px] ${
+              prefs.showHeroCover && centre?.imageUrl ? 'text-white' : 'text-slate-900 dark:text-white'
+            }`}>
               {centre?.nom || userNom || t('etablissement.subtitle')}
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
               {centre?.ville || centre?.region ? (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <span className={`inline-flex items-center gap-1 text-xs font-medium ${prefs.showHeroCover && centre?.imageUrl ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
                   <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
                   {[centre.ville, centre.region].filter(Boolean).join(' · ')}
                 </span>
@@ -1283,7 +1339,7 @@ function DashboardHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex flex-wrap items-center gap-2">
           {centre && (
             <Link
               href={`/carte?centre=${centre.id}`}
@@ -2363,13 +2419,139 @@ function PersonalizationPanel({
   onChange,
   onReset,
   accent,
+  centre,
+  media,
+  onSetCover,
+  onSetLogo,
+  onUploadImage,
+  uploadingMedia,
+  settingCover,
+  canManageBranding,
 }: {
   prefs: Prefs
   onChange: (prefs: Prefs) => void
   onReset: () => void
   accent: string
+  centre: FicheCentre
+  media: ManagedMedia[]
+  onSetCover: (item: ManagedMedia | null) => Promise<boolean>
+  onSetLogo: (url: string | null) => Promise<boolean>
+  onUploadImage: (file: File) => Promise<ManagedMedia | null>
+  uploadingMedia: boolean
+  settingCover: boolean
+  canManageBranding: boolean
 }) {
   const { t } = useTranslation()
+  const [logoDraft, setLogoDraft] = useState(centre.logoUrl ?? '')
+  const [savingLogo, setSavingLogo] = useState(false)
+  const [uploadTarget, setUploadTarget] = useState<'logo' | 'cover' | null>(null)
+  const [coverQuery, setCoverQuery] = useState('')
+  const [coverProvider, setCoverProvider] = useState<'pexels' | 'pixabay'>('pexels')
+  const [coverResults, setCoverResults] = useState<CoverSearchResult[]>([])
+  const [coverSearching, setCoverSearching] = useState(false)
+  const [coverFeedback, setCoverFeedback] = useState<string | null>(null)
+  const [importingCoverId, setImportingCoverId] = useState<string | null>(null)
+  const imageMedia = media.filter(item => item.kind === 'image')
+
+  const persistLogo = async (url: string | null) => {
+    if (savingLogo) return
+    setSavingLogo(true)
+    try {
+      const saved = await onSetLogo(url)
+      if (saved) setLogoDraft(url ?? '')
+    } finally {
+      setSavingLogo(false)
+    }
+  }
+
+  const uploadAndAssign = async (target: 'logo' | 'cover', file: File) => {
+    if (uploadingMedia || uploadTarget) return
+    setUploadTarget(target)
+    try {
+      const uploaded = await onUploadImage(file)
+      if (!uploaded || uploaded.kind !== 'image') return
+      if (target === 'logo') {
+        await persistLogo(uploaded.contentUrl)
+      } else {
+        await onSetCover(uploaded)
+      }
+    } finally {
+      setUploadTarget(null)
+    }
+  }
+
+  const searchCovers = async () => {
+    const query = coverQuery.trim()
+    if (query.length < 2 || coverSearching) {
+      if (query.length < 2) setCoverFeedback(t('etablissement.coverSearchQueryTooShort'))
+      return
+    }
+    setCoverSearching(true)
+    setCoverFeedback(null)
+    setCoverResults([])
+    try {
+      const response = await fetch(`/api/cover-search?q=${encodeURIComponent(query)}&provider=${coverProvider}`)
+      const data = await response.json() as {
+        items?: CoverSearchResult[]
+        configurationRequired?: boolean
+        error?: string
+      }
+      if (data.configurationRequired) {
+        setCoverFeedback(t('etablissement.coverSearchConfigurationRequired', { provider: coverProvider === 'pexels' ? 'Pexels' : 'Pixabay' }))
+        return
+      }
+      if (!response.ok) {
+        setCoverFeedback(t(data.error === 'provider_timeout' ? 'etablissement.coverSearchTimeout' : 'etablissement.coverSearchFailed'))
+        return
+      }
+      const results = data.items ?? []
+      setCoverResults(results)
+      if (results.length === 0) setCoverFeedback(t('etablissement.coverSearchNoResults'))
+    } catch {
+      setCoverFeedback(t('etablissement.coverSearchFailed'))
+    } finally {
+      setCoverSearching(false)
+    }
+  }
+
+  const importProviderCover = async (result: CoverSearchResult) => {
+    if (importingCoverId || settingCover || uploadingMedia) return
+    const provider = coverProvider
+    setImportingCoverId(result.id)
+    setCoverFeedback(null)
+    try {
+      const response = await fetch('/api/cover-search/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider,
+          url: result.url,
+          fileName: `${provider}-${result.id}`,
+        }),
+      })
+      if (!response.ok) {
+        setCoverFeedback(t('etablissement.coverImportFailed'))
+        return
+      }
+
+      const image = await response.blob()
+      const extension = image.type === 'image/png'
+        ? 'png'
+        : image.type === 'image/webp'
+          ? 'webp'
+          : image.type === 'image/gif'
+            ? 'gif'
+            : 'jpg'
+      const file = new File([image], `${provider}-${result.id}.${extension}`, { type: image.type })
+      const uploaded = await onUploadImage(file)
+      if (!uploaded) return
+      await onSetCover(uploaded)
+    } catch {
+      setCoverFeedback(t('etablissement.coverImportFailed'))
+    } finally {
+      setImportingCoverId(null)
+    }
+  }
   return (
     <GlassCard as="section" hover glow className="wdg-anim p-5" delay={400}>
       <SectionHeader
@@ -2445,7 +2627,264 @@ function PersonalizationPanel({
           description={t('etablissement.animationsDesc')}
           accent
         />
+        <Toggle
+          checked={prefs.showHeroCover}
+          onChange={(value) => onChange({ ...prefs, showHeroCover: value })}
+          label={t('etablissement.showHeroCover')}
+          accent
+        />
       </div>
+      {!canManageBranding ? (
+        <p className="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-600 dark:border-slate-700 dark:bg-slate-950/30 dark:text-slate-300">
+          {t('etablissement.brandingRestricted')}
+        </p>
+      ) : (
+        <>
+      <div className="mt-6 grid gap-4 border-t border-slate-200 pt-5 dark:border-slate-700 lg:grid-cols-2">
+        <section className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-700 dark:bg-slate-950/30">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden">
+              {centre.logoUrl ? (
+                <img
+                  src={imgUrl(centre.logoUrl) || centre.logoUrl}
+                  alt={t('etablissement.currentLogoAlt', { name: centre.nom })}
+                  className="max-h-16 max-w-24 object-contain"
+                />
+              ) : (
+                <ImageIcon className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.logoLabel')}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">{t('etablissement.logoDescription')}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <input
+              value={logoDraft}
+              onChange={event => setLogoDraft(event.target.value)}
+              className="min-h-10 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none transition focus:border-[var(--accent)] dark:border-slate-700 dark:bg-slate-900"
+              placeholder="https://..."
+              inputMode="url"
+            />
+            <button
+              type="button"
+              onClick={() => void persistLogo(logoDraft.trim() || null)}
+              disabled={savingLogo}
+              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ backgroundColor: accent }}
+            >
+              {savingLogo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+              {t('etablissement.saveLogo')}
+            </button>
+          </div>
+
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+              {uploadTarget === 'logo' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {t('etablissement.uploadLogo')}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                disabled={uploadingMedia || uploadTarget !== null}
+                className="sr-only"
+                onChange={event => {
+                  const file = event.currentTarget.files?.[0]
+                  event.currentTarget.value = ''
+                  if (file) void uploadAndAssign('logo', file)
+                }}
+              />
+            </label>
+            {imageMedia.length > 0 && (
+              <select
+                value=""
+                disabled={savingLogo}
+                onChange={event => {
+                  const value = event.target.value
+                  if (value) void persistLogo(value)
+                }}
+                className="min-h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+              >
+                <option value="">{t('etablissement.chooseUploadedLogo')}</option>
+                {imageMedia.map(item => (
+                  <option key={item.id} value={item.contentUrl}>{item.originalName || item.contentUrl}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {centre.logoUrl && (
+            <button
+              type="button"
+              onClick={() => void persistLogo(null)}
+              disabled={savingLogo}
+              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:bg-white disabled:opacity-60 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {t('etablissement.removeLogo')}
+            </button>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-700 dark:bg-slate-950/30">
+          <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900">
+            {centre.imageUrl ? (
+              <img
+                src={imgUrl(centre.imageUrl) || centre.imageUrl}
+                alt={t('etablissement.currentCoverAlt', { name: centre.nom })}
+                className="aspect-[16/6] w-full object-cover"
+              />
+            ) : (
+              <div className="flex aspect-[16/6] items-center justify-center text-slate-300 dark:text-slate-600">
+                <ImageIcon className="h-8 w-8" />
+              </div>
+            )}
+          </div>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.heroCoverLabel')}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{t('etablissement.heroCoverDescription')}</p>
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+              {uploadTarget === 'cover' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {t('etablissement.uploadCover')}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                disabled={uploadingMedia || uploadTarget !== null || settingCover}
+                className="sr-only"
+                onChange={event => {
+                  const file = event.currentTarget.files?.[0]
+                  event.currentTarget.value = ''
+                  if (file) void uploadAndAssign('cover', file)
+                }}
+              />
+            </label>
+            {imageMedia.length > 0 && (
+              <select
+                disabled={settingCover}
+                value=""
+                onChange={event => {
+                  const item = imageMedia.find(candidate => candidate.contentUrl === event.target.value)
+                  if (item) void onSetCover(item)
+                }}
+                className="min-h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+              >
+                <option value="">{t('etablissement.chooseUploadedCover')}</option>
+                {imageMedia.map(item => (
+                  <option key={item.id} value={item.contentUrl}>{item.originalName || item.contentUrl}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {centre.imageUrl && (
+            <button
+              type="button"
+              onClick={() => void onSetCover(null)}
+              disabled={settingCover}
+              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:bg-white disabled:opacity-60 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {t('etablissement.removeCover')}
+            </button>
+          )}
+        </section>
+      </div>
+
+      <section className="mt-4 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.coverLibraryTitle')}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">{t('etablissement.coverLibraryDescription')}</p>
+          </div>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            {t('etablissement.coverProviderAttribution', { provider: coverProvider === 'pexels' ? 'Pexels' : 'Pixabay' })}
+          </span>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+          <input
+            value={coverQuery}
+            onChange={event => setCoverQuery(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                void searchCovers()
+              }
+            }}
+            className="min-h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none transition focus:border-[var(--accent)] dark:border-slate-700 dark:bg-slate-900"
+            placeholder={t('etablissement.coverSearchPlaceholder')}
+            maxLength={100}
+          />
+          <select
+            value={coverProvider}
+            onChange={event => {
+              setCoverProvider(event.target.value as 'pexels' | 'pixabay')
+              setCoverResults([])
+              setCoverFeedback(null)
+            }}
+            className="min-h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+          >
+            <option value="pexels">Pexels</option>
+            <option value="pixabay">Pixabay</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => void searchCovers()}
+            disabled={coverSearching || coverQuery.trim().length < 2}
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+          >
+            {coverSearching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+            {coverSearching ? t('etablissement.searching') : t('etablissement.search')}
+          </button>
+        </div>
+
+        {coverFeedback && (
+          <p role="status" className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs leading-5 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+            {coverFeedback}
+          </p>
+        )}
+
+        {coverResults.length > 0 && (
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {coverResults.map((result) => (
+              <article key={`${coverProvider}:${result.id}`} className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                <button
+                  type="button"
+                  onClick={() => void importProviderCover(result)}
+                  disabled={settingCover || uploadingMedia || importingCoverId !== null}
+                  className="group block w-full text-left disabled:cursor-wait disabled:opacity-60"
+                >
+                  <img
+                    src={result.previewUrl}
+                    alt={t('etablissement.coverResultAlt', { author: result.author })}
+                    className="aspect-[4/3] w-full object-cover transition duration-200 group-hover:scale-[1.02]"
+                  />
+                  <span className="block truncate px-2.5 pt-2 text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                    {importingCoverId === result.id ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        {t('etablissement.coverImporting')}
+                      </span>
+                    ) : t('etablissement.useThisCover')}
+                  </span>
+                </button>
+                <a
+                  href={result.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex min-h-7 items-center gap-1 truncate px-2.5 pb-2 text-[10px] font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                >
+                  {result.author}
+                  <ArrowUpRight className="h-3 w-3 shrink-0" />
+                </a>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+        </>
+      )}
       <button
         type="button"
         onClick={onReset}

@@ -263,6 +263,39 @@ class CarteController extends AbstractController
             $centre->setImageUrl($imageUrl);
         }
 
+        if (array_key_exists('logoUrl', $data)) {
+            $logoUrl = $nonEmpty($data['logoUrl']);
+            if ($logoUrl !== null && mb_strlen($logoUrl) > 500) {
+                throw new BadRequestHttpException('Le logo sélectionné est invalide.');
+            }
+            if ($logoUrl !== null) {
+                $selectedLogo = null;
+                foreach ($centre->getImages() as $media) {
+                    if ($media->getContentUrl() === $logoUrl) {
+                        $selectedLogo = $media;
+                        break;
+                    }
+                }
+
+                $logoScheme = parse_url($logoUrl, PHP_URL_SCHEME);
+                $logoHost = parse_url($logoUrl, PHP_URL_HOST);
+                $isSecureExternalLogo = filter_var($logoUrl, FILTER_VALIDATE_URL) !== false
+                    && is_string($logoScheme)
+                    && strtolower($logoScheme) === 'https'
+                    && is_string($logoHost)
+                    && $logoHost !== '';
+
+                if (
+                    (!$selectedLogo instanceof MediaObject
+                    || str_starts_with((string) $selectedLogo->getMimeType(), 'video/'))
+                    && !$isSecureExternalLogo
+                ) {
+                    throw new BadRequestHttpException('Le logo doit être une image téléversée ou une URL HTTPS valide.');
+                }
+            }
+            $centre->setLogoUrl($logoUrl);
+        }
+
         if (isset($data['horaires'])) {
             $horaires = trim((string) $data['horaires']);
             if ($horaires === '' || mb_strlen($horaires) > 255) {
@@ -700,6 +733,9 @@ class CarteController extends AbstractController
         if ($centre->getImageUrl() === $media->getContentUrl()) {
             $centre->setImageUrl(null);
         }
+        if ($centre->getLogoUrl() === $media->getContentUrl()) {
+            $centre->setLogoUrl(null);
+        }
         $this->em->remove($media);
         $this->em->flush();
 
@@ -913,6 +949,7 @@ class CarteController extends AbstractController
             'email' => $centre->getEmail(),
             'siteWeb' => $centre->getSiteWeb(),
             'imageUrl' => $centre->getImageUrl(),
+            'logoUrl' => $centre->getLogoUrl(),
             'horaires' => $centre->getHoraires(),
             'horairesDetails' => $centre->getHorairesDetails(),
             'urgences24h' => $centre->isUrgences24h(),

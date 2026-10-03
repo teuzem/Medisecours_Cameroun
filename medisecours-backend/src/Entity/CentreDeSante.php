@@ -135,6 +135,10 @@ class CentreDeSante
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private ?string $imageUrl = null;
 
+    #[ORM\Column(length: 500, nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?string $logoUrl = null;
+
     #[ORM\Column(length: 50, options: ['default' => 'prive'])]
     #[Assert\Choice(choices: ['public', 'prive', 'associatif'])]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
@@ -377,6 +381,9 @@ class CentreDeSante
 
     public function getImageUrl(): ?string { return $this->imageUrl; }
     public function setImageUrl(?string $imageUrl): static { $this->imageUrl = $imageUrl; return $this; }
+
+    public function getLogoUrl(): ?string { return $this->logoUrl; }
+    public function setLogoUrl(?string $logoUrl): static { $this->logoUrl = $logoUrl; return $this; }
 
     public function getStatut(): string { return $this->statut; }
     public function setStatut(string $statut): static { $this->statut = $statut; return $this; }

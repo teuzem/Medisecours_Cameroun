@@ -34,6 +34,7 @@ export interface CarteCentre {
   latitude?: number
   longitude?: number
   imageUrl?: string
+  logoUrl?: string
   photo?: string
   photos?: string[] | string
   images?: EtablissementMedia[]

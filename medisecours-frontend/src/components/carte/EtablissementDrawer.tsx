@@ -6,7 +6,6 @@ import {
   Accessibility,
   Ambulance,
   Bookmark,
-  Building2,
   Car,
   ChevronLeft,
   Clock,
@@ -730,7 +729,16 @@ export default function EtablissementDrawer({
               </button>
 
               <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-3">
-                <div className="min-w-0 text-white">
+                <div className="flex min-w-0 items-end gap-3 text-white">
+                  {fiche?.logoUrl && (
+                    <img
+                      src={imgUrl(fiche.logoUrl) || fiche.logoUrl}
+                      alt=""
+                      aria-hidden="true"
+                      className="max-h-12 w-16 shrink-0 object-contain"
+                    />
+                  )}
+                  <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span
                       className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
@@ -755,6 +763,7 @@ export default function EtablissementDrawer({
                   <h2 className="mt-1 line-clamp-2 font-display text-xl font-bold leading-tight drop-shadow-md">
                     {selectedCentre.nom}
                   </h2>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1216,10 +1225,19 @@ export default function EtablissementDrawer({
                       className="flex w-full items-start gap-3 rounded-xl border border-slate-200 p-3 text-left transition hover:border-primary-300 hover:shadow-md dark:border-white/10 dark:hover:border-primary-500/50"
                     >
                       <span
-                        className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                        className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
                         style={{ backgroundColor: `${FACILITY_COLORS[centre.type] ?? '#64748B'}22` }}
                       >
-                        <MapPin className="h-4 w-4" style={{ color: FACILITY_COLORS[centre.type] ?? '#64748B' }} />
+                        {centre.logoUrl ? (
+                          <img
+                            src={imgUrl(centre.logoUrl) || centre.logoUrl}
+                            alt=""
+                            aria-hidden="true"
+                            className="h-8 w-8 object-contain p-0.5"
+                          />
+                        ) : (
+                          <MapPin className="h-4 w-4" style={{ color: FACILITY_COLORS[centre.type] ?? '#64748B' }} />
+                        )}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">

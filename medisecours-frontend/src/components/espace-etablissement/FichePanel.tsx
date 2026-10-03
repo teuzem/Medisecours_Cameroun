@@ -48,6 +48,7 @@ export type FicheCentre = {
   email?: string | null
   siteWeb?: string | null
   imageUrl?: string | null
+  logoUrl?: string | null
   horaires?: string | null
   horairesDetails?: {
     weekly?: Record<string, { open?: string | null; close?: string | null; closed?: boolean }>
