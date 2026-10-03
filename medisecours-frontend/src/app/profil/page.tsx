@@ -18,6 +18,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 import { useTranslation } from 'react-i18next'
+import CameroonGeographyFields, { type GeographyValue } from '../../components/auth/CameroonGeographyFields'
 import type { TFunction } from 'i18next'
 
 const GROUPES_SANGUINS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
@@ -102,6 +103,14 @@ function formFromUser(user: any) {
       : [],
     specialite: typeof user?.specialite === 'string' ? user.specialite : '',
     disponibilitesTexte: typeof user?.disponibilitesTexte === 'string' ? user.disponibilitesTexte : '',
+    region: user?.region || '',
+    regionCode: user?.regionCode || '',
+    departement: user?.departement || '',
+    departementCode: user?.departementCode || '',
+    arrondissement: user?.arrondissement || '',
+    arrondissementCode: user?.arrondissementCode || '',
+    latitude: user?.latitude,
+    longitude: user?.longitude,
   }
 }
 
@@ -503,6 +512,16 @@ export default function ProfilPage() {
           .map((c: any) => ({ nom: (c.nom || '').trim(), telephone: (c.telephone || '').trim(), lien: (c.lien || '').trim() }))
           .filter((c: any) => c.nom || c.telephone)
       }
+      Object.assign(payload, {
+        region: form.region || null,
+        regionCode: form.regionCode || null,
+        departement: form.departement || null,
+        departementCode: form.departementCode || null,
+        arrondissement: form.arrondissement || null,
+        arrondissementCode: form.arrondissementCode || null,
+        latitude: form.latitude ?? null,
+        longitude: form.longitude ?? null,
+      })
       const { data } = await api.patch(`/api/users/${user.id}`, payload, { headers: { 'Content-Type': 'application/merge-patch+json' } })
       updateUser({ ...user, ...data })
       toast.success(t('visitor.profil.updateSuccess'))
@@ -722,6 +741,20 @@ export default function ProfilPage() {
                       iconBg="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500"
                     />
                   </div>
+                  <CameroonGeographyFields
+                    value={{
+                      region: form.region,
+                      regionCode: form.regionCode,
+                      departement: form.departement,
+                      departementCode: form.departementCode,
+                      arrondissement: form.arrondissement,
+                      arrondissementCode: form.arrondissementCode,
+                      latitude: form.latitude,
+                      longitude: form.longitude,
+                    } as GeographyValue}
+                    onChange={(next) => setForm((current: any) => ({ ...current, ...next }))}
+                    inputClass="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-primary-900/40"
+                  />
                 </Card>
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

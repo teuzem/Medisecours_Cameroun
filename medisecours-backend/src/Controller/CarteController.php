@@ -220,6 +220,24 @@ class CarteController extends AbstractController
             $centre->setRegion($region);
         }
 
+        if (array_key_exists('regionCode', $data)
+            || array_key_exists('departementCode', $data)
+            || array_key_exists('arrondissementCode', $data)) {
+            $geography = $this->validateCameroonGeography($data);
+            if ($geography === null) {
+                throw new BadRequestHttpException('La région, le département et l’arrondissement doivent être cohérents.');
+            }
+            $centre
+                ->setRegion($geography['region'])
+                ->setRegionCode($geography['regionCode'])
+                ->setDepartement($geography['departement'])
+                ->setDepartementCode($geography['departementCode'])
+                ->setArrondissement($geography['arrondissement'])
+                ->setArrondissementCode($geography['arrondissementCode'])
+                ->setLatitude($geography['latitude'])
+                ->setLongitude($geography['longitude']);
+        }
+
         if (isset($data['quartier'])) {
             $centre->setQuartier($nonEmpty($data['quartier']));
         }
@@ -943,6 +961,11 @@ class CarteController extends AbstractController
             'type' => $centre->getType(),
             'ville' => $centre->getVille(),
             'region' => $centre->getRegion(),
+            'regionCode' => $centre->getRegionCode(),
+            'departement' => $centre->getDepartement(),
+            'departementCode' => $centre->getDepartementCode(),
+            'arrondissement' => $centre->getArrondissement(),
+            'arrondissementCode' => $centre->getArrondissementCode(),
             'quartier' => $centre->getQuartier(),
             'adresse' => $centre->getAdresse(),
             'telephone' => $centre->getTelephone(),
@@ -976,6 +999,54 @@ class CarteController extends AbstractController
                 fn (MediaObject $media): array => $this->serializeMedia($media),
                 $centre->getImages()->toArray()
             ),
+        ];
+    }
+
+    private function validateCameroonGeography(array $data): ?array
+    {
+        $reference = json_decode(
+            (string) @file_get_contents(dirname(__DIR__) . '/Data/cameroon-administrative-divisions.json'),
+            true
+        );
+        if (!is_array($reference)) {
+            return null;
+        }
+        $regionCode = trim((string) ($data['regionCode'] ?? ''));
+        $departementCode = trim((string) ($data['departementCode'] ?? ''));
+        $arrondissementCode = trim((string) ($data['arrondissementCode'] ?? ''));
+        $regions = array_column($reference['regions'] ?? [], null, 'id');
+        $departments = array_column($reference['departments'] ?? [], null, 'id');
+        $arrondissements = array_column($reference['arrondissements'] ?? [], null, 'id');
+        $region = $regions[$regionCode] ?? null;
+        $department = $departments[$departementCode] ?? null;
+        $arrondissement = $arrondissements[$arrondissementCode] ?? null;
+        if (!is_array($region) || !is_array($department) || !is_array($arrondissement)
+            || ($department['regionId'] ?? null) !== $regionCode
+            || ($arrondissement['regionId'] ?? null) !== $regionCode
+            || ($arrondissement['departmentId'] ?? null) !== $departementCode) {
+            return null;
+        }
+        $latitude = $data['latitude'] ?? null;
+        $longitude = $data['longitude'] ?? null;
+        if ($latitude === '' && $longitude === '') {
+            $latitude = $longitude = null;
+        }
+        if ($latitude !== null || $longitude !== null) {
+            if (!is_numeric($latitude) || !is_numeric($longitude)
+                || (float) $latitude < 1.5 || (float) $latitude > 13.5
+                || (float) $longitude < 8.0 || (float) $longitude > 16.5) {
+                return null;
+            }
+        }
+        return [
+            'region' => (string) $region['nameLocal'],
+            'regionCode' => $regionCode,
+            'departement' => (string) $department['nameLocal'],
+            'departementCode' => $departementCode,
+            'arrondissement' => (string) $arrondissement['nameLocal'],
+            'arrondissementCode' => $arrondissementCode,
+            'latitude' => $latitude === null ? null : (float) $latitude,
+            'longitude' => $longitude === null ? null : (float) $longitude,
         ];
     }
 

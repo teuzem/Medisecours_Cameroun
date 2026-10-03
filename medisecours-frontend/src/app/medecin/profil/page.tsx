@@ -13,6 +13,7 @@ import Avatar from '../../../components/ui/Avatar'
 import CertifiedBadge from '../../../components/ui/CertifiedBadge'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import { CONVERSATIONS_KEY } from '../../../lib/keys'
+import CameroonGeographyFields from '../../../components/auth/CameroonGeographyFields'
 
 const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
 
@@ -35,6 +36,14 @@ export default function MedecinProfilPage() {
     email: user?.email || '',
     telephone: user?.telephone || '',
     specialite: user?.specialite || '',
+    region: user?.region || '',
+    regionCode: user?.regionCode || '',
+    departement: user?.departement || '',
+    departementCode: user?.departementCode || '',
+    arrondissement: user?.arrondissement || '',
+    arrondissementCode: user?.arrondissementCode || '',
+    latitude: user?.latitude,
+    longitude: user?.longitude,
   })
   const [dispo, setDispo] = useState(Array.isArray(user?.disponibilites) ? user.disponibilites : [])
 
@@ -50,6 +59,14 @@ export default function MedecinProfilPage() {
         email: user.email || '',
         telephone: user.telephone || '',
         specialite: user.specialite || '',
+        region: user.region || '',
+        regionCode: user.regionCode || '',
+        departement: user.departement || '',
+        departementCode: user.departementCode || '',
+        arrondissement: user.arrondissement || '',
+        arrondissementCode: user.arrondissementCode || '',
+        latitude: user.latitude,
+        longitude: user.longitude,
       })
       setDispo(Array.isArray(user.disponibilites) ? user.disponibilites : [])
     }, 0)
@@ -63,6 +80,14 @@ export default function MedecinProfilPage() {
     user?.telephone,
     user?.specialite,
     user?.disponibilites,
+    user?.region,
+    user?.regionCode,
+    user?.departement,
+    user?.departementCode,
+    user?.arrondissement,
+    user?.arrondissementCode,
+    user?.latitude,
+    user?.longitude,
   ])
 
   useEffect(() => {
@@ -236,6 +261,23 @@ export default function MedecinProfilPage() {
               <Field label={t('medecin.profil.lastName')} value={form.nom} onChange={set('nom')} />
               <Field label={t('medecin.profil.email')} value={form.email} onChange={set('email')} readOnly />
               <Field label={t('medecin.profil.phone')} value={form.telephone} onChange={set('telephone')} />
+            </div>
+            <div className="mt-5">
+              <CameroonGeographyFields
+                value={{
+                  region: form.region,
+                  regionCode: form.regionCode,
+                  departement: form.departement,
+                  departementCode: form.departementCode,
+                  arrondissement: form.arrondissement,
+                  arrondissementCode: form.arrondissementCode,
+                  latitude: form.latitude,
+                  longitude: form.longitude,
+                }}
+                onChange={(next) => setForm((current) => ({ ...current, ...next }))}
+                inputClass="w-full rounded-xl border border-primary-100 bg-white px-3 py-2.5 text-sm dark:border-white/10 dark:bg-primary-900/40"
+                compact
+              />
             </div>
           </div>
 

@@ -35,6 +35,7 @@ import {
   normalizeFacilityOptions,
   type FacilityOptionGroup,
 } from '../../lib/facilityOptions'
+import CameroonGeographyFields, { type GeographyValue } from '../auth/CameroonGeographyFields'
 
 export type FicheCentre = {
   id: number
@@ -42,6 +43,11 @@ export type FicheCentre = {
   type: string
   ville?: string | null
   region?: string | null
+  regionCode?: string | null
+  departement?: string | null
+  departementCode?: string | null
+  arrondissement?: string | null
+  arrondissementCode?: string | null
   quartier?: string | null
   adresse?: string | null
   telephone?: string | null
@@ -257,6 +263,13 @@ type Draft = {
   adresse: string
   ville: string
   region: string
+  regionCode: string
+  departement: string
+  departementCode: string
+  arrondissement: string
+  arrondissementCode: string
+  latitude?: number | null
+  longitude?: number | null
   quartier: string
   telephone: string
   email: string
@@ -287,6 +300,13 @@ const emptyDraft = (centre: FicheCentre): Draft => ({
   adresse: centre.adresse ?? '',
   ville: centre.ville ?? '',
   region: centre.region ?? '',
+  regionCode: centre.regionCode ?? '',
+  departement: centre.departement ?? '',
+  departementCode: centre.departementCode ?? '',
+  arrondissement: centre.arrondissement ?? '',
+  arrondissementCode: centre.arrondissementCode ?? '',
+  latitude: centre.latitude ?? null,
+  longitude: centre.longitude ?? null,
   quartier: centre.quartier ?? '',
   telephone: centre.telephone ?? '',
   email: centre.email ?? '',
@@ -629,6 +649,13 @@ export default function FichePanel({
         adresse,
         ville,
         region: draft.region,
+        regionCode: draft.regionCode,
+        departement: draft.departement,
+        departementCode: draft.departementCode,
+        arrondissement: draft.arrondissement,
+        arrondissementCode: draft.arrondissementCode,
+        latitude: draft.latitude,
+        longitude: draft.longitude,
         quartier: draft.quartier.trim() || null,
         telephone: draft.telephone.trim() || null,
         email: draft.email.trim() || null,
@@ -807,6 +834,20 @@ export default function FichePanel({
             onChange={(event) => update('quartier', event.target.value)}
             className={inputCls}
             placeholder={t('etablissement.ficheDistrictPlaceholder')}
+          />
+          <CameroonGeographyFields
+            value={{
+              region: draft.region,
+              regionCode: draft.regionCode,
+              departement: draft.departement,
+              departementCode: draft.departementCode,
+              arrondissement: draft.arrondissement,
+              arrondissementCode: draft.arrondissementCode,
+              latitude: draft.latitude ?? undefined,
+              longitude: draft.longitude ?? undefined,
+            } as GeographyValue}
+            onChange={(next) => setDraft((current) => ({ ...current, ...next }))}
+            inputClass={inputCls}
           />
         </div>
 
