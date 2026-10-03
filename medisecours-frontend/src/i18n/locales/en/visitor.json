@@ -1392,7 +1392,13 @@
           "priorityCounter": "Priority reception",
           "assistanceAnimal": "Assistance animals accepted",
           "accessibleTransport": "Accessible transport available",
-          "caregiverSupport": "Caregiver support"
+          "caregiverSupport": "Caregiver support",
+          "accessibleWaitingArea": "Accessible waiting area",
+          "accessibleExamRoom": "Accessible examination room",
+          "accessiblePharmacy": "Accessible pharmacy",
+          "accessibleSignage": "Accessible signage",
+          "accessibleEmergencyEntry": "Accessible emergency entrance",
+          "accessibleOnlineInformation": "Accessible online information"
         },
         "payment": {
           "cash": "Cash",
@@ -1402,14 +1408,24 @@
           "bankTransfer": "Bank transfer",
           "onlinePayment": "Online payment",
           "advancePayment": "Advance payment",
-          "installments": "Installments"
+          "installments": "Installments",
+          "mobileMoneyBoth": "MTN and Orange Money",
+          "healthSavings": "Health savings",
+          "employerSponsorship": "Employer sponsorship",
+          "ngoSponsorship": "NGO sponsorship",
+          "cashlessPayment": "Cashless payment"
         },
         "insurance": {
           "publicInsurance": "Public insurance",
           "privateInsurance": "Private insurance",
           "mutual": "Mutual insurance",
           "thirdPartyPayment": "Third-party payment",
-          "preAuthorization": "Insurance pre-authorisation"
+          "preAuthorization": "Insurance pre-authorisation",
+          "cnamCoverage": "CNAM coverage",
+          "communityMutual": "Community mutual",
+          "employerCoverage": "Employer coverage",
+          "ngoCoverage": "NGO coverage",
+          "indigentCare": "Indigent care programme"
         },
         "evacuation": {
           "interfacilityTransfer": "Inter-facility transfer",
@@ -1419,21 +1435,33 @@
           "maternalTransfer": "Obstetric transfer",
           "criticalCareTransfer": "Critical-care transfer",
           "referralNetwork": "Formal referral network",
-          "airMedicalCoordination": "Air-medical evacuation coordination"
+          "airMedicalCoordination": "Air-medical evacuation coordination",
+          "groundAmbulance24h": "24-hour ground ambulance",
+          "interregionalTransfer": "Inter-regional transfer",
+          "crossBorderTransfer": "Cross-border evacuation",
+          "helipadCoordination": "Helipad coordination"
         },
         "roadAccess": {
           "pavedRoad": "Paved road",
           "allWeatherAccess": "All-weather access",
           "publicTransportNearby": "Public transport nearby",
           "emergencyVehicleAccess": "Emergency-vehicle access",
-          "nightAccess": "Signposted night access"
+          "nightAccess": "Signposted night access",
+          "ambulanceDropoff": "Dedicated ambulance drop-off",
+          "rainySeasonAccess": "All-season rainy access",
+          "gpsSignage": "On-site GPS signage",
+          "helipadRoadLink": "Road link to helipad"
         },
         "parking": {
           "onsiteParking": "On-site parking",
           "freeParking": "Free parking",
           "paidParking": "Paid parking",
           "secureParking": "Secure parking",
-          "motorcycleParking": "Motorcycle parking"
+          "motorcycleParking": "Motorcycle parking",
+          "accessibleSpaces": "Accessible parking spaces",
+          "ambulanceBay": "Reserved ambulance bay",
+          "patientDropoff": "Patient drop-off zone",
+          "bicycleParking": "Bicycle parking"
         },
         "languages": {
           "french": "French",
@@ -1658,6 +1686,9 @@
         "funnelContact": "Contact",
         "funnelIntent": "Intent",
         "funnelCare": "Care action",
+        "conversionTitle": "Conversion reading",
+        "conversionSubtitle": "How visibility becomes a useful action",
+        "storyConversion": "{{rate}}% of visits progressed to a care or service action.",
         "weekdayTitle": "Weekly rhythm",
         "weekdaySubtitle": "Days concentrating the most interactions",
         "weekdayHint": "Aggregated over the selected period and refreshed automatically.",
@@ -1667,6 +1698,10 @@
         "teamDoctors": "Affiliated doctors",
         "teamActive": "Active members",
         "generatedAt": "Last collected: {{date}}",
+        "storyDaily": "{{count}} interaction(s) were recorded on this day.",
+        "storyFunnel": "From {{reach}} visits, {{care}} action(s) progressed to a care request.",
+        "storyServices": "This view highlights the services concentrating demand so you can prioritise slots and resources.",
+        "storyWeekday": "Use this weekly rhythm to adapt staffing, opening hours, and patient information campaigns.",
         "error": "Unable to load analytics.",
         "retry": "Try again"
       }

@@ -94,6 +94,26 @@ type AnalyticsData = {
   equipe?: { actifs: Record<string, number>; total: number; medecinsAffilies: number }
 }
 
+type ChartTooltipState = {
+  x: number
+  y: number
+  title: string
+  lines: string[]
+} | null
+
+function ChartTooltip({ tooltip }: { tooltip: ChartTooltipState }) {
+  if (!tooltip) return null
+  return (
+    <div
+      className="pointer-events-none absolute z-10 max-w-[220px] -translate-x-1/2 -translate-y-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+      style={{ left: tooltip.x, top: tooltip.y - 8 }}
+    >
+      <p className="font-extrabold text-slate-900 dark:text-white">{tooltip.title}</p>
+      {tooltip.lines.map((line) => <p key={line} className="mt-0.5 text-slate-500 dark:text-slate-400">{line}</p>)}
+    </div>
+  )
+}
+
 const PERIOD_OPTIONS = [7, 30, 90, 360] as const
 const METRIC_OPTIONS = ['all', ...ANALYTIC_TYPES] as const
 const LIVE_REFRESH_INTERVAL_MS = 30_000
@@ -114,6 +134,7 @@ function StackedActivityChart({
   metric: (typeof METRIC_OPTIONS)[number]
 }) {
   const { t } = useTranslation()
+  const [tooltip, setTooltip] = useState<ChartTooltipState>(null)
   const points = sampleSerie(serie)
   const keys: readonly string[] = metric === 'all' ? ANALYTIC_TYPES : [metric]
   const totals = points.map((point) => keys.reduce((sum, key) => sum + (point[key] ?? 0), 0))
@@ -126,7 +147,7 @@ function StackedActivityChart({
   const palette = keys.map((key) => TYPE_COLORS[key] ?? accent)
 
   return (
-    <div>
+    <div className="relative" onMouseLeave={() => setTooltip(null)}>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full" role="img" aria-label={t('etablissement.analytics.stackAria')}>
         {[0.25, 0.5, 0.75].map((ratio) => (
           <line
@@ -144,7 +165,19 @@ function StackedActivityChart({
           const x = P + index * (barWidth + gap)
           let offset = 0
           return (
-            <g key={`${point.jour}-${index}`}>
+            <g
+              key={`${point.jour}-${index}`}
+              onMouseMove={(event) => {
+                const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+                if (!rect) return
+                setTooltip({
+                  x: event.clientX - rect.left,
+                  y: event.clientY - rect.top,
+                  title: point.jour,
+                  lines: keys.map((key) => `${t(`etablissement.analytics.types.${key}`)}: ${point[key] ?? 0}`),
+                })
+              }}
+            >
               {keys.map((key, keyIndex) => {
                 const value = point[key] ?? 0
                 const height = (value / max) * (H - P * 2)
@@ -171,6 +204,7 @@ function StackedActivityChart({
           )
         })}
       </svg>
+      <ChartTooltip tooltip={tooltip} />
       <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500">
         <span>{points[0]?.jour ?? '—'}</span>
         <span>{points[Math.floor(points.length / 2)]?.jour ?? '—'}</span>
@@ -226,7 +260,7 @@ function EngagementFunnel({ totals }: { totals: Record<string, number> }) {
   return (
     <div className="space-y-3">
       {stages.map(({ key, icon: Icon, label, value, color }) => (
-        <div key={key} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+        <div key={key} title={`${label}: ${value}`} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg text-white" style={{ backgroundColor: color }}>
             <Icon className="h-3.5 w-3.5" />
           </span>
@@ -242,6 +276,62 @@ function EngagementFunnel({ totals }: { totals: Record<string, number> }) {
           <span className="text-[10px] font-bold text-slate-400">{max > 0 ? `${Math.round((value / max) * 100)}%` : '0%'}</span>
         </div>
       ))}
+    </div>
+  )
+}
+
+function ConversionOverview({ totals, accent }: { totals: Record<string, number>; accent: string }) {
+  const { t } = useTranslation()
+  const reach = Math.max(totals.fiche ?? 0, 0)
+  const stages = [
+    {
+      key: 'contact',
+      label: t('etablissement.analytics.funnelContact'),
+      value: (totals.telephone ?? 0) + (totals.email ?? 0) + (totals.site_web ?? 0),
+    },
+    {
+      key: 'intent',
+      label: t('etablissement.analytics.funnelIntent'),
+      value: (totals.itineraire ?? 0) + (totals.sauvegarde ?? 0) + (totals.partage ?? 0),
+    },
+    {
+      key: 'care',
+      label: t('etablissement.analytics.funnelCare'),
+      value: (totals.sos ?? 0) + (totals.avis ?? 0) + (totals.service ?? 0),
+    },
+  ]
+  const max = Math.max(reach, ...stages.map((stage) => stage.value), 1)
+  const finalRate = reach > 0 ? Math.round((stages[2].value / reach) * 100) : 0
+
+  return (
+    <div className="space-y-3">
+      {stages.map((stage) => {
+        const rate = reach > 0 ? Math.round((stage.value / reach) * 100) : 0
+        return (
+          <div
+            key={stage.key}
+            title={`${stage.label}: ${stage.value} · ${rate}%`}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
+          >
+            <div className="min-w-0">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <span className="truncate text-[11px] font-bold text-slate-700 dark:text-slate-200">{stage.label}</span>
+                <span className="text-[10px] font-black tabular-nums text-slate-500 dark:text-slate-400">{rate}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${Math.max((stage.value / max) * 100, stage.value > 0 ? 3 : 0)}%`, backgroundColor: accent }}
+                />
+              </div>
+            </div>
+            <span className="w-12 text-right text-xs font-black tabular-nums text-slate-900 dark:text-white">{stage.value}</span>
+          </div>
+        )
+      })}
+      <p className="rounded-xl bg-slate-50 px-3 py-2 text-[10px] font-semibold leading-4 text-slate-600 dark:bg-slate-900/70 dark:text-slate-300">
+        {t('etablissement.analytics.storyConversion', { rate: finalRate })}
+      </p>
     </div>
   )
 }
@@ -266,7 +356,7 @@ function WeekdayActivity({ serie, accent }: { serie: SeriePoint[]; accent: strin
   return (
     <div className="grid grid-cols-7 gap-2">
       {days.map((day) => (
-        <div key={day.index} className="min-w-0 text-center">
+        <div key={day.index} title={`${day.label}: ${day.total}`} className="min-w-0 text-center">
           <div className="flex h-24 items-end justify-center rounded-md bg-slate-50 p-1 dark:bg-slate-950/40">
             <div
               className="w-full max-w-6 rounded-sm transition-all"
@@ -289,6 +379,7 @@ function WeekdayActivity({ serie, accent }: { serie: SeriePoint[]; accent: strin
 
 function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: string }) {
   const { t, i18n } = useTranslation()
+  const [tooltip, setTooltip] = useState<ChartTooltipState>(null)
   const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
   const gradientId = useId().replace(/:/g, '')
   const totals = serie.map((s) => ANALYTIC_TYPES.reduce((sum, k) => sum + (s[k] ?? 0), 0))
@@ -307,7 +398,7 @@ function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: strin
       : ''
 
   return (
-    <div>
+    <div className="relative" onMouseLeave={() => setTooltip(null)}>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-40 w-full sm:h-48" role="img" aria-label={t('etablissement.analytics.chartAria')}>
         <defs>
           <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="0" y2="1">
@@ -352,6 +443,19 @@ function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: strin
             fill={accent}
             className="opacity-70"
             vectorEffect="non-scaling-stroke"
+            onMouseMove={(event) => {
+              const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+              if (!rect) return
+              setTooltip({
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top,
+                title: shortDate(serie[i]?.jour ?? '', locale),
+                lines: [
+                  `${t('etablissement.analytics.totalLabel')}: ${totals[i]}`,
+                  t('etablissement.analytics.storyDaily', { count: totals[i] }),
+                ],
+              })
+            }}
           >
             <title>
               {serie[i]?.jour ?? ''} · {totals[i]} {t('etablissement.analytics.interactionCount', { count: totals[i] })}
@@ -359,6 +463,7 @@ function InteractionArea({ serie, accent }: { serie: SeriePoint[]; accent: strin
           </circle>
         ))}
       </svg>
+      <ChartTooltip tooltip={tooltip} />
       <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500">
         {serie.length > 0 ? (
           <>
@@ -610,8 +715,29 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
               <div className="mt-5">
                 <EngagementFunnel totals={data.totaux} />
               </div>
+              <p className="mt-4 rounded-xl bg-violet-50 px-3 py-2 text-[10px] font-semibold leading-4 text-violet-800 dark:bg-violet-500/10 dark:text-violet-200">
+                {t('etablissement.analytics.storyFunnel', {
+                  reach: data.totaux.fiche ?? 0,
+                  care: (data.totaux.sos ?? 0) + (data.totaux.avis ?? 0) + (data.totaux.service ?? 0),
+                })}
+              </p>
             </GlassCard>
           </div>
+
+          <GlassCard className="!p-5">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4" style={{ color: accent }} />
+              <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                {t('etablissement.analytics.conversionTitle')}
+              </p>
+            </div>
+            <p className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+              {t('etablissement.analytics.conversionSubtitle')}
+            </p>
+            <div className="mt-4">
+              <ConversionOverview totals={data.totaux} accent={accent} />
+            </div>
+          </GlassCard>
 
           {/* Stock : total + evolution */}
           {data.total > 0 ? (
@@ -665,7 +791,11 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
                     const maxCount = breakdown[0].count
                     const color = TYPE_COLORS[row.type] ?? '#64748b'
                     return (
-                      <div key={row.type} className="flex items-center gap-3">
+                      <div
+                        key={row.type}
+                        title={`${t(`etablissement.analytics.types.${row.type}`)}: ${row.count}`}
+                        className="flex items-center gap-3"
+                      >
                         <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg" style={{ background: `${color}1a`, color }}>
                           <TypeIcon type={row.type} className="h-3.5 w-3.5" />
                         </span>
@@ -686,6 +816,9 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
                   })
                 )}
               </div>
+              <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-[10px] font-semibold leading-4 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+                {t('etablissement.analytics.storyServices')}
+              </p>
             </GlassCard>
 
             {/* Services en forte demande */}
@@ -699,7 +832,11 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
                   data.topServices.slice(0, 6).map((svc, i) => {
                     const maxCount = data.topServices[0].nb
                     return (
-                      <div key={svc.service} className="flex items-center gap-3">
+                      <div
+                        key={svc.service}
+                        title={`${svc.service}: ${svc.nb}`}
+                        className="flex items-center gap-3"
+                      >
                         <span
                           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-black text-white ${
                             i === 0 ? 'bg-amber-500' : i === 1 ? 'bg-slate-400' : i === 2 ? 'bg-orange-600' : 'bg-slate-200 dark:bg-slate-800'
@@ -747,6 +884,9 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
               <div className="mt-4">
                 <WeekdayActivity serie={data.serie} accent={accent} />
               </div>
+              <p className="mt-4 rounded-xl bg-sky-50 px-3 py-2 text-[10px] font-semibold leading-4 text-sky-800 dark:bg-sky-500/10 dark:text-sky-200">
+                {t('etablissement.analytics.storyWeekday')}
+              </p>
             </GlassCard>
             <GlassCard className="!p-5">
               <div className="flex items-center gap-2">

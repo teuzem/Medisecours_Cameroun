@@ -1392,7 +1392,13 @@
           "priorityCounter": "Accueil prioritaire",
           "assistanceAnimal": "Animaux d’assistance acceptés",
           "accessibleTransport": "Transport adapté disponible",
-          "caregiverSupport": "Accompagnement de l’aidant"
+          "caregiverSupport": "Accompagnement de l’aidant",
+          "accessibleWaitingArea": "Salle d’attente accessible",
+          "accessibleExamRoom": "Salle de soins accessible",
+          "accessiblePharmacy": "Pharmacie accessible",
+          "accessibleSignage": "Signalétique accessible",
+          "accessibleEmergencyEntry": "Entrée des urgences accessible",
+          "accessibleOnlineInformation": "Informations numériques accessibles"
         },
         "payment": {
           "cash": "Espèces",
@@ -1402,14 +1408,24 @@
           "bankTransfer": "Virement bancaire",
           "onlinePayment": "Paiement en ligne",
           "advancePayment": "Paiement anticipé",
-          "installments": "Paiement échelonné"
+          "installments": "Paiement échelonné",
+          "mobileMoneyBoth": "MTN et Orange Money",
+          "healthSavings": "Épargne santé",
+          "employerSponsorship": "Prise en charge employeur",
+          "ngoSponsorship": "Prise en charge ONG",
+          "cashlessPayment": "Paiement sans espèces"
         },
         "insurance": {
           "publicInsurance": "Assurance publique",
           "privateInsurance": "Assurance privée",
           "mutual": "Mutuelle",
           "thirdPartyPayment": "Tiers payant",
-          "preAuthorization": "Accord préalable d’assurance"
+          "preAuthorization": "Accord préalable d’assurance",
+          "cnamCoverage": "Couverture CNAM",
+          "communityMutual": "Mutuelle communautaire",
+          "employerCoverage": "Couverture employeur",
+          "ngoCoverage": "Couverture ONG",
+          "indigentCare": "Prise en charge indigents"
         },
         "evacuation": {
           "interfacilityTransfer": "Transfert inter-établissements",
@@ -1419,21 +1435,33 @@
           "maternalTransfer": "Transfert obstétrical",
           "criticalCareTransfer": "Transfert de soins critiques",
           "referralNetwork": "Réseau de référence formalisé",
-          "airMedicalCoordination": "Coordination d’évacuation aérienne"
+          "airMedicalCoordination": "Coordination d’évacuation aérienne",
+          "groundAmbulance24h": "Ambulance terrestre 24 h",
+          "interregionalTransfer": "Transfert interrégional",
+          "crossBorderTransfer": "Évacuation transfrontalière",
+          "helipadCoordination": "Coordination héliport"
         },
         "roadAccess": {
           "pavedRoad": "Route revêtue",
           "allWeatherAccess": "Accès praticable toute saison",
           "publicTransportNearby": "Transport public à proximité",
           "emergencyVehicleAccess": "Accès véhicules d’urgence",
-          "nightAccess": "Accès de nuit signalé"
+          "nightAccess": "Accès de nuit signalé",
+          "ambulanceDropoff": "Dépose ambulance dédiée",
+          "rainySeasonAccess": "Accès maintenu en saison des pluies",
+          "gpsSignage": "Signalétique GPS sur site",
+          "helipadRoadLink": "Liaison routière vers héliport"
         },
         "parking": {
           "onsiteParking": "Parking sur site",
           "freeParking": "Parking gratuit",
           "paidParking": "Parking payant",
           "secureParking": "Parking sécurisé",
-          "motorcycleParking": "Stationnement motos"
+          "motorcycleParking": "Stationnement motos",
+          "accessibleSpaces": "Places adaptées",
+          "ambulanceBay": "Aire ambulance réservée",
+          "patientDropoff": "Zone de dépose patients",
+          "bicycleParking": "Stationnement vélos"
         },
         "languages": {
           "french": "Français",
@@ -1658,6 +1686,9 @@
         "funnelContact": "Contact",
         "funnelIntent": "Intention",
         "funnelCare": "Action de soins",
+        "conversionTitle": "Lecture de conversion",
+        "conversionSubtitle": "Comment la visibilité devient une action utile",
+        "storyConversion": "{{rate}} % des visites ont progressé jusqu’à une action de soins ou de service.",
         "weekdayTitle": "Rythme hebdomadaire",
         "weekdaySubtitle": "Jours qui concentrent le plus d'interactions",
         "weekdayHint": "Agrégation de la période sélectionnée, actualisée automatiquement.",
@@ -1667,6 +1698,10 @@
         "teamDoctors": "Médecins affiliés",
         "teamActive": "Membres actifs",
         "generatedAt": "Dernière collecte : {{date}}",
+        "storyDaily": "{{count}} interaction(s) ont été enregistrées ce jour.",
+        "storyFunnel": "Sur {{reach}} visites, {{care}} action(s) ont progressé jusqu’à une demande de soins.",
+        "storyServices": "Cette vue met en évidence les services qui concentrent la demande afin d’aider à prioriser les créneaux et les ressources.",
+        "storyWeekday": "Utilisez ce rythme hebdomadaire pour adapter les permanences, les équipes et les campagnes d’information.",
         "error": "Impossible de charger les analytiques.",
         "retry": "Réessayer"
       }
