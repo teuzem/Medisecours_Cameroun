@@ -1377,6 +1377,12 @@
       "ficheLanguagesNoResults": "No language matches this search.",
       "ficheLanguagesSource": "{{count}} controlled languages - ALCAM 2012 inventory",
       "removeLanguage": "Remove {{language}}",
+      "ficheOptionsChoose": "Select one or more options",
+      "ficheOptionsSearch": "Search an option",
+      "ficheOptionsNoResults": "No option matches this search.",
+      "ficheOptionsSelectedCount": "{{count}} selected",
+      "ficheOptionsSelectedMore": "+{{count}}",
+      "ficheOptionsClear": "Clear all",
       "options": {
         "accessibility": {
           "wheelchairEntrance": "Wheelchair-accessible entrance",

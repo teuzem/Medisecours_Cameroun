@@ -7,6 +7,7 @@ import {
   Check,
   Ambulance,
   Building2,
+  ChevronDown,
   Clock,
   ExternalLink,
   FileImage,
@@ -526,8 +527,14 @@ function OptionMultiSelect({
   description?: string
 }) {
   const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const selected = new Set(value)
   const options = getFacilityOptions(group)
+  const filteredOptions = options.filter((option) => {
+    if (!query.trim()) return true
+    return t(option.labelKey).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())
+  })
   const toggle = (id: string) => {
     const next = new Set(selected)
     if (next.has(id)) next.delete(id)
@@ -538,21 +545,99 @@ function OptionMultiSelect({
     <fieldset className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-700 dark:bg-slate-950/40">
       <legend className="px-1 text-xs font-bold text-slate-800 dark:text-slate-100">{label}</legend>
       {description && <p className="mb-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{description}</p>}
-      <div className="grid gap-2 sm:grid-cols-2">
-        {options.map((option) => (
-          <label key={option.id} className={`group relative flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-[11px] font-semibold transition-colors focus-within:ring-2 focus-within:ring-blue-500/30 ${selected.has(option.id) ? 'border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-400 dark:bg-blue-500/10 dark:text-blue-100' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/40 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:border-blue-500/60'}`}>
-            <input
-              type="checkbox"
-              checked={selected.has(option.id)}
-              onChange={() => toggle(option.id)}
-              className="peer sr-only"
-            />
-            <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${selected.has(option.id) ? 'border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950' : 'border-slate-300 bg-white text-transparent group-hover:border-blue-400 dark:border-slate-600 dark:bg-slate-900'}`}>
-              <Check className="h-3.5 w-3.5" strokeWidth={3} />
-            </span>
-            <span className="leading-4">{t(option.labelKey)}</span>
-          </label>
-        ))}
+      <div className="relative">
+        <button
+          type="button"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          onClick={() => setOpen((current) => !current)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setOpen(false)
+          }}
+          className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/25 ${open ? 'border-blue-500 bg-blue-50/50 text-blue-900 dark:border-blue-400 dark:bg-blue-500/10 dark:text-blue-100' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200'}`}
+        >
+          <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+            {value.length === 0 ? (
+              <span className="text-slate-400">{t('etablissement.ficheOptionsChoose')}</span>
+            ) : (
+              <>
+                {value.slice(0, 2).map((id) => {
+                  const option = options.find((item) => item.id === id)
+                  return option ? (
+                    <span key={id} className="max-w-[45%] truncate rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-bold text-blue-800 dark:border-blue-500/40 dark:bg-slate-900 dark:text-blue-100">
+                      {t(option.labelKey)}
+                    </span>
+                  ) : null
+                })}
+                {value.length > 2 && (
+                  <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-bold text-blue-800 dark:border-blue-500/40 dark:bg-slate-900 dark:text-blue-100">
+                    {t('etablissement.ficheOptionsSelectedMore', { count: value.length - 2 })}
+                  </span>
+                )}
+              </>
+            )}
+          </span>
+          <span className="flex shrink-0 items-center gap-2 text-[10px] font-bold text-slate-400">
+            {value.length > 0 && t('etablissement.ficheOptionsSelectedCount', { count: value.length })}
+            <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180 text-blue-600' : ''}`} />
+          </span>
+        </button>
+
+        {open && (
+          <div className="absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+            <div className="border-b border-slate-100 p-2 dark:border-slate-800">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') setOpen(false)
+                  }}
+                  autoFocus
+                  placeholder={t('etablissement.ficheOptionsSearch')}
+                  className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-2 text-[11px] text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                />
+              </div>
+            </div>
+            <div role="listbox" aria-multiselectable="true" className="max-h-56 overflow-y-auto p-1.5">
+              {filteredOptions.length > 0 ? filteredOptions.map((option) => {
+                const checked = selected.has(option.id)
+                return (
+                  <label
+                    key={option.id}
+                    className={`group flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition-colors ${checked ? 'bg-blue-50 text-blue-900 dark:bg-blue-500/10 dark:text-blue-100' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggle(option.id)}
+                      className="peer sr-only"
+                    />
+                    <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${checked ? 'border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950' : 'border-slate-300 bg-white text-transparent group-hover:border-blue-400 dark:border-slate-600 dark:bg-slate-950'}`}>
+                      <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                    </span>
+                    <span className="leading-4">{t(option.labelKey)}</span>
+                  </label>
+                )
+              }) : (
+                <p className="px-3 py-5 text-center text-[11px] text-slate-500">{t('etablissement.ficheOptionsNoResults')}</p>
+              )}
+            </div>
+            <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2 dark:border-slate-800">
+              <span className="text-[10px] font-semibold text-slate-400">{t('etablissement.ficheOptionsSelectedCount', { count: value.length })}</span>
+              {value.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onChange([])}
+                  className="text-[10px] font-bold text-blue-700 hover:underline dark:text-blue-300"
+                >
+                  {t('etablissement.ficheOptionsClear')}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </fieldset>
   )
