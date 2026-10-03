@@ -141,6 +141,38 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:write', 'prescription:read'])]
     private ?string $quartier = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $region = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $regionCode = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $departement = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $departementCode = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $arrondissement = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $arrondissementCode = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?float $latitude = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?float $longitude = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['user:read', 'user:search', 'consultation:read', 'conversation:read', 'prescription:read'])]
     private ?string $photoProfil = null;
@@ -311,6 +343,23 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getRegion(): ?string { return $this->region; }
+    public function setRegion(?string $region): static { $this->region = $region; return $this; }
+    public function getRegionCode(): ?string { return $this->regionCode; }
+    public function setRegionCode(?string $regionCode): static { $this->regionCode = $regionCode; return $this; }
+    public function getDepartement(): ?string { return $this->departement; }
+    public function setDepartement(?string $departement): static { $this->departement = $departement; return $this; }
+    public function getDepartementCode(): ?string { return $this->departementCode; }
+    public function setDepartementCode(?string $departementCode): static { $this->departementCode = $departementCode; return $this; }
+    public function getArrondissement(): ?string { return $this->arrondissement; }
+    public function setArrondissement(?string $arrondissement): static { $this->arrondissement = $arrondissement; return $this; }
+    public function getArrondissementCode(): ?string { return $this->arrondissementCode; }
+    public function setArrondissementCode(?string $arrondissementCode): static { $this->arrondissementCode = $arrondissementCode; return $this; }
+    public function getLatitude(): ?float { return $this->latitude; }
+    public function setLatitude(?float $latitude): static { $this->latitude = $latitude; return $this; }
+    public function getLongitude(): ?float { return $this->longitude; }
+    public function setLongitude(?float $longitude): static { $this->longitude = $longitude; return $this; }
 
     public function getPhotoProfil(): ?string
     {

@@ -109,6 +109,26 @@ class CentreDeSante
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private ?string $region = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?string $regionCode = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?string $departement = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?string $departementCode = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?string $arrondissement = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['centre_sante:read', 'centre_sante:write'])]
+    private ?string $arrondissementCode = null;
+
     #[ORM\Column(nullable: true)]
     #[Assert\Range(min: -90, max: 90)]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
@@ -309,6 +329,16 @@ class CentreDeSante
 
     public function getRegion(): ?string { return $this->region; }
     public function setRegion(string $region): static { $this->region = $region; return $this; }
+    public function getRegionCode(): ?string { return $this->regionCode; }
+    public function setRegionCode(?string $regionCode): static { $this->regionCode = $regionCode; return $this; }
+    public function getDepartement(): ?string { return $this->departement; }
+    public function setDepartement(?string $departement): static { $this->departement = $departement; return $this; }
+    public function getDepartementCode(): ?string { return $this->departementCode; }
+    public function setDepartementCode(?string $departementCode): static { $this->departementCode = $departementCode; return $this; }
+    public function getArrondissement(): ?string { return $this->arrondissement; }
+    public function setArrondissement(?string $arrondissement): static { $this->arrondissement = $arrondissement; return $this; }
+    public function getArrondissementCode(): ?string { return $this->arrondissementCode; }
+    public function setArrondissementCode(?string $arrondissementCode): static { $this->arrondissementCode = $arrondissementCode; return $this; }
 
     public function getLatitude(): ?float { return $this->latitude; }
     public function setLatitude(?float $latitude): static { $this->latitude = $latitude; return $this; }

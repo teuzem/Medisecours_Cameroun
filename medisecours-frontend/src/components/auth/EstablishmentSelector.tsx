@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useState } from 'react'
-import { Building2, Check, LoaderCircle, MapPin, Plus, Search } from 'lucide-react'
+import { Check, Hospital, LoaderCircle, MapPin, Plus, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import { useDebounce } from '../../hooks/useDebounce'
@@ -18,6 +18,11 @@ export type ManualEstablishment = {
   adresse: string
   ville: string
   region: string
+  regionCode?: string
+  departement?: string
+  departementCode?: string
+  arrondissement?: string
+  arrondissementCode?: string
   latitude?: number
   longitude?: number
 }
@@ -340,7 +345,7 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
 
       {error && (
         <p className="flex items-start gap-1.5 text-xs font-medium text-red-600 dark:text-red-400">
-          <Building2 className="mt-px h-3.5 w-3.5 shrink-0" />
+          <Hospital className="mt-px h-3.5 w-3.5 shrink-0" />
           <span>{error}</span>
         </p>
       )}

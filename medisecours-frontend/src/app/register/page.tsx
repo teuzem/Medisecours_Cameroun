@@ -16,6 +16,7 @@ import {
   EyeOff,
   FileText,
   HeartPulse,
+  Hospital,
   LoaderCircle,
   Lock,
   Mail,
@@ -30,6 +31,7 @@ import AuthLayout from '../../components/auth/AuthLayout'
 import EstablishmentSelector, {
   type EstablishmentChoice,
 } from '../../components/auth/EstablishmentSelector'
+import CameroonGeographyFields, { type GeographyValue } from '../../components/auth/CameroonGeographyFields'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { destinationForUser } from '../../lib/auth-routing'
@@ -53,10 +55,18 @@ type RegisterForm = {
   numeroOrdre: string
   etablissementNom: string
   fonction: string
+  region: string
+  regionCode: string
+  departement: string
+  departementCode: string
+  arrondissement: string
+  arrondissementCode: string
+  latitude?: number
+  longitude?: number
 }
 
 type FieldErrors = Partial<Record<
-  keyof RegisterForm | 'terms' | 'type' | 'typePieceIdentite' | 'pieceIdentite' | 'pieceIdentiteVerso' | 'photoVerification',
+  keyof RegisterForm | 'terms' | 'type' | 'typePieceIdentite' | 'pieceIdentite' | 'pieceIdentiteVerso' | 'photoVerification' | 'geography',
   string
 >>
 
@@ -75,6 +85,12 @@ const emptyForm: RegisterForm = {
   numeroOrdre: '',
   etablissementNom: '',
   fonction: '',
+  region: '',
+  regionCode: '',
+  departement: '',
+  departementCode: '',
+  arrondissement: '',
+  arrondissementCode: '',
 }
 
 const steps = ['visitor.register.stepProfile', 'visitor.register.stepIdentity', 'visitor.register.stepDetails']
@@ -114,6 +130,36 @@ export default function RegisterPage() {
   const { t } = useTranslation()
   const toast = useToast()
   const router = useRouter()
+  const geography: GeographyValue = {
+    region: form.region,
+    regionCode: form.regionCode,
+    departement: form.departement,
+    departementCode: form.departementCode,
+    arrondissement: form.arrondissement,
+    arrondissementCode: form.arrondissementCode,
+    latitude: form.latitude,
+    longitude: form.longitude,
+  }
+
+  const setGeography = (next: GeographyValue) => {
+    setForm((current) => ({ ...current, ...next }))
+    if (type === 'etablissement' && establishmentChoice?.mode === 'manual') {
+      setEstablishmentChoice({
+        mode: 'manual',
+        establishment: {
+          ...establishmentChoice.establishment,
+          region: next.region,
+          regionCode: next.regionCode,
+          departement: next.departement,
+          departementCode: next.departementCode,
+          arrondissement: next.arrondissement,
+          arrondissementCode: next.arrondissementCode,
+          latitude: next.latitude,
+          longitude: next.longitude,
+        },
+      })
+    }
+  }
 
   const setField = (key: keyof RegisterForm) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setForm((current) => ({ ...current, [key]: event.target.value }))
@@ -122,7 +168,7 @@ export default function RegisterPage() {
 
   const validateField = (key: keyof RegisterForm) => {
     let error: string | undefined
-    const value = form[key].trim()
+    const value = String(form[key] ?? '').trim()
 
     if (key === 'prenom' && value.length < 2) error = t('visitor.register.errFirstName')
     if (key === 'nom' && value.length < 2) error = t('visitor.register.errLastName')
@@ -208,7 +254,9 @@ export default function RegisterPage() {
           manual.nom.trim().length < 2 ||
           manual.adresse.trim().length < 5 ||
           manual.ville.trim().length < 2 ||
-          !manual.region
+          !manual.region ||
+          !manual.departement ||
+          !manual.arrondissement
         ) {
           nextErrors.etablissementNom = t('visitor.register.errManualEstablishment')
         }
@@ -217,6 +265,10 @@ export default function RegisterPage() {
 
     if (!isValidPhone(form.telephone)) {
       nextErrors.telephone = t('visitor.register.errPhone')
+    }
+
+    if (!form.regionCode || !form.departementCode || !form.arrondissementCode) {
+      nextErrors.geography = t('visitor.register.errGeography')
     }
 
     if (form.groupeSanguin.trim() && !/^(A|B|AB|O)[+-]$/i.test(form.groupeSanguin.trim())) {
@@ -289,6 +341,14 @@ export default function RegisterPage() {
               ...common,
               telephone: form.telephone.trim(),
               quartier: form.quartier.trim(),
+              region: form.region,
+              regionCode: form.regionCode,
+              departement: form.departement,
+              departementCode: form.departementCode,
+              arrondissement: form.arrondissement,
+              arrondissementCode: form.arrondissementCode,
+              latitude: form.latitude,
+              longitude: form.longitude,
               groupeSanguin: form.groupeSanguin.trim().toUpperCase(),
               allergies: form.allergies.trim(),
               contactsUrgence: form.contactsUrgence.trim(),
@@ -297,6 +357,14 @@ export default function RegisterPage() {
             ? {
                 ...common,
                 telephone: form.telephone.trim(),
+                region: form.region,
+                regionCode: form.regionCode,
+                departement: form.departement,
+                departementCode: form.departementCode,
+                arrondissement: form.arrondissement,
+                arrondissementCode: form.arrondissementCode,
+                latitude: form.latitude,
+                longitude: form.longitude,
                 etablissementNom: establishmentChoice?.mode === 'existing'
                   ? establishmentChoice.centre.nom
                   : establishmentChoice?.establishment.nom.trim(),
@@ -309,6 +377,14 @@ export default function RegisterPage() {
                       nom: establishmentChoice.establishment.nom.trim(),
                       adresse: establishmentChoice.establishment.adresse.trim(),
                       ville: establishmentChoice.establishment.ville.trim(),
+                      region: form.region,
+                      regionCode: form.regionCode,
+                      departement: form.departement,
+                      departementCode: form.departementCode,
+                      arrondissement: form.arrondissement,
+                      arrondissementCode: form.arrondissementCode,
+                      latitude: form.latitude ?? establishmentChoice.establishment.latitude,
+                      longitude: form.longitude ?? establishmentChoice.establishment.longitude,
                     }
                   : undefined,
                 fonction: form.fonction.trim(),
@@ -320,8 +396,16 @@ export default function RegisterPage() {
                 telephone: form.telephone.trim(),
                 specialite: form.specialite.trim(),
                 numeroOrdre: form.numeroOrdre.trim(),
+                region: form.region,
+                regionCode: form.regionCode,
+                departement: form.departement,
+                departementCode: form.departementCode,
+                arrondissement: form.arrondissement,
+                arrondissementCode: form.arrondissementCode,
+                latitude: form.latitude ?? '',
+                longitude: form.longitude ?? '',
                 typePieceIdentite,
-              }).forEach(([key, value]) => data.append(key, value))
+              }).forEach(([key, value]) => data.append(key, String(value)))
               data.append('pieceIdentite', pieceIdentite as File)
               if (typePieceIdentite === 'CNI') {
                 data.append('pieceIdentiteVerso', pieceIdentiteVerso as File)
@@ -459,7 +543,7 @@ export default function RegisterPage() {
                 className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
               >
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950 dark:text-emerald-300">
-                  <Building2 className="h-5 w-5" />
+                  <Hospital className="h-5 w-5" />
                 </div>
                 <span className="block font-display text-base font-bold text-slate-950 dark:text-white">{t('visitor.register.establishmentCardTitle')}</span>
                 <span className="mt-1 block text-xs leading-5 text-slate-500 dark:text-slate-400">
@@ -657,6 +741,7 @@ export default function RegisterPage() {
                     />
                   </div>
                 </Field>
+                <CameroonGeographyFields value={geography} onChange={setGeography} inputClass={inputClass} error={errors.geography} />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={t('visitor.register.quartierLabel')} hint={t('visitor.register.quartierHint')}>
                     <input
@@ -724,6 +809,29 @@ export default function RegisterPage() {
                         etablissementNom: choice?.mode === 'existing'
                           ? choice.centre.nom
                           : choice?.establishment.nom ?? '',
+                        ...(choice?.mode === 'existing'
+                          ? {
+                              region: choice.centre.region ?? current.region,
+                              regionCode: choice.centre.regionCode ?? current.regionCode,
+                              departement: choice.centre.departement ?? current.departement,
+                              departementCode: choice.centre.departementCode ?? current.departementCode,
+                              arrondissement: choice.centre.arrondissement ?? current.arrondissement,
+                              arrondissementCode: choice.centre.arrondissementCode ?? current.arrondissementCode,
+                              latitude: choice.centre.latitude ?? current.latitude,
+                              longitude: choice.centre.longitude ?? current.longitude,
+                            }
+                          : choice?.establishment
+                            ? {
+                                region: choice.establishment.region || current.region,
+                                regionCode: choice.establishment.regionCode || current.regionCode,
+                                departement: choice.establishment.departement || current.departement,
+                                departementCode: choice.establishment.departementCode || current.departementCode,
+                                arrondissement: choice.establishment.arrondissement || current.arrondissement,
+                                arrondissementCode: choice.establishment.arrondissementCode || current.arrondissementCode,
+                                latitude: choice.establishment.latitude ?? current.latitude,
+                                longitude: choice.establishment.longitude ?? current.longitude,
+                              }
+                            : {}),
                       }))
                       if (errors.etablissementNom) {
                         setErrors((current) => ({ ...current, etablissementNom: undefined }))
@@ -731,6 +839,12 @@ export default function RegisterPage() {
                     }}
                   />
                 </Field>
+                <CameroonGeographyFields
+                  value={geography}
+                  onChange={setGeography}
+                  inputClass={inputClass}
+                  error={errors.geography}
+                />
                 <Field
                   label={t('visitor.register.establishmentRoleLabel')}
                   hint={t('visitor.register.establishmentRoleHint')}
@@ -824,6 +938,7 @@ export default function RegisterPage() {
                     placeholder={t('visitor.register.orderNumberPlaceholder')}
                   />
                 </Field>
+                <CameroonGeographyFields value={geography} onChange={setGeography} inputClass={inputClass} error={errors.geography} />
                 <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
                   <div className="mb-4">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">

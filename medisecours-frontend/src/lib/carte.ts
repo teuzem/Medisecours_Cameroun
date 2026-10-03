@@ -20,6 +20,11 @@ export interface CarteCentre {
   adresse: string
   ville?: string
   region?: string
+  regionCode?: string
+  departement?: string
+  departementCode?: string
+  arrondissement?: string
+  arrondissementCode?: string
   quartier?: string
   telephone?: string
   horaires?: string

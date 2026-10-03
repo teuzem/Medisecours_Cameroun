@@ -3,11 +3,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadGoogleMaps } from '../../lib/googleMaps'
 import { getMapboxToken } from '../../lib/mapboxMaps'
+import { useTranslation } from 'react-i18next'
+import { resolveGeographyNames } from '../../lib/cameroonGeography'
 
 export type EstablishmentLocationValue = {
   adresse: string
   ville: string
   region: string
+  regionCode?: string
+  departement?: string
+  departementCode?: string
+  arrondissement?: string
+  arrondissementCode?: string
   latitude: number
   longitude: number
 }
@@ -25,6 +32,7 @@ function normalizeRegion(value: string) {
 }
 
 export default function EstablishmentLocation({ onSelect }: { onSelect: (value: EstablishmentLocationValue) => void }) {
+  const { t, i18n } = useTranslation()
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [busy, setBusy] = useState(false)
@@ -58,10 +66,20 @@ export default function EstablishmentLocation({ onSelect }: { onSelect: (value: 
                 await place.fetchFields({ fields: ['location', 'formattedAddress', 'addressComponents'] })
                 if (!place.location) throw new Error('Adresse sans coordonnees')
                 const component = (type: string) => place.addressComponents?.find(item => item.types.includes(type))?.longText ?? ''
+                const geography = resolveGeographyNames({
+                  region: component('administrative_area_level_1'),
+                  department: component('administrative_area_level_2'),
+                  arrondissement: component('administrative_area_level_3') || component('locality'),
+                })
                 return {
                   adresse: place.formattedAddress ?? placePrediction.text.toString(),
                   ville: component('locality') || component('administrative_area_level_2'),
-                  region: normalizeRegion(component('administrative_area_level_1')),
+                  region: geography.region?.nameLocal ?? normalizeRegion(component('administrative_area_level_1')),
+                  regionCode: geography.region?.id,
+                  departement: geography.department?.nameLocal,
+                  departementCode: geography.department?.id,
+                  arrondissement: geography.arrondissement?.nameLocal,
+                  arrondissementCode: geography.arrondissement?.id,
                   latitude: place.location.lat(), longitude: place.location.lng(),
                 }
               },
@@ -77,32 +95,44 @@ export default function EstablishmentLocation({ onSelect }: { onSelect: (value: 
             const context = properties.context ?? {}
             return {
               id: properties.mapbox_id, label: properties.full_address ?? properties.name,
-              resolve: async () => ({
-                adresse: properties.full_address ?? properties.name,
-                ville: context.place?.name ?? context.locality?.name ?? '',
-                region: normalizeRegion(context.region?.name ?? ''),
-                longitude: feature.geometry.coordinates[0], latitude: feature.geometry.coordinates[1],
-              }),
+              resolve: async () => {
+                const geography = resolveGeographyNames({
+                  region: context.region?.name ?? '',
+                  department: context.district?.name ?? context.county?.name ?? '',
+                  arrondissement: context.locality?.name ?? context.place?.name ?? '',
+                })
+                return {
+                  adresse: properties.full_address ?? properties.name,
+                  ville: context.place?.name ?? context.locality?.name ?? '',
+                  region: geography.region?.nameLocal ?? normalizeRegion(context.region?.name ?? ''),
+                  regionCode: geography.region?.id,
+                  departement: geography.department?.nameLocal,
+                  departementCode: geography.department?.id,
+                  arrondissement: geography.arrondissement?.nameLocal,
+                  arrondissementCode: geography.arrondissement?.id,
+                  longitude: feature.geometry.coordinates[0], latitude: feature.geometry.coordinates[1],
+                }
+              },
             }
           })
         } else {
-          throw new Error('Recherche cartographique indisponible. Vous pouvez saisir les informations manuellement.')
+          throw new Error(t('visitor.register.locationSearchUnavailable'))
         }
         if (id === requestId.current) setSuggestions(items)
       } catch (cause) {
-        if (id === requestId.current && !controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Recherche indisponible')
+        if (id === requestId.current && !controller.signal.aborted) setError(cause instanceof Error ? cause.message : t('visitor.register.locationSearchError'))
       } finally {
         if (id === requestId.current) setBusy(false)
       }
     }, 300)
     return () => { clearTimeout(timer); controller.abort() }
-  }, [query])
+  }, [i18n.language, query, t])
 
   return <div className="space-y-2">
-    <label className="block text-sm font-medium text-slate-700">Localiser sur la carte
-      <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Adresse, ville, quartier au Cameroun" autoComplete="off" className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm" />
+    <label className="block text-sm font-medium text-slate-700">{t('visitor.register.locateOnMap')}
+      <input value={query} onChange={event => setQuery(event.target.value)} placeholder={t('visitor.register.locationSearchPlaceholder')} autoComplete="off" className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm" />
     </label>
-    {busy && <p role="status" className="text-xs text-slate-500">Recherche en cours...</p>}
+    {busy && <p role="status" className="text-xs text-slate-500">{t('visitor.register.locationSearching')}</p>}
     {error && <p role="status" className="text-xs text-amber-700">{error}</p>}
     {suggestions.length > 0 && <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
       {suggestions.map(item => <li key={item.id}><button type="button" className="w-full px-3 py-3 text-left text-sm hover:bg-blue-50" onClick={async () => {
@@ -114,7 +144,7 @@ export default function EstablishmentLocation({ onSelect }: { onSelect: (value: 
           onSelect(location)
           setSuggestions([])
           setError('')
-        } catch { setError('Impossible de determiner la position de cette adresse.') }
+        } catch { setError(t('visitor.register.locationResolveError')) }
         finally { setBusy(false) }
       }}>{item.label}</button></li>)}
     </ul>}
