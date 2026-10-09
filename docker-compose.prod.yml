@@ -1,6 +1,4 @@
-# ============================================================================
 # MediSecours+ — full production stack (OPTION B / reference compose)
-# ============================================================================
 # Use this if you prefer a single `docker compose up -d` on the VPS instead of
 # multiple Coolify applications. With Coolify, the RECOMMENDED path is the
 # four Coolify resources described in DEPLOYMENT.md (this file can also be
@@ -12,7 +10,6 @@
 #
 # Reverse proxy: Coolify's Traefik handles TLS for all public domains, so
 # the ports below only need to be reachable on the VPS (or proxied).
-# ============================================================================
 
 services:
   db:
