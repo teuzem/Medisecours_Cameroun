@@ -18,6 +18,7 @@ const PAGE_TITLE_KEYS: Record<string, string> = {
   '/medecin': 'layout.overview',
   '/medecin/patients': 'layout.patients',
   '/medecin/consultations': 'consultations.title',
+  '/medecin/alertes': 'medecin.alertes.title',
   '/medecin/prescriptions': 'prescriptions.title',
   '/medecin/pharmacy': 'layout.pharmacy',
   '/medecin/messages': 'layout.messages',

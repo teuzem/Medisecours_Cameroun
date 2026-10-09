@@ -36,6 +36,8 @@ type Props = {
   error?: string
   inputClass: string
   onChange: (value: EstablishmentChoice | null) => void
+  /** Masque l'ajout manuel : uniquement la sélection d'un établissement existant. */
+  existingOnly?: boolean
 }
 
 const REGIONS = [
@@ -68,7 +70,7 @@ function extractCentres(response: { data?: unknown }): CarteCentre[] {
   return Array.isArray(raw) ? (raw as CarteCentre[]) : []
 }
 
-export default function EstablishmentSelector({ value, error, inputClass, onChange }: Props) {
+export default function EstablishmentSelector({ value, error, inputClass, onChange, existingOnly }: Props) {
   const { t } = useTranslation()
   const listId = useId()
   const [query, setQuery] = useState('')
@@ -329,17 +331,19 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => onChange({
-              mode: 'manual',
-              establishment: { ...emptyManual, nom: query.trim() },
-            })}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 text-sm font-bold text-slate-700 transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
-          >
-            <Plus className="h-4 w-4" />
-            {t('visitor.register.addEstablishmentManually')}
-          </button>
+          {!existingOnly && (
+            <button
+              type="button"
+              onClick={() => onChange({
+                mode: 'manual',
+                establishment: { ...emptyManual, nom: query.trim() },
+              })}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 text-sm font-bold text-slate-700 transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
+            >
+              <Plus className="h-4 w-4" />
+              {t('visitor.register.addEstablishmentManually')}
+            </button>
+          )}
         </>
       )}
 

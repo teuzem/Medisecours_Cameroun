@@ -62,15 +62,16 @@ import { findCameroonLanguage } from '../../lib/cameroonLanguages'
 // ─── Helpers UI ──────────────────────────────────────────────────────────────
 
 function Stars({ value, onPick }: { value: number; onPick?: (note: number) => void }) {
+  const { t } = useTranslation()
   return (
-    <div className="flex items-center gap-0.5" role="radiogroup" aria-label="Note">
+    <div className="flex items-center gap-0.5" role="radiogroup" aria-label={t('visitor.carte.noteAria')}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
           disabled={!onPick}
           onClick={() => onPick?.(star)}
-          aria-label={`${star} étoile${star > 1 ? 's' : ''}`}
+          aria-label={t('visitor.medecinDetail.starAria', { count: star, value: star })}
           className={onPick ? 'cursor-pointer transition hover:scale-110' : 'cursor-default'}
         >
           <Star
@@ -1107,7 +1108,7 @@ export default function EtablissementDrawer({
                                       await navigator.share({ title: selectedCentre?.nom, text: shareText })
                                     } else {
                                       await navigator.clipboard.writeText(shareText)
-                                      toast.success('Avis copié dans le presse-papiers.')
+                                      toast.success(t('visitor.etablissement.reviewCopied'))
                                     }
                                   } catch (error) {
                                     if ((error as Error).name !== 'AbortError') toast.error('Le partage est indisponible.')

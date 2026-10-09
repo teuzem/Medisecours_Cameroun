@@ -42,6 +42,8 @@ import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import FichePanel, { type FicheCentre } from '../../components/espace-etablissement/FichePanel'
 import AnalyticsPanel from '../../components/espace-etablissement/AnalyticsPanel'
+import SosAlertesPanel from '../../components/espace-etablissement/SosAlertesPanel'
+import AffiliationsPanel from '../../components/espace-etablissement/AffiliationsPanel'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { imgUrl } from '../../lib/config'
@@ -174,18 +176,6 @@ const ROLE_LABELS: Record<string, string> = {
   LECTURE: 'roleLecture',
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  hopital_general: 'Hôpital',
-  hopital_de_district: 'Hôpital de district',
-  chu: 'CHU',
-  cma: 'CMA',
-  csi: 'CSI',
-  clinique_privee: 'Clinique',
-  pharmacie: 'Pharmacie',
-  laboratoire: 'Laboratoire',
-  centre_specialise: 'Centre spécialisé',
-}
-
 const TYPE_TRANSLATION_KEYS: Record<string, string> = {
   hopital_general: 'hopitalGeneral',
   hopital_de_district: 'hopitalDistrict',
@@ -215,6 +205,7 @@ type DashboardSectionId =
   | 'dashboard-overview'
   | 'dashboard-fiche'
   | 'dashboard-team'
+  | 'dashboard-affiliations'
   | 'dashboard-media'
   | 'dashboard-reviews'
   | 'dashboard-analytics'
@@ -224,6 +215,7 @@ const DASHBOARD_SECTION_IDS: DashboardSectionId[] = [
   'dashboard-overview',
   'dashboard-fiche',
   'dashboard-team',
+  'dashboard-affiliations',
   'dashboard-media',
   'dashboard-reviews',
   'dashboard-analytics',
@@ -316,6 +308,33 @@ export default function EtablissementEspacePage() {
       window.localStorage.setItem(PREFS_KEY, JSON.stringify(stored))
     } catch {
       // stockage indisponible : on ignore
+    }
+    // Persistance serveur : la structure partage la même configuration.
+    void api.patch('/api/carte/mon-etablissement/preferences', normalized).catch(() => {
+      // hors ligne : le cache local reste à jour, la synchro reprendra au prochain chargement
+    })
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    api
+      .get<{ preferences: Partial<Prefs> }>('/api/carte/mon-etablissement/preferences')
+      .then(({ data }) => {
+        if (cancelled || !data?.preferences) return
+        const remote = normalizePrefs(data.preferences)
+        // Le serveur fait foi : on réaligne l'état et le cache local.
+        setPrefs(remote)
+        try {
+          window.localStorage.setItem(PREFS_KEY, JSON.stringify({ ...remote, version: PREFS_VERSION } satisfies StoredPrefs))
+        } catch {
+          // stockage indisponible : on ignore
+        }
+      })
+      .catch(() => {
+        // accès non manager ou hors ligne : le cache local fait foi
+      })
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -965,6 +984,14 @@ function DashboardWorkspace({
           </div>
         </div>
       )
+    case 'dashboard-affiliations':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-affiliations" {...panelProps}>
+            <AffiliationsPanel centreId={mon.centre.id} />
+          </div>
+        </div>
+      )
     case 'dashboard-media':
       return (
         <div className={panelClass}>
@@ -1042,6 +1069,9 @@ function DashboardWorkspace({
             <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
             <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
           </div>
+          <div className="dashboard-section">
+            <SosAlertesPanel centreId={mon.centre.id} />
+          </div>
         </div>
       )
   }
@@ -1063,6 +1093,7 @@ function DashboardSectionNav({
     { id: 'dashboard-overview', label: t('etablissement.navOverview'), icon: Gauge },
     { id: 'dashboard-fiche', label: t('etablissement.navFiche'), icon: Building2 },
     { id: 'dashboard-team', label: t('etablissement.navTeam'), icon: Users },
+    { id: 'dashboard-affiliations', label: t('etablissement.navAffiliations'), icon: UserCheck },
     { id: 'dashboard-media', label: t('etablissement.navMedia'), icon: FileImage },
     { id: 'dashboard-reviews', label: t('etablissement.navReviews'), icon: MessageSquare },
     { id: 'dashboard-analytics', label: t('etablissement.navAnalytics'), icon: Activity },

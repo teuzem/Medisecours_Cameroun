@@ -1,5 +1,44 @@
 {
   "medecin": {
+    "affiliations": {
+    "titre": "Mes établissements",
+    "intro": "Vos rattachements aux structures de santé.",
+    "chargement": "Chargement…",
+    "erreurChargement": "Impossible de charger vos affiliations.",
+    "aucune": "Aucun établissement",
+    "aucuneDesc": "Rejoignez une structure depuis la Carte Santé pour recevoir ses urgences et collaborer avec son équipe.",
+    "rejoindre": "Rejoindre un établissement",
+    "retireOk": "Demande retirée.",
+    "actionErreur": "Action impossible.",
+    "retirer": "Retirer la demande"
+    },
+    "alertes": {
+      "title": "Alertes SOS",
+      "titre": "Alertes SOS",
+      "intro": "Urgences vérifiées à prendre en charge, et vos interventions en cours.",
+      "ouvertesSection": "Alertes à prendre",
+      "ouvertesEmpty": "Aucune alerte ouverte",
+      "ouvertesEmptyDesc": "Les urgences vérifiées et non prises apparaîtront ici automatiquement.",
+      "mesPrisesSection": "Mes interventions",
+      "mesPrisesEmpty": "Aucune intervention en cours",
+      "mesPrisesEmptyDesc": "Les alertes que vous prenez en charge apparaîtront ici.",
+      "actionErreur": "L'action a échoué.",
+      "priseOk": "Alerte prise en charge.",
+      "clotureOk": "Intervention clôturée.",
+      "pasDescription": "Aucune description fournie",
+      "anonyme": "Demandeur anonyme",
+      "preuve": "Preuve photo",
+      "prendre": "Prendre en charge",
+      "cloturer": "Clôturer l'intervention",
+      "habilitation": {
+        "admin": "Administrateur",
+        "affiliation": "Affiliation acceptée",
+        "equipe": "Équipe médicale",
+        "ouverte": "Alerte ouverte",
+        "affiliation_requise": "Non affilié à cet établissement",
+        "equipe_requise": "Réservée à l'équipe de l'établissement"
+      }
+    },
     "loadingSpace": "Chargement de l'espace médecin…",
     "openMenu": "Ouvrir le menu",
     "dayShort": {
@@ -102,6 +141,7 @@
       "urgency": "Urgence"
     },
     "sidebar": {
+      "sosAlerts": "Alertes SOS",
       "workspace": "Espace de travail",
       "overview": "Vue d'ensemble",
       "medicalTracking": "Suivi médical",

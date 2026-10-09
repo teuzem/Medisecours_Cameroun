@@ -126,6 +126,7 @@ export default function RegisterPage() {
   const [pieceIdentiteVerso, setPieceIdentiteVerso] = useState<File | null>(null)
   const [photoVerification, setPhotoVerification] = useState<File | null>(null)
   const [establishmentChoice, setEstablishmentChoice] = useState<EstablishmentChoice | null>(null)
+  const [medecinEtablissement, setMedecinEtablissement] = useState<EstablishmentChoice | null>(null)
   const { register, loginWithGoogle } = useAuth()
   const { t } = useTranslation()
   const toast = useToast()
@@ -411,13 +412,18 @@ export default function RegisterPage() {
                 data.append('pieceIdentiteVerso', pieceIdentiteVerso as File)
               }
               data.append('photoVerification', photoVerification as File)
+              if (medecinEtablissement?.mode === 'existing') {
+                data.append('etablissementId', String(medecinEtablissement.centre.id))
+              }
               return data
             })()
 
       await register(payload)
       toast.success(
         type === 'medecin'
-          ? t('visitor.register.toastDoctorCreated')
+          ? medecinEtablissement?.mode === 'existing'
+            ? t('visitor.register.toastDoctorCreatedWithAffiliation', { nom: medecinEtablissement.centre.nom })
+            : t('visitor.register.toastDoctorCreated')
           : type === 'etablissement'
             ? t('visitor.register.toastEstablishmentCreated')
             : t('visitor.register.toastPatientCreated'),
@@ -936,6 +942,17 @@ export default function RegisterPage() {
                     aria-invalid={Boolean(errors.numeroOrdre)}
                     className={inputClass}
                     placeholder={t('visitor.register.orderNumberPlaceholder')}
+                  />
+                </Field>
+                <Field
+                  label={t('visitor.register.medecinEstablishmentLabel')}
+                  hint={t('visitor.register.medecinEstablishmentHint')}
+                >
+                  <EstablishmentSelector
+                    existingOnly
+                    value={medecinEtablissement}
+                    inputClass={inputClass}
+                    onChange={setMedecinEtablissement}
                   />
                 </Field>
                 <CameroonGeographyFields value={geography} onChange={setGeography} inputClass={inputClass} error={errors.geography} />

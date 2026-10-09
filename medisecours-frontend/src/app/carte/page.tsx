@@ -37,6 +37,7 @@ import {
   RefreshCw,
   Route,
   Search,
+  Siren,
   UserCircle,
   X,
 } from 'lucide-react'
@@ -135,6 +136,7 @@ export default function CartePage() {
   const [destination, setDestination] = useState<Destination | null>(null)
   const [isTracking, setIsTracking] = useState(false)
   const [sosOpen, setSosOpen] = useState(false)
+  const [sosEtablissement, setSosEtablissement] = useState<{ id: number; nom: string } | null>(null)
   const [favorites, setFavorites] = useState<number[]>(() => readFavorites())
   const [recentIds, setRecentIds] = useState<number[]>(() => readRecentCentres())
   const remoteFilterActive = useRef(false)
@@ -703,6 +705,21 @@ export default function CartePage() {
         )}
       </AnimatePresence>
 
+      {/* ═══ FAB SOS (alerte globale) ═══ */}
+      <button
+        type="button"
+        onClick={() => {
+          const cible = selectedId != null ? centres.find((c) => c.id === selectedId) : null
+          setSosEtablissement(cible && drawerOpen ? { id: cible.id, nom: cible.nom } : null)
+          setSosOpen(true)
+        }}
+        aria-label={t('visitor.carte.sosFabAria')}
+        title={t('visitor.carte.sosFabAria')}
+        className="absolute bottom-52 right-3 z-[600] flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-red-600 text-white shadow-lg shadow-red-600/40 transition hover:scale-105 hover:bg-red-700 active:scale-95 xl:bottom-44 xl:right-3"
+      >
+        <Siren className="h-6 w-6" />
+      </button>
+
       {/* ═══ FAB localisation ═══ */}
       <button
         type="button"
@@ -738,7 +755,11 @@ export default function CartePage() {
         favorites={favorites}
         recentIds={recentIds}
         onToggleFavorite={toggleFavorite}
-        onSosClick={() => setSosOpen(true)}
+        onSosClick={() => {
+          const cible = selectedId != null ? centres.find((c) => c.id === selectedId) : null
+          setSosEtablissement(cible ? { id: cible.id, nom: cible.nom } : null)
+          setSosOpen(true)
+        }}
         onRequestDirections={handleRequestDirections}
         mode={mode}
         onModeChange={setMode}
@@ -762,9 +783,14 @@ export default function CartePage() {
 
       <SosModal
         open={sosOpen}
-        onClose={() => setSosOpen(false)}
+        onClose={() => {
+          setSosOpen(false)
+          setSosEtablissement(null)
+        }}
         position={position}
         onLocate={() => locate()}
+        etablissementId={sosEtablissement?.id ?? null}
+        etablissementNom={sosEtablissement?.nom ?? null}
       />
     </div>
   )

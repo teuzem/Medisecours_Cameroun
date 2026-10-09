@@ -30,17 +30,21 @@ class DemandeSosRepository extends ServiceEntityRepository
         $sql = <<<SQL
             SELECT
                 COUNT(d.id) AS total,
-                COALESCE(SUM(CASE WHEN d.statut = 'EN_COURS' THEN 1 ELSE 0 END), 0) AS en_cours,
+                COALESCE(SUM(CASE WHEN d.statut IN ('EN_COURS', 'VERIFIEE', 'EN_PRISE_EN_CHARGE') THEN 1 ELSE 0 END), 0) AS en_cours,
                 COALESCE(SUM(CASE WHEN d.statut = 'TRAITEE' THEN 1 ELSE 0 END), 0) AS traitees,
-                COALESCE(SUM(CASE WHEN d.statut = 'CLOTUREE' THEN 1 ELSE 0 END), 0) AS cloturees
+                COALESCE(SUM(CASE WHEN d.statut IN ('CLOTUREE', 'FRAUDULEUSE') THEN 1 ELSE 0 END), 0) AS cloturees
             FROM demande_sos d
             WHERE d.created_at >= :since
-              AND d.proches::text LIKE :pattern
+              AND (
+                    d.etablissement_id = :id
+                    OR (d.etablissement_id IS NULL AND d.proches::text LIKE :pattern)
+              )
         SQL;
 
         $row = $this->getEntityManager()->getConnection()
             ->executeQuery($sql, [
                 'since' => $since,
+                'id' => $etablissementId,
                 'pattern' => '%"id":' . $etablissementId . '%',
             ])
             ->fetchAssociative();

@@ -368,7 +368,7 @@ export default function MedecinHeader() {
               </p>
               {user?.estValide && <CertifiedBadge className="h-4 w-4" />}
             </div>
-            <p className="text-xs text-[#6B7280]">Médecin</p>
+            <p className="text-xs text-[#6B7280]">{t('visitor.etablissement.roleMedecin')}</p>
           </div>
           <ChevronDown className="hidden h-4 w-4 text-[#6B7280] sm:block" />
         </button>

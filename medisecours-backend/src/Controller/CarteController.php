@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\CentreDeSante;
 use App\Entity\EtablissementEquipe;
 use App\Entity\EtablissementManager;
+use App\Entity\EtablissementPreference;
 use App\Entity\AvisEtablissement;
 use App\Entity\MediaObject;
 use App\Entity\Medecin;
@@ -54,6 +55,11 @@ class CarteController extends AbstractController
         private StructureSyncService $structureSync
     ) {
     }
+
+    /**
+     * Accents de personnalisation acceptés (miroir de ACCENTS côté frontend).
+     */
+    private const PREFERENCE_ACCENTS = ['#059669', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706'];
 
     private function requireUser(): User
     {
@@ -390,6 +396,130 @@ class CarteController extends AbstractController
         $this->em->flush();
 
         return new JsonResponse(['centre' => $this->serializeCentre($centre)]);
+    }
+
+    /**
+     * Préférences de personnalisation de l'espace structure.
+     *
+     * GET /api/carte/mon-etablissement/preferences
+     */
+    #[Route('/api/carte/mon-etablissement/preferences', name: 'api_carte_mon_etablissement_preferences', methods: ['GET'])]
+    public function mesPreferences(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $centre = $this->resolveManagedCentre($user, $request);
+        $this->assertCanManage($user, $centre);
+
+        return new JsonResponse([
+            'preferences' => $this->loadPreferences($centre),
+        ]);
+    }
+
+    /**
+     * Mise à jour partielle des préférences de personnalisation.
+     *
+     * PATCH /api/carte/mon-etablissement/preferences
+     * Body : accent?, surface?, showSos?, compact?, animations?, showHeroCover?
+     */
+    #[Route('/api/carte/mon-etablissement/preferences', name: 'api_carte_mon_etablissement_preferences_update', methods: ['PATCH'])]
+    public function modifierPreferences(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $centre = $this->resolveManagedCentre($user, $request);
+        $this->assertCanManage($user, $centre);
+
+        $data = $request->toArray();
+        $current = $this->loadPreferences($centre);
+        $updated = $current;
+
+        if (array_key_exists('accent', $data)) {
+            if (!is_string($data['accent']) || !in_array($data['accent'], self::PREFERENCE_ACCENTS, true)) {
+                throw new BadRequestHttpException('Accent de personnalisation invalide.');
+            }
+            $updated['accent'] = $data['accent'];
+        }
+
+        if (array_key_exists('surface', $data)) {
+            if (!is_string($data['surface']) || !in_array($data['surface'], ['glass', 'soft'], true)) {
+                throw new BadRequestHttpException('Surface d\'affichage invalide.');
+            }
+            $updated['surface'] = $data['surface'];
+        }
+
+        foreach (['showSos', 'compact', 'animations', 'showHeroCover'] as $boolKey) {
+            if (array_key_exists($boolKey, $data)) {
+                if (!is_bool($data[$boolKey])) {
+                    throw new BadRequestHttpException(sprintf('Le réglage "%s" doit être un booléen.', $boolKey));
+                }
+                $updated[$boolKey] = $data[$boolKey];
+            }
+        }
+
+        if ($updated === $current) {
+            return new JsonResponse(['preferences' => $current]);
+        }
+
+        $preference = $this->em->find(EtablissementPreference::class, $centre->getId());
+        if (!$preference instanceof EtablissementPreference) {
+            $preference = new EtablissementPreference();
+            $preference->setCentre($centre);
+        }
+        $preference
+            ->setData($updated)
+            ->setUpdatedAt(new \DateTimeImmutable())
+            ->setUpdatedBy($user);
+
+        $this->em->persist($preference);
+        $this->em->flush();
+
+        return new JsonResponse(['preferences' => $updated]);
+    }
+
+    /**
+     * Préférences validées de la structure (défauts + valeurs stockées).
+     *
+     * @return array{accent: string, showSos: bool, compact: bool, animations: bool, surface: string, showHeroCover: bool}
+     */
+    private function loadPreferences(CentreDeSante $centre): array
+    {
+        $preferences = self::defaultPreferences();
+
+        $preference = $this->em->find(EtablissementPreference::class, $centre->getId());
+        if (!$preference instanceof EtablissementPreference) {
+            return $preferences;
+        }
+
+        $stored = $preference->getData();
+        if (isset($stored['accent']) && is_string($stored['accent']) && in_array($stored['accent'], self::PREFERENCE_ACCENTS, true)) {
+            $preferences['accent'] = $stored['accent'];
+        }
+        if (isset($stored['surface']) && is_string($stored['surface']) && in_array($stored['surface'], ['glass', 'soft'], true)) {
+            $preferences['surface'] = $stored['surface'];
+        }
+        foreach (['showSos', 'compact', 'animations', 'showHeroCover'] as $boolKey) {
+            if (isset($stored[$boolKey]) && is_bool($stored[$boolKey])) {
+                $preferences[$boolKey] = $stored[$boolKey];
+            }
+        }
+
+        return $preferences;
+    }
+
+    /**
+     * Valeurs par défaut (miroir de defaultPrefs() côté frontend).
+     *
+     * @return array{accent: string, showSos: bool, compact: bool, animations: bool, surface: string, showHeroCover: bool}
+     */
+    private static function defaultPreferences(): array
+    {
+        return [
+            'accent' => '#059669',
+            'showSos' => true,
+            'compact' => false,
+            'animations' => true,
+            'surface' => 'glass',
+            'showHeroCover' => true,
+        ];
     }
 
     /**

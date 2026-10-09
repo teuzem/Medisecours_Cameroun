@@ -10,7 +10,7 @@
  * - Aucun double-write entre WebSocket et SWR → plus de désynchronisation.
  */
 
-import React, { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../hooks/useAuth'
 import { useUnreadCount } from '../hooks/useUnreadCount'
@@ -18,6 +18,7 @@ import { useConsultationCount } from '../hooks/useConsultationCount'
 import { useWebSocket } from '../hooks/useWebSocket'
 import useSWR, { mutate as globalMutate } from 'swr'
 import api from '../api/axios'
+import SosSireneBanner from '../components/ui/SosSireneBanner'
 import i18n, { changeLanguage } from '../i18n'
 import {
   CONVERSATIONS_KEY,
@@ -67,6 +68,11 @@ interface NotificationContextValue {
   subscribeToMessages: (handler: (msg: any) => void) => () => void
   subscribeToProfileChanges: (handler: (data: any) => void) => () => void
   onlineUsers: Set<string>
+  sosAlerte: any | null
+  sireneActivee: boolean
+  couperSirene: () => void
+  dismissSosAlerte: () => void
+  subscribeToSos: (handler: (type: string, payload: any) => void) => () => void
 }
 
 const NotificationCtx = createContext<NotificationContextValue>(null!)
@@ -180,6 +186,131 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return () => {
       profileChangeHandlers.current = profileChangeHandlers.current.filter((h) => h !== handler)
     }
+  }, [])
+
+  // ── État SOS temps réel (postes de l'établissement + répondants) ────────
+  const [sosAlerte, setSosAlerte] = useState<any | null>(null)
+  const [sireneActivee, setSireneActivee] = useState(false)
+  const sosHandlers = React.useRef<((type: string, payload: any) => void)[]>([])
+  const audioCtxRef = React.useRef<AudioContext | null>(null)
+  const sirenNodesRef = React.useRef<{ osc: OscillatorNode; lfo: OscillatorNode; gain: GainNode } | null>(null)
+
+  const subscribeToSos = useCallback((handler: (type: string, payload: any) => void) => {
+    sosHandlers.current.push(handler)
+    return () => {
+      sosHandlers.current = sosHandlers.current.filter((h) => h !== handler)
+    }
+  }, [])
+
+  const getAudioCtx = useCallback((): AudioContext | null => {
+    if (typeof window === 'undefined') return null
+    try {
+      const Ctor = window.AudioContext || (window as any).webkitAudioContext
+      if (!Ctor) return null
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctor()
+      if (audioCtxRef.current.state === 'suspended') void audioCtxRef.current.resume()
+      return audioCtxRef.current
+    } catch {
+      return null
+    }
+  }, [])
+
+  /** Bip court d'alerte (création d'alerte : notification, pas sirène). */
+  const playChime = useCallback(() => {
+    const ctx = getAudioCtx()
+    if (!ctx) return
+    try {
+      const now = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(660, now)
+      osc.frequency.setValueAtTime(880, now + 0.18)
+      gain.gain.setValueAtTime(0.0001, now)
+      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.03)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.55)
+    } catch { /* audio indisponible */ }
+  }, [getAudioCtx])
+
+  const startSiren = useCallback(() => {
+    if (sirenNodesRef.current) return
+    const ctx = getAudioCtx()
+    if (!ctx) return
+    try {
+      const osc = ctx.createOscillator()
+      osc.type = 'square'
+      osc.frequency.value = 640
+      const lfo = ctx.createOscillator()
+      lfo.type = 'sine'
+      lfo.frequency.value = 1.7
+      const lfoGain = ctx.createGain()
+      lfoGain.gain.value = 260
+      const gain = ctx.createGain()
+      gain.gain.value = 0.05
+      lfo.connect(lfoGain)
+      lfoGain.connect(osc.frequency)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start()
+      lfo.start()
+      sirenNodesRef.current = { osc, lfo, gain }
+      setSireneActivee(true)
+    } catch { /* audio indisponible */ }
+  }, [getAudioCtx])
+
+  const stopSiren = useCallback(() => {
+    const nodes = sirenNodesRef.current
+    const ctx = audioCtxRef.current
+    if (!nodes) {
+      setSireneActivee(false)
+      return
+    }
+    try {
+      if (ctx) {
+        nodes.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.04)
+        nodes.osc.stop(ctx.currentTime + 0.3)
+        nodes.lfo.stop(ctx.currentTime + 0.3)
+      } else {
+        nodes.osc.stop()
+        nodes.lfo.stop()
+      }
+    } catch { /* déjà arrêté */ }
+    sirenNodesRef.current = null
+    setSireneActivee(false)
+  }, [])
+
+  const couperSirene = useCallback(() => {
+    stopSiren()
+  }, [stopSiren])
+
+  const dismissSosAlerte = useCallback(() => setSosAlerte(null), [])
+
+  // Arrêt propre de la sirène au démontage du provider.
+  useEffect(() => {
+    return () => {
+      const nodes = sirenNodesRef.current
+      if (nodes) {
+        try {
+          nodes.osc.stop()
+          nodes.lfo.stop()
+        } catch { /* déjà arrêté */ }
+        sirenNodesRef.current = null
+      }
+      void audioCtxRef.current?.close().catch(() => undefined)
+      audioCtxRef.current = null
+    }
+  }, [])
+
+  const dispatchSos = useCallback((type: string, payload: any) => {
+    sosHandlers.current.forEach((h) => {
+      try {
+        h(type, payload)
+      } catch { /* un abonné en erreur ne doit pas casser la chaîne */ }
+    })
   }, [])
 
   const rawId = useCallback((val: any) => {
@@ -373,7 +504,32 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (payload?.locale === 'fr' || payload?.locale === 'en') {
         changeLanguage(payload.locale)
       }
-    }
+    },
+    // ── SOS temps réel (événements d'équipe : réservés aux postes de l'établissement) ──
+    onSosCreee: (payload: any) => {
+      setSosAlerte({ ...payload, type: 'creee' })
+      playChime()
+      dispatchSos('sos_creee', payload)
+    },
+    onSosVerifiee: (payload: any) => {
+      setSosAlerte({ ...payload, type: 'verifiee' })
+      if (payload?.sireneActive !== false) startSiren()
+      dispatchSos('sos_verifiee', payload)
+    },
+    onSosPriseEnCharge: (payload: any) => {
+      stopSiren()
+      setSosAlerte({ ...payload, type: 'prise_en_charge' })
+      dispatchSos('sos_prise_en_charge', payload)
+    },
+    onSosCloturee: (payload: any) => {
+      stopSiren()
+      setSosAlerte(null)
+      dispatchSos('sos_cloturee', payload)
+    },
+    // ── Suivi demandeur/répondant (jamais de sirène ici) ──
+    onSosSuivi: (payload: any) => {
+      dispatchSos('sos_suivi', payload)
+    },
   })
 
   // ── Dropdown notifications : fetch ON DEMAND au clic ───────────────────
@@ -493,17 +649,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     openNotif, dismissNotif, clearAllNotifications, closeNotif, notifOpen,
     msgNotifications: msgItems, msgLoading, msgOpen, openMsg, dismissMsg, markConversationAsRead, closeMsg, msgDisplayCount,
     activeConversationId, setActiveConversationId: activateConversation, subscribeToMessages, subscribeToProfileChanges, onlineUsers,
+    sosAlerte, sireneActivee, couperSirene, dismissSosAlerte, subscribeToSos,
   }), [
     notifications, notifLoading, unreadCount,
     openConsultationCount, pendingConsultationCount, notificationCount,
     openNotif, dismissNotif, clearAllNotifications, closeNotif, notifOpen,
     msgItems, msgLoading, msgOpen, openMsg, dismissMsg, markConversationAsRead, closeMsg, msgDisplayCount,
     activeConversationId, activateConversation, subscribeToMessages, subscribeToProfileChanges, onlineUsers,
+    sosAlerte, sireneActivee, couperSirene, dismissSosAlerte, subscribeToSos,
   ])
 
   return (
     <NotificationCtx.Provider value={ctxValue}>
       {children}
+      <SosSireneBanner
+        alerte={sosAlerte}
+        sireneActivee={sireneActivee}
+        couperSirene={couperSirene}
+        dismiss={dismissSosAlerte}
+      />
     </NotificationCtx.Provider>
   )
 }

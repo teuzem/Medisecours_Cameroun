@@ -64,6 +64,11 @@ export function useWebSocket(userId: string, token: string, handlers: {
   onConsultationClosed?: (data: any) => void
   onProfilePhotoChanged?: (data: any) => void
   onLanguageChanged?: (data: any) => void
+  onSosCreee?: (data: any) => void
+  onSosVerifiee?: (data: any) => void
+  onSosPriseEnCharge?: (data: any) => void
+  onSosCloturee?: (data: any) => void
+  onSosSuivi?: (data: any) => void
 }, role?: string) {
   const wsRef = useRef<WebSocket | null>(null)
   const attemptRef = useRef(0)
@@ -156,6 +161,11 @@ export function useWebSocket(userId: string, token: string, handlers: {
           if (evt === 'consultation_accepted' && h.onConsultationAccepted) h.onConsultationAccepted(payload)
           if (evt === 'consultation_closed' && h.onConsultationClosed) h.onConsultationClosed(payload)
           if (evt === 'profile_photo_changed' && h.onProfilePhotoChanged) h.onProfilePhotoChanged(payload)
+          if (evt === 'sos_creee' && h.onSosCreee) h.onSosCreee(payload)
+          if (evt === 'sos_verifiee' && h.onSosVerifiee) h.onSosVerifiee(payload)
+          if (evt === 'sos_prise_en_charge' && h.onSosPriseEnCharge) h.onSosPriseEnCharge(payload)
+          if (evt === 'sos_cloturee' && h.onSosCloturee) h.onSosCloturee(payload)
+          if (evt === 'sos_suivi' && h.onSosSuivi) h.onSosSuivi(payload)
           if (evt === 'language_changed') {
             const locale = payload?.locale
             if (locale === 'fr' || locale === 'en') {

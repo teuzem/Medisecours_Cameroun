@@ -1,5 +1,44 @@
 {
   "medecin": {
+    "affiliations": {
+    "titre": "My establishments",
+    "intro": "Your affiliations with health facilities.",
+    "chargement": "Loading…",
+    "erreurChargement": "Could not load your affiliations.",
+    "aucune": "No establishment yet",
+    "aucuneDesc": "Join a facility from the Health Map to receive its emergencies and work with its team.",
+    "rejoindre": "Join an establishment",
+    "retireOk": "Request removed.",
+    "actionErreur": "Action failed.",
+    "retirer": "Remove request"
+    },
+    "alertes": {
+      "title": "SOS alerts",
+      "titre": "SOS alerts",
+      "intro": "Verified emergencies waiting to be taken, plus your ongoing interventions.",
+      "ouvertesSection": "Alerts to take",
+      "ouvertesEmpty": "No open alerts",
+      "ouvertesEmptyDesc": "Verified emergencies not yet taken will appear here automatically.",
+      "mesPrisesSection": "My interventions",
+      "mesPrisesEmpty": "No ongoing intervention",
+      "mesPrisesEmptyDesc": "Alerts you take in charge will appear here.",
+      "actionErreur": "The action failed.",
+      "priseOk": "Alert taken in charge.",
+      "clotureOk": "Intervention closed.",
+      "pasDescription": "No description provided",
+      "anonyme": "Anonymous reporter",
+      "preuve": "Photo evidence",
+      "prendre": "Take in charge",
+      "cloturer": "Close intervention",
+      "habilitation": {
+        "admin": "Administrator",
+        "affiliation": "Accepted affiliation",
+        "equipe": "Medical team",
+        "ouverte": "Open alert",
+        "affiliation_requise": "Not affiliated with this establishment",
+        "equipe_requise": "Reserved for the establishment team"
+      }
+    },
     "loadingSpace": "Loading doctor workspace…",
     "openMenu": "Open menu",
     "dayShort": {
@@ -102,6 +141,7 @@
       "urgency": "Emergency"
     },
     "sidebar": {
+      "sosAlerts": "SOS alerts",
       "workspace": "Workspace",
       "overview": "Overview",
       "medicalTracking": "Medical tracking",

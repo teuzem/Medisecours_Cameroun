@@ -311,13 +311,14 @@ export default function GoogleCarteMap({
       patientRef.current = new window.google.maps.marker.AdvancedMarkerElement({
         map,
         position,
-        title: 'Vous êtes ici',
+        title: t('common.map.youAreHere'),
         content: makePatientContent(),
       })
     } else {
       patientRef.current.position = position
+      patientRef.current.title = t('common.map.youAreHere')
     }
-  }, [position])
+  }, [position, t])
 
   // ── Épingle destination (hors-establishment) ─────────────────────────────
   useEffect(() => {

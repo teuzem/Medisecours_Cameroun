@@ -21,6 +21,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Avatar from '../../components/ui/Avatar'
 import CertifiedBadge from '../../components/ui/CertifiedBadge'
 import DashboardAnalytics from '../../components/medecin/dashboard/DashboardAnalytics'
+import AffiliationsCard from '../../components/medecin/AffiliationsCard'
 import { DASHBOARD_KEY } from '../../lib/keys'
 import type { DashboardData, Consultation, Patient } from '../../types/api'
 
@@ -192,6 +193,9 @@ export default function MedecinDashboard() {
             ))}
           </div>
         </div>
+
+        {/* ── Mes établissements (affiliations) ────────────────── */}
+        <AffiliationsCard />
 
         {/* ── Animated Analytics Charts ─────────────────── */}
         <DashboardAnalytics data={data} />

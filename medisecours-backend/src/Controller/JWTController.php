@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\CentreDeSante;
+use App\Entity\AffiliationMedecin;
 use App\Entity\EtablissementEquipe;
 use App\Entity\EtablissementManager;
 use App\Entity\Medecin;
@@ -294,6 +295,9 @@ class JWTController extends AbstractController
             }
         }
 
+        // Rattachement éventuel du médecin à un établissement (affiliation).
+        $affiliationRequest = null;
+
         if ($user instanceof Medecin) {
             $specialite = trim((string) ($data['specialite'] ?? ''));
             $numeroOrdre = trim((string) ($data['numeroOrdre'] ?? ''));
@@ -342,6 +346,21 @@ class JWTController extends AbstractController
                     ['error' => $exception->getMessage()],
                     Response::HTTP_UNPROCESSABLE_ENTITY
                 );
+            }
+
+            // Rattachement optionnel à un établissement existant :
+            // crée une affiliation EN_ATTENTE validée ensuite par le manager.
+            $affiliationCentreId = filter_var($data['etablissementId'] ?? null, FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1],
+            ]);
+            if ($affiliationCentreId !== false && $affiliationCentreId !== null) {
+                $affiliationCentre = $entityManager->getRepository(CentreDeSante::class)->find($affiliationCentreId);
+                if (!$affiliationCentre instanceof CentreDeSante) {
+                    return new JsonResponse([
+                        'error' => 'L’établissement sélectionné n’existe plus. Relancez la recherche.',
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
+                $affiliationRequest = $affiliationCentre;
             }
         }
 
@@ -457,6 +476,17 @@ class JWTController extends AbstractController
                     ->setInvitePar($user)
                     ->setUpdatedAt(new \DateTimeImmutable());
                 $entityManager->persist($membership);
+            }
+            if ($user instanceof Medecin && $affiliationRequest instanceof CentreDeSante) {
+                $entityManager->persist(
+                    (new AffiliationMedecin())
+                        ->setMedecin($user)
+                        ->setEtablissement($affiliationRequest)
+                        ->setFonction($user->getSpecialite())
+                        ->setStatut('EN_ATTENTE')
+                        ->setCreatedBy($user)
+                        ->setUpdatedAt(new \DateTimeImmutable())
+                );
             }
             $entityManager->flush();
             $connection->commit();

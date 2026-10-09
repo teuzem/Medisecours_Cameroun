@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import {
   HeartPulse, LayoutDashboard, Users, CalendarClock, MessageCircle,
   BarChart3, Bell, Settings, LogOut, Pill, ClipboardCheck,
-  ChevronRight, CircleHelp, Stethoscope,
+  ChevronRight, CircleHelp, Stethoscope, Siren,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import Avatar from '../ui/Avatar'
@@ -24,6 +24,7 @@ const NAV_GROUPS = [
     items: [
       { href: '/medecin/patients', labelKey: 'medecin.sidebar.myPatients', icon: Users },
       { href: '/medecin/consultations', labelKey: 'medecin.sidebar.consultations', icon: CalendarClock, badge: 'consultations' },
+      { href: '/medecin/alertes', labelKey: 'medecin.sidebar.sosAlerts', icon: Siren },
       { href: '/medecin/rapports', labelKey: 'medecin.sidebar.reports', icon: BarChart3 },
     ],
   },
