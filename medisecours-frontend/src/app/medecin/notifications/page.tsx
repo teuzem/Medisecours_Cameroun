@@ -48,8 +48,8 @@ const itemFade = {
 const iconByType = {
   message_received: {
     icon: MessageSquare,
-    color: '#3B6EF8',
-    background: 'rgba(59,110,248,0.12)',
+    color: 'var(--dashboard-accent, #1E3A5F)',
+    background: 'rgba(30,58,95,0.10)',
   },
   consultation_accepted: {
     icon: Stethoscope,
@@ -214,8 +214,8 @@ export default function MedecinNotificationsPage() {
         className="mb-8"
       >
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#3B6EF8]/10">
-            <Bell className="h-6 w-6 text-[#3B6EF8]" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-500/10">
+            <Bell className="h-6 w-6 text-primary-500" />
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold tracking-tight text-[#0F2C52]">
@@ -237,7 +237,7 @@ export default function MedecinNotificationsPage() {
                   className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-[#F0F4FF] px-4 py-2 text-sm font-semibold text-[#315FD6] transition hover:bg-[#E2EAFF] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
                 >
                   {markingAll ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#3B6EF8] border-t-transparent" />
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
                   ) : (
                     <CheckCheck className="h-4 w-4" />
                   )}
@@ -319,12 +319,12 @@ export default function MedecinNotificationsPage() {
                     disabled={markingId === notification.id}
                     className={`group relative flex w-full items-start gap-4 rounded-xl p-4 text-left transition active:scale-[0.98] disabled:cursor-wait ${
                       unread
-                        ? 'bg-[#F0F4FF] shadow-sm shadow-blue-500/5'
+                        ? 'bg-[#F0F4FF] shadow-sm shadow-primary-500/5'
                         : 'bg-white hover:bg-[#F9FAFB]'
                     }`}
                   >
                     {unread && (
-                      <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[#3B6EF8]" />
+                      <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-500" />
                     )}
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
@@ -350,16 +350,16 @@ export default function MedecinNotificationsPage() {
                       <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-[#6B7280] dark:text-slate-300">
                         {notification.body || t('medecin.notifications.newInfo')}
                       </p>
-                      <span className="mt-2 inline-flex text-xs font-semibold text-[#315FD6] dark:text-blue-300">
+                      <span className="mt-2 inline-flex text-xs font-semibold text-[#315FD6] dark:text-mint-300">
                         {notification.type === 'message_received'
                           ? t('medecin.notifications.viewConversation')
                           : t('medecin.notifications.viewDetails')}
                       </span>
                     </div>
                     {markingId === notification.id ? (
-                      <span className="mt-2 h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#3B6EF8] border-t-transparent" />
+                      <span className="mt-2 h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
                     ) : (
-                      <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-[#D1D5DB] transition group-hover:translate-x-0.5 group-hover:text-[#3B6EF8]" />
+                      <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-[#D1D5DB] transition group-hover:translate-x-0.5 group-hover:text-primary-500" />
                     )}
                   </button>
                 </motion.div>

@@ -49,7 +49,7 @@ const CATEGORY_CONFIG: Record<SearchCategory, { labelKey: string; icon: React.El
   patients: {
     labelKey: 'medecin.header.catPatients',
     icon: User,
-    color: '#3B6EF8',
+    color: 'var(--dashboard-accent, #1E3A5F)',
     href: (item) => `/medecin/patients?id=${item.id}`,
   },
   consultations: {
@@ -189,7 +189,7 @@ export default function MedecinHeader() {
           }}
           onFocus={() => setShowResults(true)}
           placeholder={t('medecin.header.searchPlaceholder')}
-          className="w-[320px] xl:w-[420px] rounded-full bg-[#F3F4F6] py-2 pl-10 pr-4 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:bg-white focus:ring-2 focus:ring-[#3B6EF8]/20"
+          className="w-[320px] xl:w-[420px] rounded-full bg-[#F3F4F6] py-2 pl-10 pr-4 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:bg-white focus:ring-2 focus:ring-primary-500/20"
         />
         {showResults && debouncedQuery.trim().length >= 2 && (
           <div className="absolute right-0 top-full mt-2 w-full min-w-[360px] rounded-xl border border-[#E5E7EB] bg-white shadow-lg max-h-[70vh] overflow-y-auto">
@@ -205,7 +205,7 @@ export default function MedecinHeader() {
                   <div key={key}>
                     <div className="sticky top-0 bg-white z-10 px-4 py-1.5 border-b border-[#E5E7EB] flex items-center gap-2">
                       <config.icon className="h-3.5 w-3.5" style={{ color: config.color }} />
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.12em]" style={{ color: config.color }}>{t(config.labelKey)}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.04em]" style={{ color: config.color }}>{t(config.labelKey)}</span>
                       <span className="ml-auto text-[10px] text-[#9CA3AF]">{results![key]!.length}</span>
                     </div>
                     {results![key]!.map((item) => (
@@ -226,7 +226,7 @@ export default function MedecinHeader() {
                             <>
                               <p className="font-medium truncate">{item.motif || t('medecin.header.noMotif')}</p>
                               <p className="text-xs text-[#9CA3AF] truncate">
-                                {item.patient_prenom} {item.patient_nom} · <span className={`inline-block w-2 h-2 rounded-full ${item.statut === 'TERMINEE' ? 'bg-green-500' : item.statut === 'EN_COURS' ? 'bg-yellow-500' : item.statut === 'ANNULEE' ? 'bg-red-500' : 'bg-blue-500'}`} /> {item.statut?.toLowerCase()}
+                                {item.patient_prenom} {item.patient_nom} · <span className={`inline-block w-2 h-2 rounded-full ${item.statut === 'TERMINEE' ? 'bg-green-500' : item.statut === 'EN_COURS' ? 'bg-yellow-500' : item.statut === 'ANNULEE' ? 'bg-red-500' : 'bg-primary-500'}`} /> {item.statut?.toLowerCase()}
                               </p>
                             </>
                           )}
@@ -281,7 +281,7 @@ export default function MedecinHeader() {
           className={`relative flex h-10 w-10 items-center justify-center rounded-xl transition ${notifOpen ? 'bg-[#F0F4FF]' : 'hover:bg-[#F3F4F6]'}`}
           aria-label={t('medecin.header.notifications')}
         >
-          <Bell className={`h-5 w-5 ${notifOpen ? 'text-[#3B6EF8]' : 'text-[#6B7280]'}`} />
+          <Bell className={`h-5 w-5 ${notifOpen ? 'text-primary-500' : 'text-[#6B7280]'}`} />
           {!estSurPageNotifications && notificationCount > 0 && (
             <span className="absolute right-1.5 top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#EF4444] px-1 text-[10px] font-bold leading-none text-white">
               {notificationCount > 99 ? '99+' : notificationCount}
@@ -296,14 +296,14 @@ export default function MedecinHeader() {
                 {notifications.some(n => n.unread) && (
                   <button
                     onClick={() => clearAllNotifications()}
-                    className="text-xs font-semibold text-[#3B6EF8] hover:underline"
+                    className="text-xs font-semibold text-primary-500 hover:underline"
                   >
                     {t('medecin.header.markAllRead')}
                   </button>
                 )}
                 <button
                   onClick={() => { closeNotif(); router.push('/medecin/notifications') }}
-                  className="text-xs font-semibold text-[#3B6EF8] hover:underline"
+                  className="text-xs font-semibold text-primary-500 hover:underline"
                 >
                   {t('medecin.header.seeAll')}
                 </button>
@@ -312,7 +312,7 @@ export default function MedecinHeader() {
             <div className="max-h-[360px] overflow-y-auto">
               {notifLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-5 w-5 animate-spin text-[#3B6EF8]" />
+                  <Loader2 className="h-5 w-5 animate-spin text-primary-500" />
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="px-4 py-8 text-center">
@@ -327,8 +327,8 @@ export default function MedecinHeader() {
                       onClick={() => dismissNotif(n.id, n.href)}
                       className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-[#F9FAFB] ${n.unread ? 'bg-[#F0F4FF]/50' : ''}`}
                     >
-                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${n.type === 'message' ? 'bg-[rgba(59,110,248,0.12)]' : 'bg-[rgba(245,158,11,0.12)]'}`}>
-                        <MessageSquare className={`h-4 w-4 ${n.type === 'message' ? 'text-[#3B6EF8]' : 'text-[#D97706]'}`} />
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${n.type === 'message' ? 'bg-primary-500/10' : 'bg-[rgba(245,158,11,0.12)]'}`}>
+                        <MessageSquare className={`h-4 w-4 ${n.type === 'message' ? 'text-primary-500' : 'text-[#D97706]'}`} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">

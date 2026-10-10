@@ -57,8 +57,8 @@ const STATUT_STYLES = {
     labelKey: 'consultations.pending',
   },
   EN_COURS: {
-    badge: 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-200',
-    icon: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-200',
+    badge: 'border-mint-200 bg-mint-50 text-primary-700 dark:border-primary-500/25 dark:bg-primary-500/10 dark:text-mint-200',
+    icon: 'bg-mint-50 text-primary-600 dark:bg-primary-500/10 dark:text-mint-200',
     labelKey: 'consultations.inProgress',
   },
   TERMINEE: {
@@ -363,9 +363,6 @@ export default function PatientConsultationsPage() {
       <header className="border-b border-slate-200 pb-6 dark:border-white/10">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-              {t('consultations.eyebrow')}
-            </p>
             <h1 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">
               {t('patient.consultations.title')}
             </h1>
@@ -415,7 +412,7 @@ export default function PatientConsultationsPage() {
             labelKey: 'consultations.inProgress',
             value: stats.enCours,
             icon: Activity,
-            tone: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-200',
+            tone: 'bg-mint-50 text-primary-600 dark:bg-primary-500/10 dark:text-mint-200',
           },
           {
             labelKey: 'consultations.finished',
@@ -546,9 +543,6 @@ export default function PatientConsultationsPage() {
       <section className="mt-8 border-t border-slate-200 pt-8 dark:border-white/10">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-              {t('consultations.title')}
-            </p>
           <h2 className="mt-1 font-display text-2xl font-bold text-slate-950 dark:text-white">
               {showHistory
                 ? t('patient.consultations.historyTitle')

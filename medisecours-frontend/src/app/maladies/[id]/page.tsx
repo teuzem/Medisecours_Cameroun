@@ -62,9 +62,6 @@ export default function MaladieDetailPage({ params }: { params: Promise<{ id: st
       </button>
 
       <header className="mt-4 border-b border-slate-200 pb-6 dark:border-white/10">
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-300">
-          {t('visitor.maladieDetail.eyebrow')}
-        </p>
         <h1 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white sm:text-4xl">{maladie.nom}</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
           {t('visitor.maladieDetail.intro')}
@@ -115,7 +112,7 @@ export default function MaladieDetailPage({ params }: { params: Promise<{ id: st
               <ul className="space-y-2">
                 {precautions.map((item) => (
                   <li key={item} className="flex gap-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    <span className="font-black text-blue-700 dark:text-blue-300">•</span>
+                    <span className="font-black text-primary-600 dark:text-mint-300">•</span>
                     <span>{item}</span>
                   </li>
                 ))}

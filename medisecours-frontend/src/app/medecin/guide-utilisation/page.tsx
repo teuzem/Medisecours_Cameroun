@@ -120,11 +120,8 @@ export default function MedecinGuidePage() {
   return (
     <main className="bg-white dark:bg-slate-950">
       {/* Hero */}
-      <section className="border-b border-emerald-200 bg-emerald-950 py-16 text-white dark:border-white/10 dark:bg-slate-950 sm:py-20">
+      <section className="border-b border-primary-400 bg-primary-500 py-16 text-white dark:border-white/10 dark:bg-primary-700 sm:py-20">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-300">
-            {t('medecin.guide.eyebrow')}
-          </p>
           <h1 className="mt-3 font-display text-4xl font-bold leading-tight sm:text-5xl">
             {t('medecin.guide.title')}
           </h1>
@@ -164,9 +161,6 @@ export default function MedecinGuidePage() {
       {/* Steps */}
       <section id="dashboard" className="scroll-mt-24 py-12 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-            {t('medecin.guide.sectionKicker')}
-          </p>
           <h2 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">
             {t('medecin.guide.sectionTitle')}
           </h2>
@@ -227,9 +221,6 @@ export default function MedecinGuidePage() {
       {/* FAQ */}
       <section id="faq" className="scroll-mt-24 border-t border-slate-200 bg-slate-50 py-12 dark:border-white/10 dark:bg-slate-900 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-            {t('medecin.guide.faqEyebrow')}
-          </p>
           <h2 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">
             {t('medecin.guide.faqTitle')}
           </h2>

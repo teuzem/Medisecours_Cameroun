@@ -468,7 +468,7 @@ function CatalogTagEditor({
               commit()
             }
           }}
-          className="min-h-10 flex-1 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-900"
+          className="min-h-10 flex-1 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-900"
           placeholder={placeholder}
           aria-label={placeholder}
           aria-autocomplete="list"
@@ -554,7 +554,7 @@ function OptionMultiSelect({
           onKeyDown={(event) => {
             if (event.key === 'Escape') setOpen(false)
           }}
-          className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/25 ${open ? 'border-blue-500 bg-blue-50/50 text-blue-900 dark:border-blue-400 dark:bg-blue-500/10 dark:text-blue-100' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200'}`}
+          className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/25 ${open ? 'border-primary-500 bg-mint-50/50 text-primary-800 dark:border-mint-400 dark:bg-primary-500/10 dark:text-mint-100' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-mint-300 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200'}`}
         >
           <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
             {value.length === 0 ? (
@@ -564,13 +564,13 @@ function OptionMultiSelect({
                 {value.slice(0, 2).map((id) => {
                   const option = options.find((item) => item.id === id)
                   return option ? (
-                    <span key={id} className="max-w-[45%] truncate rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-bold text-blue-800 dark:border-blue-500/40 dark:bg-slate-900 dark:text-blue-100">
+                    <span key={id} className="max-w-[45%] truncate rounded-full border border-mint-200 bg-white px-2 py-0.5 text-[10px] font-bold text-primary-700 dark:border-primary-500/40 dark:bg-slate-900 dark:text-mint-100">
                       {t(option.labelKey)}
                     </span>
                   ) : null
                 })}
                 {value.length > 2 && (
-                  <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-bold text-blue-800 dark:border-blue-500/40 dark:bg-slate-900 dark:text-blue-100">
+                  <span className="rounded-full border border-mint-200 bg-white px-2 py-0.5 text-[10px] font-bold text-primary-700 dark:border-primary-500/40 dark:bg-slate-900 dark:text-mint-100">
                     {t('etablissement.ficheOptionsSelectedMore', { count: value.length - 2 })}
                   </span>
                 )}
@@ -579,7 +579,7 @@ function OptionMultiSelect({
           </span>
           <span className="flex shrink-0 items-center gap-2 text-[10px] font-bold text-slate-400">
             {value.length > 0 && t('etablissement.ficheOptionsSelectedCount', { count: value.length })}
-            <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180 text-blue-600' : ''}`} />
+            <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180 text-primary-500' : ''}`} />
           </span>
         </button>
 
@@ -596,7 +596,7 @@ function OptionMultiSelect({
                   }}
                   autoFocus
                   placeholder={t('etablissement.ficheOptionsSearch')}
-                  className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-2 text-[11px] text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-2 text-[11px] text-slate-800 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 />
               </div>
             </div>
@@ -606,7 +606,7 @@ function OptionMultiSelect({
                 return (
                   <label
                     key={option.id}
-                    className={`group flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition-colors ${checked ? 'bg-blue-50 text-blue-900 dark:bg-blue-500/10 dark:text-blue-100' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
+                    className={`group flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition-colors ${checked ? 'bg-mint-50 text-primary-800 dark:bg-primary-500/10 dark:text-mint-100' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
                   >
                     <input
                       type="checkbox"
@@ -614,7 +614,7 @@ function OptionMultiSelect({
                       onChange={() => toggle(option.id)}
                       className="peer sr-only"
                     />
-                    <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${checked ? 'border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950' : 'border-slate-300 bg-white text-transparent group-hover:border-blue-400 dark:border-slate-600 dark:bg-slate-950'}`}>
+                    <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${checked ? 'border-primary-500 bg-primary-500 text-white dark:border-mint-400 dark:bg-mint-400 dark:text-slate-950' : 'border-slate-300 bg-white text-transparent group-hover:border-mint-400 dark:border-slate-600 dark:bg-slate-950'}`}>
                       <Check className="h-3.5 w-3.5" strokeWidth={3} />
                     </span>
                     <span className="leading-4">{t(option.labelKey)}</span>
@@ -630,7 +630,7 @@ function OptionMultiSelect({
                 <button
                   type="button"
                   onClick={() => onChange([])}
-                  className="text-[10px] font-bold text-blue-700 hover:underline dark:text-blue-300"
+                  className="text-[10px] font-bold text-primary-600 hover:underline dark:text-mint-300"
                 >
                   {t('etablissement.ficheOptionsClear')}
                 </button>
@@ -702,7 +702,7 @@ function LanguageMultiSelect({
   return (
     <fieldset className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-700 dark:bg-slate-950/40">
       <legend className="flex items-center gap-1.5 px-1 text-xs font-bold text-slate-800 dark:text-slate-100">
-        <Languages className="h-3.5 w-3.5 text-blue-600" />
+        <Languages className="h-3.5 w-3.5 text-primary-500" />
         {label}
       </legend>
       {description && <p className="mb-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{description}</p>}
@@ -714,7 +714,7 @@ function LanguageMultiSelect({
               type="button"
               key={id}
               onClick={() => toggle(id)}
-              className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-800 transition-colors hover:border-blue-400 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-100"
+              className="inline-flex items-center gap-1 rounded-full border border-mint-200 bg-mint-50 px-2.5 py-1 text-[10px] font-semibold text-primary-700 transition-colors hover:border-mint-400 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-mint-100"
               aria-label={t('etablissement.removeLanguage', { language: labelFor(id) })}
             >
               {labelFor(id)}
@@ -737,7 +737,7 @@ function LanguageMultiSelect({
             if (event.key === 'Escape') setOpen(false)
           }}
           placeholder={t('etablissement.ficheLanguagesSearch')}
-          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-800 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           aria-controls="cameroon-language-options"
         />
         {open && (
@@ -759,13 +759,13 @@ function LanguageMultiSelect({
                   aria-selected={checked}
                   key={id}
                   onClick={() => toggle(id)}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[11px] transition-colors ${checked ? 'bg-blue-50 text-blue-900 dark:bg-blue-500/10 dark:text-blue-100' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[11px] transition-colors ${checked ? 'bg-mint-50 text-primary-800 dark:bg-primary-500/10 dark:text-mint-100' : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'}`}
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{languageName}</span>
                     {'classification' in language && <span className="block truncate text-[10px] text-slate-400">{String(language.classification)}</span>}
                   </span>
-                  <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${checked ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 text-transparent dark:border-slate-600'}`}>
+                  <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${checked ? 'border-primary-500 bg-primary-500 text-white' : 'border-slate-300 text-transparent dark:border-slate-600'}`}>
                     <Check className="h-3.5 w-3.5" strokeWidth={3} />
                   </span>
                 </button>
@@ -779,7 +779,7 @@ function LanguageMultiSelect({
           </div>
         )}
       </div>
-      <button type="button" className="mt-2 text-[10px] font-semibold text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-blue-700" onClick={() => setOpen((current) => !current)}>
+      <button type="button" className="mt-2 text-[10px] font-semibold text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-primary-600" onClick={() => setOpen((current) => !current)}>
         {open ? t('etablissement.ficheLanguagesClose') : t('etablissement.ficheLanguagesBrowse')}
       </button>
     </fieldset>
@@ -982,7 +982,7 @@ export default function FichePanel({
       <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950/40">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-[0.04em] text-slate-400">
               {t('etablissement.ficheCompletionTitle')}
             </p>
             <p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
@@ -1262,11 +1262,11 @@ export default function FichePanel({
           <div className="grid gap-2 sm:grid-cols-2">
             <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
               <span>{t('etablissement.ficheTeleconsultationLabel')}</span>
-              <input type="checkbox" checked={draft.teleconsultation} onChange={(event) => setDraft((current) => ({ ...current, teleconsultation: event.target.checked }))} className="h-4 w-4 accent-blue-600" />
+              <input type="checkbox" checked={draft.teleconsultation} onChange={(event) => setDraft((current) => ({ ...current, teleconsultation: event.target.checked }))} className="h-4 w-4 accent-primary-500" />
             </label>
             <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
               <span>{t('etablissement.ficheAppointmentsLabel')}</span>
-              <input type="checkbox" checked={draft.priseRendezVous} onChange={(event) => setDraft((current) => ({ ...current, priseRendezVous: event.target.checked }))} className="h-4 w-4 accent-blue-600" />
+              <input type="checkbox" checked={draft.priseRendezVous} onChange={(event) => setDraft((current) => ({ ...current, priseRendezVous: event.target.checked }))} className="h-4 w-4 accent-primary-500" />
             </label>
           </div>
 
@@ -1324,7 +1324,7 @@ export default function FichePanel({
 }
 
 const inputCls =
-  'min-h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-900'
+  'min-h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-900'
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <label className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">{children}</label>

@@ -200,8 +200,7 @@ export default function AdminOverview() {
     <div className="space-y-6">
       <section className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#64748B]">{t('admin.dashboard.eyebrow')}</p>
-          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#12263F]">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-[#12263F]">
             {t('admin.dashboard.title')}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[#64748B]">

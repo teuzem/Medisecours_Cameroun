@@ -144,7 +144,6 @@ function LoginForm() {
 
   return (
     <AuthLayout
-      eyebrow={t('visitor.login.eyebrow')}
       title={t('visitor.login.title')}
       description={t('visitor.login.description')}
     >
@@ -198,7 +197,7 @@ function LoginForm() {
               inputMode="email"
               aria-invalid={Boolean(errors.email)}
               aria-describedby={errors.email ? 'login-email-error' : 'login-email-hint'}
-              className="auth-field min-h-12 w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900 dark:aria-invalid:border-red-400"
+              className="auth-field min-h-12 w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-mint-400 dark:focus:bg-slate-900 dark:aria-invalid:border-red-400"
               placeholder={t('visitor.login.emailPlaceholder')}
             />
           </div>
@@ -223,7 +222,7 @@ function LoginForm() {
             <label htmlFor="login-password" className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               {t('visitor.login.passwordLabel')}
             </label>
-            <Link href="/forgot-password" className="text-xs font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400">
+            <Link href="/forgot-password" className="text-xs font-semibold text-primary-500 hover:text-primary-700 dark:text-mint-400">
               {t('visitor.login.forgotPassword')}
             </Link>
           </div>
@@ -245,7 +244,7 @@ function LoginForm() {
               autoComplete="current-password"
               aria-invalid={Boolean(errors.password)}
               aria-describedby={errors.password ? 'login-password-error' : 'login-password-hint'}
-              className="auth-field min-h-12 w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-12 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900 dark:aria-invalid:border-red-400"
+              className="auth-field min-h-12 w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-12 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-mint-400 dark:focus:bg-slate-900 dark:aria-invalid:border-red-400"
               placeholder={t('visitor.login.passwordPlaceholder')}
             />
             <button
@@ -276,7 +275,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)] transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/25 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)] transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-500/25 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
           {loading ? t('visitor.login.loggingIn') : t('visitor.login.loginButton')}
@@ -305,7 +304,7 @@ function LoginForm() {
 
       <p className="mt-7 text-center text-sm text-slate-500 dark:text-slate-400">
         {t('visitor.login.noAccountYet')}{' '}
-        <Link href="/register" className="font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400">
+        <Link href="/register" className="font-bold text-primary-500 hover:text-primary-700 dark:text-mint-400">
           {t('visitor.login.createAccount')}
         </Link>
       </p>

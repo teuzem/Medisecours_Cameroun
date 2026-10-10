@@ -89,8 +89,8 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-3xl px-4 pb-12 pt-6 sm:px-6 sm:pt-8">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', damping: 20, stiffness: 300 }} className="mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#3B6EF8]/10">
-            <Bell className="h-6 w-6 text-[#3B6EF8]" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-500/10 dark:bg-mint-500/10">
+            <Bell className="h-6 w-6 text-primary-500 dark:text-mint-400" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#0F2C52]">{t('visitor.notifications.title')}</h1>
@@ -153,13 +153,13 @@ export default function NotificationsPage() {
                     router.push(n.link)
                   }}
                   className={`group relative flex w-full items-start gap-4 rounded-2xl p-4 text-left transition-all active:scale-[0.98] ${
-                    n.unread ? 'bg-[#F0F4FF] shadow-sm shadow-blue-500/5' : 'bg-white hover:bg-[#F9FAFB]'
+                    n.unread ? 'bg-[#F0F4FF] shadow-sm shadow-primary-500/5' : 'bg-white hover:bg-[#F9FAFB]'
                   }`}
                   style={{ transition: 'transform 0.1s ease-out, background 0.2s ease-out' }}
                 >
-                  {n.unread && <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[#3B6EF8]" />}
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[rgba(59,110,248,0.12)] backdrop-blur-sm">
-                    <MessageSquare className="h-5 w-5 text-[#3B6EF8]" />
+                  {n.unread && <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-500 dark:bg-mint-400" />}
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-500/10 dark:bg-mint-500/10 backdrop-blur-sm">
+                    <MessageSquare className="h-5 w-5 text-primary-500 dark:text-mint-400" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
@@ -172,11 +172,11 @@ export default function NotificationsPage() {
                     <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-[#6B7280] dark:text-slate-300">
                       {n.description || t('visitor.notifications.fallbackDesc')}
                     </p>
-                    <span className="mt-2 inline-flex text-xs font-semibold text-[#315FD6] dark:text-blue-300">
+                    <span className="mt-2 inline-flex text-xs font-semibold text-[#315FD6] dark:text-mint-300">
                       {n.type === 'message_received' ? t('visitor.notifications.viewConversation') : t('visitor.notifications.viewDetails')}
                     </span>
                   </div>
-                  <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-[#D1D5DB] transition group-hover:text-[#3B6EF8] group-hover:translate-x-0.5" style={{ transition: 'color 0.2s, transform 0.2s' }} />
+                  <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-[#D1D5DB] transition group-hover:text-primary-500 dark:group-hover:text-mint-400 group-hover:translate-x-0.5" style={{ transition: 'color 0.2s, transform 0.2s' }} />
                 </button>
               </motion.div>
             ))}

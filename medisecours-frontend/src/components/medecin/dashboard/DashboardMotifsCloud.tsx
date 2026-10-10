@@ -31,7 +31,7 @@ export default function DashboardMotifsCloud({ motifsCount }: { motifsCount: { m
         {cloud.map(({ word, count, size }) => (
           <span
             key={word}
-            className="inline-block rounded-full bg-[#EFF6FF] px-3 py-1 text-[#3B6EF8] hover:bg-[#DBEAFE] transition cursor-default"
+            className="inline-block rounded-full bg-primary-50 px-3 py-1 text-primary-500 hover:bg-primary-100 transition cursor-default"
             style={{ fontSize: `${size}rem`, fontWeight: size > 1 ? 700 : 500 }}
             title={t('medecin.dashboard.motifs.count', { count })}
           >

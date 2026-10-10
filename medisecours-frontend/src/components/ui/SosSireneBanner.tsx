@@ -59,7 +59,7 @@ export default function SosSireneBanner({ alerte, sireneActivee, couperSirene, d
           {enSirene ? <Siren className="h-5 w-5" /> : <BellRing className="h-5 w-5" />}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-black uppercase tracking-[0.12em]">{titre}</p>
+          <p className="truncate text-sm font-black uppercase tracking-[0.04em]">{titre}</p>
           <p className="truncate text-xs font-medium text-white/85">{desc}</p>
         </div>
         {enSirene && (

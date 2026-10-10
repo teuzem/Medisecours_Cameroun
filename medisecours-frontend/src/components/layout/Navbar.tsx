@@ -114,8 +114,8 @@ export default function Navbar() {
       {/* ══════════════════════════════════════════════════════════════════
        *  DESKTOP Floating Navbar (hidden on mobile/tablet)
        * ══════════════════════════════════════════════════════════════════ */}
-      <div className="hidden xl:flex fixed top-4 inset-x-0 z-50 justify-center px-4 pointer-events-none">
-        <header className="relative isolate overflow-hidden w-full max-w-[1500px] min-w-0 h-16 pointer-events-auto rounded-full border border-white/80 dark:border-white/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.74),rgba(255,255,255,0.38)_48%,rgba(224,231,255,0.48))] dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.82),rgba(30,41,59,0.62)_52%,rgba(49,46,129,0.42))] backdrop-blur-[26px] backdrop-saturate-[1.85] shadow-[0_18px_48px_rgba(30,58,95,0.16),0_4px_14px_rgba(30,58,95,0.08),inset_0_1px_0_rgba(255,255,255,0.98),inset_0_-1px_0_rgba(99,102,241,0.12)] dark:shadow-[0_18px_48px_rgba(0,0,0,0.38),0_4px_14px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-1px_0_rgba(129,140,248,0.18)] px-3 flex items-center gap-2 transition-all duration-300 before:absolute before:inset-[1px] before:-z-10 before:rounded-[inherit] before:pointer-events-none before:bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.86),transparent_30%),radial-gradient(circle_at_88%_110%,rgba(99,102,241,0.16),transparent_34%)] dark:before:bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.16),transparent_30%),radial-gradient(circle_at_88%_110%,rgba(129,140,248,0.2),transparent_34%)] after:absolute after:top-px after:left-[8%] after:right-[8%] after:h-px after:-z-10 after:rounded-full after:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.98),transparent)]">
+      <div className="hidden xl:block fixed top-0 inset-x-0 z-50 border-b-2 border-primary-500 bg-white dark:border-primary-300 dark:bg-primary-900">
+        <header className="mx-auto flex h-16 w-full max-w-[1500px] items-center gap-2 px-4">
           
           {/* Logo */}
           <Link
@@ -142,23 +142,19 @@ export default function Navbar() {
                 <Link
                   key={l.to}
                   href={l.to}
-                  className={`relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 2xl:px-4 py-2.5 rounded-full text-[12px] 2xl:text-[13px] font-semibold transition-all duration-200 ${
+                  className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-2 text-[12px] 2xl:text-[13px] font-semibold transition-colors ${
                     active
-                      ? 'border border-white/75 dark:border-white/10 bg-white/55 dark:bg-indigo-500/20 text-indigo-900 dark:text-indigo-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(79,70,229,0.1)]'
-                      : 'border border-transparent text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-white/60 dark:hover:border-white/10 hover:bg-white/40 dark:hover:bg-white/5'
+                      ? 'bg-primary-500 text-white dark:bg-mint-500 dark:text-primary-900'
+                      : 'text-primary-600 hover:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-white/10'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                  <Icon className={`w-4 h-4 ${active ? 'text-white dark:text-primary-900' : 'text-primary-400 dark:text-primary-300'}`} />
                   {l.label}
                   
                   {l.badge !== undefined && l.badge > 0 && !estDansLaMessagerie && (
-                    <span className="ml-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm animate-pulse">
+                    <span className="ml-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-urgence-500 text-white text-[10px] font-bold shadow-sm animate-pulse">
                       {l.badge > 99 ? '99+' : l.badge}
                     </span>
-                  )}
-
-                  {active && (
-                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-indigo-600 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(79,70,229,0.8)]" />
                   )}
                 </Link>
               )
@@ -167,14 +163,13 @@ export default function Navbar() {
             {isAdmin && (
               <Link
                 href="/admin"
-                className={`relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 2xl:px-4 py-2.5 rounded-full text-[12px] 2xl:text-[13px] font-semibold transition-all ${
+                className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-2 text-[12px] 2xl:text-[13px] font-semibold transition-colors ${
                   isActive('/admin')
-                    ? 'bg-indigo-50/80 dark:bg-indigo-900/30 text-indigo-900'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-primary-500 text-white dark:bg-mint-500 dark:text-primary-900'
+                    : 'text-primary-600 hover:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-white/10'
                 }`}
               >
                 <Grid className="w-4 h-4" /> {t('visitor.nav.admin')}
-                {isActive('/admin') && <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-indigo-600 rounded-full" />}
               </Link>
             )}
           </nav>
@@ -185,7 +180,7 @@ export default function Navbar() {
             {!isAuthenticated && (
               <button
                 onClick={toggleDark}
-                className="flex items-center justify-center w-9 h-9 rounded-full border border-white/70 dark:border-white/10 bg-white/45 dark:bg-white/5 text-gray-500 dark:text-gray-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(30,58,95,0.08)] hover:bg-white/70 dark:hover:bg-white/10 hover:text-indigo-600 transition-colors"
+                className="flex items-center justify-center w-9 h-9 border border-primary-500/30 text-primary-600 transition-colors hover:bg-primary-500/10 hover:text-primary-500 dark:border-white/20 dark:text-primary-200 dark:hover:bg-white/10"
                 aria-label={t('visitor.nav.toggleTheme')}
               >
                 {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -196,7 +191,7 @@ export default function Navbar() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/profil"
-                  className="group relative flex items-center gap-2 pl-1 pr-3 py-1 border border-white/25 bg-[linear-gradient(135deg,rgba(37,99,235,0.92),rgba(79,70,229,0.84))] backdrop-blur-xl text-white rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_6px_18px_rgba(79,70,229,0.3)] transition-all duration-200 hover:brightness-105 hover:-translate-y-0.5"
+                  className="group relative flex items-center gap-2 pl-1 pr-3 py-1 border border-primary-500/30 text-primary-600 transition-colors hover:bg-primary-500/10 dark:border-white/20 dark:text-primary-100"
                 >
                   <div className="w-7 h-7 rounded-full overflow-hidden bg-white/20 flex items-center justify-center text-[10px] font-bold">
                     {user?.photoProfil ? (
@@ -212,7 +207,7 @@ export default function Navbar() {
                 
                 <button
                   onClick={() => { logout(); router.push('/') }}
-                  className="flex items-center justify-center w-9 h-9 rounded-full border border-white/70 dark:border-white/10 bg-white/45 dark:bg-white/5 text-gray-500 dark:text-gray-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(30,58,95,0.08)] hover:bg-red-50/80 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-colors"
+                  className="flex items-center justify-center w-9 h-9 border border-primary-500/30 text-primary-600 transition-colors hover:bg-urgence-500/10 hover:text-urgence-600 dark:border-white/20 dark:text-primary-200 dark:hover:bg-urgence-500/10 dark:hover:text-urgence-400"
                   aria-label={t('visitor.nav.logout')}
                   title={t('visitor.nav.logoutTitle')}
                 >
@@ -222,7 +217,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="group relative flex items-center gap-2 px-5 py-2 border border-white/25 bg-[linear-gradient(135deg,rgba(37,99,235,0.92),rgba(79,70,229,0.84))] backdrop-blur-xl text-white rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_6px_18px_rgba(79,70,229,0.3)] transition-all duration-200 hover:brightness-105 hover:-translate-y-0.5"
+                className="group flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white transition-colors hover:bg-primary-600 dark:bg-mint-500 dark:text-primary-900 dark:hover:bg-mint-400"
               >
                 <span className="text-[13px] font-semibold">{t('visitor.nav.login')}</span>
                 <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
@@ -242,7 +237,7 @@ export default function Navbar() {
        *  conversation is open (body.chat-open) — the bottom tab bar stays.
       * ══════════════════════════════════════════════════════════════════ */}
       <div id="app-topbar">
-      <div className="xl:hidden fixed top-2 inset-x-2 sm:inset-x-4 z-50 isolate overflow-hidden rounded-[22px] border border-white/80 dark:border-white/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.76),rgba(255,255,255,0.42)_52%,rgba(224,231,255,0.5))] dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.84),rgba(30,41,59,0.66)_52%,rgba(49,46,129,0.44))] backdrop-blur-[24px] backdrop-saturate-[1.8] shadow-[0_14px_36px_rgba(30,58,95,0.16),inset_0_1px_0_rgba(255,255,255,0.96)] dark:shadow-[0_14px_36px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,255,255,0.16)] before:absolute before:inset-px before:-z-10 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_15%_0%,rgba(255,255,255,0.82),transparent_34%),radial-gradient(circle_at_90%_110%,rgba(99,102,241,0.16),transparent_36%)] dark:before:bg-[radial-gradient(circle_at_15%_0%,rgba(255,255,255,0.14),transparent_34%),radial-gradient(circle_at_90%_110%,rgba(129,140,248,0.2),transparent_36%)]">
+      <div className="xl:hidden fixed top-0 inset-x-0 z-50 border-b-2 border-primary-500 bg-white dark:border-primary-300 dark:bg-primary-900">
         <div className="flex items-center justify-between gap-2 px-3 py-3 sm:px-4">
           <Link
             href="/"
@@ -264,7 +259,7 @@ export default function Navbar() {
             {!isAuthenticated && (
               <button
                 onClick={toggleDark}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/70 bg-white/45 text-gray-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors hover:bg-white/70 hover:text-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 sm:h-9 sm:w-9"
+                className="flex h-8 w-8 items-center justify-center border border-primary-500/30 text-primary-600 transition-colors hover:bg-primary-500/10 dark:border-white/20 dark:text-primary-200 dark:hover:bg-white/10 sm:h-9 sm:w-9"
                 aria-label={t('visitor.nav.toggleTheme')}
               >
                 {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -276,16 +271,16 @@ export default function Navbar() {
                 {!isAdmin && (
                   <Link
                     href="/messages"
-                    className={`relative flex h-8 w-8 items-center justify-center rounded-full border shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors sm:h-9 sm:w-9 ${
+                    className={`relative flex h-8 w-8 items-center justify-center rounded-none border transition-colors sm:h-9 sm:w-9 ${
                       estDansLaMessagerie
-                        ? 'border-indigo-200 bg-indigo-100/80 text-indigo-600 dark:border-indigo-400/20 dark:bg-indigo-500/20 dark:text-indigo-300'
-                        : 'border-white/70 bg-white/45 text-gray-500 hover:bg-white/70 hover:text-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'
+                        ? 'border-primary-500 bg-primary-500 text-white dark:border-mint-500 dark:bg-mint-500 dark:text-primary-900'
+                        : 'border-primary-500/30 text-primary-600 hover:bg-primary-500/10 dark:border-white/20 dark:text-primary-200 dark:hover:bg-white/10'
                     }`}
                     aria-label={unreadCount > 0 ? t('visitor.nav.unreadMessages', { count: unreadCount }) : t('visitor.nav.messagesAria')}
                   >
                     <MessageCircle className="h-4 w-4" />
                     {unreadCount > 0 && !estDansLaMessagerie && (
-                      <span className="absolute -right-1 -top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
+                      <span className="absolute -right-1 -top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-urgence-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
@@ -293,7 +288,7 @@ export default function Navbar() {
                 )}
                 <Link
                   href="/profil"
-                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-white/45 text-gray-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors hover:bg-white/70 hover:text-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 sm:h-9 sm:w-9"
+                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-primary-500/30 text-primary-600 transition-colors hover:bg-primary-500/10 dark:border-white/20 dark:text-primary-200 dark:hover:bg-white/10 sm:h-9 sm:w-9"
                   aria-label={t('visitor.nav.profile')}
                 >
                   {user?.photoProfil ? (
@@ -304,7 +299,7 @@ export default function Navbar() {
                 </Link>
                 <button
                   onClick={() => { logout(); router.push('/') }}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/70 bg-white/45 text-gray-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors hover:bg-red-50/80 hover:text-red-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-red-500/10 sm:h-9 sm:w-9"
+                  className="flex h-8 w-8 items-center justify-center border border-primary-500/30 text-primary-600 transition-colors hover:bg-urgence-500/10 hover:text-urgence-600 dark:border-white/20 dark:text-primary-200 dark:hover:bg-urgence-500/10 sm:h-9 sm:w-9"
                   aria-label={t('visitor.nav.logout')}
                 >
                   <LogOut className="w-4 h-4" />
@@ -328,9 +323,9 @@ export default function Navbar() {
         <ConversationAware>
           {(inConversation) => (
       <>
-      <nav className={`xl:hidden fixed bottom-2 inset-x-2 sm:inset-x-4 z-50 ${inConversation ? 'hidden md:flex' : ''}`}>
-        {/* Glassmorphism container with safe area padding */}
-        <div className="relative isolate overflow-hidden w-full max-w-2xl mx-auto rounded-[26px] border border-white/80 dark:border-white/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.76),rgba(255,255,255,0.4)_50%,rgba(224,231,255,0.48))] dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.84),rgba(30,41,59,0.64)_52%,rgba(49,46,129,0.44))] backdrop-blur-[26px] backdrop-saturate-[1.85] shadow-[0_-4px_34px_rgba(30,58,95,0.1),0_16px_40px_rgba(30,58,95,0.16),inset_0_1px_0_rgba(255,255,255,0.96)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.16)] before:absolute before:inset-px before:-z-10 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.84),transparent_34%),radial-gradient(circle_at_88%_110%,rgba(99,102,241,0.16),transparent_36%)] dark:before:bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.14),transparent_34%),radial-gradient(circle_at_88%_110%,rgba(129,140,248,0.2),transparent_36%)]">
+      <nav className={`xl:hidden fixed bottom-0 inset-x-0 z-50 ${inConversation ? 'hidden md:flex' : ''}`}>
+        {/* Flat protocol tab bar with safe area padding */}
+        <div className="relative w-full max-w-2xl mx-auto border-t-2 border-primary-500 bg-white dark:border-primary-300 dark:bg-primary-900">
           <div className="flex items-stretch justify-around px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
             {mobileNavItems.map((item) => {
               const active = isActive(item.to)
@@ -341,24 +336,24 @@ export default function Navbar() {
                   href={item.to}
                   className="group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 py-1"
                 >
-                  {/* Active pill background behind icon */}
-                  <div className={`relative flex h-8 w-10 items-center justify-center rounded-2xl transition-all duration-300 sm:w-12 ${
+                  {/* Active indicator background behind icon */}
+                  <div className={`relative flex h-8 w-10 items-center justify-center transition-colors duration-300 sm:w-12 ${
                     active 
-                      ? 'border border-white/75 dark:border-white/10 bg-white/60 dark:bg-indigo-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(79,70,229,0.12)]'
-                      : 'border border-transparent group-active:border-white/60 group-active:bg-white/45 dark:group-active:bg-white/5'
+                      ? 'bg-primary-500/10 dark:bg-mint-500/15'
+                      : ''
                   }`}>
                     <Icon 
                       className={`h-5 w-5 transition-colors duration-200 sm:h-[22px] sm:w-[22px] ${
                         active 
-                          ? 'text-indigo-600 dark:text-indigo-400' 
-                          : 'text-gray-400 dark:text-gray-500'
+                          ? 'text-primary-500 dark:text-mint-400' 
+                          : 'text-primary-400 dark:text-primary-300'
                       }`}
                       strokeWidth={active ? 2.5 : 1.8}
                     />
 
                     {/* Notification badge */}
                     {item.badge !== undefined && item.badge > 0 && !estDansLaMessagerie && (
-                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-md ring-2 ring-white dark:ring-[#111827]">
+                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-urgence-500 text-white text-[10px] font-bold shadow-md ring-2 ring-white dark:ring-[#111827]">
                         {item.badge > 99 ? '99+' : item.badge}
                       </span>
                     )}
@@ -367,15 +362,15 @@ export default function Navbar() {
                   {/* Label */}
                   <span className={`max-w-full truncate text-[8px] font-semibold leading-tight transition-colors duration-200 sm:text-[10px] ${
                     active 
-                      ? 'text-indigo-600 dark:text-indigo-400' 
-                      : 'text-gray-400 dark:text-gray-500'
+                      ? 'text-primary-500 dark:text-mint-400' 
+                      : 'text-primary-400 dark:text-primary-300'
                   }`}>
                     {item.label}
                   </span>
 
                   {/* Active bar indicator */}
                   {active && (
-                    <span className="absolute -bottom-1 w-5 h-[3px] rounded-full bg-indigo-600 dark:bg-indigo-400 shadow-[0_0_10px_rgba(79,70,229,0.6)]" />
+                    <span className="absolute -bottom-1 w-5 h-[3px] bg-mint-500" />
                   )}
                 </Link>
               )

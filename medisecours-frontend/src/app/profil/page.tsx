@@ -122,7 +122,7 @@ function Card({ accent = '', className = '', children }: { accent?: string; clas
   )
 }
 
-function CardHeading({ icon, title, badgeClass = 'bg-blue-50 dark:bg-blue-500/10 text-blue-500' }: {
+function CardHeading({ icon, title, badgeClass = 'bg-mint-50 dark:bg-primary-500/10 text-primary-500' }: {
   icon: ReactNode
   title: string
   badgeClass?: string
@@ -156,10 +156,10 @@ function FieldRow({ icon, label, value, placeholder, emptyLabel, editing, onChan
     ? feedback.ok
       ? 'border-emerald-300 focus:ring-emerald-500 focus:border-emerald-500'
       : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-    : 'border-slate-200 focus:ring-blue-500 focus:border-blue-500'
+    : 'border-slate-200 focus:ring-primary-500 focus:border-primary-500'
   return (
     <div className="flex items-start gap-3">
-      <span className={`mt-0.5 w-9 h-9 rounded-xl bg-blue-50 dark:bg-white/10 text-blue-500 flex items-center justify-center shrink-0 ${iconBg || ''}`}>
+      <span className={`mt-0.5 w-9 h-9 rounded-xl bg-mint-50 dark:bg-white/10 text-primary-500 flex items-center justify-center shrink-0 ${iconBg || ''}`}>
         {icon}
       </span>
       <div className="flex-1 min-w-0">
@@ -187,7 +187,7 @@ function FieldRow({ icon, label, value, placeholder, emptyLabel, editing, onChan
         ) : (
           <button
             onClick={onRequestEdit}
-            className="mt-1.5 inline-flex items-center gap-1.5 text-sm text-slate-300 dark:text-slate-400 hover:text-blue-500 transition-colors"
+            className="mt-1.5 inline-flex items-center gap-1.5 text-sm text-slate-300 dark:text-slate-400 hover:text-primary-500 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" /> {emptyLabel || t('visitor.profil.notProvided')}
           </button>
@@ -217,9 +217,9 @@ function TagEditor({ tags, onChange, placeholder }: {
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
           placeholder={placeholder}
-          className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+          className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
         />
-        <button type="button" onClick={add} className="shrink-0 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">{t('visitor.profil.addTag')}</button>
+        <button type="button" onClick={add} className="shrink-0 px-3 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors">{t('visitor.profil.addTag')}</button>
       </div>
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -259,7 +259,7 @@ function ContactsEditor({ contacts, onChange }: {
             value={c.nom}
             onChange={(e) => update(i, 'nom', e.target.value)}
             placeholder={t('visitor.profil.contactName')}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
@@ -270,7 +270,7 @@ function ContactsEditor({ contacts, onChange }: {
                 inputMode="tel"
                 className={`w-full px-3 py-2 rounded-lg border bg-white dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 transition-shadow ${(() => {
                   const fb = validatePhone(c.telephone, t)
-                  return fb ? (fb.ok ? 'border-emerald-300 focus:ring-emerald-500 focus:border-emerald-500' : 'border-red-300 focus:ring-red-500 focus:border-red-500') : 'border-slate-200 focus:ring-blue-500 focus:border-blue-500'
+                  return fb ? (fb.ok ? 'border-emerald-300 focus:ring-emerald-500 focus:border-emerald-500' : 'border-red-300 focus:ring-red-500 focus:border-red-500') : 'border-slate-200 focus:ring-primary-500 focus:border-primary-500'
                 })()}`}
               />
               {(() => {
@@ -289,7 +289,7 @@ function ContactsEditor({ contacts, onChange }: {
               value={c.lien}
               onChange={(e) => update(i, 'lien', e.target.value)}
               placeholder={t('visitor.profil.contactLink')}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
             />
           </div>
         </div>
@@ -360,7 +360,7 @@ function PatientReportCard({ report }: { report: PatientReport }) {
       </div>
 
       <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-white/10 dark:bg-primary-900/40">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+        <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-400">
           {t(REPORT_REASON_LABELS[report.motif] ?? report.motif)}
         </p>
         <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
@@ -370,12 +370,12 @@ function PatientReportCard({ report }: { report: PatientReport }) {
 
       <div className={`mt-4 rounded-2xl border p-4 ${
         report.noteAdmin
-          ? 'border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10'
+          ? 'border-mint-200 bg-mint-50 dark:border-primary-500/20 dark:bg-primary-500/10'
           : 'border-slate-200 bg-white dark:border-white/10 dark:bg-white/5'
       }`}>
         <div className="flex items-center gap-2">
-          <MessageSquareText className={`h-4 w-4 ${report.noteAdmin ? 'text-blue-600 dark:text-blue-300' : 'text-slate-400'}`} />
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-slate-700 dark:text-slate-200">
+          <MessageSquareText className={`h-4 w-4 ${report.noteAdmin ? 'text-primary-500 dark:text-mint-300' : 'text-slate-400'}`} />
+          <p className="text-xs font-extrabold uppercase tracking-[0.04em] text-slate-700 dark:text-slate-200">
             {t('visitor.profil.adminResponse')}
           </p>
         </div>
@@ -442,7 +442,7 @@ function PatientReportRow({
         <StatusIcon className="h-3 w-3" />
         {t(status.labelKey)}
       </span>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors group-hover:bg-white group-hover:text-blue-600 dark:group-hover:bg-white/10">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors group-hover:bg-white group-hover:text-primary-500 dark:group-hover:bg-white/10">
         <Eye className="h-4 w-4" />
       </span>
     </button>
@@ -610,7 +610,6 @@ export default function ProfilPage() {
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">{t('visitor.profil.space')}</p>
             <h1 className="mt-2 font-display text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white">{isMedecin ? t('visitor.profil.titleDoctor') : t('visitor.profil.titlePatient')}</h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-300">
               {t('visitor.profil.intro')}
@@ -629,7 +628,7 @@ export default function ProfilPage() {
             <button
               onClick={() => editing ? handleSave() : setEditing(true)}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-primary-500/20 transition-colors hover:bg-primary-600 disabled:opacity-60"
             >
               {editing ? <><Save className="h-4 w-4" /> {saving ? t('visitor.profil.saving') : t('visitor.profil.save')}</> : <><Edit3 className="h-4 w-4" /> {t('visitor.profil.editProfile')}</>}
             </button>
@@ -640,7 +639,7 @@ export default function ProfilPage() {
           <section className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-primary-800/80 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="relative shrink-0">
-                <div className="h-28 w-28 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-500 text-3xl font-extrabold text-white shadow-lg shadow-blue-600/20 ring-4 ring-blue-50 dark:ring-white/10 flex items-center justify-center">
+                <div className="h-28 w-28 overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 to-cyan-500 text-3xl font-extrabold text-white shadow-lg shadow-primary-500/20 ring-4 ring-mint-50 dark:ring-white/10 flex items-center justify-center">
                   {user.photoProfil ? (
                     <img src={resolveImgPath(user.photoProfil)} alt="" className="h-full w-full object-cover" onError={(e) => { const img = e.target as HTMLImageElement; img.style.display = 'none'; const fb = img.nextSibling as HTMLElement | null; if (fb) fb.style.display = 'flex' }} />
                   ) : null}
@@ -649,7 +648,7 @@ export default function ProfilPage() {
                 <button
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-md ring-4 ring-white transition-colors hover:bg-blue-700 disabled:opacity-60 dark:ring-primary-800"
+                  className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-md ring-4 ring-white transition-colors hover:bg-primary-600 disabled:opacity-60 dark:ring-primary-800"
                   title={t('visitor.profil.changePhoto')}
                 >
                   <Camera className="h-4 w-4" />
@@ -659,7 +658,7 @@ export default function ProfilPage() {
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-mint-100 bg-mint-50 px-3 py-1 text-xs font-bold text-primary-600 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-mint-200">
                     <ShieldCheck className="h-3.5 w-3.5" /> {roleLabel}
                   </span>
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -685,13 +684,13 @@ export default function ProfilPage() {
           <aside className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-primary-800/80 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">{t('visitor.profil.medicalRecord')}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.04em] text-slate-400">{t('visitor.profil.medicalRecord')}</p>
                 <h2 className="mt-2 font-display text-xl font-extrabold text-slate-950 dark:text-white">{t('visitor.profil.completion')}</h2>
               </div>
-              <span className="rounded-2xl bg-blue-600 px-3 py-1.5 text-sm font-extrabold text-white">{completion}%</span>
+              <span className="rounded-2xl bg-primary-500 px-3 py-1.5 text-sm font-extrabold text-white">{completion}%</span>
             </div>
             <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-primary-900">
-              <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${completion}%` }} />
+              <div className="h-full rounded-full bg-primary-500 transition-all" style={{ width: `${completion}%` }} />
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3 dark:border-white/10 dark:bg-primary-900/40">
@@ -764,7 +763,7 @@ export default function ProfilPage() {
                       <select
                         value={form.groupeSanguin || ''}
                         onChange={set('groupeSanguin')}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-sm text-slate-800 transition-shadow focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-white/10 dark:bg-primary-900/40 dark:text-sable"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-sm text-slate-800 transition-shadow focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-primary-900/40 dark:text-sable"
                       >
                         <option value="">{t('visitor.profil.notSpecified')}</option>
                         {GROUPES_SANGUINS.map((g) => <option key={g} value={g}>{g}</option>)}
@@ -871,7 +870,7 @@ export default function ProfilPage() {
                           <button
                             type="button"
                             onClick={() => setReportsHistoryOpen(true)}
-                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-blue-500/30 dark:hover:bg-blue-500/10"
+                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 transition-colors hover:border-mint-200 hover:bg-mint-50 hover:text-primary-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-primary-500/30 dark:hover:bg-primary-500/10"
                           >
                             {t('visitor.profil.viewReports', { count: reports.length })}
                             <ChevronRight className="h-4 w-4" />
@@ -941,7 +940,7 @@ export default function ProfilPage() {
               <CardHeading icon={<ShieldCheck className="w-4 h-4" />} title={t('visitor.profil.privacy')} />
               <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
                 <div className="flex gap-3">
-                  <Lock className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                  <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
                   <p>{t('visitor.profil.privacyData')}</p>
                 </div>
                 <div className="flex gap-3">

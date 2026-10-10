@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next'
 import type { DashboardAllergie } from '../../../types/api'
 
 const BLOOD_COLORS: Record<string, string> = {
-  'A+': '#3B6EF8',
-  'A-': '#6B8FF8',
+  'A+': '#1E3A5F',
+  'A-': '#9DBBD3',
   'B+': '#F59E0B',
   'B-': '#F0B84D',
   'AB+': '#10B981',

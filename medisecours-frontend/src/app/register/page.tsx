@@ -97,7 +97,7 @@ const steps = ['visitor.register.stepProfile', 'visitor.register.stepIdentity', 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
 const maxIdentityFileSize = 5 * 1024 * 1024
 const inputClass =
-  'auth-field min-h-12 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900 dark:aria-invalid:border-red-400'
+  'auth-field min-h-12 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10 aria-invalid:border-red-500 aria-invalid:ring-4 aria-invalid:ring-red-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-mint-400 dark:focus:bg-slate-900 dark:aria-invalid:border-red-400'
 
 function isValidPhone(value: string) {
   const trimmed = value.trim()
@@ -468,7 +468,6 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout
-      eyebrow={t('visitor.register.eyebrow')}
       title={t('visitor.register.title')}
       description={t('visitor.register.description')}
     >
@@ -483,7 +482,7 @@ export default function RegisterPage() {
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold transition-colors ${
                     completed || active
-                      ? 'border-blue-600 bg-blue-600 text-white'
+                      ? 'border-primary-500 bg-primary-500 text-white'
                       : 'border-slate-200 bg-white text-slate-400 dark:border-slate-700 dark:bg-slate-900'
                   }`}
                 >
@@ -491,14 +490,14 @@ export default function RegisterPage() {
                 </div>
                 <span
                   className={`mt-1.5 text-[10px] font-semibold sm:text-xs ${
-                    active ? 'text-blue-700 dark:text-blue-400' : 'text-slate-400'
+                    active ? 'text-primary-600 dark:text-mint-400' : 'text-slate-400'
                   }`}
                 >
                   {t(label)}
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div className={`mt-4 h-px min-w-4 flex-1 ${completed ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-800'}`} />
+                <div className={`mt-4 h-px min-w-4 flex-1 ${completed ? 'bg-primary-500' : 'bg-slate-200 dark:bg-slate-800'}`} />
               )}
             </div>
           )
@@ -518,9 +517,9 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => chooseType('patient')}
-                className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
+                className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-primary-500 hover:bg-mint-50 focus:outline-none focus:ring-4 focus:ring-primary-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-mint-400 dark:hover:bg-primary-900/30"
               >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950 dark:text-blue-300">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-mint-100 text-primary-600 group-hover:bg-primary-500 group-hover:text-white dark:bg-primary-900 dark:text-mint-300">
                   <User className="h-5 w-5" />
                 </div>
                 <span className="block font-display text-base font-bold text-slate-950 dark:text-white">{t('visitor.register.patientCardTitle')}</span>
@@ -532,7 +531,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => chooseType('medecin')}
-                className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
+                className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-primary-500 hover:bg-mint-50 focus:outline-none focus:ring-4 focus:ring-primary-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-mint-400 dark:hover:bg-primary-900/30"
               >
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-100 text-cyan-700 group-hover:bg-cyan-600 group-hover:text-white dark:bg-cyan-950 dark:text-cyan-300">
                   <Stethoscope className="h-5 w-5" />
@@ -546,7 +545,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => chooseType('etablissement')}
-                className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
+                className="group min-h-[150px] rounded-lg border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-primary-500 hover:bg-mint-50 focus:outline-none focus:ring-4 focus:ring-primary-500/15 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-mint-400 dark:hover:bg-primary-900/30"
               >
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950 dark:text-emerald-300">
                   <Hospital className="h-5 w-5" />
@@ -704,7 +703,7 @@ export default function RegisterPage() {
                   setAcceptedTerms(event.target.checked)
                   if (errors.terms) setErrors((current) => ({ ...current, terms: undefined }))
                 }}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600"
+                className="mt-0.5 h-4 w-4 shrink-0 accent-primary-500"
               />
               <span>
                 {t('visitor.register.termsLabel')}
@@ -724,7 +723,7 @@ export default function RegisterPage() {
           >
             {type === 'patient' ? (
               <>
-                <div className="flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-200">
+                <div className="flex items-start gap-3 rounded-lg border border-mint-100 bg-mint-50 px-4 py-3 text-xs leading-5 text-primary-800 dark:border-primary-800/50 dark:bg-primary-900/30 dark:text-mint-200">
                   <HeartPulse className="mt-0.5 h-4 w-4 shrink-0" />
                   {t('visitor.register.patientInfoNote')}
                 </div>
@@ -978,8 +977,8 @@ export default function RegisterPage() {
                           onClick={() => setTypePieceIdentite(value)}
                           className={`min-h-11 rounded-lg border px-3 text-sm font-semibold transition ${
                             typePieceIdentite === value
-                              ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                              : 'border-slate-200 text-slate-600 hover:border-blue-400 dark:border-slate-700 dark:text-slate-300'
+                              ? 'border-primary-500 bg-mint-50 text-primary-600 dark:bg-primary-900/40 dark:text-mint-300'
+                              : 'border-slate-200 text-slate-600 hover:border-mint-400 dark:border-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {label}
@@ -1041,7 +1040,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={next}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary-500 px-5 text-sm font-bold text-white transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-500/20"
             >
               {t('visitor.register.continue')}
               <ArrowRight className="h-4 w-4" />
@@ -1051,7 +1050,7 @@ export default function RegisterPage() {
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary-500 px-5 text-sm font-bold text-white transition hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
               {loading ? t('visitor.register.creating') : t('visitor.register.createAccountButton')}
@@ -1062,7 +1061,7 @@ export default function RegisterPage() {
 
       <p className="mt-7 text-center text-sm text-slate-500 dark:text-slate-400">
         {t('visitor.register.alreadyRegistered')}{' '}
-        <Link href="/login" className="font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400">
+        <Link href="/login" className="font-bold text-primary-500 hover:text-primary-700 dark:text-mint-400">
           {t('visitor.register.login')}
         </Link>
       </p>
@@ -1098,7 +1097,7 @@ function IdentityFileField({
           ? 'border-red-400 bg-red-50/60 dark:bg-red-950/20'
           : file
             ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/20'
-            : 'border-slate-300 bg-slate-50 hover:border-blue-500 hover:bg-blue-50/60 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-400'
+            : 'border-slate-300 bg-slate-50 hover:border-primary-500 hover:bg-mint-50/60 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-mint-400'
       }`}>
         <input
           type="file"
@@ -1106,7 +1105,7 @@ function IdentityFileField({
           className="sr-only"
           onChange={(event) => onChange(event.target.files?.[0])}
         />
-        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm dark:bg-slate-800 dark:text-blue-400">
+        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-white text-primary-500 shadow-sm dark:bg-slate-800 dark:text-mint-400">
           {file ? <Check className="h-5 w-5 text-emerald-600" /> : <Icon className="h-5 w-5" />}
         </div>
         <span className="max-w-full break-all text-xs font-bold text-slate-800 dark:text-slate-100">

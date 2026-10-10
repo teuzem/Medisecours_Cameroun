@@ -364,7 +364,7 @@ export function FicheInfos({
       {(fiche.accessibilite?.length || fiche.ambulancesDisponibles) && (
         <div className="flex flex-wrap gap-2">
           {fiche.accessibilite && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" title="Accessibilité pour les personnes handicapées">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-mint-50 px-2.5 py-1 text-xs font-bold text-primary-600 dark:bg-primary-500/15 dark:text-mint-300" title="Accessibilité pour les personnes handicapées">
               <Accessibility className="h-3.5 w-3.5" /> {Array.isArray(fiche.accessibilite) ? fiche.accessibilite.join(', ') : fiche.accessibilite}
             </span>
           )}

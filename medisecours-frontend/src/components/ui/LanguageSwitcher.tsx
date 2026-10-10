@@ -53,7 +53,7 @@ export default function LanguageSwitcher({ className = '' }: { className?: strin
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 items-center gap-1.5 rounded-xl px-2.5 text-[#6B7280] transition hover:bg-[#F3F4F6]"
+        className="flex h-10 items-center gap-1.5 rounded-sm px-2.5 text-primary-600 transition hover:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-white/10"
         aria-label="Langue / Language"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -69,7 +69,7 @@ export default function LanguageSwitcher({ className = '' }: { className?: strin
               role="listbox"
               aria-label="Langue / Language"
               style={{ top: pos.top, left: pos.left, right: pos.right }}
-              className="fixed z-[999] w-44 rounded-xl border border-[#E5E7EB] bg-white py-1 shadow-lg"
+              className="fixed z-[999] w-44 rounded-none border border-primary-500/20 bg-white py-1 shadow-lg dark:border-white/15 dark:bg-primary-800"
             >
               {LOCALES.map((locale) => (
                 <button
@@ -78,11 +78,11 @@ export default function LanguageSwitcher({ className = '' }: { className?: strin
                   role="option"
                   aria-selected={locale === current}
                   onClick={() => handleLanguageChange(locale)}
-                  className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-[#374151] transition hover:bg-[#F3F4F6]"
+                  className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-primary-600 transition hover:bg-primary-500/10 dark:text-primary-100 dark:hover:bg-white/10"
                 >
                   <span className="text-base">{LOCALE_LABELS[locale].flag}</span>
                   <span className="flex-1">{LOCALE_LABELS[locale].label}</span>
-                  {locale === current && <Check className="h-4 w-4 text-[#3B6EF8]" />}
+                  {locale === current && <Check className="h-4 w-4 text-mint-600 dark:text-mint-400" />}
                 </button>
               ))}
             </div>,

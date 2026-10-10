@@ -16,7 +16,7 @@ const SEVERITY_CONFIG: Record<string, { label: string; color: string; bg: string
   'SÉVÈRE':    { label: 'SÉVÈRE',    color: 'bg-orange-500', bg: 'bg-orange-50',  text: 'text-orange-700' },
   'MODÉRÉE':   { label: 'MODÉRÉE',   color: 'bg-amber-500',  bg: 'bg-amber-50',   text: 'text-amber-700' },
   'LÉGÈRE':    { label: 'LÉGÈRE',    color: 'bg-emerald-500',bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  'VARIABLE':  { label: 'VARIABLE',  color: 'bg-blue-500',   bg: 'bg-blue-50',    text: 'text-blue-700' },
+  'VARIABLE':  { label: 'VARIABLE',  color: 'bg-primary-500',   bg: 'bg-mint-50',    text: 'text-primary-600' },
   'DEFAULT':   { label: '—',         color: 'bg-slate-400',  bg: 'bg-slate-50',   text: 'text-slate-600' },
 }
 
@@ -263,7 +263,7 @@ export default function MaladieDetailModal({ maladie, onClose }: MaladieDetailMo
                   <Pill className="w-4 h-4 text-slate-400" />
                   {t('visitor.components.maladieDetail.treatment')}
                 </h3>
-                <div className="bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+                <div className="bg-mint-50/60 p-4 rounded-2xl border border-mint-100">
                   <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
                     {maladie.traitement}
                   </p>

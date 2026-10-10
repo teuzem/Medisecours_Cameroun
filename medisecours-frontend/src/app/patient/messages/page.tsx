@@ -845,7 +845,7 @@ function PatientMessagesContent() {
   }
 
   return (
-    <div className="h-[calc(100dvh_-_140px_-_env(safe-area-inset-bottom,0px))] xl:h-[calc(100dvh_-_96px)] w-full bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden lg:p-4">
+    <div className="h-[calc(100dvh_-_140px_-_env(safe-area-inset-bottom,0px))] xl:h-[calc(100dvh_-_96px)] w-full bg-gradient-to-br from-mint-50 to-mint-100 overflow-hidden lg:p-4">
       <div className="h-full max-w-7xl mx-auto bg-white lg:rounded-[12px] lg:shadow-xl overflow-hidden relative flex flex-col">
         {/* ── Panels container ── */}
         <div className="relative flex flex-1 min-h-0">
@@ -858,8 +858,8 @@ function PatientMessagesContent() {
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-bold tracking-[0.15em] text-[#212121] uppercase">{t('layout.messages')}</h2>
-            <button onClick={openNewConversation} className="w-8 h-8 rounded-lg bg-[#2196F3] hover:bg-blue-600 text-white flex items-center justify-center transition-colors">
+            <h2 className="text-sm font-bold tracking-[0.04em] text-[#212121] uppercase">{t('layout.messages')}</h2>
+            <button onClick={openNewConversation} className="w-8 h-8 rounded-lg bg-[#2196F3] hover:bg-primary-500 text-white flex items-center justify-center transition-colors">
               <Plus className="w-4 h-4" />
             </button>
           </div>
@@ -967,7 +967,7 @@ function PatientMessagesContent() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link href="/patient/consultations" className="text-[11px] font-semibold text-[#2196F3] hover:text-blue-700 inline-flex items-center gap-1 shrink-0 transition-colors bg-blue-50 px-2 py-1 rounded-md">
+                  <Link href="/patient/consultations" className="text-[11px] font-semibold text-[#2196F3] hover:text-primary-600 inline-flex items-center gap-1 shrink-0 transition-colors bg-mint-50 px-2 py-1 rounded-md">
                     {t('consultations.title')} <ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>
@@ -1139,7 +1139,7 @@ function PatientMessagesContent() {
                     onClick={handleSend}
                     disabled={sending || (!draft.trim() && attachments.length === 0) || recording}
                     className={`text-xs font-bold tracking-wider uppercase transition-colors ${
-                      draft.trim() || attachments.length > 0 ? 'text-[#2196F3] hover:text-blue-700' : 'text-gray-300'
+                      draft.trim() || attachments.length > 0 ? 'text-[#2196F3] hover:text-primary-600' : 'text-gray-300'
                     } disabled:opacity-50`}
                   >
                     {uploadingMedia ? <Loader2 className="w-4 h-4 animate-spin inline" /> : t('patient.messages.send')}
@@ -1152,7 +1152,7 @@ function PatientMessagesContent() {
             </>
           ) : (
             <div className="hidden md:flex flex-col items-center justify-center h-full text-center px-6">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-mint-50 flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#2196F3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>

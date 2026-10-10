@@ -44,7 +44,7 @@ export default function CategoryEditModal({
       tabIndex={0}
     >
       <div className="flex max-h-[85vh] w-full max-w-lg flex-col bg-white rounded-3xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="shrink-0 bg-[linear-gradient(135deg,#09170f_0%,#0f2418_60%,#183626_100%)] px-6 pb-5 pt-7">
+        <div className="shrink-0 bg-primary-500 px-6 pb-5 pt-7">
           <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white/60 transition hover:bg-white/20 hover:text-white">
             <X className="h-4 w-4" />
           </button>
@@ -62,7 +62,7 @@ export default function CategoryEditModal({
           <div className="flex-1 overflow-y-auto px-6 py-5">
             <div className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.categorieModal.icone')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.categorieModal.icone')}</label>
                 <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-2xl border border-[#dfe5db] bg-[#f8faf6] p-2">
                   {availableIcons.map((name) => (
                     <button
@@ -82,7 +82,7 @@ export default function CategoryEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.categorieModal.nom')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.categorieModal.nom')}</label>
                 <input
                   type="text"
                   value={editing.nom || ''}
@@ -93,7 +93,7 @@ export default function CategoryEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.categorieModal.couleur')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.categorieModal.couleur')}</label>
                 <div className="flex flex-wrap gap-2">
                   {colorOptions.map((c) => (
                     <button
@@ -110,7 +110,7 @@ export default function CategoryEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.categorieModal.description')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.categorieModal.description')}</label>
                 <textarea
                   value={editing.description || ''}
                   onChange={(e) => onFieldChange('description', e.target.value)}

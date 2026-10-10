@@ -230,9 +230,6 @@ export default function MedecinsPage() {
       <header className="border-b border-slate-200 pb-7 dark:border-white/10">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-              {t('visitor.doctors.eyebrow')}
-            </p>
             <h1 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white sm:text-4xl">
               {t('visitor.doctors.title')}
             </h1>
@@ -435,7 +432,7 @@ export default function MedecinsPage() {
           </div>
         </div>
         <div className="flex gap-3">
-          <MessageSquareText className="h-5 w-5 shrink-0 text-blue-700 dark:text-blue-300" aria-hidden="true" />
+          <MessageSquareText className="h-5 w-5 shrink-0 text-primary-600 dark:text-mint-300" aria-hidden="true" />
           <div>
             <h2 className="text-sm font-bold text-slate-950 dark:text-white">{t('visitor.doctors.stepRequestTitle')}</h2>
             <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">

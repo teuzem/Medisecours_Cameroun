@@ -160,7 +160,7 @@ export default function AffiliationsPanel({ centreId }: { centreId: number }) {
     <div>
       {/* ── En-tête ── */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 text-white shadow-sm">
           <UserRoundCheck className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
@@ -257,7 +257,7 @@ export default function AffiliationsPanel({ centreId }: { centreId: number }) {
                 className="rounded-2xl border border-slate-200 bg-white p-4 transition dark:border-white/10 dark:bg-slate-900"
               >
                 <div className="flex items-start gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mint-100 text-sm font-black text-primary-600 dark:bg-primary-500/15 dark:text-mint-300">
                     {initiales(m?.prenom, m?.nom)}
                   </span>
 
@@ -295,7 +295,7 @@ export default function AffiliationsPanel({ centreId }: { centreId: number }) {
                         </span>
                       )}
                       {m?.telephone && (
-                        <a href={`tel:${m.telephone}`} className="inline-flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400">
+                        <a href={`tel:${m.telephone}`} className="inline-flex items-center gap-1 hover:text-primary-500 dark:hover:text-mint-400">
                           <Phone className="h-3.5 w-3.5" />
                           {m.telephone}
                         </a>

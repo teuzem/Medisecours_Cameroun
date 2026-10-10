@@ -296,7 +296,7 @@ function MessageInput({ onSend }: { onSend: (text: string) => void }) {
         onClick={handleSend}
         disabled={!value.trim()}
         className={`text-xs font-bold tracking-wider uppercase transition-colors ${
-          value.trim() ? 'text-[#2196F3] hover:text-blue-700' : 'text-gray-300'
+          value.trim() ? 'text-[#2196F3] hover:text-primary-600' : 'text-gray-300'
         }`}
       >
         {t('visitor.chatPreview.send')}
@@ -347,7 +347,7 @@ export default function ModernChat() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-mint-50 to-mint-100 flex items-center justify-center p-6">
       <div className="w-full max-w-5xl bg-white rounded-[12px] shadow-xl overflow-hidden" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
         <TrafficLights />
         <TopNav />

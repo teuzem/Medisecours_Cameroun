@@ -267,7 +267,7 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
               <AlertTriangle className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-red-600 dark:text-red-400">
+              <p className="text-xs font-bold uppercase tracking-[0.04em] text-red-600 dark:text-red-400">
                 {t('visitor.carte.sos.eyebrow')}
               </p>
               <h2 className="font-display text-lg font-bold text-slate-950 dark:text-white">

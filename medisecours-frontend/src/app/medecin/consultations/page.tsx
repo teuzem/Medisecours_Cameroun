@@ -145,7 +145,6 @@ export default function MedecinConsultationsPage() {
     <div className="medecin-consultations-page max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
       {/* En-tête */}
       <div className="medecin-consultations-header mb-8">
-        <p className="medecin-consultations-eyebrow">{t('consultations.eyebrow')}</p>
         <h1 className="font-display text-2xl font-bold">{t('consultations.title')}</h1>
         <p className="mt-1">
           {counts.OUVERTE > 0

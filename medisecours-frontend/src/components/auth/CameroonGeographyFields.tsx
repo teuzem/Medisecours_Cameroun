@@ -181,7 +181,7 @@ export default function CameroonGeographyFields({ value, onChange, inputClass, e
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t('visitor.register.geographyTitle')}</p>
           <p className="text-[11px] leading-4 text-slate-500 dark:text-slate-400">{t('visitor.register.geographyHint')}</p>
         </div>
-        <button type="button" onClick={locate} disabled={locating} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-xs font-bold text-blue-700 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-60 dark:border-blue-900 dark:bg-slate-950 dark:text-blue-300">
+        <button type="button" onClick={locate} disabled={locating} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-mint-200 bg-white px-3 text-xs font-bold text-primary-600 hover:border-mint-400 hover:bg-mint-50 disabled:opacity-60 dark:border-primary-800 dark:bg-slate-950 dark:text-mint-300">
           {locating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
           {locating ? t('visitor.register.geolocating') : t('visitor.register.useCurrentLocation')}
         </button>
@@ -231,7 +231,7 @@ function SearchableSelect<T extends { id: string; nameLocal: string; nameEn: str
       </div>
       {!disabled && query && items.length > 0 && (
         <div className="absolute inset-x-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-950">
-          {items.map((item) => <button type="button" key={item.id} onClick={() => { onSelect(item); setQuery('') }} className="block w-full rounded-md px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-950/40">{i18n.language.startsWith('fr') ? item.nameLocal : item.nameEn}</button>)}
+          {items.map((item) => <button type="button" key={item.id} onClick={() => { onSelect(item); setQuery('') }} className="block w-full rounded-md px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-mint-50 dark:text-slate-200 dark:hover:bg-primary-900/40">{i18n.language.startsWith('fr') ? item.nameLocal : item.nameEn}</button>)}
         </div>
       )}
     </label>

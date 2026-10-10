@@ -1,4 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+/* Self-hosted protocol-sheet voices: Archivo (display) + Source Sans 3 (body). */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('./fonts/archivo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('./fonts/archivo-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/source-sans-3-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/source-sans-3-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 @import "tailwindcss";
 @import 'leaflet/dist/leaflet.css';
 
@@ -102,13 +135,23 @@
 
   --color-sable: #F6F3EC;
 
-  --font-display: "Plus Jakarta Sans", sans-serif;
-  --font-sans: "Inter", sans-serif;
+  --font-display: "Archivo", "Arial Narrow", sans-serif;
+  --font-sans: "Source Sans 3", "Segoe UI", sans-serif;
 
-  --shadow-glass: 0 8px 32px 0 rgba(30, 58, 95, 0.15);
-  --shadow-soft: 0 6px 18px -6px rgba(30, 58, 95, 0.12);
-  --shadow-lift: 0 18px 44px -14px rgba(30, 58, 95, 0.22);
-  --shadow-glow: 0 10px 40px -10px color-mix(in srgb, var(--accent, #10B981) 45%, transparent);
+  /* Protocol-sheet geometry: hard edges everywhere; full only for avatars/badges. */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 5px;
+  --radius-3xl: 6px;
+  --radius-4xl: 8px;
+
+  --shadow-glass: 0 10px 30px -8px rgba(30, 58, 95, 0.22);
+  --shadow-soft: 0 6px 18px -6px rgba(30, 58, 95, 0.14);
+  --shadow-lift: 0 18px 44px -14px rgba(30, 58, 95, 0.28);
+  --shadow-glow: 0 14px 34px -12px rgba(30, 58, 95, 0.35);
 
   --animate-pulse-urgence: pulseUrgence 1.6s ease-in-out infinite;
   --animate-breathe: breathe 2.6s ease-in-out infinite;
@@ -177,6 +220,54 @@ h1, h2, h3, h4 {
   @apply bg-mint-100 text-primary-900;
 }
 
+/* Browser surfaces carry the protocol world too. */
+body {
+  caret-color: var(--color-primary-500);
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.dark :focus-visible {
+  outline-color: var(--color-mint-400);
+}
+
+table td,
+table th {
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30, 58, 95, 0.35) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(30, 58, 95, 0.3);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 58, 95, 0.55);
+  background-clip: content-box;
+}
+
 .auth-field {
   color-scheme: light;
 }
@@ -199,16 +290,16 @@ h1, h2, h3, h4 {
 
 /* Shared visual system for administration and doctor workspaces. */
 .dashboard-theme {
-  --dashboard-bg: #eef2f7;
+  --dashboard-bg: #f6f3ec;
   --dashboard-surface: #ffffff;
-  --dashboard-surface-muted: #f8fafc;
-  --dashboard-surface-strong: #e9eff7;
-  --dashboard-border: #dbe3ed;
-  --dashboard-text: #102a43;
-  --dashboard-text-muted: #64748b;
-  --dashboard-accent: #2563eb;
-  --dashboard-accent-strong: #1e3a5f;
-  --dashboard-shadow: 0 14px 36px rgba(30, 58, 95, 0.08);
+  --dashboard-surface-muted: #fbf9f4;
+  --dashboard-surface-strong: #efeae0;
+  --dashboard-border: #e2dccc;
+  --dashboard-text: #1e3a5f;
+  --dashboard-text-muted: #5a6b80;
+  --dashboard-accent: #1e3a5f;
+  --dashboard-accent-strong: #152a45;
+  --dashboard-shadow: 0 14px 36px -12px rgba(30, 58, 95, 0.16);
   color: var(--dashboard-text);
   color-scheme: light;
 }
@@ -221,8 +312,8 @@ h1, h2, h3, h4 {
   --dashboard-border: rgba(203, 219, 234, 0.14);
   --dashboard-text: #f6f3ec;
   --dashboard-text-muted: #a9b9ca;
-  --dashboard-accent: #60a5fa;
-  --dashboard-accent-strong: #3b82f6;
+  --dashboard-accent: #34d399;
+  --dashboard-accent-strong: #059669;
   --dashboard-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
   color-scheme: dark;
 }
@@ -554,16 +645,7 @@ h1, h2, h3, h4 {
   pointer-events: none;
 }
 
-.medecin-overview-eyebrow {
-  margin: 0 0 0.45rem;
-  color: var(--dashboard-accent);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.medecin-overview-intro p:not(.medecin-overview-eyebrow) {
+.medecin-overview-intro p {
   color: var(--dashboard-text-muted);
 }
 
@@ -619,7 +701,7 @@ h1, h2, h3, h4 {
 }
 
 .medecin-overview-kpi-blue .medecin-overview-kpi-icon {
-  color: #2563eb;
+  color: var(--dashboard-accent);
 }
 
 .medecin-overview-kpi-orange .medecin-overview-kpi-icon {
@@ -656,16 +738,7 @@ h1, h2, h3, h4 {
   position: relative;
 }
 
-.medecin-consultations-eyebrow {
-  margin: 0 0 0.3rem;
-  color: var(--dashboard-accent);
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.medecin-consultations-header > p:not(.medecin-consultations-eyebrow) {
+.medecin-consultations-header > p {
   color: var(--dashboard-text-muted);
 }
 
@@ -1010,7 +1083,7 @@ h1, h2, h3, h4 {
   border: 1px solid #10b981;
   border-radius: 0.5rem;
   background: #10b981;
-  color: #fff;
+  color: #081523;
   font-size: 0.8rem;
   font-weight: 600;
   transition: all 150ms ease;
@@ -1061,15 +1134,6 @@ h1, h2, h3, h4 {
 .medecin-patients-list-header {
   border-color: var(--dashboard-border);
   background: var(--dashboard-surface);
-}
-
-.medecin-patients-eyebrow {
-  margin: 0 0 0.2rem;
-  color: var(--dashboard-accent);
-  font-size: 0.63rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .medecin-patients-count {
@@ -1138,8 +1202,8 @@ h1, h2, h3, h4 {
 }
 
 .medecin-health-card-blue {
-  border-color: color-mix(in srgb, #2563eb 22%, var(--dashboard-border));
-  background: color-mix(in srgb, #2563eb 9%, var(--dashboard-surface));
+  border-color: color-mix(in srgb, var(--dashboard-accent) 22%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--dashboard-accent) 9%, var(--dashboard-surface));
 }
 
 .medecin-health-card-red {
@@ -1163,6 +1227,12 @@ h1, h2, h3, h4 {
 
 .medecin-patient-action-primary:hover {
   background: var(--dashboard-accent-strong);
+}
+
+.dark .medecin-overview-primary-action,
+.dark .medecin-consultation-btn-accent,
+.dark .medecin-patient-action-primary {
+  color: var(--dashboard-bg);
 }
 
 .medecin-patient-action-success {
@@ -1465,7 +1535,7 @@ h1, h2, h3, h4 {
 .wdg__eyebrow {
   font-size: 0.62rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: color-mix(in srgb, currentColor 65%, transparent);
 }
@@ -1887,15 +1957,15 @@ h1, h2, h3, h4 {
   background-color: var(--dashboard-surface-muted) !important;
 }
 
-.dark .dashboard-theme .bg-blue-50,
-.dark .dashboard-theme .bg-blue-100,
 .dark .dashboard-theme .bg-indigo-50,
 .dark .dashboard-theme .bg-indigo-100,
 .dark .dashboard-theme .bg-cyan-50,
 .dark .dashboard-theme .bg-teal-50 {
-  background-color: rgba(59, 130, 246, 0.14) !important;
+  background-color: rgba(111, 148, 184, 0.14) !important;
 }
 
+.dark .dashboard-theme .bg-mint-50,
+.dark .dashboard-theme .bg-mint-100,
 .dark .dashboard-theme .bg-emerald-50,
 .dark .dashboard-theme .bg-emerald-100,
 .dark .dashboard-theme .bg-green-50,
@@ -1927,8 +1997,8 @@ h1, h2, h3, h4 {
   border-color: var(--dashboard-border) !important;
 }
 
-.dark .dashboard-theme .border-blue-200 {
-  border-color: rgba(59, 130, 246, 0.4) !important;
+.dark .dashboard-theme .border-mint-200 {
+  border-color: rgba(16, 185, 129, 0.4) !important;
 }
 
 .dark .dashboard-theme .border-green-200 {
@@ -1943,9 +2013,9 @@ h1, h2, h3, h4 {
   border-color: rgba(245, 158, 11, 0.45) !important;
 }
 
-.dark .dashboard-theme .text-blue-600,
-.dark .dashboard-theme .text-blue-700,
-.dark .dashboard-theme .text-blue-800 {
+.dark .dashboard-theme .text-primary-500,
+.dark .dashboard-theme .text-primary-600,
+.dark .dashboard-theme .text-primary-700 {
   color: #93c5fd !important;
 }
 
@@ -2045,7 +2115,7 @@ h1, h2, h3, h4 {
 .dark .dashboard-theme [class*="bg-[#F0F4FF]"],
 .dark .dashboard-theme [class*="bg-[#EFF6FF]"],
 .dark .dashboard-theme [class*="bg-[#EBF0FF]"] {
-  background-color: rgba(59, 130, 246, 0.14) !important;
+  background-color: rgba(111, 148, 184, 0.14) !important;
 }
 
 .dark .dashboard-theme [class*="bg-[#fef2f2]"],
@@ -2069,7 +2139,7 @@ h1, h2, h3, h4 {
 }
 
 .dark .dashboard-theme [class*="bg-[#F8FAFF]"] {
-  background-color: rgba(59, 130, 246, 0.1) !important;
+  background-color: rgba(111, 148, 184, 0.1) !important;
 }
 
 .dark .dashboard-theme [class*="border-[#dfe5db]"],
@@ -2105,6 +2175,49 @@ h1, h2, h3, h4 {
 .dashboard-theme [class*="border-[#2f6b45]"],
 .dashboard-theme [class*="border-[#3B6EF8]"] {
   border-color: var(--dashboard-accent) !important;
+}
+
+/* Dark dashboards: token utilities follow the accent, not the light navy */
+.dark .dashboard-theme .text-primary-500 {
+  color: var(--dashboard-accent);
+}
+
+.dark .dashboard-theme .hover\:text-primary-500:hover {
+  color: var(--dashboard-accent);
+}
+
+.dark .dashboard-theme .bg-primary-500 {
+  background-color: var(--dashboard-accent);
+}
+
+.dark .dashboard-theme .bg-primary-500\/10 {
+  background-color: color-mix(in srgb, var(--dashboard-accent) 14%, transparent);
+}
+
+.dark .dashboard-theme .hover\:bg-primary-600:hover {
+  background-color: var(--dashboard-accent-strong);
+}
+
+.dark .dashboard-theme .border-primary-500 {
+  border-color: var(--dashboard-accent);
+}
+
+.dark .dashboard-theme .bg-primary-50 {
+  background-color: var(--dashboard-surface-muted);
+}
+
+.dark .dashboard-theme .hover\:bg-primary-100:hover {
+  background-color: var(--dashboard-surface-strong);
+}
+
+.dark .dashboard-theme [class*="text-[#0F2C52]"] {
+  color: var(--dashboard-text);
+}
+
+/* Accent-filled controls: white text flips to dark on the mint accent */
+.dark .dashboard-theme [class*="bg-[#0f2418]"].text-white,
+.dark .dashboard-theme .bg-primary-500.text-white {
+  color: var(--dashboard-bg);
 }
 
 .dark .dashboard-theme table tbody tr {

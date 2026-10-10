@@ -270,8 +270,8 @@ export default function PrescriptionFormModal({ consultation, prescription, onCl
                 )}
 
                 {activeConsultation?.motif && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-                    <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">{t('admin.prescriptionForm.motifConsultation')}</div>
+                  <div className="bg-mint-50 dark:bg-primary-800/20 rounded-xl p-4">
+                    <div className="text-xs font-semibold text-primary-500 dark:text-mint-400 mb-1">{t('admin.prescriptionForm.motifConsultation')}</div>
                     <div className="text-sm text-primary-900 dark:text-sable">{activeConsultation.motif}</div>
                   </div>
                 )}
@@ -417,7 +417,7 @@ export default function PrescriptionFormModal({ consultation, prescription, onCl
                   </div>
                 </div>
 
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-sm text-blue-700 dark:text-blue-400">
+                <div className="bg-mint-50 dark:bg-primary-800/20 rounded-xl p-4 text-sm text-primary-600 dark:text-mint-400">
                   <p className="font-semibold mb-1">{t('admin.prescriptionForm.deuxOptions')}</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
                     <li><strong>{t('admin.prescriptionForm.draft')}</strong> — {t('admin.prescriptionForm.optionBrouillon')}</li>

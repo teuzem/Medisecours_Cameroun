@@ -118,7 +118,7 @@ export default function PremierSoinEditModal({
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="flex max-h-[85vh] w-full max-w-lg flex-col bg-white rounded-3xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="shrink-0 bg-[linear-gradient(135deg,#09170f_0%,#0f2418_60%,#183626_100%)] px-6 pb-5 pt-7">
+        <div className="shrink-0 bg-primary-500 px-6 pb-5 pt-7">
           <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white/60 transition hover:bg-white/20 hover:text-white">
             <X className="h-4 w-4" />
           </button>
@@ -138,7 +138,7 @@ export default function PremierSoinEditModal({
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.premierSoinModal.titre')}</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.premierSoinModal.titre')}</label>
               <input
                 type="text"
                 value={getValue('titre')}
@@ -150,7 +150,7 @@ export default function PremierSoinEditModal({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.premierSoinModal.maladieLiee')}</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.premierSoinModal.maladieLiee')}</label>
               <Combobox
                 value={currentMaladie}
                 onChange={(m) => setValue('maladie', m?.['@id'] || '')}
@@ -203,7 +203,7 @@ export default function PremierSoinEditModal({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.premierSoinModal.niveauUrgence')}</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.premierSoinModal.niveauUrgence')}</label>
               <select
                 value={getValue('niveauUrgence')}
                 onChange={(e) => setValue('niveauUrgence', e.target.value)}
@@ -218,7 +218,7 @@ export default function PremierSoinEditModal({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.premierSoinModal.description')}</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.premierSoinModal.description')}</label>
               <textarea
                 value={getValue('description')}
                 onChange={(e) => setValue('description', e.target.value)}
@@ -230,7 +230,7 @@ export default function PremierSoinEditModal({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.premierSoinModal.symptomesOptionnel')}</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.premierSoinModal.symptomesOptionnel')}</label>
               <textarea
                 value={getValue('symptomes') || ''}
                 onChange={(e) => setValue('symptomes', e.target.value)}

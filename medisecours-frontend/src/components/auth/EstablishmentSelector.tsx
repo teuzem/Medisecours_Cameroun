@@ -152,7 +152,7 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
               beginSearch()
               onChange(null)
             }}
-            className="shrink-0 text-xs font-bold text-blue-700 hover:text-blue-900 dark:text-blue-300"
+            className="shrink-0 text-xs font-bold text-primary-600 hover:text-primary-800 dark:text-mint-300"
           >
             {t('visitor.register.backToSearch')}
           </button>
@@ -253,7 +253,7 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
               aria-invalid={Boolean(error)}
             />
             {loading && (
-              <LoaderCircle className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-blue-600" />
+              <LoaderCircle className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-primary-500" />
             )}
           </div>
 
@@ -315,9 +315,9 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
                   key={centre.id}
                   type="button"
                   onClick={() => onChange({ mode: 'existing', centre })}
-                  className="flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none dark:border-slate-800 dark:hover:bg-blue-950/30 dark:focus:bg-blue-950/30"
+                  className="flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-mint-50 focus:bg-mint-50 focus:outline-none dark:border-slate-800 dark:hover:bg-primary-900/30 dark:focus:bg-primary-900/30"
                 >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary-500 dark:text-mint-400" />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">
                       {centre.nom}
@@ -338,7 +338,7 @@ export default function EstablishmentSelector({ value, error, inputClass, onChan
                 mode: 'manual',
                 establishment: { ...emptyManual, nom: query.trim() },
               })}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 text-sm font-bold text-slate-700 transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-blue-950/30"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 text-sm font-bold text-slate-700 transition hover:border-primary-500 hover:bg-mint-50 hover:text-primary-600 dark:border-slate-700 dark:text-slate-200 dark:hover:border-mint-400 dark:hover:bg-primary-900/30"
             >
               <Plus className="h-4 w-4" />
               {t('visitor.register.addEstablishmentManually')}

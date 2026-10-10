@@ -222,9 +222,8 @@ export default function AdminCentresPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <section className="rounded-[28px] bg-[linear-gradient(135deg,#09170f_0%,#0f2418_60%,#183626_100%)] p-6 text-white shadow-[0_18px_45px_rgba(15,36,24,0.16)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">{t('admin.centres.eyebrow')}</p>
-        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight">{t('admin.centres.title')}</h1>
+      <section className="bg-primary-500 p-6 text-white shadow-[0_18px_45px_rgba(15,36,24,0.16)]">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">{t('admin.centres.title')}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
           {t('admin.centres.description')}
         </p>

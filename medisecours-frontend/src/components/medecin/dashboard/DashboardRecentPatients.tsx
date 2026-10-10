@@ -47,7 +47,7 @@ export default function DashboardRecentPatients({ recentPatients }: { recentPati
               <div className="flex gap-1">
                 <button
                   onClick={() => router.push(`/medecin/consultations?patient=${pid}`)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#3B6EF8] hover:bg-[#DBEAFE] transition"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50 text-primary-500 hover:bg-primary-100 transition"
                   title={t('medecin.dashboard.recent.newConsultation')}
                 >
                   <Stethoscope className="h-3.5 w-3.5" />

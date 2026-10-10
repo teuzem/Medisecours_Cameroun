@@ -26,7 +26,7 @@ function MetricCard({ label, value, tone = 'neutral' }: { label: string; value: 
   }
   return (
     <div className={`rounded-[24px] border border-[#e3e7df] p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7c8778]">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7c8778]">{label}</p>
       <p className="mt-3 font-display text-3xl font-extrabold tracking-tight">{value}</p>
     </div>
   )
@@ -88,7 +88,7 @@ function FieldEditor({ field, value, onChange, error }: { field: any; value: any
   const { t } = useTranslation()
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">
         {field.label}
       </label>
       {field.type === 'textarea' ? (
@@ -285,7 +285,7 @@ function ImageGallery({ endpoint, entityId, images, onMutate, entityType = 'mala
 
   return (
     <div className="rounded-2xl border border-[#dfe5db] bg-[#f8faf6] p-4">
-      <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">
+      <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">
         {t('admin.crudTable.imagesIcones')}
       </label>
       {imageList.length > 0 && (
@@ -525,7 +525,7 @@ export default function CrudTable({
           <div className="overflow-x-auto rounded-[24px]">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-[0.18em] text-[#7a8578]">
+                <tr className="text-left text-xs uppercase tracking-[0.04em] text-[#7a8578]">
                   {previewFields.map((field: any) => (
                     <th key={field.key} className="px-5 py-4 font-semibold">
                       <button

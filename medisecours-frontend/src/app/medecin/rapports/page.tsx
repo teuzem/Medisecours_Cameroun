@@ -98,7 +98,7 @@ export default function MedecinRapportsPage() {
       <style>
         body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
         h1 { color: #1D4E89; font-size: 20px; border-bottom: 2px solid #1D4E89; padding-bottom: 8px; }
-        h2 { color: #3B6EF8; font-size: 14px; margin-top: 24px; }
+        h2 { color: var(--dashboard-accent, #1E3A5F); font-size: 14px; margin-top: 24px; }
         .meta { font-size: 13px; color: #666; margin-bottom: 20px; }
         .section { margin-bottom: 16px; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }
         .footer { margin-top: 40px; font-size: 11px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
@@ -146,7 +146,7 @@ export default function MedecinRapportsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t('medecin.rapports.searchPlaceholder')}
-                  className="w-full rounded-xl bg-[#F3F4F6] py-2 pl-9 pr-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#3B6EF8]/20"
+                  className="w-full rounded-xl bg-[#F3F4F6] py-2 pl-9 pr-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
             </div>
@@ -176,13 +176,13 @@ export default function MedecinRapportsPage() {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className={`text-sm font-medium truncate ${isActive ? 'text-[#3B6EF8]' : 'text-[#0F2C52]'}`}>
+                        <p className={`text-sm font-medium truncate ${isActive ? 'text-primary-500' : 'text-[#0F2C52]'}`}>
                           {patientName}
                         </p>
                         <p className="text-xs text-[#9CA3AF] truncate">{c.motif || t('medecin.rapports.noMotif')}</p>
                         <p className="text-[10px] text-[#9CA3AF]">{formatDate(c.createdAt, locale)}</p>
                       </div>
-                      <ChevronRight className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#3B6EF8]' : 'text-[#D1D5DB]'}`} />
+                      <ChevronRight className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary-500' : 'text-[#D1D5DB]'}`} />
                     </button>
                   )
                 })
@@ -216,8 +216,8 @@ export default function MedecinRapportsPage() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#3B6EF8]/10">
-                  <FileText className="h-4 w-4 text-[#3B6EF8]" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-500/10">
+                  <FileText className="h-4 w-4 text-primary-500" />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-[#0F2C52]">
@@ -232,8 +232,8 @@ export default function MedecinRapportsPage() {
               <div className="border-b border-[#E5E7EB] bg-[#F8FAFF] px-4 py-4 sm:px-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3B6EF8]/10">
-                      <User className="h-5 w-5 text-[#3B6EF8]" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500/10">
+                      <User className="h-5 w-5 text-primary-500" />
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-[#0F2C52]">
@@ -248,7 +248,7 @@ export default function MedecinRapportsPage() {
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
                       selected.statut === 'TERMINEE' ? 'bg-emerald-100 text-emerald-700' :
                       selected.statut === 'EN_COURS' ? 'bg-amber-100 text-amber-700' :
-                      'bg-blue-100 text-blue-700'
+                      'bg-mint-100 text-primary-600'
                     }`}>
                       {selected.statut}
                     </span>
@@ -272,7 +272,7 @@ export default function MedecinRapportsPage() {
                     onChange={(e) => { setObservations(e.target.value); setSaved(false) }}
                     placeholder={t('medecin.rapports.observationsPlaceholder')}
                     rows={8}
-                    className="w-full rounded-xl border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:border-[#3B6EF8] focus:ring-2 focus:ring-[#3B6EF8]/10 resize-none"
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 resize-none"
                   />
                 </div>
 
@@ -285,7 +285,7 @@ export default function MedecinRapportsPage() {
                     onChange={(e) => { setConclusions(e.target.value); setSaved(false) }}
                     placeholder={t('medecin.rapports.conclusionsPlaceholder')}
                     rows={6}
-                    className="w-full rounded-xl border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:border-[#3B6EF8] focus:ring-2 focus:ring-[#3B6EF8]/10 resize-none"
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 resize-none"
                   />
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function MedecinRapportsPage() {
                   <button
                     onClick={handleSave}
                     disabled={saving || (!observations.trim() && !conclusions.trim())}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#3B6EF8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2D5CD8] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {saving ? (
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

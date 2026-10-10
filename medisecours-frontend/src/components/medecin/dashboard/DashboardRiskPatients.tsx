@@ -8,7 +8,7 @@ import type { Consultation } from '../../../types/api'
 const PRIORITE_CONFIG = {
   CRITIQUE: { labelKey: 'medecin.dashboard.risk.critical', color: '#EF4444', bg: '#FEF2F2', icon: AlertOctagon },
   URGENTE: { labelKey: 'medecin.dashboard.risk.urgent', color: '#F59E0B', bg: '#FFFBEB', icon: AlertTriangle },
-  NORMALE: { labelKey: 'medecin.dashboard.risk.normal', color: '#3B6EF8', bg: '#EFF6FF', icon: AlertCircle },
+  NORMALE: { labelKey: 'medecin.dashboard.risk.normal', color: '#1E3A5F', bg: '#EAF0F7', icon: AlertCircle },
 }
 
 export default function DashboardRiskPatients({ riskConsultations }: { riskConsultations: Consultation[] }) {

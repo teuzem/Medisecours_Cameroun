@@ -345,7 +345,7 @@ export default function MedecinDetailPage({ params }: { params: Promise<{ id: st
                   {fullName(medecin)}
                 </h1>
                 {medecin.estValide && <CertifiedBadge className="h-6 w-6" />}
-                <span className="inline-flex items-center gap-1.5 bg-blue-100 px-2 py-1 text-[11px] font-bold text-blue-800 dark:bg-[#1DA1F2]/15 dark:text-[#60A5FA]">
+                <span className="inline-flex items-center gap-1.5 bg-mint-100 px-2 py-1 text-[11px] font-bold text-primary-700 dark:bg-[#1DA1F2]/15 dark:text-[#60A5FA]">
                   <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                   {t('visitor.medecinDetail.certifiedAccount')}
                 </span>
@@ -489,7 +489,7 @@ export default function MedecinDetailPage({ params }: { params: Promise<{ id: st
         )}
 
         {isPatient && !canReview && (
-          <div className="mt-5 border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-900 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-100">
+          <div className="mt-5 border border-mint-200 bg-mint-50 p-4 text-sm leading-6 text-primary-800 dark:border-primary-500/25 dark:bg-primary-500/10 dark:text-mint-100">
             {t('visitor.medecinDetail.reviewUnavailable')}
           </div>
         )}

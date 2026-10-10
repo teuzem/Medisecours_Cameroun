@@ -22,10 +22,10 @@ export default function FloatingHelpButton() {
       href={guideHref}
       aria-label={t('visitor.floatingHelp.guide')}
       title={t('visitor.floatingHelp.guide')}
-      className="group fixed bottom-[76px] right-3 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[linear-gradient(135deg,rgba(37,99,235,0.94),rgba(79,70,229,0.9))] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_10px_28px_rgba(79,70,229,0.42)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 sm:right-5 lg:bottom-6"
+      className="group fixed bottom-[84px] right-3 z-40 flex h-12 w-12 items-center justify-center bg-primary-500 text-white shadow-[0_10px_28px_rgba(21,42,69,0.35)] transition-colors hover:bg-primary-600 sm:right-5 lg:bottom-6"
     >
       <HelpCircle className="h-5 w-5" />
-      <span className="pointer-events-none absolute right-full mr-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200">
+      <span className="pointer-events-none absolute right-full mr-2 whitespace-nowrap border border-primary-500/20 bg-white px-3 py-1 text-[11px] font-semibold text-primary-600 opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 dark:border-white/15 dark:bg-primary-800 dark:text-primary-100">
         {t('visitor.floatingHelp.guide')}
       </span>
     </Link>

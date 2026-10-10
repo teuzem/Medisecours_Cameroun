@@ -108,7 +108,7 @@ export default function DiseaseEditModal({
       tabIndex={0}
     >
       <div className="flex max-h-[85vh] w-full max-w-2xl flex-col bg-white rounded-3xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="shrink-0 bg-[linear-gradient(135deg,#09170f_0%,#0f2418_60%,#183626_100%)] px-6 pb-5 pt-7">
+        <div className="shrink-0 bg-primary-500 px-6 pb-5 pt-7">
           <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white/60 transition hover:bg-white/20 hover:text-white">
             <X className="h-4 w-4" />
           </button>
@@ -126,7 +126,7 @@ export default function DiseaseEditModal({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.nom')}</label>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.nom')}</label>
                   <input
                     type="text"
                     value={editing.nom || ''}
@@ -136,7 +136,7 @@ export default function DiseaseEditModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.gravite')}</label>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.gravite')}</label>
                   <select
                     value={editing.niveauGravite || ''}
                     onChange={(e) => onFieldChange('niveauGravite', e.target.value)}
@@ -151,7 +151,7 @@ export default function DiseaseEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.categorie')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.categorie')}</label>
                 <CategorySelect value={editing.categorie} onChange={(iri) => onFieldChange('categorie', iri)} />
               </div>
 
@@ -187,7 +187,7 @@ export default function DiseaseEditModal({
 
               {editing.isAccident && (
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.typeAccident')}</label>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.typeAccident')}</label>
                   <input
                     type="text"
                     value={editing.typeAccident || ''}
@@ -199,7 +199,7 @@ export default function DiseaseEditModal({
               )}
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.description')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.description')}</label>
                 <textarea
                   value={editing.description || ''}
                   onChange={(e) => onFieldChange('description', e.target.value)}
@@ -210,7 +210,7 @@ export default function DiseaseEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.symptomes')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.symptomes')}</label>
                 <textarea
                   value={editing.symptomes || ''}
                   onChange={(e) => onFieldChange('symptomes', e.target.value)}
@@ -221,7 +221,7 @@ export default function DiseaseEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.causes')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.causes')}</label>
                 <textarea
                   value={editing.causes || ''}
                   onChange={(e) => onFieldChange('causes', e.target.value)}
@@ -232,7 +232,7 @@ export default function DiseaseEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.traitement')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.traitement')}</label>
                 <textarea
                   value={editing.traitement || ''}
                   onChange={(e) => onFieldChange('traitement', e.target.value)}
@@ -243,7 +243,7 @@ export default function DiseaseEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.precautions')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.precautions')}</label>
                 <textarea
                   value={editing.precautions || ''}
                   onChange={(e) => onFieldChange('precautions', e.target.value)}
@@ -254,7 +254,7 @@ export default function DiseaseEditModal({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.imageUrlExternal')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.imageUrlExternal')}</label>
                 <div className="flex items-center gap-3">
                   {editing.imageUrl && (
                     <img
@@ -275,7 +275,7 @@ export default function DiseaseEditModal({
               </div>
 
               <div className="border-t border-[#dfe5db] pt-4">
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.maladieModal.photos')}</label>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.maladieModal.photos')}</label>
                 <div className="flex flex-wrap gap-3" id="disease-images">
                   {existingImages.map((img, idx) => (
                     <div key={`existing-${idx}`} className="group relative h-20 w-20 overflow-hidden rounded-xl border border-[#dfe5db] bg-[#f8faf6]">

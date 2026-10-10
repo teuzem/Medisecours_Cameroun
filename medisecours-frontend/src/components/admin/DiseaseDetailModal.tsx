@@ -222,7 +222,7 @@ export default function DiseaseDetailModal({ maladie, onClose, onMutate }) {
                 <div key={key} className="flex items-start gap-3 p-4 rounded-2xl bg-[#f8faf6] border border-[#eef2ec]">
                   <Icon className="w-5 h-5 text-[#2f6b45] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#7a8578] uppercase tracking-[0.18em]">{t(`admin.maladieDetail.${labelKey}`)}</p>
+                    <p className="text-[10px] font-semibold text-[#7a8578] uppercase tracking-[0.04em]">{t(`admin.maladieDetail.${labelKey}`)}</p>
                     <p className="mt-1 text-sm text-[#223023] leading-relaxed whitespace-pre-wrap">{maladie[key]}</p>
                   </div>
                 </div>
@@ -234,7 +234,7 @@ export default function DiseaseDetailModal({ maladie, onClose, onMutate }) {
               <div className="flex items-start gap-3 p-4 rounded-2xl bg-[#f8faf6] border border-[#eef2ec] mt-3">
                 <Bone className="w-5 h-5 text-[#2f6b45] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] font-semibold text-[#7a8578] uppercase tracking-[0.18em]">{t('admin.maladieDetail.typeAccident')}</p>
+                  <p className="text-[10px] font-semibold text-[#7a8578] uppercase tracking-[0.04em]">{t('admin.maladieDetail.typeAccident')}</p>
                   <p className="mt-1 text-sm text-[#223023]">{maladie.typeAccident}</p>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function DiseaseDetailModal({ maladie, onClose, onMutate }) {
               <Baby className="w-5 h-5 text-[#2f6b45] shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] font-semibold text-[#7a8578] uppercase tracking-[0.18em]">{t('admin.maladieDetail.premiersSoins')}</p>
+                  <p className="text-[10px] font-semibold text-[#7a8578] uppercase tracking-[0.04em]">{t('admin.maladieDetail.premiersSoins')}</p>
                   <button
                     onClick={() => setEditingPs({ titre: '', description: '', symptomes: null, niveauUrgence: 'MOYEN' })}
                     className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#2f6b45] hover:text-[#1f4a2e] transition shrink-0"

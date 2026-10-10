@@ -46,7 +46,7 @@ interface FirstAidNavigationState {
 const urgencyStyle: Record<FirstAidUrgency, string> = {
   CRITIQUE: 'bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-200',
   ELEVE: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200',
-  MOYEN: 'bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-200',
+  MOYEN: 'bg-mint-100 text-primary-700 dark:bg-primary-500/15 dark:text-mint-200',
   FAIBLE: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200',
 }
 
@@ -238,9 +238,6 @@ export default function FirstAidPage() {
       <header className="border-b border-slate-200 pb-6 dark:border-white/10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-              {t('visitor.firstAid.eyebrow')}
-            </p>
             <h1 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">
               {t('visitor.firstAid.title')}
             </h1>

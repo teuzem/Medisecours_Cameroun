@@ -70,7 +70,7 @@ const ADMIN_PAGE_SIZE = 12
 
 const statusStyle: Record<ProtocolStatus, string> = {
   BROUILLON: 'bg-slate-100 text-slate-700',
-  EN_REVUE: 'bg-blue-100 text-blue-800',
+  EN_REVUE: 'bg-mint-100 text-primary-700',
   PUBLIE: 'bg-emerald-100 text-emerald-800',
   RETIRE: 'bg-rose-100 text-rose-800',
 }
@@ -201,8 +201,7 @@ export default function AdminProtocolsPage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 border-b border-[#dfe5db] pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase text-[#718071]">{t('admin.protocoles.eyebrow')}</p>
-          <h1 className="mt-1 text-2xl font-bold text-[#172216]">{t('admin.protocoles.title')}</h1>
+          <h1 className="text-2xl font-bold text-[#172216]">{t('admin.protocoles.title')}</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#5f6d5f]">
             {t('admin.protocoles.description')}
           </p>

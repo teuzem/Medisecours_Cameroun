@@ -23,7 +23,7 @@ const iconStyles: Record<string, string> = {
   'flame': 'bg-orange-600',
   'sparkles': 'bg-yellow-600',
   'shield': 'bg-slate-600',
-  'droplet': 'bg-blue-600',
+  'droplet': 'bg-primary-500',
 }
 
 const defaultStyle = 'bg-emerald-600'

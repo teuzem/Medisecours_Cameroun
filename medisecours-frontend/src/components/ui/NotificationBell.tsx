@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 const spring = { type: 'spring', stiffness: 400, damping: 12, mass: 0.8 }
 
-export default function NotificationBell({ count = 0, href, className = '', badgeColor = '#ef4444', dotColor = '#59c56c', icon: Icon = Bell }) {
+export default function NotificationBell({ count = 0, href, className = '', badgeColor = '#ef4444', dotColor = '#10B981', icon: Icon = Bell }) {
   return (
     <Link
       href={href || '#'}

@@ -19,7 +19,7 @@ const STATUT_KEY = {
 
 const STATUT_COLOR = {
   OUVERTE: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-500/30',
-  EN_COURS: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-500/30',
+  EN_COURS: 'bg-mint-50 dark:bg-primary-800/30 text-primary-600 dark:text-mint-400 ring-1 ring-mint-200 dark:ring-primary-500/30',
   TERMINEE: 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 ring-1 ring-green-200 dark:ring-green-500/30',
   ANNULEE: 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 ring-1 ring-gray-200 dark:ring-gray-700',
 }
@@ -81,7 +81,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
 
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-2 border-[#3B6EF8] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-2 border-primary-500 dark:border-mint-400 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : !c ? (
             <div className="text-center py-16 text-gray-500 dark:text-primary-300 text-sm">{t('consultations.detail.loadError')}</div>
@@ -109,7 +109,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-2">{t('consultations.detail.patient')}</h3>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#3B6EF8] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-primary-500 dark:bg-mint-500 flex items-center justify-center text-white dark:text-primary-900 text-sm font-bold shrink-0">
                     {c.patient?.prenom?.[0]}{c.patient?.nom?.[0]}
                   </div>
                   <div>
@@ -150,8 +150,8 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-primary-400 mb-3">{t('consultations.detail.timeline')}</h3>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 mt-0.5">
-                      <Calendar className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                    <div className="w-5 h-5 rounded-full bg-mint-100 dark:bg-primary-800/50 flex items-center justify-center shrink-0 mt-0.5">
+                      <Calendar className="w-3 h-3 text-primary-500 dark:text-mint-400" />
                     </div>
                     <div>
                       <p className="text-xs font-medium text-gray-500 dark:text-primary-300">{t('consultations.detail.createdAt')}</p>
@@ -206,7 +206,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                     {c.prescriptions.map((p) => (
                       <div key={p.id} className="p-3 rounded-xl bg-gray-50 dark:bg-primary-800 border border-gray-100 dark:border-white/10">
                         <div className="flex items-start gap-2">
-                          <FileText className="w-4 h-4 text-[#3B6EF8] dark:text-blue-400 shrink-0 mt-0.5" />
+                          <FileText className="w-4 h-4 text-primary-500 dark:text-mint-400 shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-[#0F2C52] dark:text-sable">{p.diagnostic || t('consultations.detail.prescriptionFallback')}</p>
                             {p.medicaments?.length > 0 && (
@@ -224,7 +224,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                           </div>
                           <button
                             onClick={() => setPreviewPrescription(p)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#3B6EF8] text-white hover:bg-[#2D5CD8] transition shrink-0"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-500 text-white hover:bg-primary-600 dark:bg-mint-500 dark:text-primary-900 dark:hover:bg-mint-600 transition shrink-0"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             {t('consultations.detail.view')}

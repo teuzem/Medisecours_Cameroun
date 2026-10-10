@@ -206,7 +206,7 @@ export default function AdminSignalementsPage() {
             </div>
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#7c8778]">
+              <p className="text-xs font-bold uppercase tracking-[0.04em] text-[#7c8778]">
                 {t('admin.signalements.motifLabel')}
               </p>
               <p className="mt-2 text-sm font-bold text-[#172216]">
@@ -215,7 +215,7 @@ export default function AdminSignalementsPage() {
             </div>
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#7c8778]">
+              <p className="text-xs font-bold uppercase tracking-[0.04em] text-[#7c8778]">
                 {t('admin.signalements.descriptionPatient')}
               </p>
               <p className="mt-2 whitespace-pre-wrap rounded-lg bg-[#f4f6f1] p-4 text-sm leading-6 text-[#334032]">
@@ -225,7 +225,7 @@ export default function AdminSignalementsPage() {
 
             <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
               <div>
-                <label htmlFor="report-status" className="text-xs font-bold uppercase tracking-[0.16em] text-[#7c8778]">
+                <label htmlFor="report-status" className="text-xs font-bold uppercase tracking-[0.04em] text-[#7c8778]">
                   {t('admin.signalements.statutLabel')}
                 </label>
                 <select
@@ -240,7 +240,7 @@ export default function AdminSignalementsPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="admin-note" className="text-xs font-bold uppercase tracking-[0.16em] text-[#7c8778]">
+                <label htmlFor="admin-note" className="text-xs font-bold uppercase tracking-[0.04em] text-[#7c8778]">
                   {t('admin.signalements.noteAdmin')}
                 </label>
                 <textarea
@@ -279,9 +279,8 @@ export default function AdminSignalementsPage() {
         )}
       </Modal>
 
-      <section className="border border-[#dfe5db] bg-[#0f2418] p-5 text-white sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">{t('admin.signalements.eyebrow')}</p>
-        <h1 className="mt-2 font-display text-2xl font-extrabold sm:text-3xl">
+      <section className="border border-primary-500/20 bg-primary-500 p-5 text-white sm:p-6">
+        <h1 className="font-display text-2xl font-extrabold sm:text-3xl">
           {t('admin.signalements.title')}
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
@@ -437,7 +436,7 @@ function PersonBlock({
 }) {
   return (
     <div className="border border-[#e3e7df] bg-[#f8faf6] p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#7c8778]">{title}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.04em] text-[#7c8778]">{title}</p>
       <div className="mt-3 flex items-center gap-3">
         <Avatar name={`${person?.prenom ?? ''} ${person?.nom ?? ''}`} />
         <div className="min-w-0">
@@ -472,7 +471,7 @@ function Metric({
 
   return (
     <div className={`border border-[#e3e7df] p-4 ${tones[tone]}`}>
-      <p className="text-xs font-bold uppercase tracking-[0.14em] opacity-65">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.04em] opacity-65">{label}</p>
       <p className="mt-2 text-2xl font-extrabold">{value}</p>
     </div>
   )

@@ -55,7 +55,7 @@ export default function DashboardTimeline({ timeline }: { timeline?: DashboardTi
               key={r}
               onClick={() => setRange(r)}
               className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition ${
-                range === r ? 'bg-[#3B6EF8] text-white' : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                range === r ? 'bg-primary-500 text-white' : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
               }`}
             >
               {r}j
@@ -73,7 +73,7 @@ export default function DashboardTimeline({ timeline }: { timeline?: DashboardTi
             contentStyle={{ borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 12 }}
             labelStyle={{ fontWeight: 600 }}
           />
-          <Bar dataKey="consultations" name={t('medecin.dashboard.timeline.consultations')} fill="#3B6EF8" radius={[4, 4, 0, 0]} maxBarSize={16} />
+          <Bar dataKey="consultations" name={t('medecin.dashboard.timeline.consultations')} fill="var(--dashboard-accent, #1E3A5F)" radius={[4, 4, 0, 0]} maxBarSize={16} />
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -352,7 +352,7 @@ export default function UtilisateursPage() {
                   <div className="flex flex-wrap items-center justify-center gap-2">
                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
                       primaryRole(viewModal.roles) === 'ROLE_MEDECIN'
-                        ? 'bg-blue-100 text-blue-700'
+                        ? 'bg-mint-100 text-primary-600'
                         : 'bg-mint-100 text-mint-700'
                     }`}>
                       {primaryRole(viewModal.roles) === 'ROLE_MEDECIN' ? `🩺 ${t('admin.utilisateurs.roleMedecin')}` : `👤 ${t('admin.utilisateurs.rolePatient')}`}
@@ -402,27 +402,27 @@ export default function UtilisateursPage() {
                   {primaryRole(viewModal.roles) === 'ROLE_MEDECIN' && (
                     <>
                       {viewModal.specialite && (
-                        <div className="flex items-start gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10">
-                          <Stethoscope className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-mint-50 dark:bg-primary-800/10">
+                          <Stethoscope className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" />
                           <div>
-                            <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">{t('admin.utilisateurs.detailSpecialite')}</p>
+                            <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-wide">{t('admin.utilisateurs.detailSpecialite')}</p>
                             <p className="text-sm text-primary-900 dark:text-sable">{viewModal.specialite}</p>
                           </div>
                         </div>
                       )}
                       {viewModal.numeroOrdre && (
-                        <div className="flex items-start gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10">
-                          <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-mint-50 dark:bg-primary-800/10">
+                          <ShieldCheck className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" />
                           <div>
-                            <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">{t('admin.utilisateurs.detailNumeroOrdre')}</p>
+                            <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-wide">{t('admin.utilisateurs.detailNumeroOrdre')}</p>
                             <p className="text-sm text-primary-900 dark:text-sable font-mono">{viewModal.numeroOrdre}</p>
                           </div>
                         </div>
                       )}
-                      <div className="flex items-start gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10">
-                        <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-mint-50 dark:bg-primary-800/10">
+                        <ShieldCheck className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">{t('admin.utilisateurs.detailValidationAdmin')}</p>
+                          <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-wide">{t('admin.utilisateurs.detailValidationAdmin')}</p>
                           <p className="text-sm text-primary-900 dark:text-sable">
                             {viewModal.estValide ? `✅ ${t('admin.utilisateurs.detailCompteValide')}` : `⏳ ${t('admin.utilisateurs.detailEnAttenteValidation')}`}
                           </p>
@@ -499,7 +499,7 @@ export default function UtilisateursPage() {
             </div>
             <FormField label={t('admin.utilisateurs.email')} type="email" value={createForm.email} onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))} required />
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.utilisateurs.password')}</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.utilisateurs.password')}</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -531,7 +531,7 @@ export default function UtilisateursPage() {
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{t('admin.utilisateurs.telephone')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.utilisateurs.telephone')}</label>
                 <input
                   type="tel"
                   value={createForm.telephone}
@@ -607,9 +607,8 @@ export default function UtilisateursPage() {
       )}
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-[28px] bg-[linear-gradient(135deg,#09170f_0%,#0f2418_60%,#183626_100%)] p-6 text-white shadow-[0_18px_45px_rgba(15,36,24,0.16)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">{t('admin.utilisateurs.eyebrow')}</p>
-          <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight">{t('admin.utilisateurs.title')}</h1>
+        <div className="bg-primary-500 p-6 text-white shadow-[0_18px_45px_rgba(15,36,24,0.16)]">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">{t('admin.utilisateurs.title')}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
             {t('admin.utilisateurs.description')}
           </p>
@@ -617,7 +616,7 @@ export default function UtilisateursPage() {
             <button
               type="button"
               onClick={() => setCreateModal(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-[#57c66b] px-4 py-3 text-sm font-semibold text-[#0f2418] transition hover:bg-[#6cda80]"
+              className="inline-flex items-center gap-2 rounded-full bg-mint-500 px-4 py-3 text-sm font-semibold text-primary-900 transition hover:bg-mint-400"
             >
               <Plus className="h-4 w-4" />
               {t('admin.utilisateurs.newUser')}
@@ -685,7 +684,7 @@ export default function UtilisateursPage() {
           <div className="overflow-x-auto rounded-[24px]">
             <table className="w-full min-w-[860px] text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-[0.18em] text-[#7a8578]">
+                <tr className="text-left text-xs uppercase tracking-[0.04em] text-[#7a8578]">
                   <th className="px-5 py-4 font-semibold">{t('admin.utilisateurs.thUtilisateur')}</th>
                   <th className="px-5 py-4 font-semibold">{t('admin.utilisateurs.thContact')}</th>
                   <th className="px-5 py-4 font-semibold">{t('admin.utilisateurs.thRole')}</th>
@@ -771,7 +770,7 @@ function StatCard({ label, value, icon: Icon, tone = 'neutral' }) {
     <div className={`rounded-[24px] border border-[#e3e7df] p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7c8778]">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7c8778]">{label}</p>
           <p className="mt-3 font-display text-3xl font-extrabold tracking-tight">{value}</p>
         </div>
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_8px_18px_rgba(15,36,24,0.06)]">
@@ -846,7 +845,7 @@ function ActionButton({ children, onClick, title, tone = 'neutral' }) {
 function FormField({ label, value, onChange, type = 'text', required = false, placeholder = '' }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{label}</label>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</label>
       <input
         type={type}
         value={value}
@@ -862,7 +861,7 @@ function FormField({ label, value, onChange, type = 'text', required = false, pl
 function FormSelect({ label, value, onChange, options }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{label}</label>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</label>
       <select
         value={value}
         onChange={onChange}
@@ -879,7 +878,7 @@ function FormSelect({ label, value, onChange, options }) {
 function DetailBlock({ label, value, icon: Icon }) {
   return (
     <div className="rounded-[20px] border border-[#e5e9e1] bg-[#fbfcfa] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</p>
       <p className="mt-2 flex items-center gap-2 text-sm font-medium text-[#243124]">
         {Icon ? <Icon className="h-4 w-4 text-[#7a8578]" /> : null}
         {value}

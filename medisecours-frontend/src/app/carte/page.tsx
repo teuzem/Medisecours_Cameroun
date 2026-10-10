@@ -504,8 +504,8 @@ export default function CartePage() {
       </div>
 
       <div className="maps-search-shell">
-        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-slate-950/95">
-          <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label="Ouvrir le menu" className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
+        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-slate-950/95">
+          <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label="Ouvrir le menu" className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
           <input
             value={searchQuery}
             onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true) }}
@@ -514,9 +514,9 @@ export default function CartePage() {
             className="h-11 min-w-0 flex-1 bg-transparent px-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
             aria-label={t('visitor.carte.searchAria')}
           />
-          <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true) }} title="Afficher les resultats" aria-label="Afficher les resultats" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
+          <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true) }} title="Afficher les resultats" aria-label="Afficher les resultats" className="grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
           {searchQuery && (
-            <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="Effacer la recherche">
+            <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="Effacer la recherche">
               <X className="h-4 w-4" />
             </button>
           )}

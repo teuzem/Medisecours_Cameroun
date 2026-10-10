@@ -36,7 +36,7 @@ const TABS: { key: TabKey; labelKey: string }[] = [
 
 const STATUT_PILL: Record<StatutPrescription, { bg: string; text: string; labelKey: string }> = {
   BROUILLON: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', labelKey: 'prescriptions.statut_draft' },
-  SIGNEE: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', labelKey: 'prescriptions.statut_signed' },
+  SIGNEE: { bg: 'bg-mint-100 dark:bg-primary-800/30', text: 'text-primary-600 dark:text-mint-400', labelKey: 'prescriptions.statut_signed' },
   TRANSMISE: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', labelKey: 'prescriptions.statut_transmitted' },
   ANNULEE: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', labelKey: 'prescriptions.statut_cancelled' },
   EXPIREE: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400', labelKey: 'prescriptions.statut_expired' },
@@ -182,7 +182,6 @@ export default function MedecinPrescriptionsPage() {
     <div className="medecin-consultations-page max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
       {/* En-tête */}
       <div className="medecin-consultations-header mb-8">
-        <p className="medecin-consultations-eyebrow">{t('prescriptions.eyebrow')}</p>
         <h1 className="font-display text-2xl font-bold">{t('prescriptions.title')}</h1>
         <p className="mt-1">
           {counts.BROUILLON > 0
@@ -196,7 +195,7 @@ export default function MedecinPrescriptionsPage() {
         {[
           { label: t('prescriptions.active'), value: stats.actives, icon: CheckCircle, color: 'text-emerald-500' },
           { label: t('prescriptions.drafts'), value: stats.brouillons, icon: FileEdit, color: 'text-amber-500' },
-          { label: t('prescriptions.thisMonth'), value: stats.ceMois, icon: CalendarDays, color: 'text-blue-500' },
+          { label: t('prescriptions.thisMonth'), value: stats.ceMois, icon: CalendarDays, color: 'text-primary-500' },
           { label: t('prescriptions.cancelled'), value: stats.annulees, icon: Ban, color: 'text-red-400' },
         ].map((stat) => (
           <motion.div

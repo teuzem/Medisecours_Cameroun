@@ -46,7 +46,7 @@ export const STATUT_MESSAGE_LABEL: Record<StatutMessage, string> = {
 
 /** Variante "pleine" — fond coloré (cartes, tableaux compacts) */
 export const STATUT_BADGE: Record<StatutConsultation, string> = {
-  OUVERTE: 'bg-blue-100 text-blue-700',
+  OUVERTE: 'bg-mint-100 text-primary-600',
   EN_COURS: 'bg-emerald-100 text-emerald-700',
   TERMINEE: 'bg-gray-100 text-gray-600',
   ANNULEE: 'bg-red-100 text-red-700',
@@ -55,14 +55,14 @@ export const STATUT_BADGE: Record<StatutConsultation, string> = {
 /** Variante "anneau" — fond clair + bordure (fiches détaillées) */
 export const STATUT_BADGE_RING: Record<StatutConsultation, string> = {
   OUVERTE: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-  EN_COURS: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  EN_COURS: 'bg-mint-50 text-primary-600 ring-1 ring-mint-200',
   TERMINEE: 'bg-green-50 text-green-700 ring-1 ring-green-200',
   ANNULEE: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200',
 }
 
 /** Variante "bordure" — fond clair + border (historique patient, fiche compacte) */
 export const STATUT_BADGE_BORDER: Record<StatutConsultation, string> = {
-  OUVERTE: 'bg-blue-50 text-blue-700 border-blue-200',
+  OUVERTE: 'bg-mint-50 text-primary-600 border-mint-200',
   EN_COURS: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   TERMINEE: 'bg-gray-50 text-gray-500 border-gray-200',
   ANNULEE: 'bg-red-50 text-red-600 border-red-200',
@@ -80,7 +80,7 @@ export const PRIORITE_CONFIG: Record<
 > = {
   CRITIQUE: { label: 'Critique', color: '#EF4444', bg: '#FEF2F2' },
   URGENTE: { label: 'Urgente', color: '#F59E0B', bg: '#FFFBEB' },
-  NORMALE: { label: 'Normale', color: '#3B6EF8', bg: '#EFF6FF' },
+  NORMALE: { label: 'Normale', color: '#1E3A5F', bg: '#EAF0F7' },
 }
 
 /* ------------------------------------------------------------------ */

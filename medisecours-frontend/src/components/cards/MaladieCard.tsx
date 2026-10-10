@@ -11,7 +11,7 @@ const SEVERITY_CONFIG: Record<string, { label: string; color: string; bg: string
   'SÉVÈRE':    { label: 'SÉVÈRE',    color: 'text-orange-600', bg: 'bg-orange-50',  border: 'border-orange-100' },
   'MODÉRÉE':   { label: 'MODÉRÉE',   color: 'text-amber-600',  bg: 'bg-amber-50',   border: 'border-amber-100' },
   'LÉGÈRE':    { label: 'LÉGÈRE',    color: 'text-emerald-600',bg: 'bg-emerald-50', border: 'border-emerald-100' },
-  'VARIABLE':  { label: 'VARIABLE',  color: 'text-blue-600',   bg: 'bg-blue-50',    border: 'border-blue-100' },
+  'VARIABLE':  { label: 'VARIABLE',  color: 'text-primary-500',   bg: 'bg-mint-50',    border: 'border-mint-100' },
   'DEFAULT':   { label: '—',         color: 'text-slate-500',  bg: 'bg-slate-50',   border: 'border-slate-100' },
 }
 

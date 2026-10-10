@@ -13,7 +13,7 @@ const STATUS_ORDER: StatutConsultation[] = [
 ]
 
 const STATUS_CONFIG: Record<string, { labelKey: string; color: string }> = {
-  OUVERTE: { labelKey: 'medecin.dashboard.status.open', color: '#3B6EF8' },
+  OUVERTE: { labelKey: 'medecin.dashboard.status.open', color: 'var(--dashboard-accent, #1E3A5F)' },
   EN_COURS: { labelKey: 'medecin.dashboard.status.inProgress', color: '#F59E0B' },
   TERMINEE: { labelKey: 'medecin.dashboard.status.finished', color: '#10B981' },
   ANNULEE: { labelKey: 'medecin.dashboard.status.cancelled', color: '#EF4444' },

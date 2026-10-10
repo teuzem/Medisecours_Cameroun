@@ -169,9 +169,6 @@ export default function GuideUtilisationPage() {
     <main className="bg-white dark:bg-slate-950">
       <section className="border-b border-slate-200 bg-slate-950 py-16 text-white dark:border-white/10 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-300">
-            {t('visitor.guide.eyebrow')}
-          </p>
           <h1 className="mt-3 max-w-4xl font-display text-4xl font-bold leading-tight sm:text-5xl">
             {t('visitor.guide.title')}
           </h1>
@@ -209,7 +206,6 @@ export default function GuideUtilisationPage() {
 
       <GuideSection
         id="visiteur"
-        kicker={t('visitor.guide.visitorKicker')}
         title={t('visitor.guide.visitorTitle')}
         description={t('visitor.guide.visitorDesc')}
         steps={visitorSteps}
@@ -218,7 +214,6 @@ export default function GuideUtilisationPage() {
 
       <GuideSection
         id="patient"
-        kicker={t('visitor.guide.patientKicker')}
         title={t('visitor.guide.patientTitle')}
         description={t('visitor.guide.patientDesc')}
         steps={patientSteps}
@@ -228,7 +223,6 @@ export default function GuideUtilisationPage() {
 
       <GuideSection
         id="medecin"
-        kicker={t('visitor.guide.medecinKicker')}
         title={t('visitor.guide.medecinTitle')}
         description={t('visitor.guide.medecinDesc')}
         steps={doctorSteps}
@@ -237,9 +231,6 @@ export default function GuideUtilisationPage() {
 
       <section id="questions" className="scroll-mt-24 border-t border-slate-200 bg-slate-50 py-12 dark:border-white/10 dark:bg-slate-900 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-700 dark:text-violet-300">
-            {t('visitor.guide.faqEyebrow')}
-          </p>
           <h2 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">
             {t('visitor.guide.faqTitle')}
           </h2>
@@ -283,7 +274,6 @@ export default function GuideUtilisationPage() {
 
 function GuideSection({
   id,
-  kicker,
   title,
   description,
   steps,
@@ -291,7 +281,6 @@ function GuideSection({
   alternate = false,
 }: {
   id: string
-  kicker: string
   title: string
   description: string
   steps: Array<{
@@ -305,13 +294,8 @@ function GuideSection({
   alternate?: boolean
 }) {
   const { t } = useTranslation()
-  const tones = {
-    blue: 'text-blue-700 dark:text-blue-300',
-    violet: 'text-violet-700 dark:text-violet-300',
-    emerald: 'text-emerald-700 dark:text-emerald-300',
-  }
   const iconTones = {
-    blue: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+    blue: 'bg-mint-100 text-primary-600 dark:bg-primary-500/15 dark:text-mint-300',
     violet: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
     emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
   }
@@ -326,7 +310,6 @@ function GuideSection({
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
           <div>
-            <p className={`text-xs font-bold uppercase tracking-[0.16em] ${tones[color]}`}>{kicker}</p>
             <h2 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">{title}</h2>
             <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{description}</p>
           </div>
@@ -365,7 +348,7 @@ function GuideSection({
                           <Link
                             key={link.href}
                             href={link.href}
-                            className={`inline-flex items-center gap-1.5 text-xs font-bold ${tones[color]} hover:opacity-75`}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-mint-600 dark:text-mint-400 dark:hover:text-mint-300"
                           >
                             {t(link.labelKey)}
                             <ArrowRight className="h-3.5 w-3.5" />

@@ -744,7 +744,7 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <GlassCard className="flex flex-col justify-between !p-5">
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.04em] text-slate-400 dark:text-slate-500">
                     {t('etablissement.analytics.totalLabel')}
                   </p>
                   <p className="mt-2 font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">

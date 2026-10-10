@@ -82,7 +82,6 @@ export default function MedecinPatientsPage() {
         <div className="medecin-patients-list-header p-4 border-b">
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
-              <p className="medecin-patients-eyebrow">{t('medecin.patients.eyebrow')}</p>
               <h2 className="text-base font-bold">{t('medecin.patients.title')}</h2>
             </div>
             <span className="medecin-patients-count">{patients.length}</span>
@@ -108,7 +107,7 @@ export default function MedecinPatientsPage() {
               <button
                 type="button"
                 onClick={() => reloadPatients()}
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#3B6EF8] px-3 py-2 text-xs font-semibold text-white hover:bg-[#2D5BD4]"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary-500 px-3 py-2 text-xs font-semibold text-white hover:bg-primary-600"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 {t('medecin.patients.retry')}
@@ -157,7 +156,7 @@ export default function MedecinPatientsPage() {
                       <p className="medecin-patient-consults text-[10px] mt-0.5">{t('medecin.patients.consultationsCount', { count: consCount })}</p>
                     )}
                   </div>
-                  <ChevronRight className={`h-4 w-4 ${selectedId === p.id ? 'text-[#3B6EF8]' : 'text-[#D1D5DB]'}`} />
+                  <ChevronRight className={`h-4 w-4 ${selectedId === p.id ? 'text-primary-500' : 'text-[#D1D5DB]'}`} />
                 </button>
               )
             })
@@ -218,7 +217,7 @@ export default function MedecinPatientsPage() {
                 <div className="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                   {selectedPatient.telephone && (
                     <a href={`tel:${selectedPatient.telephone}`} className="flex min-w-0 items-center gap-1.5 rounded-lg bg-[#F3F4F6] px-3 py-2 text-xs text-[#374151] transition hover:bg-[#E5E7EB]">
-                      <Phone className="h-3.5 w-3.5 text-[#3B6EF8]" /> {selectedPatient.telephone}
+                      <Phone className="h-3.5 w-3.5 text-primary-500" /> {selectedPatient.telephone}
                     </a>
                   )}
                   {selectedPatient.email && (
@@ -243,7 +242,7 @@ export default function MedecinPatientsPage() {
                 {/* Blood Type */}
                 <div className={`medecin-health-card rounded-lg p-4 ${selectedPatient.groupeSanguin ? 'medecin-health-card-blue' : ''}`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <Droplets className="h-4 w-4 text-[#3B6EF8]" />
+                    <Droplets className="h-4 w-4 text-primary-500" />
                     <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">{t('medecin.patients.bloodGroup')}</span>
                   </div>
                   {selectedPatient.groupeSanguin ? (
@@ -319,7 +318,7 @@ export default function MedecinPatientsPage() {
             <div className="medecin-patient-panel rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="flex min-w-0 items-center gap-2 text-sm font-bold text-[#0F2C52]">
-                  <FileText className="h-4 w-4 text-[#3B6EF8]" /> {t('medecin.patients.historyTitle')}
+                  <FileText className="h-4 w-4 text-primary-500" /> {t('medecin.patients.historyTitle')}
                 </h3>
                 <span className="ml-3 shrink-0 text-xs text-[#9CA3AF]">{t('medecin.patients.totalCount', { count: patientConsults.length })}</span>
               </div>

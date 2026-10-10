@@ -178,7 +178,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center justify-between gap-3 rounded-2xl px-3.5 py-3 text-sm transition ${
                       active
-                        ? 'bg-[#0f2418] text-white shadow-[0_12px_24px_rgba(15,36,24,0.2)]'
+                        ? 'bg-[#0f2418] text-white shadow-[0_12px_24px_rgba(30,58,95,0.2)]'
                         : 'text-[#5d675b] hover:bg-[#edf1ea] hover:text-[#162117]'
                     }`}
                   >
@@ -189,7 +189,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <span className="font-medium">{label}</span>
                     </span>
                     {badge === 'pending' && pendingCount > 0 && (
-                      <span className={`min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold ${active ? 'bg-[#59c56c] text-[#0f2418]' : 'bg-[#0f2418] text-white'}`}>
+                      <span className={`min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold ${active ? 'bg-mint-500 text-primary-900' : 'bg-primary-800 text-white'}`}>
                         {pendingCount}
                       </span>
                     )}
@@ -209,7 +209,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="space-y-4 px-4 pb-4">
         <div className="rounded-[22px] border border-[#e4e8df] bg-[#eff3eb] p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#243124]">
-            <Sparkles className="h-4 w-4 text-[#59c56c]" />
+            <Sparkles className="h-4 w-4 text-mint-500" />
             {t('admin.layout.assistantAdmin')}
           </div>
           <div className="rounded-full border border-[#cfe3cb] bg-white px-3 py-2 text-xs text-[#7b8677]">
@@ -287,7 +287,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           href={href}
                           className={`flex items-center justify-between gap-3 rounded-2xl px-3.5 py-3 text-sm transition ${
                             active
-                              ? 'bg-[#0f2418] text-white shadow-[0_12px_24px_rgba(15,36,24,0.2)]'
+                              ? 'bg-[#0f2418] text-white shadow-[0_12px_24px_rgba(30,58,95,0.2)]'
                               : 'text-[#5d675b] hover:bg-[#edf1ea] hover:text-[#162117]'
                           }`}
                         >
@@ -298,7 +298,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <span className="font-medium">{label}</span>
                           </span>
                           {badge === 'pending' && pendingCount > 0 && (
-                            <span className={`min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold ${active ? 'bg-[#59c56c] text-[#0f2418]' : 'bg-[#0f2418] text-white'}`}>
+                            <span className={`min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold ${active ? 'bg-mint-500 text-primary-900' : 'bg-primary-800 text-white'}`}>
                               {pendingCount}
                             </span>
                           )}
@@ -318,7 +318,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="space-y-4 px-4 pb-4">
               <div className="rounded-[22px] border border-[#e4e8df] bg-[#eff3eb] p-4">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#243124]">
-                  <Sparkles className="h-4 w-4 text-[#59c56c]" />
+                  <Sparkles className="h-4 w-4 text-mint-500" />
                   {t('admin.layout.assistantAdmin')}
                 </div>
                 <div className="rounded-full border border-[#cfe3cb] bg-white px-3 py-2 text-xs text-[#7b8677]">
@@ -369,7 +369,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-40 bg-[#0f2418]/30 backdrop-blur-sm md:hidden"
+                className="fixed inset-0 z-40 bg-primary-900/40 backdrop-blur-sm md:hidden"
                 onClick={() => setMobileOpen(false)}
               />
               <motion.aside
@@ -426,7 +426,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </button>
                   <DashboardThemeToggle />
                   <LanguageSwitcher />
-                  <NotificationBell count={pendingCount} href="/admin/medecins" badgeColor="#59c56c" dotColor="#59c56c" />
+                  <NotificationBell count={pendingCount} href="/admin/medecins" badgeColor="#10B981" dotColor="#10B981" />
                 </div>
               </div>
             </header>

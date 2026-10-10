@@ -163,10 +163,10 @@ export function ImportPremiersSoinsModal({ isOpen, onClose, onSuccess }: { isOpe
                                 </div>
 
                                 <div className="space-y-4">
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <div className="bg-mint-50 border border-mint-200 rounded-lg p-4">
                                         <div className="flex items-start">
-                                            <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-                                            <div className="text-sm text-blue-800">
+                                            <AlertCircle className="h-5 w-5 text-primary-500 mt-0.5 mr-2 flex-shrink-0" />
+                                            <div className="text-sm text-primary-700">
                                                 <p className="font-medium">{t('admin.import.infoImportant')}</p>
                                                 <ul className="list-disc pl-4 mt-1 space-y-1">
                                                     <li>{t('admin.import.infoPremiersSoins1')}</li>

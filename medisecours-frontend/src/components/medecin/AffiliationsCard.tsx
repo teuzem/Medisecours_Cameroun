@@ -94,7 +94,7 @@ export default function AffiliationsCard() {
     <div className="dashboard-panel rounded-xl p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-500 text-white">
             <Building2 className="h-[18px] w-[18px]" />
           </span>
           <div>
@@ -147,7 +147,7 @@ export default function AffiliationsCard() {
           <p className="max-w-sm text-xs text-slate-500 dark:text-slate-400">{t('medecin.affiliations.aucuneDesc')}</p>
           <Link
             href="/carte"
-            className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-blue-700"
+            className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-primary-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-primary-600"
           >
             <Plus className="h-3.5 w-3.5" />
             {t('medecin.affiliations.rejoindre')}
@@ -162,7 +162,7 @@ export default function AffiliationsCard() {
                 key={aff.id}
                 className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5 dark:border-white/10 dark:bg-slate-900/60"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mint-50 text-primary-500 dark:bg-primary-500/15 dark:text-mint-400">
                   <Building2 className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -210,7 +210,7 @@ export default function AffiliationsCard() {
 
           <Link
             href="/carte"
-            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline dark:text-blue-400"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:underline dark:text-mint-400"
           >
             <Plus className="h-3.5 w-3.5" />
             {t('medecin.affiliations.rejoindre')}

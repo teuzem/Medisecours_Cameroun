@@ -11,7 +11,7 @@ import {
 import type { DashboardData, StatutConsultation } from '../../../types/api'
 
 const STATUS_COLORS: Record<string, string> = {
-  OUVERTE: '#3B6EF8',
+  OUVERTE: 'var(--dashboard-accent, #1E3A5F)',
   EN_COURS: '#F59E0B',
   TERMINEE: '#10B981',
   ANNULEE: '#EF4444',

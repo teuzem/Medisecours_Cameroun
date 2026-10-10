@@ -73,8 +73,8 @@ function getCalendarDays(t: (key: string) => string) {
 const STATUT_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
   'OUVERTE': { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' },
   'En attente': { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' },
-  'EN_COURS': { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-400' },
-  'En cours': { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-400' },
+  'EN_COURS': { bg: 'bg-mint-50', text: 'text-primary-600', dot: 'bg-mint-400' },
+  'En cours': { bg: 'bg-mint-50', text: 'text-primary-600', dot: 'bg-mint-400' },
   'TERMINEE': { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-400' },
   'Terminée': { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-400' },
   'ANNULEE': { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-400' },
@@ -141,7 +141,6 @@ export default function MedecinDashboard() {
             />
           </div>
           <div className="relative z-10 max-w-[68%]">
-            <p className="medecin-overview-eyebrow">{t('medecin.overview.eyebrow')}</p>
             <h2 className="text-2xl font-bold mb-1">
               {getGreeting(t)}, Dr. {user?.prenom} {user?.estValide && <CertifiedBadge className="inline-block h-5 w-5 align-middle" />} 👋
             </h2>

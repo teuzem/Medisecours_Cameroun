@@ -135,7 +135,7 @@ export default function EstablishmentLocation({ onSelect }: { onSelect: (value: 
     {busy && <p role="status" className="text-xs text-slate-500">{t('visitor.register.locationSearching')}</p>}
     {error && <p role="status" className="text-xs text-amber-700">{error}</p>}
     {suggestions.length > 0 && <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
-      {suggestions.map(item => <li key={item.id}><button type="button" className="w-full px-3 py-3 text-left text-sm hover:bg-blue-50" onClick={async () => {
+      {suggestions.map(item => <li key={item.id}><button type="button" className="w-full px-3 py-3 text-left text-sm hover:bg-mint-50" onClick={async () => {
         const id = requestId.current
         setBusy(true)
         try {

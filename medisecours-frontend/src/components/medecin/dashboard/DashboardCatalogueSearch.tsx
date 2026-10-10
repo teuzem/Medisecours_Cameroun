@@ -61,7 +61,7 @@ export default function DashboardCatalogueSearch() {
             onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
             onFocus={() => setOpen(true)}
             placeholder={t('medecin.dashboard.catalogue.searchPlaceholder')}
-            className="w-full rounded-xl bg-[#F3F4F6] py-2.5 pl-9 pr-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:bg-white focus:ring-2 focus:ring-[#3B6EF8]/20"
+            className="w-full rounded-xl bg-[#F3F4F6] py-2.5 pl-9 pr-3 text-sm text-[#374151] placeholder-[#9CA3AF] outline-none transition focus:bg-white focus:ring-2 focus:ring-primary-500/20"
           />
           {isLoading && (
             <Loader2 className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-[#9CA3AF]" />

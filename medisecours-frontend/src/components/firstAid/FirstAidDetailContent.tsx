@@ -22,7 +22,7 @@ import type { FirstAidProtocol, FirstAidStep, FirstAidUrgency } from '@/types/fi
 const urgencyStyle: Record<FirstAidUrgency, string> = {
   CRITIQUE: 'border-red-300 bg-red-50 text-red-950 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100',
   ELEVE: 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100',
-  MOYEN: 'border-blue-300 bg-blue-50 text-blue-950 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100',
+  MOYEN: 'border-mint-300 bg-mint-50 text-primary-900 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-mint-100',
   FAIBLE: 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100',
 }
 
@@ -41,7 +41,7 @@ function stepPresentation(type: string) {
     return { Icon: PhoneCall, labelKey: 'visitor.firstAidDetail.stepOrientation', className: 'bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200' }
   }
   if (normalized === 'SURVEILLER') {
-    return { Icon: Eye, labelKey: 'visitor.firstAidDetail.stepWatch', className: 'bg-blue-50 text-blue-800 dark:bg-blue-500/10 dark:text-blue-200' }
+    return { Icon: Eye, labelKey: 'visitor.firstAidDetail.stepWatch', className: 'bg-mint-50 text-primary-700 dark:bg-primary-500/10 dark:text-mint-200' }
   }
   return { Icon: CheckCircle2, labelKey: 'visitor.firstAidDetail.stepDo', className: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200' }
 }
@@ -108,7 +108,7 @@ export default function FirstAidDetailContent({ protocol }: { protocol: FirstAid
             <h2 className="min-w-0 break-words text-base font-bold text-slate-950 sm:text-lg dark:text-white">{t('visitor.firstAidDetail.stepsTitle')}</h2>
           </div>
           {protocol.population !== 'TOUS' && (
-            <div className="mt-4 grid min-w-0 grid-cols-[20px_minmax(0,1fr)] gap-3 border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+            <div className="mt-4 grid min-w-0 grid-cols-[20px_minmax(0,1fr)] gap-3 border border-mint-200 bg-mint-50 p-4 text-sm leading-6 text-primary-900 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-mint-100">
               <Users className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
               <p className="min-w-0 break-words">
                 <strong>{t('visitor.firstAidDetail.populationConcerned', { value: protocol.population.toLowerCase().replaceAll('_', ' ') })}</strong>{' '}

@@ -30,8 +30,8 @@ export default function DashboardAlerts({ alerts: data }: { alerts?: Alerts }) {
       descKey: 'medecin.dashboard.alerts.toHandleDesc',
       value: alerts.urgentes,
       icon: Activity,
-      color: '#3B6EF8',
-      bg: '#EFF6FF',
+      color: '#1E3A5F',
+      bg: '#EAF0F7',
     },
   ]
 

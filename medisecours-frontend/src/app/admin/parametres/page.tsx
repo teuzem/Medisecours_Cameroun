@@ -86,9 +86,8 @@ export default function AdminParametresPage() {
   return (
     <div className="space-y-6">
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-[28px] bg-[linear-gradient(135deg,#09170f_0%,#0f2418_60%,#183626_100%)] p-6 text-white shadow-[0_18px_45px_rgba(15,36,24,0.16)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">{t('admin.parametres.eyebrow')}</p>
-          <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight">{t('admin.parametres.title')}</h1>
+        <div className="bg-primary-500 p-6 text-white shadow-[0_18px_45px_rgba(15,36,24,0.16)]">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">{t('admin.parametres.title')}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
             {t('admin.parametres.description')}
           </p>
@@ -146,7 +145,7 @@ export default function AdminParametresPage() {
               <div className="overflow-x-auto rounded-[24px] border border-[#edf1eb]">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-[0.18em] text-[#7a8578]">
+                    <tr className="text-left text-xs uppercase tracking-[0.04em] text-[#7a8578]">
                       <th className="px-5 py-4 font-semibold">{t('admin.parametres.thDate')}</th>
                       <th className="px-5 py-4 font-semibold">{t('admin.parametres.thAction')}</th>
                       <th className="px-5 py-4 font-semibold">{t('admin.parametres.thEntite')}</th>
@@ -249,7 +248,7 @@ function Panel({ icon: Icon, title, description, children, iconTone = 'green', a
 function Field({ label, value, onChange, type = 'text', readOnly = false }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; readOnly?: boolean }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8578]">{label}</label>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</label>
       <input
         type={type}
         value={value || ''}
@@ -279,7 +278,7 @@ function MetricCard({ label, value, tone = 'neutral' }: { label: string; value: 
 
   return (
     <div className={`rounded-[24px] border border-[#e3e7df] p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7c8778]">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7c8778]">{label}</p>
       <p className="mt-3 font-display text-3xl font-extrabold tracking-tight">{value}</p>
     </div>
   )

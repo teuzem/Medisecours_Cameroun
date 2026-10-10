@@ -145,9 +145,6 @@ function OrientationContent() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <header className="border-b border-slate-200 pb-6 dark:border-white/10">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-          {t('visitor.orientation.eyebrow')}
-        </p>
         <h1 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">
           {t('visitor.orientation.title')}
         </h1>
@@ -247,7 +244,7 @@ function OrientationContent() {
               <p className="text-xs font-bold uppercase text-slate-500">{t('visitor.orientation.context')}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {CONTEXT_OPTIONS.map((option) => (
-                  <button key={option.value} type="button" onClick={() => toggleContext(option.value)} className={`border px-3 py-1.5 text-xs font-semibold ${contexts.includes(option.value) ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200'}`}>
+                  <button key={option.value} type="button" onClick={() => toggleContext(option.value)} className={`border px-3 py-1.5 text-xs font-semibold ${contexts.includes(option.value) ? 'border-primary-600 bg-primary-600 text-white' : 'border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200'}`}>
                     {t(option.labelKey)}
                   </button>
                 ))}
@@ -266,7 +263,6 @@ function OrientationContent() {
       <section className="mt-10 border-t border-slate-200 pt-8 dark:border-white/10">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{t('visitor.orientation.infoEyebrow')}</p>
             <h2 className="mt-1 font-display text-2xl font-bold text-slate-950 dark:text-white">{t('visitor.orientation.catalogTitle')}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
               {t('visitor.orientation.catalogDesc')}
@@ -324,7 +320,7 @@ function OrientationResult({ data }: { data: any }) {
     ? 'border-red-300 bg-red-50 text-red-950 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100'
     : isHigh
       ? 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100'
-      : 'border-blue-200 bg-blue-50 text-blue-950 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-100'
+      : 'border-mint-200 bg-mint-50 text-primary-900 dark:border-primary-500/25 dark:bg-primary-500/10 dark:text-mint-100'
   const levelLabel: Record<string, string> = {
     CRITIQUE: t('visitor.orientation.levelCritical'),
     ELEVE: t('visitor.orientation.levelHigh'),
@@ -338,7 +334,6 @@ function OrientationResult({ data }: { data: any }) {
         <div className="flex gap-3">
           <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0" />
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.14em]">{t('visitor.orientation.recommendedOrientation')}</p>
             <h2 className="mt-1 font-display text-xl font-bold">{orientation.messageOrientation}</h2>
           </div>
         </div>
@@ -362,7 +357,7 @@ function OrientationResult({ data }: { data: any }) {
 
       {orientation.protocoles?.length > 0 && (
         <div className="mt-5">
-          <p className="text-xs font-black uppercase tracking-wide">{t('visitor.orientation.associatedFirstAid')}</p>
+          <p className="text-xs font-bold text-current/80">{t('visitor.orientation.associatedFirstAid')}</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {orientation.protocoles.map((protocol: any) => (
               <Link key={protocol.slug} href={`/premiers-soins/${protocol.slug}`} className="flex items-center justify-between gap-3 border border-current/15 bg-white/70 p-3 text-sm font-bold transition hover:bg-white dark:bg-white/10 dark:hover:bg-white/15">
@@ -410,7 +405,7 @@ function OrientationResult({ data }: { data: any }) {
 function ResultList({ title, items, icon: Icon, ordered = false }: { title: string; items: string[]; icon: any; ordered?: boolean }) {
   return (
     <div className="mt-5 border-t border-current/15 pt-4">
-      <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide">
+      <p className="flex items-center gap-2 text-xs font-bold">
         <Icon className="h-4 w-4" /> {title}
       </p>
       <ol className="mt-3 space-y-2 text-sm leading-6">
@@ -429,7 +424,7 @@ function ActionLink({ href, icon: Icon, label, tone }: { href: string; icon: any
   const tones = {
     red: 'border-red-200 bg-red-50 text-red-900 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-100',
     emerald: 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-100',
-    blue: 'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-100',
+    blue: 'border-mint-200 bg-mint-50 text-primary-800 dark:border-primary-500/25 dark:bg-primary-500/10 dark:text-mint-100',
   }
   return (
     <Link href={href} className={`flex min-h-20 items-center justify-between gap-3 border p-4 transition hover:brightness-95 dark:hover:brightness-110 ${tones[tone]}`}>
