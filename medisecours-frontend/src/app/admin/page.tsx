@@ -200,16 +200,16 @@ export default function AdminOverview() {
     <div className="space-y-6">
       <section className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-[#12263F]">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900">
             {t('admin.dashboard.title')}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-[#64748B]">
+          <p className="mt-2 max-w-2xl text-sm text-slate-500">
             {t('admin.dashboard.description')}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-full border border-[#E2E8F0] bg-white p-1 shadow-[0_8px_20px_rgba(30,58,95,0.05)]">
+          <div className="flex rounded-full border border-slate-200 bg-white p-1 shadow-[0_8px_20px_rgba(30,58,95,0.05)]">
             {['7d', '30d', '90d'].map((option: string) => (
               <button
                 key={option}
@@ -218,7 +218,7 @@ export default function AdminOverview() {
                 className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
                   period === option
                     ? 'bg-[#1E3A5F] text-white'
-                    : 'text-[#64748B] hover:bg-[#F1F5F9]'
+                    : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
                 {option.toUpperCase()}
@@ -247,10 +247,10 @@ export default function AdminOverview() {
         <SoftPanel className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.distributionTitle')}</p>
-              <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.distributionSubtitle')}</p>
+              <p className="text-lg font-bold text-slate-900">{t('admin.dashboard.distributionTitle')}</p>
+              <p className="mt-1 text-sm text-slate-500">{t('admin.dashboard.distributionSubtitle')}</p>
             </div>
-            <span className="rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-xs font-semibold text-[#64748B]">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
               {period.toUpperCase()}
             </span>
           </div>
@@ -287,12 +287,12 @@ export default function AdminOverview() {
               </div>
 
               <div className="space-y-3">
-                <div className="rounded-[24px] bg-[#F8FAFC] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#64748B]">{t('admin.dashboard.volumeGlobal')}</p>
-                  <p className="mt-2 font-display text-3xl font-extrabold text-[#12263F]">
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{t('admin.dashboard.volumeGlobal')}</p>
+                  <p className="mt-2 font-display text-3xl font-extrabold text-slate-900">
                     {formatNumber(distributionTotal)}
                   </p>
-                  <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.volumeDescription')}</p>
+                  <p className="mt-1 text-sm text-slate-500">{t('admin.dashboard.volumeDescription')}</p>
                 </div>
                 {distributionData.map((item: any, index: number) => (
                   <LegendRow
@@ -315,8 +315,8 @@ export default function AdminOverview() {
           <SoftPanel className="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.quickActionsTitle')}</p>
-                <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.quickActionsSubtitle')}</p>
+                <p className="text-lg font-bold text-slate-900">{t('admin.dashboard.quickActionsTitle')}</p>
+                <p className="mt-1 text-sm text-slate-500">{t('admin.dashboard.quickActionsSubtitle')}</p>
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3">
@@ -334,10 +334,10 @@ export default function AdminOverview() {
         <SoftPanel className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.recommendationsTitle')}</p>
-              <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.recommendationsSubtitle')}</p>
+              <p className="text-lg font-bold text-slate-900">{t('admin.dashboard.recommendationsTitle')}</p>
+              <p className="mt-1 text-sm text-slate-500">{t('admin.dashboard.recommendationsSubtitle')}</p>
             </div>
-            <span className="rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-xs font-semibold text-[#64748B]">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
               {t('admin.dashboard.recommendationsPriority')}
             </span>
           </div>
@@ -351,10 +351,10 @@ export default function AdminOverview() {
         <SoftPanel className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.activityTitle')}</p>
-              <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.activitySubtitle')}</p>
+              <p className="text-lg font-bold text-slate-900">{t('admin.dashboard.activityTitle')}</p>
+              <p className="mt-1 text-sm text-slate-500">{t('admin.dashboard.activitySubtitle')}</p>
             </div>
-            <Link href="/admin/avis" className="text-sm font-semibold text-[#059669] hover:text-[#1E3A5F]">
+            <Link href="/admin/avis" className="text-sm font-semibold text-mint-600 hover:text-[#1E3A5F]">
               {t('admin.dashboard.viewAll')}
             </Link>
           </div>
@@ -399,12 +399,12 @@ function DoctorsActivityPanel() {
     <SoftPanel className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-lg font-bold text-[#12263F]">{t('admin.dashboard.docteursActivityTitle')}</p>
-          <p className="mt-1 text-sm text-[#64748B]">{t('admin.dashboard.docteursActivitySubtitle')}</p>
+          <p className="text-lg font-bold text-slate-900">{t('admin.dashboard.docteursActivityTitle')}</p>
+          <p className="mt-1 text-sm text-slate-500">{t('admin.dashboard.docteursActivitySubtitle')}</p>
         </div>
         <Link
           href="/admin/medecins"
-          className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#059669] shadow-[0_8px_20px_rgba(30,58,95,0.05)] transition hover:bg-[#F1F5F9]"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-mint-600 shadow-[0_8px_20px_rgba(30,58,95,0.05)] transition hover:bg-slate-100"
         >
           <Stethoscope className="h-4 w-4" />
           {t('admin.dashboard.viewAll')}
@@ -412,28 +412,28 @@ function DoctorsActivityPanel() {
       </div>
 
       {isLoading && !data ? (
-        <div className="mt-5 rounded-[24px] bg-[#F8FAFC] px-4 py-10 text-center text-sm font-semibold text-[#64748B]">
+        <div className="mt-5 rounded-lg bg-slate-50 px-4 py-10 text-center text-sm font-semibold text-slate-500">
           {t('admin.dashboard.loading')}
         </div>
       ) : (
         <div className="mt-5 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div className="rounded-[24px] bg-[#F8FAFC] p-4">
+          <div className="rounded-lg bg-slate-50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#64748B]">
+              <p className="text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">
                 {t('admin.dashboard.docteursTopSpecialites')}
               </p>
               <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="rounded-full bg-[#ECFDF5] px-3 py-1 text-[#047857]">
+                <span className="rounded-full bg-mint-50 px-3 py-1 text-mint-700">
                   {formatNumber(valides.length)} {t('admin.medecins.statValides')}
                 </span>
-                <span className="rounded-full bg-[#FEF2F2] px-3 py-1 text-[#B91C1C]">
+                <span className="rounded-full bg-red-50 px-3 py-1 text-red-700">
                   {formatNumber(enAttente.length)} {t('admin.medecins.statEnAttente')}
                 </span>
               </div>
             </div>
 
             {specialites.length === 0 ? (
-              <p className="mt-4 rounded-[18px] border border-dashed border-[#CBD5E1] bg-white px-4 py-8 text-center text-sm text-[#64748B]">
+              <p className="mt-4 rounded-lg border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
                 {t('admin.dashboard.docteursEmpty')}
               </p>
             ) : (
@@ -442,7 +442,7 @@ function DoctorsActivityPanel() {
                   <div key={label}>
                     <div className="mb-1 flex items-center justify-between text-xs">
                       <span className="truncate font-semibold text-[#1E293B]">{label}</span>
-                      <span className="font-bold text-[#12263F]">{formatNumber(value)}</span>
+                      <span className="font-bold text-slate-900">{formatNumber(value)}</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-[#E2E8F0]">
                       <div
@@ -462,12 +462,12 @@ function DoctorsActivityPanel() {
             )}
           </div>
 
-          <div className="rounded-[24px] bg-[#F8FAFC] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#64748B]">
+          <div className="rounded-lg bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">
               {t('admin.dashboard.docteursPendingTitle')}
             </p>
             {enAttente.length === 0 ? (
-              <div className="mt-4 rounded-[18px] border border-dashed border-[#CBD5E1] bg-white px-4 py-8 text-center text-sm text-[#64748B]">
+              <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
                 <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-[#10B981]" />
                 {t('admin.dashboard.docteursEmpty')}
               </div>
@@ -477,15 +477,15 @@ function DoctorsActivityPanel() {
                   <Link
                     key={med.id}
                     href="/admin/medecins"
-                    className="flex items-center justify-between gap-3 rounded-[18px] border border-[#E2E8F0] bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:border-[#CBD5E1] hover:shadow-[0_10px_24px_rgba(30,58,95,0.08)]"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_10px_24px_rgba(30,58,95,0.08)]"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-[#12263F]">
+                      <p className="truncate text-sm font-bold text-slate-900">
                         Dr {med.prenom} {med.nom}
                       </p>
-                      <p className="truncate text-xs text-[#64748B]">{med.specialite || t('admin.dashboard.docteursSpecialiteNone')}</p>
+                      <p className="truncate text-xs text-slate-500">{med.specialite || t('admin.dashboard.docteursSpecialiteNone')}</p>
                     </div>
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#FEF2F2] px-2.5 py-1 text-[10px] font-bold text-[#B91C1C]">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-700">
                       <Clock className="h-3 w-3" />
                       {t('admin.medecins.statEnAttente')}
                     </span>
@@ -494,7 +494,7 @@ function DoctorsActivityPanel() {
                 {enAttente.length > 4 && (
                   <Link
                     href="/admin/medecins"
-                    className="flex items-center justify-center gap-2 rounded-[18px] px-4 py-3 text-sm font-semibold text-[#059669] transition hover:bg-[#ECFDF5]"
+                    className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-mint-600 transition hover:bg-mint-50"
                   >
                     {t('admin.dashboard.viewAll')}
                     <ArrowRight className="h-4 w-4" />
@@ -511,7 +511,7 @@ function DoctorsActivityPanel() {
 
 function SoftPanel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_18px_45px_rgba(30,58,95,0.05)] ${className}`}>
+    <div className={`rounded-lg border border-slate-200 bg-white shadow-[0_18px_45px_rgba(30,58,95,0.05)] ${className}`}>
       {children}
     </div>
   )
@@ -523,7 +523,7 @@ function ToolbarButton({ children, onClick, disabled = false }: { children: Reac
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#334155] shadow-[0_8px_20px_rgba(30,58,95,0.05)] transition hover:bg-[#F1F5F9] disabled:cursor-not-allowed disabled:opacity-70"
+      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#334155] shadow-[0_8px_20px_rgba(30,58,95,0.05)] transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
     >
       {children}
     </button>
@@ -545,15 +545,15 @@ function ToolbarButton({ children, onClick, disabled = false }: { children: Reac
               {t('admin.dashboard.heroDescription')}
             </p>
           </div>
-          <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-[#6EE7B7]">
+          <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-mint-400">
             {t('admin.dashboard.heroTrend', { delta: formatDelta(heroTrend, t) })}
           </span>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   {secondary?.map((item) => (
-            <div key={item.label} className="rounded-[22px] border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/55">{item.label}</p>
+            <div key={item.label} className="rounded-lg border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-[0.04em] text-white/55">{item.label}</p>
               <p className="mt-2 text-2xl font-bold text-white">{formatNumber(item.value)}</p>
             </div>
           ))}
@@ -569,17 +569,17 @@ function SummaryCard({ label, value, delta, tone }: { label: string; value?: num
     green: {
       dot: 'bg-[#A7F3D0]',
       text: 'text-[#0EA274]',
-      pill: 'bg-[#ECFDF5]',
+      pill: 'bg-mint-50',
     },
     rose: {
       dot: 'bg-[#FECACA]',
-      text: 'text-[#B91C1C]',
-      pill: 'bg-[#FEF2F2]',
+      text: 'text-red-700',
+      pill: 'bg-red-50',
     },
     lime: {
       dot: 'bg-[#D1FAE5]',
-      text: 'text-[#047857]',
-      pill: 'bg-[#ECFDF5]',
+      text: 'text-mint-700',
+      pill: 'bg-mint-50',
     },
   }
 
@@ -591,7 +591,7 @@ function SummaryCard({ label, value, delta, tone }: { label: string; value?: num
         <span className={`h-2.5 w-2.5 rounded-full ${ui.dot}`} />
         {label}
       </div>
-      <p className="mt-4 font-display text-3xl font-extrabold tracking-tight text-[#12263F]">
+      <p className="mt-4 font-display text-3xl font-extrabold tracking-tight text-slate-900">
         {formatNumber(value)}
       </p>
       <div className="mt-4">
@@ -610,9 +610,9 @@ function InsightCard({ alert }: { alert?: any }) {
   const count = alert?.count ?? 0
 
   return (
-    <div className="rounded-[28px] bg-[linear-gradient(135deg,#101F33_0%,#1E3A5F_55%,#16324E_100%)] p-5 text-white shadow-[0_18px_45px_rgba(30,58,95,0.16)] sm:p-6">
+    <div className="rounded-lg bg-primary-900 p-5 text-white shadow-[0_18px_45px_rgba(30,58,95,0.16)] sm:p-6">
       <div className="flex items-center gap-2 text-sm font-semibold text-white/70">
-        <Sparkles className="h-4 w-4 text-[#6EE7B7]" />
+        <Sparkles className="h-4 w-4 text-mint-400" />
         {t('admin.dashboard.insightLabel')}
       </div>
       <p className="mt-4 text-2xl font-bold leading-tight">
@@ -636,13 +636,13 @@ function QuickActionCard({ href, label, description, icon: Icon }: { href: strin
   return (
     <Link
       href={href}
-      className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4 transition hover:-translate-y-0.5 hover:border-[#CBD5E1] hover:bg-white"
+      className="rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-gray-300 hover:bg-white"
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#059669] shadow-[0_8px_18px_rgba(30,58,95,0.06)]">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-mint-600 shadow-[0_8px_18px_rgba(30,58,95,0.06)]">
         <Icon className="h-5 w-5" />
       </div>
-      <p className="mt-4 text-sm font-bold text-[#12263F]">{label}</p>
-      <p className="mt-1 text-xs leading-5 text-[#64748B]">{description}</p>
+      <p className="mt-4 text-sm font-bold text-slate-900">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
     </Link>
   )
 }
@@ -652,14 +652,14 @@ function RecommendationCard({ title, description, href, icon: Icon }: { title: s
   return (
     <Link
       href={href}
-      className="group rounded-[24px] border border-[#E2E8F0] bg-[#F8FAFC] p-4 transition hover:-translate-y-0.5 hover:border-[#CBD5E1] hover:bg-white"
+      className="group rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-gray-300 hover:bg-white"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F0FDF4] text-[#059669]">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F0FDF4] text-mint-600">
         <Icon className="h-5 w-5" />
       </div>
-      <p className="mt-4 text-lg font-bold text-[#12263F]">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-[#64748B]">{description}</p>
-      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#059669]">
+      <p className="mt-4 text-lg font-bold text-slate-900">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-mint-600">
         {t('admin.dashboard.open')}
         <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
       </div>
@@ -677,13 +677,13 @@ function ActivityRow({ item }: { item: any }) {
   const Icon = iconMap[item.type as keyof typeof iconMap] || AlertTriangle
 
   return (
-    <div className="flex items-start gap-3 rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-[#059669] shadow-[0_8px_18px_rgba(30,58,95,0.05)]">
+    <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-mint-600 shadow-[0_8px_18px_rgba(30,58,95,0.05)]">
         <Icon className="h-4.5 w-4.5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-[#12263F]">{item.message}</p>
-        <p className="mt-1 text-xs text-[#64748B]">{formatDateTime(item.at, i18n.language) ?? t('admin.dashboard.dateUnavailable')}</p>
+        <p className="text-sm font-semibold text-slate-900">{item.message}</p>
+        <p className="mt-1 text-xs text-slate-500">{formatDateTime(item.at, i18n.language) ?? t('admin.dashboard.dateUnavailable')}</p>
       </div>
     </div>
   )
@@ -691,14 +691,14 @@ function ActivityRow({ item }: { item: any }) {
 
 function LegendRow({ color, label, value, share }: { color: string; label: string; value?: number; share?: number }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[18px] border border-[#E2E8F0] bg-white px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
         <span className="truncate text-sm font-medium text-[#1E293B]">{label}</span>
       </div>
       <div className="flex items-center gap-4 text-sm">
-        <span className="font-semibold text-[#12263F]">{formatNumber(value)}</span>
-        <span className="text-[#64748B]">{share}%</span>
+        <span className="font-semibold text-slate-900">{formatNumber(value)}</span>
+        <span className="text-slate-500">{share}%</span>
       </div>
     </div>
   )
@@ -706,7 +706,7 @@ function LegendRow({ color, label, value, share }: { color: string; label: strin
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className="rounded-[22px] border border-dashed border-[#E2E8F0] bg-[#F8FAFC] px-4 py-10 text-center text-sm text-[#64748B]">
+    <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
       {label}
     </div>
   )

@@ -84,8 +84,8 @@ export default function DashboardAnalytics({ data }: { data: DashboardData | und
                 <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorConsults" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#1E3A5F" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#1E3A5F" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
@@ -98,7 +98,7 @@ export default function DashboardAnalytics({ data }: { data: DashboardData | und
                     type="monotone" 
                     dataKey="consultations" 
                     name={t('medecin.dashboard.analytics.consultations')}
-                    stroke="#4F46E5" 
+                    stroke="#1E3A5F" 
                     strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorConsults)" 
@@ -169,7 +169,7 @@ export default function DashboardAnalytics({ data }: { data: DashboardData | und
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={bloodData}>
                   <PolarGrid stroke="#F3F4F6" />
-                  <PolarAngleAxis dataKey="groupe" tick={{ fill: '#4F46E5', fontSize: 11, fontWeight: 600 }} />
+                  <PolarAngleAxis dataKey="groupe" tick={{ fill: '#1E3A5F', fontSize: 11, fontWeight: 600 }} />
                   <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
                   <Radar
                     name={t('medecin.dashboard.analytics.patients')}

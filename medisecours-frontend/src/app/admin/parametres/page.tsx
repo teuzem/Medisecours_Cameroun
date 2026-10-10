@@ -138,14 +138,14 @@ export default function AdminParametresPage() {
             {loadingAudit ? (
               <LoadingSpinner label={t('admin.parametres.auditLoading')} />
             ) : auditLog.length === 0 ? (
-              <div className="rounded-[22px] border border-dashed border-[#dbe1d8] bg-[#f8faf6] px-4 py-10 text-center text-sm text-[#7a8578]">
+              <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
                 {t('admin.parametres.auditEmpty')}
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-[24px] border border-[#edf1eb]">
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-[0.04em] text-[#7a8578]">
+                    <tr className="text-left text-xs uppercase tracking-[0.04em] text-slate-500">
                       <th className="px-5 py-4 font-semibold">{t('admin.parametres.thDate')}</th>
                       <th className="px-5 py-4 font-semibold">{t('admin.parametres.thAction')}</th>
                       <th className="px-5 py-4 font-semibold">{t('admin.parametres.thEntite')}</th>
@@ -153,7 +153,7 @@ export default function AdminParametresPage() {
                   </thead>
                   <tbody>
                     {auditLog.slice(0, 10).map((entry: any, index: number) => (
-                      <tr key={index} className="border-t border-[#edf1eb]">
+                      <tr key={index} className="border-t border-slate-200">
                         <td className="px-5 py-4 text-[#4c584c]">{new Date(entry.loggedAt).toLocaleString(i18n.language?.startsWith('en') ? 'en-US' : 'fr-FR')}</td>
                         <td className="px-5 py-4 font-medium text-[#172216]">{entry.action}</td>
                         <td className="px-5 py-4 text-[#4c584c]">{entry.objectClass?.split('\\').pop()}</td>
@@ -227,7 +227,7 @@ function Panel({ icon: Icon, title, description, children, iconTone = 'green', a
   }
 
   return (
-    <section className="rounded-[28px] border border-[#e3e7df] bg-white p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-6">
+    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-6">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${toneMap[iconTone as keyof typeof toneMap] || toneMap.green}`}>
@@ -248,13 +248,13 @@ function Panel({ icon: Icon, title, description, children, iconTone = 'green', a
 function Field({ label, value, onChange, type = 'text', readOnly = false }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; readOnly?: boolean }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</label>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{label}</label>
       <input
         type={type}
         value={value || ''}
         onChange={onChange}
         readOnly={readOnly}
-        className={`w-full rounded-2xl border border-[#dfe5db] bg-[#f8faf6] px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white ${readOnly ? 'cursor-not-allowed opacity-65' : ''}`}
+        className={`w-full rounded-2xl border border-[#dfe5db] bg-slate-50 px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white ${readOnly ? 'cursor-not-allowed opacity-65' : ''}`}
       />
     </div>
   )
@@ -262,7 +262,7 @@ function Field({ label, value, onChange, type = 'text', readOnly = false }: { la
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-[20px] border border-[#e8ece4] bg-[#fbfcfa] px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-[#e8ece4] bg-[#fbfcfa] px-4 py-3">
       <dt className="text-sm text-[#71806f]">{label}</dt>
       <dd className="text-sm font-semibold text-[#172216]">{value}</dd>
     </div>
@@ -277,8 +277,8 @@ function MetricCard({ label, value, tone = 'neutral' }: { label: string; value: 
   }
 
   return (
-    <div className={`rounded-[24px] border border-[#e3e7df] p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7c8778]">{label}</p>
+    <div className={`rounded-lg border border-slate-200 p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
+      <p className="text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{label}</p>
       <p className="mt-3 font-display text-3xl font-extrabold tracking-tight">{value}</p>
     </div>
   )

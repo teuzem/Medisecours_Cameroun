@@ -33,7 +33,7 @@ import LanguageSwitcher from '../../components/ui/LanguageSwitcher'
 
 function SidebarBlock({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`dashboard-panel rounded-[24px] border ${className}`}>
+    <div className={`dashboard-panel rounded-lg border ${className}`}>
       {children}
     </div>
   )
@@ -167,7 +167,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <nav className="flex-1 space-y-5 overflow-y-auto px-4 pb-4">
         {NAV_GROUPS.map((group) => (
           <div key={group.label}>
-            <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7c8778]">{group.label}</p>
+            <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.04em] text-slate-500">{group.label}</p>
             <div className="space-y-1.5">
               {group.items.map(({ href, label, icon: Icon, exact, badge }: { href: string; label: string; icon: any; exact?: boolean; badge?: string }) => {
                 const active = isActive(href, exact)
@@ -207,7 +207,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </nav>
 
       <div className="space-y-4 px-4 pb-4">
-        <div className="rounded-[22px] border border-[#e4e8df] bg-[#eff3eb] p-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#243124]">
             <Sparkles className="h-4 w-4 text-mint-500" />
             {t('admin.layout.assistantAdmin')}
@@ -221,7 +221,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        <div className="rounded-[22px] border border-[#e4e8df] bg-white px-4 py-3">
+        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0f2418] text-sm font-bold text-white">
               {initials}
@@ -277,7 +277,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <nav className="flex-1 space-y-5 overflow-y-auto px-4 pb-4">
               {NAV_GROUPS.map((group) => (
                 <div key={group.label}>
-                  <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7c8778]">{group.label}</p>
+                  <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.04em] text-slate-500">{group.label}</p>
                   <div className="space-y-1.5">
                     {group.items.map(({ href, label, icon: Icon, exact, badge }: { href: string; label: string; icon: any; exact?: boolean; badge?: string }) => {
                       const active = isActive(href, exact)
@@ -316,7 +316,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </nav>
 
             <div className="space-y-4 px-4 pb-4">
-              <div className="rounded-[22px] border border-[#e4e8df] bg-[#eff3eb] p-4">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#243124]">
                   <Sparkles className="h-4 w-4 text-mint-500" />
                   {t('admin.layout.assistantAdmin')}
@@ -330,7 +330,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
               </div>
 
-              <div className="rounded-[22px] border border-[#e4e8df] bg-white px-4 py-3">
+              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0f2418] text-sm font-bold text-white">
                     {initials}

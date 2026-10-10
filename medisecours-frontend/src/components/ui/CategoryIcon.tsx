@@ -13,7 +13,7 @@ const iconStyles: Record<string, string> = {
   'utensils-crossed': 'bg-amber-600',
   'eye': 'bg-emerald-600',
   'ear': 'bg-pink-600',
-  'scan-face': 'bg-indigo-600',
+  'scan-face': 'bg-primary-600',
   'bug': 'bg-lime-600',
   'baby': 'bg-cyan-600',
   'ribbon': 'bg-rose-600',

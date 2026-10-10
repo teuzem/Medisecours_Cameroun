@@ -86,12 +86,12 @@ function TopNav() {
   return (
     <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
       <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-lg bg-[#2196F3] flex items-center justify-center text-white font-bold text-sm">Q</div>
+        <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold text-sm">Q</div>
         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
-      <span className="absolute left-1/2 -translate-x-1/2 text-[11px] font-bold tracking-[0.2em] text-gray-700">{t('visitor.chatPreview.messages')}</span>
+      <span className="absolute left-1/2 -translate-x-1/2 text-[11px] font-bold tracking-[0.04em] text-gray-700">{t('visitor.chatPreview.messages')}</span>
       <div className="flex items-center gap-6">
         <button className="text-[11px] font-semibold tracking-wider text-gray-400 uppercase hover:text-gray-600 transition-colors">{t('visitor.chatPreview.downloadApp')}</button>
         <button className="text-[11px] font-semibold tracking-wider text-gray-400 uppercase hover:text-gray-600 transition-colors">{t('visitor.chatPreview.logout')}</button>
@@ -131,7 +131,7 @@ function ConversationItem({
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-4 text-left transition-colors duration-150 border-b border-gray-100 ${
         active
-          ? 'bg-[#2196F3]'
+          ? 'bg-primary-500'
           : dimmed
             ? 'hover:bg-gray-50 opacity-40'
             : 'hover:bg-gray-50'
@@ -140,7 +140,7 @@ function ConversationItem({
       <Avatar name={contact.name} online={contact.online} size={48} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className={`text-sm font-semibold truncate ${active ? 'text-white' : 'text-[#212121]'}`}>
+          <span className={`text-sm font-semibold truncate ${active ? 'text-white' : 'text-slate-900'}`}>
             {contact.name}
           </span>
           <span className={`text-[11px] shrink-0 ${active ? 'text-white/80' : 'text-gray-400'}`}>
@@ -152,7 +152,7 @@ function ConversationItem({
             {contact.lastMessage}
           </span>
           {contact.unread > 0 && !active && (
-            <span className="w-5 h-5 rounded-full bg-[#2196F3] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+            <span className="w-5 h-5 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
               {contact.unread}
             </span>
           )}
@@ -176,7 +176,7 @@ function MessageBubble({ message, isMine, showAvatar }: { message: Message; isMi
         <div className={`max-w-[70%] ${isMine ? 'order-1' : ''}`}>
           <div className="flex gap-1.5 mb-1">
             {message.images.map((img, i) => (
-              <div key={i} className="relative group rounded-[14px] overflow-hidden" style={{ width: 140, height: 100 }}>
+              <div key={i} className="relative group rounded-lg overflow-hidden" style={{ width: 140, height: 100 }}>
                 <img src={img} alt="" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-white/90 shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -188,7 +188,7 @@ function MessageBubble({ message, isMine, showAvatar }: { message: Message; isMi
             ))}
           </div>
           {message.text && (
-            <p className={`text-sm leading-relaxed ${isMine ? 'text-white' : 'text-[#212121]'}`}>
+            <p className={`text-sm leading-relaxed ${isMine ? 'text-white' : 'text-slate-900'}`}>
               {message.text}
             </p>
           )}
@@ -218,8 +218,8 @@ function MessageBubble({ message, isMine, showAvatar }: { message: Message; isMi
         <div
           className={`px-4 py-2.5 text-sm leading-relaxed ${
             isMine
-              ? 'bg-[#2196F3] text-white rounded-[18px] rounded-br-[4px]'
-              : 'bg-[#EDEDED] text-[#212121] rounded-[18px] rounded-bl-[4px]'
+              ? 'bg-primary-500 text-white rounded-lg rounded-br-[4px]'
+              : 'bg-gray-100 text-slate-900 rounded-lg rounded-bl-[4px]'
           }`}
         >
           {message.text}
@@ -244,7 +244,7 @@ function TypingIndicator() {
       <div className="mr-2 self-end">
         <Avatar name="Temitope Ola" size={36} />
       </div>
-      <div className="bg-[#EDEDED] rounded-[18px] rounded-bl-[4px] px-4 py-3 flex items-center gap-1">
+      <div className="bg-gray-100 rounded-lg rounded-bl-[4px] px-4 py-3 flex items-center gap-1">
         <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
         <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
         <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -290,13 +290,13 @@ function MessageInput({ onSend }: { onSend: (text: string) => void }) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSend()}
         placeholder={t('visitor.chatPreview.inputPlaceholder')}
-        className="flex-1 text-sm text-[#212121] placeholder-gray-400 bg-transparent outline-none"
+        className="flex-1 text-sm text-slate-900 placeholder-gray-400 bg-transparent outline-none"
       />
       <button
         onClick={handleSend}
         disabled={!value.trim()}
         className={`text-xs font-bold tracking-wider uppercase transition-colors ${
-          value.trim() ? 'text-[#2196F3] hover:text-primary-600' : 'text-gray-300'
+          value.trim() ? 'text-primary-500 hover:text-primary-600' : 'text-gray-300'
         }`}
       >
         {t('visitor.chatPreview.send')}
@@ -347,8 +347,8 @@ export default function ModernChat() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mint-50 to-mint-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-5xl bg-white rounded-[12px] shadow-xl overflow-hidden" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+    <div className="min-h-screen bg-mint-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-5xl bg-white rounded-lg shadow-xl overflow-hidden" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
         <TrafficLights />
         <TopNav />
         <div className="flex h-[600px]">

@@ -256,7 +256,7 @@ export default function MedecinDashboard() {
                         <td className="py-3">
                           <button
                             onClick={() => router.push(`/medecin/consultations?id=${c.id}`)}
-                            className="flex items-center gap-1 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] transition"
+                            className="flex items-center gap-1 text-xs font-semibold text-primary-500 hover:text-primary-600 transition"
                           >
                             {t('medecin.overview.view')} <ChevronRight className="h-3 w-3" />
                           </button>
@@ -316,7 +316,7 @@ export default function MedecinDashboard() {
         {/* ── Doctor Profile Card ────────────────────── */}
         <div className="text-center">
           <div className="relative inline-block mb-2">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#4F46E5] to-[#818CF8] text-white flex items-center justify-center text-xl font-bold overflow-hidden mx-auto shadow-lg ring-3 ring-indigo-100">
+            <div className="w-16 h-16 rounded-full bg-primary-500 text-white flex items-center justify-center text-xl font-bold overflow-hidden mx-auto shadow-lg ring-3 ring-primary-100">
               {user?.photoProfil
                 ? <img src={imgUrl(user.photoProfil) || ''} alt="" className="w-full h-full object-cover" />
                 : `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase()
@@ -329,7 +329,7 @@ export default function MedecinDashboard() {
             {user?.estValide && <CertifiedBadge className="h-3.5 w-3.5" />}
           </div>
           <p className="text-[11px] text-[#6B7280] mb-1">{user?.specialite || t('medecin.overview.doctorFallback')}</p>
-          <Link href="/medecin/profil" className="text-[11px] text-[#4F46E5] font-semibold hover:underline">
+          <Link href="/medecin/profil" className="text-[11px] text-primary-500 font-semibold hover:underline">
             {t('medecin.overview.viewProfile')}
           </Link>
 
@@ -349,8 +349,8 @@ export default function MedecinDashboard() {
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-bold text-[#0F2C52]">{t('medecin.overview.schedule')}</h4>
             <div className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5 text-[#4F46E5]" />
-              <span className="text-[11px] font-semibold text-[#4F46E5]">
+              <Calendar className="h-3.5 w-3.5 text-primary-500" />
+              <span className="text-[11px] font-semibold text-primary-500">
                 {new Date().toLocaleDateString(locale, { month: 'long' })}
               </span>
             </div>
@@ -361,7 +361,7 @@ export default function MedecinDashboard() {
                 key={i}
                 className={`flex-1 flex flex-col items-center py-2 rounded-xl text-center transition ${
                   d.isToday
-                    ? 'bg-[#4F46E5] text-white shadow-md shadow-indigo-200'
+                    ? 'bg-primary-500 text-white shadow-md shadow-primary-200'
                     : 'bg-[#F9FAFB] text-[#374151] hover:bg-[#F3F4F6]'
                 }`}
               >
@@ -378,7 +378,7 @@ export default function MedecinDashboard() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-bold text-[#0F2C52]">{t('medecin.overview.upcomingAppointments')}</h4>
-            <Link href="/medecin/consultations" className="text-[11px] text-[#4F46E5] font-semibold hover:underline">{t('medecin.overview.all')}</Link>
+            <Link href="/medecin/consultations" className="text-[11px] text-primary-500 font-semibold hover:underline">{t('medecin.overview.all')}</Link>
           </div>
           {upcomingAppointments.length > 0 ? (
             <div className="space-y-2">
@@ -419,7 +419,7 @@ export default function MedecinDashboard() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-bold text-[#0F2C52]">{t('medecin.overview.recentPatients')}</h4>
-            <Link href="/medecin/patients" className="text-[11px] text-[#4F46E5] font-semibold hover:underline">{t('medecin.overview.all')}</Link>
+            <Link href="/medecin/patients" className="text-[11px] text-primary-500 font-semibold hover:underline">{t('medecin.overview.all')}</Link>
           </div>
           {recentPatients.length > 0 ? (
             <div className="space-y-2">
@@ -438,7 +438,7 @@ export default function MedecinDashboard() {
                     <div className="flex gap-0.5">
                       <button
                         onClick={() => router.push(`/medecin/messages?patient=${pid}`)}
-                        className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-[#4F46E5] hover:bg-indigo-100 transition"
+                        className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary-50 text-primary-500 hover:bg-primary-100 transition"
                         title={t('medecin.overview.message')}
                       >
                         <MessageSquare className="h-3 w-3" />
@@ -466,8 +466,8 @@ export default function MedecinDashboard() {
         <div>
           <h4 className="text-sm font-bold text-[#0F2C52] mb-3">{t('medecin.overview.quickSummary')}</h4>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-xl bg-indigo-50 p-3 text-center">
-              <p className="text-lg font-bold text-[#4F46E5]">{kpis.terminees}</p>
+            <div className="rounded-xl bg-primary-50 p-3 text-center">
+              <p className="text-lg font-bold text-primary-500">{kpis.terminees}</p>
               <p className="text-[10px] text-[#6B7280] font-medium">{t('medecin.overview.finished')}</p>
             </div>
             <div className="rounded-xl bg-emerald-50 p-3 text-center">

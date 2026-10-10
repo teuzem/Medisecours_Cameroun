@@ -119,7 +119,7 @@ export default function DiseaseDetailModal({ maladie, onClose, onMutate }) {
           <div className="relative shrink-0 w-full h-72 sm:h-80 bg-[#e8eee4] overflow-hidden">
             {images.length > 0 ? (
               <>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#f0f5ed] via-[#e4ece0] to-[#dae3d5]" />
+                <div className="absolute inset-0 bg-slate-100" />
                 <img
                   src={imgUrl(images[carouselIndex])}
                   alt={images[carouselIndex].originalName || ''}

@@ -854,7 +854,7 @@ export default function AnalyticsPanel({ centreId, accent }: { centreId: number;
                           </p>
                           <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                             <div
-                              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-600 transition-all"
+                              className="h-full rounded-full bg-amber-500 transition-all"
                               style={{ width: `${Math.max((svc.nb / maxCount) * 100, 6)}%` }}
                             />
                           </div>

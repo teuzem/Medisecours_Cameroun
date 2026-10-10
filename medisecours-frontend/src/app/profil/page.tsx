@@ -636,10 +636,10 @@ export default function ProfilPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
-          <section className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-primary-800/80 sm:p-6">
+          <section className="rounded-lg border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-primary-800/80 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="relative shrink-0">
-                <div className="h-28 w-28 overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 to-cyan-500 text-3xl font-extrabold text-white shadow-lg shadow-primary-500/20 ring-4 ring-mint-50 dark:ring-white/10 flex items-center justify-center">
+                <div className="h-28 w-28 overflow-hidden rounded-3xl bg-primary-500 text-3xl font-extrabold text-white shadow-lg shadow-primary-500/20 ring-4 ring-mint-50 dark:ring-white/10 flex items-center justify-center">
                   {user.photoProfil ? (
                     <img src={resolveImgPath(user.photoProfil)} alt="" className="h-full w-full object-cover" onError={(e) => { const img = e.target as HTMLImageElement; img.style.display = 'none'; const fb = img.nextSibling as HTMLElement | null; if (fb) fb.style.display = 'flex' }} />
                   ) : null}
@@ -681,7 +681,7 @@ export default function ProfilPage() {
             </div>
           </section>
 
-          <aside className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-primary-800/80 sm:p-6">
+          <aside className="rounded-lg border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-primary-800/80 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.04em] text-slate-400">{t('visitor.profil.medicalRecord')}</p>
@@ -712,7 +712,7 @@ export default function ProfilPage() {
           <main className="space-y-5">
             {!isMedecin ? (
               <>
-                <Card className="rounded-[24px] p-5 sm:p-6">
+                <Card className="rounded-lg p-5 sm:p-6">
                   <CardHeading icon={<Phone className="w-4 h-4" />} title={t('visitor.profil.identity')} />
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <FieldRow
@@ -757,7 +757,7 @@ export default function ProfilPage() {
                 </Card>
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <Card className="rounded-[24px] p-5 sm:p-6">
+                  <Card className="rounded-lg p-5 sm:p-6">
                     <CardHeading icon={<Droplet className="w-4 h-4" />} title={t('visitor.profil.bloodGroup')} badgeClass="bg-red-50 dark:bg-red-500/10 text-red-500" />
                     {editing ? (
                       <select
@@ -782,7 +782,7 @@ export default function ProfilPage() {
                     )}
                   </Card>
 
-                  <Card className="rounded-[24px] p-5 sm:p-6">
+                  <Card className="rounded-lg p-5 sm:p-6">
                     <CardHeading icon={<HeartPulse className="w-4 h-4" />} title={t('visitor.profil.allergies')} badgeClass="bg-red-50 dark:bg-red-500/10 text-red-500" />
                     {editing ? (
                       <TagEditor tags={form.allergies} onChange={(next) => setForm((f: any) => ({ ...f, allergies: next }))} placeholder={t('visitor.profil.allergyExample')} />
@@ -802,7 +802,7 @@ export default function ProfilPage() {
                   </Card>
                 </div>
 
-                <Card accent="border-l-4 border-l-red-500" className="rounded-[24px] p-5 sm:p-6">
+                <Card className="rounded-lg p-5 sm:p-6">
                   <CardHeading icon={<Siren className="w-4 h-4" />} title={t('visitor.profil.emergencyContacts')} badgeClass="bg-red-50 dark:bg-red-500/10 text-red-500" />
                   {editing ? (
                     <ContactsEditor contacts={form.contactsUrgence} onChange={(next) => setForm((f: any) => ({ ...f, contactsUrgence: next }))} />
@@ -827,7 +827,7 @@ export default function ProfilPage() {
                   )}
                 </Card>
 
-                <Card className="rounded-[24px] p-0 overflow-hidden">
+                <Card className="rounded-lg p-0 overflow-hidden">
                   <div className="flex flex-col gap-2 border-b border-slate-100 p-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <CardHeading
                       icon={<Flag className="h-4 w-4" />}
@@ -883,15 +883,15 @@ export default function ProfilPage() {
               </>
             ) : (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <Card className="rounded-[24px] p-5 sm:p-6">
+                <Card className="rounded-lg p-5 sm:p-6">
                   <CardHeading icon={<Stethoscope className="w-4 h-4" />} title={t('visitor.profil.practice')} />
                   <FieldRow icon={<Stethoscope className="w-4 h-4" />} label={t('visitor.profil.speciality')} value={form.specialite} placeholder={t('visitor.profil.specialityExample')} emptyLabel={t('visitor.profil.addSpeciality')} editing={editing} onChange={set('specialite')} onRequestEdit={() => setEditing(true)} />
                 </Card>
-                <Card className="rounded-[24px] p-5 sm:p-6">
+                <Card className="rounded-lg p-5 sm:p-6">
                   <CardHeading icon={<BadgeCheck className="w-4 h-4" />} title={t('visitor.profil.accreditation')} />
                   <FieldRow icon={<BadgeCheck className="w-4 h-4" />} label={t('visitor.profil.orderNumber')} value={user.numeroOrdre || ''} emptyLabel={t('visitor.profil.notProvided')} editing={false} onRequestEdit={() => setEditing(true)} />
                 </Card>
-                <Card className="rounded-[24px] p-5 sm:p-6 md:col-span-2">
+                <Card className="rounded-lg p-5 sm:p-6 md:col-span-2">
                   <CardHeading icon={<CalendarClock className="w-4 h-4" />} title={t('visitor.profil.availability')} />
                   <FieldRow icon={<CalendarClock className="w-4 h-4" />} label={t('visitor.profil.schedule')} value={medecinDispo} placeholder={t('visitor.profil.scheduleExample')} emptyLabel={t('visitor.profil.addAvailability')} editing={editing} onChange={set('disponibilitesTexte')} onRequestEdit={() => setEditing(true)} />
                 </Card>
@@ -900,11 +900,11 @@ export default function ProfilPage() {
           </main>
 
           <aside className="space-y-5 lg:sticky lg:top-28 lg:self-start">
-            <Card className="rounded-[24px] p-5 sm:p-6">
+            <Card className="rounded-lg p-5 sm:p-6">
               <CardHeading
                 icon={dark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
                 title={t('visitor.profil.appearance')}
-                badgeClass="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
+                badgeClass="bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-300"
               />
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
@@ -921,7 +921,7 @@ export default function ProfilPage() {
                   onClick={toggleTheme}
                   className={`relative h-7 w-12 shrink-0 rounded-full border transition-colors ${
                     dark
-                      ? 'border-indigo-400 bg-indigo-500'
+                      ? 'border-primary-400 bg-primary-500'
                       : 'border-slate-300 bg-slate-200'
                   }`}
                 >
@@ -936,7 +936,7 @@ export default function ProfilPage() {
               </div>
             </Card>
 
-            <Card className="rounded-[24px] p-5 sm:p-6">
+            <Card className="rounded-lg p-5 sm:p-6">
               <CardHeading icon={<ShieldCheck className="w-4 h-4" />} title={t('visitor.profil.privacy')} />
               <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
                 <div className="flex gap-3">
@@ -950,7 +950,7 @@ export default function ProfilPage() {
               </div>
             </Card>
 
-            <Card className="rounded-[24px] p-5 sm:p-6">
+            <Card className="rounded-lg p-5 sm:p-6">
               <CardHeading icon={<Info className="w-4 h-4" />} title={t('visitor.profil.tip')} badgeClass="bg-amber-50 dark:bg-amber-500/10 text-amber-600" />
               <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                 {t('visitor.profil.tipText')}

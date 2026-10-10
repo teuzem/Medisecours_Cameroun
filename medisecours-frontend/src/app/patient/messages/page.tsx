@@ -845,8 +845,8 @@ function PatientMessagesContent() {
   }
 
   return (
-    <div className="h-[calc(100dvh_-_140px_-_env(safe-area-inset-bottom,0px))] xl:h-[calc(100dvh_-_96px)] w-full bg-gradient-to-br from-mint-50 to-mint-100 overflow-hidden lg:p-4">
-      <div className="h-full max-w-7xl mx-auto bg-white lg:rounded-[12px] lg:shadow-xl overflow-hidden relative flex flex-col">
+    <div className="h-[calc(100dvh_-_140px_-_env(safe-area-inset-bottom,0px))] xl:h-[calc(100dvh_-_96px)] w-full bg-mint-50 dark:bg-primary-950 overflow-hidden lg:p-4">
+      <div className="h-full max-w-7xl mx-auto bg-white lg:rounded-lg lg:shadow-xl overflow-hidden relative flex flex-col">
         {/* ── Panels container ── */}
         <div className="relative flex flex-1 min-h-0">
         {/* ── Sidebar ── */}
@@ -858,8 +858,8 @@ function PatientMessagesContent() {
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-            <h2 className="text-sm font-bold tracking-[0.04em] text-[#212121] uppercase">{t('layout.messages')}</h2>
-            <button onClick={openNewConversation} className="w-8 h-8 rounded-lg bg-[#2196F3] hover:bg-primary-500 text-white flex items-center justify-center transition-colors">
+            <h2 className="text-sm font-bold tracking-[0.04em] text-slate-900 uppercase">{t('layout.messages')}</h2>
+            <button onClick={openNewConversation} className="w-8 h-8 rounded-lg bg-primary-500 hover:bg-primary-500 text-white flex items-center justify-center transition-colors">
               <Plus className="w-4 h-4" />
             </button>
           </div>
@@ -872,7 +872,7 @@ function PatientMessagesContent() {
                 value={convSearch}
                 onChange={(e) => setConvSearch(e.target.value)}
                 placeholder={t('patient.messages.searchConversation')}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#2196F3]/20 focus:border-[#2196F3] transition-all"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
               />
             </div>
           </div>
@@ -891,7 +891,7 @@ function PatientMessagesContent() {
                     key={c.id}
                     onClick={() => setActiveId(c.id)}
                     className={`w-full flex items-center gap-3 px-4 py-4 text-left transition-colors duration-150 ${
-                      isActive ? 'bg-[#2196F3]' : 'hover:bg-gray-50'
+                      isActive ? 'bg-primary-500' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="relative shrink-0">
@@ -902,7 +902,7 @@ function PatientMessagesContent() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <span className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-[#212121]'}`}>
+                        <span className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-slate-900'}`}>
                           {t('patient.doctorTitle', { name })}
                         </span>
                         {c.dernierMessage?.createdAt && (
@@ -922,7 +922,7 @@ function PatientMessagesContent() {
                             </span>
                           )}
                           {c.unread > 0 && !isActive && (
-                            <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-[#2196F3] text-white text-[10px] font-bold flex items-center justify-center">
+                            <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center">
                               {c.unread}
                             </span>
                           )}
@@ -955,7 +955,7 @@ function PatientMessagesContent() {
                   {onlineUsers.has(String(getUserInfo(activeConv.other)?.id)) && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#4CAF50] border-2 border-white" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#212121]">
+                  <p className="text-sm font-semibold text-slate-900">
                     {t('patient.doctorTitle', {
                       name: getUserInfo(activeConv.other)
                         ? `${getUserInfo(activeConv.other).prenom || ''} ${getUserInfo(activeConv.other).nom || ''}`.trim()
@@ -967,7 +967,7 @@ function PatientMessagesContent() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link href="/patient/consultations" className="text-[11px] font-semibold text-[#2196F3] hover:text-primary-600 inline-flex items-center gap-1 shrink-0 transition-colors bg-mint-50 px-2 py-1 rounded-md">
+                  <Link href="/patient/consultations" className="text-[11px] font-semibold text-primary-500 hover:text-primary-600 inline-flex items-center gap-1 shrink-0 transition-colors bg-mint-50 px-2 py-1 rounded-md">
                     {t('consultations.title')} <ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>
@@ -1004,28 +1004,28 @@ function PatientMessagesContent() {
                       <div style={msgAnim} className={`max-w-[70%] ${mine ? 'order-1' : ''}`}>
                         {/* Image */}
                         {mediaKind === 'IMAGE' && msgMediaUrl(m) && (
-                          <div className={`overflow-hidden mb-1 ${m.contenu ? 'rounded-t-[18px]' : 'rounded-[18px]'} shadow-sm bg-white`}>
+                          <div className={`overflow-hidden mb-1 ${m.contenu ? 'rounded-t-lg' : 'rounded-lg'} shadow-sm bg-white`}>
                             <img src={msgMediaUrl(m)} alt="" className="w-full max-h-64 object-cover cursor-pointer hover:opacity-95 transition-opacity" onLoad={isLatest ? () => scrollToLatestMessage('auto') : undefined} onClick={(e) => { e.stopPropagation(); window.open(msgMediaUrl(m), '_blank') }} />
                           </div>
                         )}
                         {/* Video */}
                         {mediaKind === 'VIDEO' && msgMediaUrl(m) && (
-                          <div className={`overflow-hidden mb-1 ${m.contenu ? 'rounded-t-[18px]' : 'rounded-[18px]'} bg-black shadow-sm`}>
+                          <div className={`overflow-hidden mb-1 ${m.contenu ? 'rounded-t-lg' : 'rounded-lg'} bg-black shadow-sm`}>
                             <video controls playsInline preload="metadata" src={msgMediaUrl(m)} onLoadedMetadata={isLatest ? () => scrollToLatestMessage('auto') : undefined} className="w-full max-h-72 bg-black" />
                           </div>
                         )}
                         {/* Voice */}
                         {mediaKind === 'VOIX' && msgMediaUrl(m) && (
-                          <div className={`px-4 py-3 shadow-sm ${mine ? 'bg-[#2196F3]' : 'bg-[#EDEDED]'} ${m.contenu ? 'rounded-t-[18px]' : 'rounded-[18px]'} ${mine ? 'text-white rounded-br-[4px]' : 'rounded-bl-[4px]'}`}>
+                          <div className={`px-4 py-3 shadow-sm ${mine ? 'bg-primary-500' : 'bg-gray-100'} ${m.contenu ? 'rounded-t-lg' : 'rounded-lg'} ${mine ? 'text-white rounded-br-[4px]' : 'rounded-bl-[4px]'}`}>
                             <audio controls src={msgMediaUrl(m)} onLoadedMetadata={isLatest ? () => scrollToLatestMessage('auto') : undefined} className="w-full h-10" />
                             {m.dureeVoix > 0 && <p className={`text-[10px] mt-1 ${mine ? 'text-white/70' : 'text-gray-500'}`}>{formatDuration(m.dureeVoix)}</p>}
                           </div>
                         )}
                         {/* File */}
                         {mediaKind === 'FICHIER' && m.media && (
-                          <a href={msgMediaUrl(m)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-3 p-4 shadow-sm hover:opacity-80 transition-opacity ${mine ? 'bg-[#2196F3] text-white' : 'bg-white'} ${m.contenu ? 'rounded-t-[18px]' : 'rounded-[18px]'} ${mine ? 'rounded-br-[4px]' : 'rounded-bl-[4px]'}`}>
+                          <a href={msgMediaUrl(m)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-3 p-4 shadow-sm hover:opacity-80 transition-opacity ${mine ? 'bg-primary-500 text-white' : 'bg-white'} ${m.contenu ? 'rounded-t-lg' : 'rounded-lg'} ${mine ? 'rounded-br-[4px]' : 'rounded-bl-[4px]'}`}>
                             <div className={`p-2 rounded-lg ${mine ? 'bg-white/20' : 'bg-gray-100'}`}>
-                              <FileText className={`w-5 h-5 ${mine ? 'text-white' : 'text-[#212121]'}`} />
+                              <FileText className={`w-5 h-5 ${mine ? 'text-white' : 'text-slate-900'}`} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold truncate">{m.media.originalName || t('patient.messages.file')}</p>
@@ -1036,7 +1036,7 @@ function PatientMessagesContent() {
                         {/* Text */}
                         {(m.contenu || m.typeMessage === 'TEXTE' || (!m.typeMessage && m.contenu)) && (
                           <div className={`px-4 py-2.5 shadow-sm ${
-                            mine ? 'bg-[#2196F3] text-white rounded-[18px] rounded-br-[4px]' : 'bg-[#EDEDED] text-[#212121] rounded-[18px] rounded-bl-[4px]'
+                            mine ? 'bg-primary-500 text-white rounded-lg rounded-br-[4px]' : 'bg-gray-100 text-slate-900 rounded-lg rounded-bl-[4px]'
                           }`}>
                             <p className="text-sm leading-relaxed">{m.contenu}</p>
                             <div className={`flex items-center gap-1 mt-1 ${mine ? 'justify-end' : 'justify-start'}`}>
@@ -1050,7 +1050,7 @@ function PatientMessagesContent() {
                       </div>
                       {mine && !prevSameSender && (
                         <div className="ml-2 self-end shrink-0">
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-[10px]" style={{ backgroundColor: '#2196F3', fontSize: 10 }}>
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-[10px]" style={{ backgroundColor: 'var(--dashboard-accent, #1E3A5F)', fontSize: 10 }}>
                             <UserAvatar user={user} size={36} />
                           </div>
                         </div>
@@ -1105,16 +1105,16 @@ function PatientMessagesContent() {
                     </button>
                     {showAttachMenu && (
                       <div className="absolute bottom-full left-0 mb-2 bg-white rounded-2xl shadow-lg border border-gray-200 p-2 flex gap-1 z-10">
-                        <button onClick={() => handleAttach('camera')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-[#212121] transition-colors">
+                        <button onClick={() => handleAttach('camera')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-slate-900 transition-colors">
                           <Camera className="w-5 h-5" /><span className="text-[10px] font-medium">{t('patient.messages.attachCamera')}</span>
                         </button>
-                        <button onClick={() => handleAttach('gallery')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-[#212121] transition-colors">
+                        <button onClick={() => handleAttach('gallery')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-slate-900 transition-colors">
                           <ImageIcon className="w-5 h-5" /><span className="text-[10px] font-medium">{t('patient.messages.attachPhotos')}</span>
                         </button>
-                        <button onClick={() => handleAttach('doc')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-[#212121] transition-colors">
+                        <button onClick={() => handleAttach('doc')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-slate-900 transition-colors">
                           <FileText className="w-5 h-5" /><span className="text-[10px] font-medium">{t('patient.messages.attachDocument')}</span>
                         </button>
-                        <button onClick={() => handleAttach('voice')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-[#212121] transition-colors">
+                        <button onClick={() => handleAttach('voice')} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:bg-gray-50 text-slate-900 transition-colors">
                           <Mic className="w-5 h-5" /><span className="text-[10px] font-medium">{t('patient.messages.attachVoice')}</span>
                         </button>
                       </div>
@@ -1132,14 +1132,14 @@ function PatientMessagesContent() {
                     }}
                     placeholder={recording ? t('patient.messages.recordingPlaceholder') : uploadingMedia ? t('patient.messages.uploadingPlaceholder') : t('patient.messages.inputPlaceholder')}
                     disabled={recording || uploadingMedia}
-                    className="flex-1 text-sm text-[#212121] placeholder-gray-400 bg-transparent outline-none disabled:opacity-40"
+                    className="flex-1 text-sm text-slate-900 placeholder-gray-400 bg-transparent outline-none disabled:opacity-40"
                   />
                   <button
                     type="button"
                     onClick={handleSend}
                     disabled={sending || (!draft.trim() && attachments.length === 0) || recording}
                     className={`text-xs font-bold tracking-wider uppercase transition-colors ${
-                      draft.trim() || attachments.length > 0 ? 'text-[#2196F3] hover:text-primary-600' : 'text-gray-300'
+                      draft.trim() || attachments.length > 0 ? 'text-primary-500 hover:text-primary-600' : 'text-gray-300'
                     } disabled:opacity-50`}
                   >
                     {uploadingMedia ? <Loader2 className="w-4 h-4 animate-spin inline" /> : t('patient.messages.send')}
@@ -1153,11 +1153,11 @@ function PatientMessagesContent() {
           ) : (
             <div className="hidden md:flex flex-col items-center justify-center h-full text-center px-6">
               <div className="w-16 h-16 rounded-2xl bg-mint-50 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-[#2196F3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-[#212121] text-lg mb-1">{t('patient.messages.selectConversationTitle')}</h3>
+              <h3 className="font-semibold text-slate-900 text-lg mb-1">{t('patient.messages.selectConversationTitle')}</h3>
               <p className="text-sm text-gray-500 max-w-xs">{t('patient.messages.selectConversationDesc')}</p>
             </div>
           )}
@@ -1194,7 +1194,7 @@ function PatientMessagesContent() {
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                  <h3 className="font-display font-bold text-base text-[#212121]">{t('patient.messages.newConversation')}</h3>
+                  <h3 className="font-display font-bold text-base text-slate-900">{t('patient.messages.newConversation')}</h3>
                   <button onClick={() => setShowNew(false)} className="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 transition-colors" aria-label={t('common.close')}>
                     <X className="w-5 h-5" />
                   </button>
@@ -1208,7 +1208,7 @@ function PatientMessagesContent() {
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
                       placeholder={t('patient.messages.searchDoctor')}
-                      className="w-full pl-9 pr-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#2196F3]/20 focus:border-[#2196F3] transition-all"
+                      className="w-full pl-9 pr-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                     />
                   </div>
                 </div>
@@ -1245,7 +1245,7 @@ function PatientMessagesContent() {
                           >
                             <UserAvatar user={u} size={40} />
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold text-[#212121] truncate">{t('patient.doctorTitle', { name })}</p>
+                              <p className="text-sm font-semibold text-slate-900 truncate">{t('patient.doctorTitle', { name })}</p>
                               <p className="text-xs text-gray-400 truncate">{u.email || ''}</p>
                             </div>
                           </button>

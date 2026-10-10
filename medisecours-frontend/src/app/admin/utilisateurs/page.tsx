@@ -499,16 +499,16 @@ export default function UtilisateursPage() {
             </div>
             <FormField label={t('admin.utilisateurs.email')} type="email" value={createForm.email} onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))} required />
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.utilisateurs.password')}</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{t('admin.utilisateurs.password')}</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={createForm.password}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, password: e.target.value }))}
                   required
-                  className="w-full rounded-2xl border border-[#dfe5db] bg-[#f8faf6] px-4 py-3 pr-12 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
+                  className="w-full rounded-2xl border border-[#dfe5db] bg-slate-50 px-4 py-3 pr-12 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
                 />
-                <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7a8578] hover:text-[#223023]">
+                <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#223023]">
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
@@ -521,7 +521,7 @@ export default function UtilisateursPage() {
                     { key: 'hasDigit', label: t('admin.utilisateurs.passwordDigit'), ok: passwordChecks.hasDigit },
                     { key: 'hasSpecial', label: t('admin.utilisateurs.passwordSpecial'), ok: passwordChecks.hasSpecial },
                   ].map(({ key, label, ok }) => (
-                    <p key={key} className={`flex items-center gap-1.5 text-xs ${ok ? 'text-green-600' : 'text-[#7a8578]'}`}>
+                    <p key={key} className={`flex items-center gap-1.5 text-xs ${ok ? 'text-green-600' : 'text-slate-500'}`}>
                       {ok ? <Check className="w-3.5 h-3.5" /> : <span className="inline-block w-3.5 h-3.5 rounded-full border border-current" />}
                       {label}
                     </p>
@@ -531,13 +531,13 @@ export default function UtilisateursPage() {
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{t('admin.utilisateurs.telephone')}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{t('admin.utilisateurs.telephone')}</label>
                 <input
                   type="tel"
                   value={createForm.telephone}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, telephone: e.target.value }))}
                   placeholder={t('admin.utilisateurs.phonePlaceholder')}
-                  className="w-full rounded-2xl border border-[#dfe5db] bg-[#f8faf6] px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
+                  className="w-full rounded-2xl border border-[#dfe5db] bg-slate-50 px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
                 />
                 {phoneValid === false && (
                   <p className="mt-1.5 flex items-center gap-1 text-xs text-red-500">
@@ -636,7 +636,7 @@ export default function UtilisateursPage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-[#e3e7df] bg-white p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-6">
+      <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="text-lg font-bold text-[#152116]">{t('admin.utilisateurs.searchTitle')}</p>
@@ -649,7 +649,7 @@ export default function UtilisateursPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('admin.utilisateurs.searchPlaceholder')}
-                className="w-full rounded-full border border-[#dfe5db] bg-[#f8faf6] py-3 pl-11 pr-4 text-sm text-[#233024] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
+                className="w-full rounded-full border border-[#dfe5db] bg-slate-50 py-3 pl-11 pr-4 text-sm text-[#233024] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
               />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -672,7 +672,7 @@ export default function UtilisateursPage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-[#e3e7df] bg-white p-2 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-3">
+      <section className="rounded-lg border border-slate-200 bg-white p-2 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-3">
         {filtered.length === 0 ? (
           <div className="p-6">
             <EmptyState
@@ -681,10 +681,10 @@ export default function UtilisateursPage() {
             />
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-[24px]">
+          <div className="overflow-x-auto rounded-lg">
             <table className="w-full min-w-[860px] text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-[0.04em] text-[#7a8578]">
+                <tr className="text-left text-xs uppercase tracking-[0.04em] text-slate-500">
                   <th className="px-5 py-4 font-semibold">{t('admin.utilisateurs.thUtilisateur')}</th>
                   <th className="px-5 py-4 font-semibold">{t('admin.utilisateurs.thContact')}</th>
                   <th className="px-5 py-4 font-semibold">{t('admin.utilisateurs.thRole')}</th>
@@ -694,7 +694,7 @@ export default function UtilisateursPage() {
               </thead>
               <tbody>
                 {filtered.map((user) => (
-                  <tr key={user.id} className="border-t border-[#edf1eb] align-top">
+                  <tr key={user.id} className="border-t border-slate-200 align-top">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <Avatar name={fullName(user)} size="sm" />
@@ -767,10 +767,10 @@ function StatCard({ label, value, icon: Icon, tone = 'neutral' }) {
   }
 
   return (
-    <div className={`rounded-[24px] border border-[#e3e7df] p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
+    <div className={`rounded-lg border border-slate-200 p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7c8778]">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{label}</p>
           <p className="mt-3 font-display text-3xl font-extrabold tracking-tight">{value}</p>
         </div>
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_8px_18px_rgba(15,36,24,0.06)]">
@@ -845,14 +845,14 @@ function ActionButton({ children, onClick, title, tone = 'neutral' }) {
 function FormField({ label, value, onChange, type = 'text', required = false, placeholder = '' }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</label>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{label}</label>
       <input
         type={type}
         value={value}
         onChange={onChange}
         required={required}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-[#dfe5db] bg-[#f8faf6] px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
+        className="w-full rounded-2xl border border-[#dfe5db] bg-slate-50 px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
       />
     </div>
   )
@@ -861,11 +861,11 @@ function FormField({ label, value, onChange, type = 'text', required = false, pl
 function FormSelect({ label, value, onChange, options }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</label>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{label}</label>
       <select
         value={value}
         onChange={onChange}
-        className="w-full rounded-2xl border border-[#dfe5db] bg-[#f8faf6] px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
+        className="w-full rounded-2xl border border-[#dfe5db] bg-slate-50 px-4 py-3 text-sm text-[#223023] outline-none transition focus:border-[#bfd0bd] focus:bg-white"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
@@ -877,10 +877,10 @@ function FormSelect({ label, value, onChange, options }) {
 
 function DetailBlock({ label, value, icon: Icon }) {
   return (
-    <div className="rounded-[20px] border border-[#e5e9e1] bg-[#fbfcfa] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7a8578]">{label}</p>
+    <div className="rounded-lg border border-[#e5e9e1] bg-[#fbfcfa] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.04em] text-slate-500">{label}</p>
       <p className="mt-2 flex items-center gap-2 text-sm font-medium text-[#243124]">
-        {Icon ? <Icon className="h-4 w-4 text-[#7a8578]" /> : null}
+        {Icon ? <Icon className="h-4 w-4 text-slate-500" /> : null}
         {value}
       </p>
     </div>

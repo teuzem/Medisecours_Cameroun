@@ -24,7 +24,7 @@ export default function CategoryCard({ category, onExplore }: { category: any; o
           </span>
         </div>
 
-        <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+        <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
           {category.nom}
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
@@ -34,7 +34,7 @@ export default function CategoryCard({ category, onExplore }: { category: any; o
 
       <button
         onClick={(e) => { e.stopPropagation(); onExplore(category) }}
-        className="mt-6 flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors cursor-pointer"
+        className="mt-6 flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors cursor-pointer"
       >
         {t('visitor.components.categoryCard.explore')}
         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

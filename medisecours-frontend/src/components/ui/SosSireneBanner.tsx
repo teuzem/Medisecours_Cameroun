@@ -48,8 +48,8 @@ export default function SosSireneBanner({ alerte, sireneActivee, couperSirene, d
       aria-live="assertive"
       className={`fixed inset-x-0 top-0 z-[3000] shadow-2xl ${
         enSirene
-          ? 'bg-gradient-to-r from-red-700 via-red-600 to-red-700 text-white'
-          : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white'
+          ? 'bg-red-600 text-white'
+          : 'bg-amber-600 text-white'
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:px-6">

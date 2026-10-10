@@ -2016,7 +2016,7 @@ table th {
 .dark .dashboard-theme .text-primary-500,
 .dark .dashboard-theme .text-primary-600,
 .dark .dashboard-theme .text-primary-700 {
-  color: #93c5fd !important;
+  color: var(--dashboard-accent) !important;
 }
 
 .dark .dashboard-theme .text-emerald-600,

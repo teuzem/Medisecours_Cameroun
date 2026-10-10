@@ -150,7 +150,7 @@ export default function CategoriesPage() {
               {/* Contenu de la modale */}
               {maladiesLoading && maladies.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
-                  <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
                   <p className="text-sm text-slate-400">{t('visitor.categories.loadingDiseases')}</p>
                 </div>
               ) : maladies.length === 0 ? (
@@ -160,7 +160,7 @@ export default function CategoriesPage() {
                   {maladies.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((m: any) => (
                     <div
                       key={m.id}
-                      className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] p-4 hover:border-indigo-200 dark:hover:border-indigo-800/40 transition-colors"
+                      className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] p-4 hover:border-primary-200 dark:hover:border-primary-800/40 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">

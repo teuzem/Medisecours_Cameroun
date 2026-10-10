@@ -25,7 +25,7 @@ function MetricCard({ label, value, tone = 'neutral' }: { label: string; value: 
     blue: 'bg-[#f3f6fb] text-[#285074]',
   }
   return (
-    <div className={`rounded-[24px] border border-[#e3e7df] p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
+    <div className={`rounded-lg border border-slate-200 p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] ${tones[tone] || tones.neutral}`}>
       <p className="text-xs font-semibold uppercase tracking-[0.04em] text-[#7c8778]">{label}</p>
       <p className="mt-3 font-display text-3xl font-extrabold tracking-tight">{value}</p>
     </div>
@@ -481,7 +481,7 @@ export default function CrudTable({
         confirmText={t('admin.crudTable.deleteConfirm')}
       />
 
-      <section className="rounded-[28px] border border-[#e3e7df] bg-white p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-6">
+      <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="text-lg font-bold text-[#152116]">{title}</p>
@@ -512,7 +512,7 @@ export default function CrudTable({
         <MetricCard label={t('admin.crudTable.metricPages')} value={totalPages} tone="blue" />
       </section>
 
-      <section className="rounded-[28px] border border-[#e3e7df] bg-white p-2 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-3">
+      <section className="rounded-lg border border-slate-200 bg-white p-2 shadow-[0_18px_45px_rgba(15,36,24,0.05)] sm:p-3">
         {isLoading ? (
           <div className="p-8">
             <LoadingSpinner size="sm" />
@@ -522,7 +522,7 @@ export default function CrudTable({
             <EmptyState title={t('admin.crudTable.emptyTitle')} description={search ? t('admin.crudTable.emptySearch') : t('admin.crudTable.emptyAdd', { name: title })} />
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-[24px]">
+          <div className="overflow-x-auto rounded-lg">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-[0.04em] text-[#7a8578]">

@@ -260,7 +260,7 @@ export default function HomePage() {
             </ol>
           </div>
 
-          <div className="mt-8 flex gap-3 border-l-4 border-primary-500 bg-white p-4 text-primary-600 dark:border-mint-500 dark:bg-primary-800 dark:text-primary-200">
+          <div className="mt-8 flex gap-3 border border-primary-200 bg-white p-4 text-primary-700 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-200">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary-500 dark:text-mint-400" aria-hidden="true" />
             <p className="text-sm leading-6">{t('visitor.home.how.disclaimer')}</p>
           </div>
