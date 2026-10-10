@@ -148,11 +148,21 @@ type Prefs = {
   animations: boolean
   surface: 'glass' | 'soft'
   showHeroCover: boolean
+  language: 'fr' | 'en'
+  weekStart: 'monday' | 'sunday'
+  publicProfile: boolean
+  notifications: {
+    sos: boolean
+    avis: boolean
+    equipe: boolean
+    affiliations: boolean
+  }
 }
 
-const ACCENTS = ['#059669', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706']
+const ACCENTS = ['#059669', '#1E3A5F', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706']
 const ACCENT_NAMES: Record<string, string> = {
   '#059669': 'emerald',
+  '#1E3A5F': 'navy',
   '#4f46e5': 'indigo',
   '#0284c7': 'sky',
   '#7c3aed': 'violet',
@@ -223,7 +233,18 @@ const DASHBOARD_SECTION_IDS: DashboardSectionId[] = [
 ]
 
 function defaultPrefs(): Prefs {
-  return { accent: ACCENTS[0], showSos: true, compact: false, animations: true, surface: 'glass', showHeroCover: true }
+  return {
+    accent: ACCENTS[0],
+    showSos: true,
+    compact: false,
+    animations: true,
+    surface: 'glass',
+    showHeroCover: true,
+    language: 'fr',
+    weekStart: 'monday',
+    publicProfile: true,
+    notifications: { sos: true, avis: true, equipe: true, affiliations: true },
+  }
 }
 
 function normalizePrefs(parsed: Partial<Prefs> | null | undefined): Prefs {
@@ -234,6 +255,15 @@ function normalizePrefs(parsed: Partial<Prefs> | null | undefined): Prefs {
     animations: parsed?.animations !== false,
     surface: parsed?.surface === 'soft' ? 'soft' : 'glass',
     showHeroCover: parsed?.showHeroCover !== false,
+    language: parsed?.language === 'en' ? 'en' : 'fr',
+    weekStart: parsed?.weekStart === 'sunday' ? 'sunday' : 'monday',
+    publicProfile: parsed?.publicProfile !== false,
+    notifications: {
+      sos: parsed?.notifications?.sos !== false,
+      avis: parsed?.notifications?.avis !== false,
+      equipe: parsed?.notifications?.equipe !== false,
+      affiliations: parsed?.notifications?.affiliations !== false,
+    },
   }
 }
 
@@ -253,7 +283,7 @@ function readPrefs(): Prefs {
  * ────────────────────────────────────────────────────────────────────────── */
 
 export default function EtablissementEspacePage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const toast = useToast()
   const router = useRouter()
   const { isAuthenticated, isEtablissement, isAdmin, mounted, user } = useAuth()
@@ -324,6 +354,9 @@ export default function EtablissementEspacePage() {
         const remote = normalizePrefs(data.preferences)
         // Le serveur fait foi : on réaligne l'état et le cache local.
         setPrefs(remote)
+        if (remote.language && remote.language !== (i18n.language?.split('-')[0] ?? 'fr')) {
+          void i18n.changeLanguage(remote.language)
+        }
         try {
           window.localStorage.setItem(PREFS_KEY, JSON.stringify({ ...remote, version: PREFS_VERSION } satisfies StoredPrefs))
         } catch {
@@ -336,7 +369,7 @@ export default function EtablissementEspacePage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [i18n])
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -786,6 +819,7 @@ export default function EtablissementEspacePage() {
             isAdmin={isAdmin}
             onRefresh={reloadData}
             onSync={runSync}
+            onEditCover={() => setActiveSection('dashboard-fiche')}
             prefs={prefs}
           />
 
@@ -1285,6 +1319,7 @@ function DashboardHeader({
   isAdmin,
   onRefresh,
   onSync,
+  onEditCover,
   prefs,
 }: {
   accent: string
@@ -1297,127 +1332,139 @@ function DashboardHeader({
   isAdmin: boolean
   onRefresh: () => void
   onSync: () => void
+  onEditCover: () => void
   prefs: Prefs
 }) {
   const { t, i18n } = useTranslation()
   const centre = mon?.centre
   const verification = centre?.verificationStatut
+  const coverSource = centre?.imageUrl ? (imgUrl(centre.imageUrl) || centre.imageUrl) : null
+  const hasCover = prefs.showHeroCover && Boolean(coverSource)
 
   return (
-    <GlassCard as="header" glow className="relative isolate overflow-hidden p-4 sm:p-8">
-      {prefs.showHeroCover && centre?.imageUrl && (
-        <img
-          src={imgUrl(centre.imageUrl) || centre.imageUrl}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 -z-20 h-full w-full object-cover"
-        />
+    <GlassCard as="header" glow className="relative isolate overflow-hidden p-0">
+      {hasCover && coverSource && (
+        <div className="relative h-36 w-full overflow-hidden border-b border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900 sm:h-44">
+          <img
+            src={coverSource}
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover"
+          />
+          <button
+            type="button"
+            onClick={onEditCover}
+            className="absolute bottom-2 right-2 inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-white/80 bg-white/90 px-3 text-[11px] font-bold text-slate-700 transition hover:bg-white dark:border-white/15 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-900"
+          >
+            <ImageIcon className="h-3.5 w-3.5" />
+            {t('etablissement.editCover')}
+          </button>
+        </div>
       )}
-      <div className={`absolute inset-0 -z-10 ${prefs.showHeroCover && centre?.imageUrl ? 'bg-slate-950/65' : 'bg-white/80 dark:bg-slate-950/70'}`} />
-      <div className="relative flex min-w-0 flex-wrap items-center justify-between gap-5">
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          <div className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden">
-            <FacilityLogo
-              key={centre?.logoUrl ?? 'facility-logo-fallback'}
-              url={centre?.logoUrl}
-              name={t('etablissement.currentLogoAlt', { name: centre?.nom || userNom || t('etablissement.subtitle') })}
-              accent={accent}
-              className="max-h-16 max-w-24 object-contain"
-            />
-          </div>
-          <div className="min-w-0">
-            <p className={`wdg__eyebrow ${prefs.showHeroCover && centre?.imageUrl ? 'text-white/75' : 'text-slate-400 dark:text-slate-500'}`}>
-              {t('etablissement.title')}
-            </p>
-            <h1 className={`break-words font-display text-xl font-extrabold sm:text-[26px] ${
-              prefs.showHeroCover && centre?.imageUrl ? 'text-white' : 'text-slate-900 dark:text-white'
-            }`}>
-              {centre?.nom || userNom || t('etablissement.subtitle')}
-            </h1>
-            <div className="mt-1.5 flex flex-wrap items-center gap-2">
-              {centre?.ville || centre?.region ? (
-                <span className={`inline-flex items-center gap-1 text-xs font-medium ${prefs.showHeroCover && centre?.imageUrl ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                  <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
-                  {[centre.ville, centre.region].filter(Boolean).join(' · ')}
-                </span>
-              ) : null}
-              {mon?.role ? (
-                <span className="wdg-chip wdg-chip--slate">{t(`etablissement.${ROLE_LABELS[mon.role] ?? 'roleLecture'}`)}</span>
-              ) : null}
-              {verification === 'VERIFIE' ? (
-                <span className="wdg-chip wdg-chip--mint">
-                  <BadgeCheck className="h-3.5 w-3.5" />
-                  {t('etablissement.verificationOk')}
-                </span>
-              ) : verification === 'EN_COURS' ? (
-                <span className="wdg-chip wdg-chip--amber">
-                  <Clock className="h-3.5 w-3.5" />
-                  {t('etablissement.verificationPending')}
-                </span>
-              ) : (verification && (
-                <span className="wdg-chip wdg-chip--slate">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  {t('etablissement.verificationNone')}
-                </span>
-              ))}
-              {centre?.urgences24h && (
-                <span className="wdg-chip wdg-chip--red">
-                  <Siren className="h-3.5 w-3.5" />
-                  {t('etablissement.urgencesLabel')}
-                </span>
-              )}
+      <div className="p-4 sm:p-8">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-5">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden">
+              <FacilityLogo
+                key={centre?.logoUrl ?? 'facility-logo-fallback'}
+                url={centre?.logoUrl}
+                name={t('etablissement.currentLogoAlt', { name: centre?.nom || userNom || t('etablissement.subtitle') })}
+                accent={accent}
+                className="max-h-16 max-w-24 object-contain"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="wdg__eyebrow text-slate-400 dark:text-slate-500">
+                {t('etablissement.title')}
+              </p>
+              <h1 className="break-words font-display text-xl font-extrabold text-slate-900 dark:text-white sm:text-[26px]">
+                {centre?.nom || userNom || t('etablissement.subtitle')}
+              </h1>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                {centre?.ville || centre?.region ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
+                    {[centre.ville, centre.region].filter(Boolean).join(' · ')}
+                  </span>
+                ) : null}
+                {mon?.role ? (
+                  <span className="wdg-chip wdg-chip--slate">{t(`etablissement.${ROLE_LABELS[mon.role] ?? 'roleLecture'}`)}</span>
+                ) : null}
+                {verification === 'VERIFIE' ? (
+                  <span className="wdg-chip wdg-chip--mint">
+                    <BadgeCheck className="h-3.5 w-3.5" />
+                    {t('etablissement.verificationOk')}
+                  </span>
+                ) : verification === 'EN_COURS' ? (
+                  <span className="wdg-chip wdg-chip--amber">
+                    <Clock className="h-3.5 w-3.5" />
+                    {t('etablissement.verificationPending')}
+                  </span>
+                ) : (verification && (
+                  <span className="wdg-chip wdg-chip--slate">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    {t('etablissement.verificationNone')}
+                  </span>
+                ))}
+                {centre?.urgences24h && (
+                  <span className="wdg-chip wdg-chip--red">
+                    <Siren className="h-3.5 w-3.5" />
+                    {t('etablissement.urgencesLabel')}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+
+          <div className="relative flex flex-wrap items-center gap-2">
+            {centre && (
+              <Link
+                href={`/carte?centre=${centre.id}`}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                {t('etablissement.fichePublicLink')}
+              </Link>
+            )}
+            {(isAdmin || centre) && (
+              <HeaderChip icon={RefreshCw} onClick={onRefresh} label={t('etablissement.refresh')} disabled={loadingMon} />
+            )}
+            {isAdmin && (
+              <HeaderChip
+                icon={syncLabelIcon(syncing)}
+                onClick={onSync}
+                label={syncing ? t('etablissement.syncing') : t('etablissement.syncRun')}
+                spin={syncing}
+                accent
+              />
+            )}
+          </div>
         </div>
 
-        <div className="relative flex flex-wrap items-center gap-2">
-          {centre && (
-            <Link
-              href={`/carte?centre=${centre.id}`}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-4 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-200 dark:hover:bg-slate-900"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              {t('etablissement.fichePublicLink')}
-            </Link>
-          )}
-          {(isAdmin || centre) && (
-            <HeaderChip icon={RefreshCw} onClick={onRefresh} label={t('etablissement.refresh')} disabled={loadingMon} />
-          )}
-          {isAdmin && (
-            <HeaderChip
-              icon={syncLabelIcon(syncing)}
-              onClick={onSync}
-              label={syncing ? t('etablissement.syncing') : t('etablissement.syncRun')}
-              spin={syncing}
-              accent
-            />
-          )}
-        </div>
-      </div>
-
-      {statsTotal != null && (
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="wdg-chip wdg-chip--slate">
-            <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
-            {statsTotal || 0} {t('etablissement.establishmentCount')}
-          </span>
-          {lastSync ? (
-            <span className="wdg-chip wdg-chip--mint">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              {t('etablissement.syncLast', { date: new Date(lastSync).toLocaleString(i18n.language) })}
-            </span>
-          ) : (
+        {statsTotal != null && (
+          <div className="mt-5 flex flex-wrap items-center gap-2">
             <span className="wdg-chip wdg-chip--slate">
-              <Clock className="h-3.5 w-3.5" />
-              {t('etablissement.syncNever')}
+              <MapPin className="h-3.5 w-3.5" style={{ color: accent }} />
+              {statsTotal || 0} {t('etablissement.establishmentCount')}
             </span>
-          )}
-          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500">
-            <span className="wdg-live-dot" />
-            {t('etablissement.widgetLive')}
-          </span>
-        </div>
-      )}
+            {lastSync ? (
+              <span className="wdg-chip wdg-chip--mint">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {t('etablissement.syncLast', { date: new Date(lastSync).toLocaleString(i18n.language) })}
+              </span>
+            ) : (
+              <span className="wdg-chip wdg-chip--slate">
+                <Clock className="h-3.5 w-3.5" />
+                {t('etablissement.syncNever')}
+              </span>
+            )}
+            <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500">
+              <span className="wdg-live-dot" />
+              {t('etablissement.widgetLive')}
+            </span>
+          </div>
+        )}
+      </div>
     </GlassCard>
   )
 }
@@ -2472,7 +2519,7 @@ function PersonalizationPanel({
   settingCover: boolean
   canManageBranding: boolean
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [logoDraft, setLogoDraft] = useState(centre.logoUrl ?? '')
   const [savingLogo, setSavingLogo] = useState(false)
   const [uploadTarget, setUploadTarget] = useState<'logo' | 'cover' | null>(null)
@@ -2662,6 +2709,79 @@ function PersonalizationPanel({
           checked={prefs.showHeroCover}
           onChange={(value) => onChange({ ...prefs, showHeroCover: value })}
           label={t('etablissement.showHeroCover')}
+          accent
+        />
+      </div>
+
+      <p className="mt-6 text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.notificationsSectionTitle')}</p>
+      <div className="mt-2 space-y-3">
+        <Toggle
+          checked={prefs.notifications.sos}
+          onChange={(value) => onChange({ ...prefs, notifications: { ...prefs.notifications, sos: value } })}
+          label={t('etablissement.notifSos')}
+          description={t('etablissement.notifSosDesc')}
+          accent
+        />
+        <Toggle
+          checked={prefs.notifications.avis}
+          onChange={(value) => onChange({ ...prefs, notifications: { ...prefs.notifications, avis: value } })}
+          label={t('etablissement.notifAvis')}
+          description={t('etablissement.notifAvisDesc')}
+          accent
+        />
+        <Toggle
+          checked={prefs.notifications.equipe}
+          onChange={(value) => onChange({ ...prefs, notifications: { ...prefs.notifications, equipe: value } })}
+          label={t('etablissement.notifEquipe')}
+          description={t('etablissement.notifEquipeDesc')}
+          accent
+        />
+        <Toggle
+          checked={prefs.notifications.affiliations}
+          onChange={(value) => onChange({ ...prefs, notifications: { ...prefs.notifications, affiliations: value } })}
+          label={t('etablissement.notifAffiliations')}
+          description={t('etablissement.notifAffiliationsDesc')}
+          accent
+        />
+      </div>
+
+      <p className="mt-6 text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.languageRegionTitle')}</p>
+      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t('etablissement.languageLabel')}</span>
+          <select
+            value={prefs.language}
+            onChange={(event) => {
+              const language = event.target.value as 'fr' | 'en'
+              onChange({ ...prefs, language })
+              if (language !== i18n.language?.split('-')[0]) void i18n.changeLanguage(language)
+            }}
+            className="mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+          >
+            <option value="fr">{t('etablissement.languageFr')}</option>
+            <option value="en">{t('etablissement.languageEn')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t('etablissement.weekStartLabel')}</span>
+          <select
+            value={prefs.weekStart}
+            onChange={(event) => onChange({ ...prefs, weekStart: event.target.value as 'monday' | 'sunday' })}
+            className="mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+          >
+            <option value="monday">{t('etablissement.weekStartMonday')}</option>
+            <option value="sunday">{t('etablissement.weekStartSunday')}</option>
+          </select>
+        </label>
+      </div>
+
+      <p className="mt-6 text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.publicProfileTitle')}</p>
+      <div className="mt-2">
+        <Toggle
+          checked={prefs.publicProfile}
+          onChange={(value) => onChange({ ...prefs, publicProfile: value })}
+          label={t('etablissement.publicProfileLabel')}
+          description={t('etablissement.publicProfileDesc')}
           accent
         />
       </div>

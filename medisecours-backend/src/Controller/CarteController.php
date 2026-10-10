@@ -59,7 +59,10 @@ class CarteController extends AbstractController
     /**
      * Accents de personnalisation acceptés (miroir de ACCENTS côté frontend).
      */
-    private const PREFERENCE_ACCENTS = ['#059669', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706'];
+    private const PREFERENCE_ACCENTS = ['#1E3A5F', '#059669', '#4f46e5', '#0284c7', '#7c3aed', '#e11d48', '#d97706'];
+    private const PREFERENCE_LANGUAGES = ['fr', 'en'];
+    private const PREFERENCE_WEEK_STARTS = ['monday', 'sunday'];
+    private const PREFERENCE_NOTIFICATION_KEYS = ['sos', 'avis', 'equipe', 'affiliations'];
 
     private function requireUser(): User
     {
@@ -419,7 +422,8 @@ class CarteController extends AbstractController
      * Mise à jour partielle des préférences de personnalisation.
      *
      * PATCH /api/carte/mon-etablissement/preferences
-     * Body : accent?, surface?, showSos?, compact?, animations?, showHeroCover?
+     * Body : accent?, surface?, showSos?, compact?, animations?, showHeroCover?,
+     *        language?, weekStart?, publicProfile?, notifications?
      */
     #[Route('/api/carte/mon-etablissement/preferences', name: 'api_carte_mon_etablissement_preferences_update', methods: ['PATCH'])]
     public function modifierPreferences(Request $request): JsonResponse
@@ -446,13 +450,34 @@ class CarteController extends AbstractController
             $updated['surface'] = $data['surface'];
         }
 
-        foreach (['showSos', 'compact', 'animations', 'showHeroCover'] as $boolKey) {
+        if (array_key_exists('language', $data)) {
+            if (!is_string($data['language']) || !in_array($data['language'], self::PREFERENCE_LANGUAGES, true)) {
+                throw new BadRequestHttpException('Langue invalide.');
+            }
+            $updated['language'] = $data['language'];
+        }
+
+        if (array_key_exists('weekStart', $data)) {
+            if (!is_string($data['weekStart']) || !in_array($data['weekStart'], self::PREFERENCE_WEEK_STARTS, true)) {
+                throw new BadRequestHttpException('Jour de début de semaine invalide.');
+            }
+            $updated['weekStart'] = $data['weekStart'];
+        }
+
+        foreach (['showSos', 'compact', 'animations', 'showHeroCover', 'publicProfile'] as $boolKey) {
             if (array_key_exists($boolKey, $data)) {
                 if (!is_bool($data[$boolKey])) {
                     throw new BadRequestHttpException(sprintf('Le réglage "%s" doit être un booléen.', $boolKey));
                 }
                 $updated[$boolKey] = $data[$boolKey];
             }
+        }
+
+        if (array_key_exists('notifications', $data)) {
+            $updated['notifications'] = array_merge(
+                $current['notifications'] ?? [],
+                $this->sanitizeNotificationPreferences($data['notifications'])
+            );
         }
 
         if ($updated === $current) {
@@ -478,7 +503,7 @@ class CarteController extends AbstractController
     /**
      * Préférences validées de la structure (défauts + valeurs stockées).
      *
-     * @return array{accent: string, showSos: bool, compact: bool, animations: bool, surface: string, showHeroCover: bool}
+     * @return array<string, mixed>
      */
     private function loadPreferences(CentreDeSante $centre): array
     {
@@ -496,9 +521,22 @@ class CarteController extends AbstractController
         if (isset($stored['surface']) && is_string($stored['surface']) && in_array($stored['surface'], ['glass', 'soft'], true)) {
             $preferences['surface'] = $stored['surface'];
         }
-        foreach (['showSos', 'compact', 'animations', 'showHeroCover'] as $boolKey) {
+        if (isset($stored['language']) && is_string($stored['language']) && in_array($stored['language'], self::PREFERENCE_LANGUAGES, true)) {
+            $preferences['language'] = $stored['language'];
+        }
+        if (isset($stored['weekStart']) && is_string($stored['weekStart']) && in_array($stored['weekStart'], self::PREFERENCE_WEEK_STARTS, true)) {
+            $preferences['weekStart'] = $stored['weekStart'];
+        }
+        foreach (['showSos', 'compact', 'animations', 'showHeroCover', 'publicProfile'] as $boolKey) {
             if (isset($stored[$boolKey]) && is_bool($stored[$boolKey])) {
                 $preferences[$boolKey] = $stored[$boolKey];
+            }
+        }
+        if (isset($stored['notifications']) && is_array($stored['notifications'])) {
+            foreach (self::PREFERENCE_NOTIFICATION_KEYS as $notificationKey) {
+                if (isset($stored['notifications'][$notificationKey]) && is_bool($stored['notifications'][$notificationKey])) {
+                    $preferences['notifications'][$notificationKey] = $stored['notifications'][$notificationKey];
+                }
             }
         }
 
@@ -506,9 +544,34 @@ class CarteController extends AbstractController
     }
 
     /**
+     * Valide un objet de préférences de notifications (clés partielles autorisées).
+     *
+     * @return array<string, bool>
+     */
+    private function sanitizeNotificationPreferences(mixed $value): array
+    {
+        if (!is_array($value)) {
+            throw new BadRequestHttpException('Préférences de notifications invalides.');
+        }
+
+        $sanitized = [];
+        foreach (self::PREFERENCE_NOTIFICATION_KEYS as $key) {
+            if (!array_key_exists($key, $value)) {
+                continue;
+            }
+            if (!is_bool($value[$key])) {
+                throw new BadRequestHttpException(sprintf('Le réglage de notification "%s" doit être un booléen.', $key));
+            }
+            $sanitized[$key] = $value[$key];
+        }
+
+        return $sanitized;
+    }
+
+    /**
      * Valeurs par défaut (miroir de defaultPrefs() côté frontend).
      *
-     * @return array{accent: string, showSos: bool, compact: bool, animations: bool, surface: string, showHeroCover: bool}
+     * @return array<string, mixed>
      */
     private static function defaultPreferences(): array
     {
@@ -519,6 +582,15 @@ class CarteController extends AbstractController
             'animations' => true,
             'surface' => 'glass',
             'showHeroCover' => true,
+            'language' => 'fr',
+            'weekStart' => 'monday',
+            'publicProfile' => true,
+            'notifications' => [
+                'sos' => true,
+                'avis' => true,
+                'equipe' => true,
+                'affiliations' => true,
+            ],
         ];
     }
 
