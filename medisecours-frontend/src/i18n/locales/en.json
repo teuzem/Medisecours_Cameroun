@@ -113,6 +113,7 @@
       "googleUnavailableWithReason": "Google Maps services unavailable ({{reason}}) — offline mode (Leaflet).",
       "offlineFallbackWithReason": "{{reason}} — offline mode (Leaflet).",
       "youAreHere": "You are here",
+      "continueStraight": "Continue straight ahead",
       "wayfindingApproximate": "Approximate route (offline)",
       "osrmNotFound": "No route found by OSRM.",
       "googleNotCalculated": "No route calculated by Google.",

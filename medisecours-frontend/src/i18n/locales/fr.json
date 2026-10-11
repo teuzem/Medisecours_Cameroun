@@ -113,6 +113,7 @@
       "googleUnavailableWithReason": "Services Google Maps indisponibles ({{reason}}) — mode hors-ligne (Leaflet).",
       "offlineFallbackWithReason": "{{reason}} — mode hors-ligne (Leaflet).",
       "youAreHere": "Vous êtes ici",
+      "continueStraight": "Continuer tout droit",
       "wayfindingApproximate": "Itinéraire approximatif (hors ligne)",
       "osrmNotFound": "Aucun itinéraire trouvé par OSRM.",
       "googleNotCalculated": "Aucun itinéraire calculé par Google.",

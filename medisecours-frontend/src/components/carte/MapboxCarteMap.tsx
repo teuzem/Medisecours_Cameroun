@@ -19,6 +19,7 @@ interface Props {
   position?: Position | null
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
+  isFallback?: boolean
   destination?: { lat: number; lng: number; nom?: string } | null
   satellite?: boolean
   onRequestDirections?: (id: number) => void
@@ -37,16 +38,41 @@ function markerElement(color: string, selected: boolean, name: string) {
   return el
 }
 
-export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, destination, satellite = false, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
+function patientMarkerElement(label: string) {
+  const el = document.createElement('div')
+  el.setAttribute('role', 'img')
+  el.setAttribute('aria-label', label)
+  el.title = label
+  el.style.cssText = 'position:relative;width:24px;height:24px;cursor:default'
+  el.innerHTML = `
+    <span style="position:absolute;inset:-10px;border-radius:9999px;border:2px solid rgba(211,47,47,0.45);animation:medisecours-patient-pulse 1.8s ease-out infinite"></span>
+    <span style="position:absolute;inset:0;border-radius:9999px;border:3px solid #fff;background:#D32F2F;box-shadow:0 1px 6px rgba(0,0,0,0.45)"></span>
+  `
+  return el
+}
+
+export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, isFallback = false, destination, satellite = false, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
   const markersRef = useRef<any[]>([])
+  const patientMarkerRef = useRef<any>(null)
   const initialSatelliteRef = useRef(satellite)
 
   // The map instance is intentionally created once; satellite changes are applied by the dedicated style effect below.
   useEffect(() => {
     if (!containerRef.current || !window.mapboxgl || mapRef.current) return
+    if (!document.getElementById('mapbox-patient-pulse-style')) {
+      const style = document.createElement('style')
+      style.id = 'mapbox-patient-pulse-style'
+      style.textContent = `
+        @keyframes medisecours-patient-pulse {
+          0%   { transform: scale(1);   opacity: 0.8; }
+          50%  { transform: scale(2.2); opacity: 0; }
+          100% { transform: scale(1);   opacity: 0; }
+        }`
+      document.head.appendChild(style)
+    }
     const map = new window.mapboxgl.Map({
       container: containerRef.current,
       style: initialSatelliteRef.current ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/streets-v12',
@@ -59,6 +85,8 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
     return () => {
       markersRef.current.forEach((marker) => marker.remove())
       markersRef.current = []
+      patientMarkerRef.current?.remove()
+      patientMarkerRef.current = null
       map.remove()
       mapRef.current = null
     }
@@ -177,6 +205,27 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
       })
   }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t])
 
+  // Marqueur temps réel du patient connecté (rouge, pulsant) — créé une fois,
+  // déplacé à chaque changement de position GPS.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (!position) {
+      patientMarkerRef.current?.remove()
+      patientMarkerRef.current = null
+      return
+    }
+    if (!patientMarkerRef.current) {
+      patientMarkerRef.current = new window.mapboxgl.Marker({
+        element: patientMarkerElement(t('common.map.youAreHere')),
+      })
+        .setLngLat([position.lng, position.lat])
+        .addTo(map)
+    } else {
+      patientMarkerRef.current.setLngLat([position.lng, position.lat])
+    }
+  }, [position, t])
+
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -187,6 +236,10 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
     const update = () => {
       if (map.getSource(sourceId)) {
         map.getSource(sourceId).setData(data ?? { type: 'FeatureCollection', features: [] })
+        if (map.getLayer(sourceId)) {
+          map.setPaintProperty(sourceId, 'line-color', isFallback ? '#E59C00' : '#1D4E89')
+          map.setPaintProperty(sourceId, 'line-dasharray', isFallback ? [2, 1.5] : null)
+        }
         return
       }
       map.addSource(sourceId, { type: 'geojson', data: data ?? { type: 'FeatureCollection', features: [] } })
@@ -194,13 +247,18 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
         id: sourceId,
         type: 'line',
         source: sourceId,
-        paint: { 'line-color': '#1D4E89', 'line-width': 5, 'line-opacity': 0.85 },
+        paint: {
+          'line-color': isFallback ? '#E59C00' : '#1D4E89',
+          'line-width': 5,
+          'line-opacity': 0.85,
+          ...(isFallback ? { 'line-dasharray': [2, 1.5] } : {}),
+        },
       })
     }
     if (map.isStyleLoaded()) update()
     map.on('style.load', update)
     return () => map.off('style.load', update)
-  }, [route])
+  }, [isFallback, route])
 
   useEffect(() => {
     const map = mapRef.current
@@ -209,5 +267,5 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
   }, [destination, position])
 
   void getMapboxToken
-  return <div ref={containerRef} className="h-full w-full" aria-label="Carte Mapbox" />
+  return <div ref={containerRef} className="h-full w-full" aria-label={t('visitor.carte.title')} />
 }

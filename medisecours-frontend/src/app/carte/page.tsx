@@ -2,6 +2,7 @@
 
 import './maps.css'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -145,27 +146,27 @@ export default function CartePage() {
   const shareMap = useCallback(async () => {
     const url = window.location.href
     try {
-      if (navigator.share) await navigator.share({ title: 'MediSecours Maps', text: 'Carte des etablissements de sante', url })
-      else { await navigator.clipboard.writeText(url); toast.success('Lien de la carte copie.') }
+      if (navigator.share) await navigator.share({ title: 'MediSecours Maps', text: t('visitor.carte.shareMapText'), url })
+      else { await navigator.clipboard.writeText(url); toast.success(t('visitor.carte.toastMapCopied')) }
     } catch (cause) {
-      if ((cause as Error).name !== 'AbortError') toast.error('Le partage est indisponible.')
+      if ((cause as Error).name !== 'AbortError') toast.error(t('visitor.carte.toastShareUnavailable'))
     }
-  }, [toast])
+  }, [t, toast])
 
   const sharePosition = useCallback(async () => {
     if (!position) {
       locate()
-      toast.info('Autorisez votre position puis relancez le partage.')
+      toast.info(t('visitor.carte.toastShareNeedLocation'))
       return
     }
     const url = `https://www.google.com/maps?q=${position.lat},${position.lng}`
     try {
-      if (navigator.share) await navigator.share({ title: 'Ma position', text: 'Ma position MediSecours Maps', url })
-      else { await navigator.clipboard.writeText(url); toast.success('Lien de position copie.') }
+      if (navigator.share) await navigator.share({ title: t('visitor.carte.sharePositionTitle'), text: t('visitor.carte.sharePositionText'), url })
+      else { await navigator.clipboard.writeText(url); toast.success(t('visitor.carte.toastPositionCopied')) }
     } catch (cause) {
-      if ((cause as Error).name !== 'AbortError') toast.error('Le partage de position est indisponible.')
+      if ((cause as Error).name !== 'AbortError') toast.error(t('visitor.carte.toastPositionShareUnavailable'))
     }
-  }, [locate, position, toast])
+  }, [locate, position, t, toast])
 
   // ── Favoris (localStorage) ────────────────────────────────────────────────
 
@@ -340,10 +341,10 @@ export default function CartePage() {
         setCentres(current => current.some(item => item.id === centre.id) ? current : [...current, centre])
         handleSelect(centre.id)
       })
-      .catch(() => toast.error("L'etablissement partage n'est plus disponible."))
+      .catch(() => toast.error(t('visitor.carte.sharedCentreMissing')))
       .finally(() => { sharedCentreHandled.current = true })
     return () => controller.abort()
-  }, [centres, handleSelect, loading, toast])
+  }, [centres, handleSelect, loading, t, toast])
 
   const handleBackToList = useCallback(() => {
     setSelectedId(null)
@@ -483,6 +484,7 @@ export default function CartePage() {
             onToggleFavorite={toggleFavorite}
             favoriteIds={favorites}
             route={route}
+            isFallback={isFallback}
             destination={destination}
           />
         ) : providerState === 'checking' ? (
@@ -505,7 +507,7 @@ export default function CartePage() {
 
       <div className="maps-search-shell">
         <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-slate-950/95">
-          <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label="Ouvrir le menu" className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
+          <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label={t('visitor.carte.menuOpen')} className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
           <input
             value={searchQuery}
             onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true) }}
@@ -514,68 +516,69 @@ export default function CartePage() {
             className="h-11 min-w-0 flex-1 bg-transparent px-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
             aria-label={t('visitor.carte.searchAria')}
           />
-          <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true) }} title="Afficher les resultats" aria-label="Afficher les resultats" className="grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
+          <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true) }} title={t('visitor.carte.showResults')} aria-label={t('visitor.carte.showResults')} className="grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
           {searchQuery && (
-            <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="Effacer la recherche">
+            <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label={t('visitor.carte.clearSearch')}>
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
       </div>
         <div className="maps-categories-wrap">
-          <button type="button" className="maps-category-arrow" onClick={() => categoryRef.current?.scrollBy({ left: -260, behavior: 'smooth' })} aria-label="Voir les categories precedentes"><ChevronLeft size={18} /></button>
-          <div ref={categoryRef} className="maps-categories" aria-label="Types d'etablissement">
+          <button type="button" className="maps-category-arrow" onClick={() => categoryRef.current?.scrollBy({ left: -260, behavior: 'smooth' })} aria-label={t('visitor.carte.prevCategories')}><ChevronLeft size={18} /></button>
+          <div ref={categoryRef} className="maps-categories" aria-label={t('visitor.carte.categoriesAria')}>
             {([
-              ['all', 'Tous', MapPin],
-              ['hopital_general', 'Hopitaux', Hospital],
-              ['hopital_general', 'Regional Hospital', Hospital],
-              ['hopital_general', 'General Hospital', Hospital],
-              ['chu', 'Central Hospital', Hospital],
-              ['hopital_de_district', 'District Hospital', Hospital],
-              ['cma', 'CMA', Stethoscope],
-              ['csi', 'CSI', Stethoscope],
-              ['clinique_privee', 'Cliniques', Stethoscope],
-              ['pharmacie', 'Pharmacies', Pill],
-              ['laboratoire', 'Laboratoires', FlaskConical],
-              ['centre_specialise', 'Specialises', Building2],
-            ] as const).map(([type, label, Icon]) => (
-              <button key={`${type}-${label}`} type="button" onClick={() => setActiveType(type as 'all' | EtablissementType)} aria-pressed={activeType === type} title={label}>
-                <Icon size={16} aria-hidden="true" /><span>{label}</span>
-              </button>
-            ))}
+              ['all', MapPin],
+              ['hopital_general', Hospital],
+              ['chu', Hospital],
+              ['hopital_de_district', Hospital],
+              ['cma', Stethoscope],
+              ['csi', Stethoscope],
+              ['clinique_privee', Stethoscope],
+              ['pharmacie', Pill],
+              ['laboratoire', FlaskConical],
+              ['centre_specialise', Building2],
+            ] as const).map(([type, Icon]) => {
+              const label = t(`visitor.carte.type.${type}`)
+              return (
+                <button key={type} type="button" onClick={() => setActiveType(type as 'all' | EtablissementType)} aria-pressed={activeType === type} title={label}>
+                  <Icon size={16} aria-hidden="true" /><span>{label}</span>
+                </button>
+              )
+            })}
           </div>
-          <button type="button" className="maps-category-arrow" onClick={() => categoryRef.current?.scrollBy({ left: 260, behavior: 'smooth' })} aria-label="Voir les categories suivantes"><ChevronRight size={18} /></button>
+          <button type="button" className="maps-category-arrow" onClick={() => categoryRef.current?.scrollBy({ left: 260, behavior: 'smooth' })} aria-label={t('visitor.carte.nextCategories')}><ChevronRight size={18} /></button>
         </div>
       {menuOpen && (
         <div className="absolute inset-0 z-[1100] bg-black/20" onClick={() => setMenuOpen(false)}>
-          <aside id="maps-navigation-menu" className="maps-offcanvas" role="dialog" aria-modal="true" aria-label="Navigation" onClick={(event) => event.stopPropagation()}>
-            <div className="maps-menu-brand"><div className="maps-menu-wordmark"><strong>MediSecours</strong><span>Maps Sante</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer le menu"><X className="h-5 w-5" /></button></div>
+          <aside id="maps-navigation-menu" className="maps-offcanvas" role="dialog" aria-modal="true" aria-label={t('visitor.nav.carte')} onClick={(event) => event.stopPropagation()}>
+            <div className="maps-menu-brand"><div className="maps-menu-wordmark"><strong>MediSecours</strong><span>{t('visitor.carte.menuBrandSubtitle')}</span></div><button type="button" onClick={() => setMenuOpen(false)} aria-label={t('visitor.carte.menuClose')}><X className="h-5 w-5" /></button></div>
             <div className="maps-menu-top-actions">
-              <button type="button" onClick={() => { setRailOpen(true); setMenuOpen(false) }} className="maps-menu-link"><Menu className="h-5 w-5" />Afficher le panneau lateral</button>
-              <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('explore'); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />Explorer les etablissements</button>
+              <button type="button" onClick={() => { setRailOpen(true); setMenuOpen(false) }} className="maps-menu-link"><Menu className="h-5 w-5" />{t('visitor.carte.menuPanel')}</button>
+              <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('explore'); setMenuOpen(false) }} className="maps-menu-link"><MapPin className="h-5 w-5" />{t('visitor.carte.menuExplore')}</button>
             </div>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('saved'); setMenuOpen(false) }} className="maps-menu-link"><Bookmark className="h-5 w-5" />{t('visitor.carte.menuSaved')}</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><History className="h-5 w-5" />{t('visitor.carte.menuRecent')}</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setMenuOpen(false); toast.info(t('visitor.carte.contributionsHint')) }} className="maps-menu-link"><MessageCircle className="h-5 w-5" />{t('visitor.carte.menuContributions')}</button>
             <button type="button" onClick={() => { void sharePosition(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />{t('visitor.carte.menuSharePosition')}</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Route className="h-5 w-5" />{t('visitor.carte.menuRoutes')}</button>
-            <a href={isAuthenticated ? '/profil' : '/login'} onClick={() => setMenuOpen(false)} className="maps-menu-link"><Database className="h-5 w-5" />Vos donnees</a>
-            <button type="button" onClick={() => { void shareMap(); setMenuOpen(false) }} className="maps-menu-link"><Share2 className="h-5 w-5" />Partager la carte ou integrer</button>
-            <button type="button" onClick={() => { window.print(); setMenuOpen(false) }} className="maps-menu-link"><Printer className="h-5 w-5" />Imprimer</button>
-            <button type="button" onClick={() => { void locate(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />Ajouter une position precise</button>
-             <a href="/guide-utilisation" onClick={() => setMenuOpen(false)} className="maps-menu-link"><HelpCircle className="h-5 w-5" />Obtenir de l&apos;aide</a>
-            <button type="button" onClick={() => { toast.info('La langue suit les preferences de votre compte.'); setMenuOpen(false) }} className="maps-menu-link"><Languages className="h-5 w-5" />Langue</button>
-            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Clock className="h-5 w-5" />Historique MediSecours Maps</button>
+            <a href={isAuthenticated ? '/profil' : '/login'} onClick={() => setMenuOpen(false)} className="maps-menu-link"><Database className="h-5 w-5" />{t('visitor.carte.menuYourData')}</a>
+            <button type="button" onClick={() => { void shareMap(); setMenuOpen(false) }} className="maps-menu-link"><Share2 className="h-5 w-5" />{t('visitor.carte.menuShareMap')}</button>
+            <button type="button" onClick={() => { window.print(); setMenuOpen(false) }} className="maps-menu-link"><Printer className="h-5 w-5" />{t('visitor.carte.menuPrint')}</button>
+            <button type="button" onClick={() => { void locate(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />{t('visitor.carte.menuLocate')}</button>
+             <a href="/guide-utilisation" onClick={() => setMenuOpen(false)} className="maps-menu-link"><HelpCircle className="h-5 w-5" />{t('visitor.carte.menuHelp')}</a>
+            <button type="button" onClick={() => { toast.info(t('visitor.carte.languageHint')); setMenuOpen(false) }} className="maps-menu-link"><Languages className="h-5 w-5" />{t('visitor.carte.menuLanguage')}</button>
+            <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Clock className="h-5 w-5" />{t('visitor.carte.menuHistory')}</button>
             <nav className="flex flex-col">
               {([
-                [UserCircle, 'Mon profil', isAuthenticated ? '/profil' : '/login'],
-                [Stethoscope, 'Trouver un medecin', '/medecins'],
-                [MessageCircle, 'Messages', '/messages'],
-                [Bell, 'Notifications', '/notifications'],
-                [ClipboardList, 'Mes consultations', '/patient/consultations'],
-                [ClipboardList, 'Mes prescriptions', '/patient/prescriptions'],
-                [Activity, 'Premiers soins', '/premiers-soins'],
-                [Building2, 'Explorer les categories', '/categories'],
+                [UserCircle, t('visitor.carte.navProfile'), isAuthenticated ? '/profil' : '/login'],
+                [Stethoscope, t('visitor.carte.navFindDoctor'), '/medecins'],
+                [MessageCircle, t('visitor.carte.navMessages'), '/messages'],
+                [Bell, t('visitor.carte.navNotifications'), '/notifications'],
+                [ClipboardList, t('visitor.carte.navConsultations'), '/patient/consultations'],
+                [ClipboardList, t('visitor.carte.navPrescriptions'), '/patient/prescriptions'],
+                [Activity, t('visitor.carte.navFirstAid'), '/premiers-soins'],
+                [Building2, t('visitor.carte.navCategories'), '/categories'],
               ] as const).filter(([, , href]) => href === '/profil' || href === '/login' || (!isMedecin && !isEtablissement)).map(([Icon, label, href]) => <a key={href} href={href} className="maps-menu-link"><Icon className="h-5 w-5" />{label}</a>)}
             </nav>
           </aside>
@@ -586,25 +589,25 @@ export default function CartePage() {
         <a
           href={isAuthenticated ? '/profil' : '/login'}
           className="flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
-          aria-label={isAuthenticated ? 'Ouvrir le profil' : 'Se connecter'}
-          title={user?.email || (isAuthenticated ? 'Profil' : 'Connexion')}
+          aria-label={isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria')}
+          title={user?.email || (isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria'))}
         >
           <UserCircle className="h-6 w-6" />
         </a>
       </div>
 
       <div className="maps-brand">
-        <img src="/brand/medisecours-logo.png" alt="" aria-hidden="true" />
+        <Image src="/brand/medisecours-logo.png" alt="" aria-hidden="true" width={28} height={28} />
         <span>MediSecours <b>Maps</b></span>
       </div>
-      {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label="Fermer le panneau lateral"><Menu size={18} /></button>}
-      {!railOpen && <button type="button" className="maps-rail-open" onClick={() => setRailOpen(true)} aria-label="Afficher le panneau lateral"><ChevronRight size={18} /></button>}
+      {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label={t('visitor.carte.menuClose')}><Menu size={18} /></button>}
+      {!railOpen && <button type="button" className="maps-rail-open" onClick={() => setRailOpen(true)} aria-label={t('visitor.carte.menuPanel')}><ChevronRight size={18} /></button>}
       <div className={`maps-layer-control ${drawerOpen ? 'maps-layer-control-open' : ''}`}>
-        <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen(current => !current)}><Layers size={24} /><span>Calques</span></button>
-        {layersOpen && <div role="group" aria-label="Fond de carte">
-          <button type="button" aria-pressed={!satellite || provider === 'leaflet'} onClick={() => setSatellite(false)}>Plan</button>
-          <button type="button" disabled={provider !== 'google' && provider !== 'mapbox'} aria-pressed={satellite && provider !== 'leaflet'} onClick={() => setSatellite(true)}>Satellite</button>
-          {provider !== 'google' && provider !== 'mapbox' && <small>Satellite indisponible avec le fond de carte actuel.</small>}
+        <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen(current => !current)}><Layers size={24} /><span>{t('visitor.carte.layers')}</span></button>
+        {layersOpen && <div role="group" aria-label={t('visitor.carte.layersBaseAria')}>
+          <button type="button" aria-pressed={!satellite || provider === 'leaflet'} onClick={() => setSatellite(false)}>{t('visitor.carte.layersPlan')}</button>
+          <button type="button" disabled={provider !== 'google' && provider !== 'mapbox'} aria-pressed={satellite && provider !== 'leaflet'} onClick={() => setSatellite(true)}>{t('visitor.carte.layersSatellite')}</button>
+          {provider !== 'google' && provider !== 'mapbox' && <small>{t('visitor.carte.layersSatelliteUnavailable')}</small>}
         </div>}
       </div>
 
@@ -690,7 +693,9 @@ export default function CartePage() {
                     <Clock className="h-4 w-4 text-primary-500" />
                     {formatDuration(duration)}
                   </span>
-                  {steps.length > 0 && <span className="text-slate-400">{steps.length} étapes</span>}
+                  {steps.length > 0 && (
+                    <span className="text-slate-400">{t('visitor.carte.directions.stepsCount', { count: steps.length })}</span>
+                  )}
                   {isFallback && (
                     <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
                       {t('visitor.carte.directions.approx')}
@@ -701,6 +706,23 @@ export default function CartePage() {
                 <span className="text-red-600 dark:text-red-300">{routeError}</span>
               )}
             </div>
+
+            {route && steps.length > 0 && (
+              <details className="mt-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/5">
+                <summary className="cursor-pointer list-none text-xs font-bold text-slate-700 dark:text-slate-200">
+                  {t('visitor.carte.directions.steps')}
+                </summary>
+                <ol className="mt-2 max-h-40 space-y-1.5 overflow-y-auto pr-1">
+                  {steps.map((step, index) => (
+                    <li key={index} className="flex gap-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                      <span className="font-bold text-primary-600 dark:text-primary-400">{index + 1}.</span>
+                      <span className="min-w-0 flex-1">{step.instruction}</span>
+                      <span className="shrink-0 text-slate-400">{formatDistanceKm(step.distance / 1000)}</span>
+                    </li>
+                  ))}
+                </ol>
+              </details>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

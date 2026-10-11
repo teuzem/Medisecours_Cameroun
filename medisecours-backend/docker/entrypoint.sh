@@ -215,8 +215,14 @@ fi
 # Seed de carte de test : 10 établissements camerounais réels (idempotent,
 # googlePlaceId seed-carte-test-*). Phase A bloquante : centres + couvertures
 # seulement (aucun réseau). Phase B en arrière-plan : téléchargement best-effort
-# de la galerie (6s par image, échecs ignorés).
+# de la galerie (6s par image, échecs ignorés). Les comptes de test sont créés
+# en premier (idempotent) pour que le seed puisse affilier medecin@test.com aux
+# fiches « Médecins » du PISAM et du CHU Yaoundé.
 if [ "${SEED_CARTE_TEST:-0}" = "1" ]; then
+    echo "==> Creating test accounts (patient/medecin/admin)..."
+    if ! php bin/console app:create-test-users --no-interaction; then
+        echo "WARNING: app:create-test-users failed."
+    fi
     echo "==> Seeding 10 test establishments for the health map..."
     if ! php bin/console app:seed-carte-test --no-interaction; then
         echo "WARNING: app:seed-carte-test failed (map may be empty)."

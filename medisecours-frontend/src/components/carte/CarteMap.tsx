@@ -27,16 +27,17 @@ const PULSE_STYLE = `
 }
 `
 
-/** Dot bleu "Vous êtes ici" avec halo pulsant */
+/** Dot rouge « Vous êtes ici » avec double halo pulsant — repère temps réel du patient. */
 function makePatientIcon() {
   return L.divIcon({
     html: `
-      <div style="position:relative;width:20px;height:20px;">
-        <div style="position:absolute;inset:0;border-radius:50%;background:rgba(29,78,137,0.25);animation:cartePatientPulse 2s ease-in-out infinite;"></div>
-        <div style="position:absolute;inset:0;border-radius:50%;background:#1D4E89;border:3px solid #fff;box-shadow:0 0 0 3px #1D4E89;"></div>
+      <div style="position:relative;width:24px;height:24px;">
+        <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.55);animation:cartePatientPulse 1.6s ease-out infinite;"></div>
+        <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.4);animation:cartePatientPulse 1.6s ease-out 0.8s infinite;"></div>
+        <div style="position:absolute;inset:0;border-radius:50%;background:#D32F2F;border:3px solid #fff;box-shadow:0 1px 8px rgba(211,47,47,0.65);"></div>
       </div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
     className: '',
   })
 }
@@ -340,7 +341,7 @@ export default function CarteMap({
         <Marker
           position={[position.lat, position.lng]}
           icon={patientIcon}
-          zIndexOffset={1500}
+          zIndexOffset={3000}
           title={t('visitor.components.centresMap.yourPosition')}
         >
           <Popup>

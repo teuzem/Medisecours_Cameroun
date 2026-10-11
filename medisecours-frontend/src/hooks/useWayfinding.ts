@@ -228,7 +228,7 @@ export function useWayfinding({
         }[] = osrmRoute.legs[0].steps ?? []
 
         const routeSteps: RouteStep[] = osrmSteps.map((step) => ({
-          instruction: step.maneuver?.instruction ?? 'Continuer tout droit',
+          instruction: step.maneuver?.instruction ?? i18n.t('common.map.continueStraight'),
           distance: step.distance,
           duration: step.duration,
           name: step.name ?? '',

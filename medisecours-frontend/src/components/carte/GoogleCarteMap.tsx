@@ -84,18 +84,19 @@ function makePinContent(color: string, selected: boolean, name: string): HTMLDiv
   return element
 }
 
-/** Dot bleu "Vous êtes ici" avec halo pulsant. */
+/** Dot rouge « Vous êtes ici » avec double halo pulsant — repère temps réel du patient. */
 function makePatientContent(): HTMLDivElement {
   const element = document.createElement('div')
-  element.style.cssText = 'position:relative;width:20px;height:20px;'
+  element.style.cssText = 'position:relative;width:24px;height:24px;'
   element.innerHTML = `
-    <div style="position:absolute;inset:0;border-radius:50%;background:rgba(29,78,137,0.25);animation:cartePatientPulse 2s ease-in-out infinite;"></div>
-    <div style="position:absolute;inset:0;border-radius:50%;background:#1D4E89;border:3px solid #fff;box-shadow:0 0 0 3px #1D4E89;"></div>`
+    <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.55);animation:cartePatientPulse 1.6s ease-out infinite;"></div>
+    <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.4);animation:cartePatientPulse 1.6s ease-out 0.8s infinite;"></div>
+    <div style="position:absolute;inset:0;border-radius:50%;background:#D32F2F;border:3px solid #fff;box-shadow:0 1px 8px rgba(211,47,47,0.65);"></div>`
   const style = document.createElement('style')
   style.textContent = `
     @keyframes cartePatientPulse {
-      0%   { transform: scale(1);   opacity: 0.7; }
-      50%  { transform: scale(2.4); opacity: 0; }
+      0%   { transform: scale(1);   opacity: 0.8; }
+      50%  { transform: scale(2.2); opacity: 0; }
       100% { transform: scale(1);   opacity: 0; }
     }`
   element.appendChild(style)
@@ -313,10 +314,12 @@ export default function GoogleCarteMap({
         position,
         title: t('common.map.youAreHere'),
         content: makePatientContent(),
+        zIndex: 9999,
       })
     } else {
       patientRef.current.position = position
       patientRef.current.title = t('common.map.youAreHere')
+      patientRef.current.zIndex = 9999
     }
   }, [position, t])
 
