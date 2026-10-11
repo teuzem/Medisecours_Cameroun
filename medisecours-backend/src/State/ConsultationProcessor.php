@@ -172,6 +172,12 @@ class ConsultationProcessor implements ProcessorInterface
                 'photoProfil' => $c->getMedecin()->getPhotoProfil(),
                 'telephone' => $c->getMedecin()->getTelephone(),
             ] : null,
+            'etablissement' => $c->getEtablissement() ? [
+                'id' => $c->getEtablissement()->getId(),
+                'nom' => $c->getEtablissement()->getNom(),
+                'type' => $c->getEtablissement()->getType(),
+                'ville' => $c->getEtablissement()->getVille(),
+            ] : null,
         ];
     }
 }

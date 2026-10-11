@@ -110,6 +110,15 @@ class EvenementController extends AbstractController
 
         $totaux = $this->evenementRepository->totaux($centreId, $since);
         $serieRows = $this->evenementRepository->serieJournaliere($centreId, $since);
+        $serieHoraire = $this->evenementRepository->serieHoraire($centreId, $since);
+
+        $sincePrecedent = new \DateTimeImmutable(sprintf('-%d days', $days * 2));
+        $totauxPrecedents = $this->evenementRepository->totauxPeriode($centreId, $sincePrecedent, $since);
+        $totalPrecedent = array_sum($totauxPrecedents);
+        $totalCourant = array_sum($totaux);
+        $croissance = $totalPrecedent > 0
+            ? round((($totalCourant - $totalPrecedent) / $totalPrecedent) * 100, 1)
+            : ($totalCourant > 0 ? 100.0 : 0.0);
 
         return new JsonResponse([
             'scope' => $global ? 'global' : 'etablissement',
@@ -118,8 +127,14 @@ class EvenementController extends AbstractController
             'since' => $since->format('c'),
             'generatedAt' => (new \DateTimeImmutable())->format('c'),
             'totaux' => $totaux,
-            'total' => array_sum($totaux),
+            'total' => $totalCourant,
             'serie' => $this->remplirSerie($since, $days, $serieRows),
+            'serieHoraire' => $serieHoraire,
+            'comparaison' => [
+                'totalPeriodePrecedente' => $totalPrecedent,
+                'totauxPeriodePrecedente' => $totauxPrecedents,
+                'croissancePourcent' => $croissance,
+            ],
             'topServices' => $this->evenementRepository->topServices($centreId, $since),
             'medecinsActivite' => $global
                 ? $this->activiteMedecinsGlobal($since)

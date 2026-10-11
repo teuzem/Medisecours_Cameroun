@@ -51,6 +51,7 @@ export default function Navbar() {
 
   const patientLinks: NavLink[] = [
     { to: '/', label: t('visitor.nav.home'), icon: Home },
+    { to: '/patient/etablissements', label: t('visitor.nav.carte'), icon: Building2 },
     { to: '/premiers-soins', label: t('visitor.nav.firstAid'), icon: Cross },
     { to: '/maladies', label: t('visitor.nav.orientation'), icon: Activity },
     { to: '/medecins', label: t('visitor.nav.doctors'), icon: Stethoscope },

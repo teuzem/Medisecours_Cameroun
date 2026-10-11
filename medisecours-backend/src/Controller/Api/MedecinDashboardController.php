@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\Entity\Medecin;
+use App\Entity\Patient;
+use App\Entity\User;
 use App\Entity\UserPreference;
 use App\Repository\UserPreferenceRepository;
 use App\Service\MedecinDashboardService;
@@ -19,19 +21,18 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Endpoint agrégé du tableau de bord médecin.
+ * Endpoints agrégés du tableau de bord (/api/me).
  *
- * Renvoie en UN seul appel tous les indicateurs du médecin connecté,
- * calculés via des requêtes d'agrégat SQL (cf. MedecinDashboardService)
- * et scopés sur le médecin. La sérialisation des sous-ensembles (widgets)
- * réutilise les groups de lecture existants pour rester cohérent côté frontend.
+ * - /dashboard : indicateurs agrégés du médecin connecté (ROLE_MEDECIN).
+ * - /preferences : préférences de personnalisation (médecin ou patient).
  */
 #[Route('/api/me', name: 'api_me_')]
 class MedecinDashboardController extends AbstractController
 {
     private const PREFERENCE_LANGUAGES = ['fr', 'en'];
     private const PREFERENCE_WEEK_STARTS = ['monday', 'sunday'];
-    private const PREFERENCE_NOTIFICATION_KEYS = ['consultations', 'messages', 'sos', 'avis'];
+    private const PREFERENCE_NOTIFICATION_KEYS = ['consultations', 'messages', 'sos', 'avis', 'etablissements'];
+    private const PREFERENCE_NOTIFICATION_KEYS_MEDECIN = ['consultations', 'messages', 'sos', 'avis'];
 
     public function __construct(
         private readonly MedecinDashboardService $dashboardService,
@@ -53,8 +54,6 @@ class MedecinDashboardController extends AbstractController
 
             $data = $this->dashboardService->buildDashboard($user);
 
-            // Les compteurs sont déjà des scalaires. Les widgets listes
-            // (consultations / patients) sont sérialisés via les groups de lecture.
             $consultationCtx = ['groups' => ['consultation:read', 'user:search']];
             $patientCtx = ['groups' => ['user:search']];
 
@@ -75,18 +74,14 @@ class MedecinDashboardController extends AbstractController
     }
 
     /**
-     * Préférences de personnalisation du médecin connecté.
+     * Préférences de personnalisation de l'utilisateur connecté.
      *
      * GET /api/me/preferences
      */
     #[Route('/preferences', name: 'preferences', methods: ['GET'])]
-    #[IsGranted('ROLE_MEDECIN')]
     public function mesPreferences(): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user instanceof Medecin) {
-            throw new AccessDeniedHttpException('Réservé aux médecins.');
-        }
+        $user = $this->requirePreferenceUser();
 
         return new JsonResponse([
             'preferences' => $this->loadPreferences($user),
@@ -94,19 +89,15 @@ class MedecinDashboardController extends AbstractController
     }
 
     /**
-     * Mise à jour partielle des préférences du médecin connecté.
+     * Mise à jour partielle des préférences de l'utilisateur connecté.
      *
      * PATCH /api/me/preferences
      * Body : language?, weekStart?, compact?, animations?, notifications?
      */
     #[Route('/preferences', name: 'preferences_update', methods: ['PATCH'])]
-    #[IsGranted('ROLE_MEDECIN')]
     public function modifierPreferences(Request $request): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user instanceof Medecin) {
-            throw new AccessDeniedHttpException('Réservé aux médecins.');
-        }
+        $user = $this->requirePreferenceUser();
 
         $data = $request->toArray();
         $current = $this->loadPreferences($user);
@@ -138,7 +129,7 @@ class MedecinDashboardController extends AbstractController
         if (array_key_exists('notifications', $data)) {
             $updated['notifications'] = array_merge(
                 $current['notifications'] ?? [],
-                $this->sanitizeNotificationPreferences($data['notifications'])
+                $this->sanitizeNotificationPreferences($data['notifications'], $user)
             );
         }
 
@@ -161,14 +152,24 @@ class MedecinDashboardController extends AbstractController
         return new JsonResponse(['preferences' => $updated]);
     }
 
+    private function requirePreferenceUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Medecin && !$user instanceof Patient) {
+            throw new AccessDeniedHttpException('Réservé aux médecins et patients connectés.');
+        }
+
+        return $user;
+    }
+
     /**
-     * Préférences validées du médecin (défauts + valeurs stockées).
+     * Préférences validées (défauts + valeurs stockées).
      *
      * @return array<string, mixed>
      */
-    private function loadPreferences(Medecin $user): array
+    private function loadPreferences(User $user): array
     {
-        $preferences = self::defaultPreferences();
+        $preferences = self::defaultPreferences($user);
 
         $preference = $this->preferenceRepository->findOneByUser($user);
         if (!$preference instanceof UserPreference) {
@@ -199,18 +200,22 @@ class MedecinDashboardController extends AbstractController
     }
 
     /**
-     * Valide un objet de préférences de notifications (clés partielles autorisées).
+     * Valide un objet de préférences de notifications selon le rôle de l'utilisateur.
      *
      * @return array<string, bool>
      */
-    private function sanitizeNotificationPreferences(mixed $value): array
+    private function sanitizeNotificationPreferences(mixed $value, User $user): array
     {
         if (!is_array($value)) {
             throw new BadRequestHttpException('Préférences de notifications invalides.');
         }
 
+        $allowedKeys = $user instanceof Patient
+            ? self::PREFERENCE_NOTIFICATION_KEYS
+            : self::PREFERENCE_NOTIFICATION_KEYS_MEDECIN;
+
         $sanitized = [];
-        foreach (self::PREFERENCE_NOTIFICATION_KEYS as $key) {
+        foreach ($allowedKeys as $key) {
             if (!array_key_exists($key, $value)) {
                 continue;
             }
@@ -224,29 +229,36 @@ class MedecinDashboardController extends AbstractController
     }
 
     /**
-     * Valeurs par défaut (miroir de defaultPrefs() côté frontend médecin).
+     * Valeurs par défaut adaptées au rôle.
      *
      * @return array<string, mixed>
      */
-    private static function defaultPreferences(): array
+    private static function defaultPreferences(User $user): array
     {
+        $notifications = $user instanceof Patient
+            ? [
+                'consultations' => true,
+                'messages' => true,
+                'sos' => true,
+                'avis' => true,
+                'etablissements' => true,
+            ]
+            : [
+                'consultations' => true,
+                'messages' => true,
+                'sos' => true,
+                'avis' => true,
+            ];
+
         return [
             'language' => 'fr',
             'weekStart' => 'monday',
             'compact' => false,
             'animations' => true,
-            'notifications' => [
-                'consultations' => true,
-                'messages' => true,
-                'sos' => true,
-                'avis' => true,
-            ],
+            'notifications' => $notifications,
         ];
     }
 
-    /**
-     * Sérialise une valeur et la renvoie sous forme de tableau (array|null).
-     */
     private function serialize(mixed $value, array $context): mixed
     {
         return json_decode(

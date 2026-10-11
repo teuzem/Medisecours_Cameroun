@@ -95,6 +95,63 @@ class EvenementEtablissementRepository extends ServiceEntityRepository
     }
 
     /**
+     * Totaux par type d'interaction sur une fenêtre bornée (période courante ou précédente).
+     *
+     * @return array<string, int>
+     */
+    public function totauxPeriode(?int $centreId, \DateTimeImmutable $since, \DateTimeImmutable $until): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->select('e.type AS cle, COUNT(e.id) AS nb')
+            ->andWhere('e.createdAt >= :since')->setParameter('since', $since)
+            ->andWhere('e.createdAt < :until')->setParameter('until', $until)
+            ->groupBy('e.type');
+
+        if (null !== $centreId) {
+            $qb->andWhere('e.etablissement = :centre')->setParameter('centre', $centreId);
+        }
+
+        $out = [];
+        foreach ($qb->getQuery()->getResult() as $row) {
+            $out[(string) $row['cle']] = (int) $row['nb'];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Série horaire : nombre d'événements par heure de la journée (0–23).
+     *
+     * @return array<int, int> index 0–23, valeur = nombre d'événements
+     */
+    public function serieHoraire(?int $centreId, \DateTimeImmutable $since): array
+    {
+        $sql = '
+            SELECT EXTRACT(HOUR FROM e.created_at) AS heure, COUNT(*) AS nb
+            FROM evenement_etablissement e
+            WHERE e.created_at >= :since
+        ';
+        $params = ['since' => $since->format('Y-m-d H:i:s')];
+        if (null !== $centreId) {
+            $sql .= ' AND e.etablissement_id = :centre';
+            $params['centre'] = $centreId;
+        }
+        $sql .= ' GROUP BY heure ORDER BY heure ASC';
+
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative($sql, $params);
+
+        $out = array_fill(0, 24, 0);
+        foreach ($rows as $row) {
+            $heure = (int) $row['heure'];
+            if ($heure >= 0 && $heure < 24) {
+                $out[$heure] = (int) $row['nb'];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Services/spécialités les plus demandés (événements de type 'service').
      *
      * @return array<int, array{service: string, nb: int}>

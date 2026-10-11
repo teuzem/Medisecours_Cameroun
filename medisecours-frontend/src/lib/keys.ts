@@ -38,6 +38,21 @@ export const UNREAD_NOTIFICATIONS_KEY = '/api/notifications/unread-count'
 /** Dashboard agrégé du médecin connecté. */
 export const DASHBOARD_KEY = '/api/me/dashboard'
 
+/** Préférences de personnalisation de l'utilisateur connecté (médecin ou patient). */
+export const ME_PREFERENCES_KEY = '/api/me/preferences'
+
+/** Fiches établissements (recherche patient, filtres type/région/ville). */
+export const ETABLISSEMENTS_KEY = '/api/centre_de_santes'
+
+/** Établissements favoris de l'utilisateur connecté (ids). */
+export const FAVORIS_KEY = '/api/carte/saved'
+
+/** Avis d'établissement publiés par l'utilisateur connecté. */
+export const AVIS_ETABLISSEMENTS_KEY = '/api/avis_etablissements'
+
+/** Statistiques agrégées des consultations du patient connecté. */
+export const PATIENT_CONSULTATIONS_STATS_KEY = '/api/patient/consultations/stats'
+
 /** Construit la clé SWR conditionnelle : retourne null si l'utilisateur n'est pas prêt. */
 export function keyed<T>(key: T, condition: unknown): T | null {
   return condition ? key : null

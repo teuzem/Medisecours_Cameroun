@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ConsultationRepository::class)]
-#[ApiFilter(SearchFilter::class, properties: ['statut' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['statut' => 'exact', 'etablissement' => 'exact'])]
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'id'])]
 #[ApiResource(
     operations: [
@@ -62,6 +62,11 @@ class Consultation
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['consultation:read', 'consultation:write', 'message:read'])]
     private ?Medecin $medecin = null;
+
+    #[ORM\ManyToOne(targetEntity: CentreDeSante::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['consultation:read', 'consultation:write', 'message:read'])]
+    private ?CentreDeSante $etablissement = null;
 
     #[ORM\Column(length: 30)]
     #[Assert\Choice(choices: [
@@ -153,6 +158,18 @@ class Consultation
     public function setMedecin(?Medecin $medecin): static
     {
         $this->medecin = $medecin;
+
+        return $this;
+    }
+
+    public function getEtablissement(): ?CentreDeSante
+    {
+        return $this->etablissement;
+    }
+
+    public function setEtablissement(?CentreDeSante $etablissement): static
+    {
+        $this->etablissement = $etablissement;
 
         return $this;
     }

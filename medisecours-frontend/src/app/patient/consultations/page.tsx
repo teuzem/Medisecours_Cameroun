@@ -7,11 +7,13 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   Activity,
   AlertTriangle,
+  Building2,
   CalendarDays,
   CheckCircle,
   ClipboardList,
   Clock,
   Inbox,
+  MapPin,
   MessageSquare,
   Pill,
   Plus,
@@ -115,6 +117,7 @@ export default function PatientConsultationsPage() {
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
   const [motif, setMotif] = useState('')
   const [priorite, setPriorite] = useState('NORMALE')
+  const [etablissementId, setEtablissementId] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [filter, setFilter] = useState<FilterTab>('TOUTES')
   const [searchQuery, setSearchQuery] = useState('')
@@ -123,9 +126,12 @@ export default function PatientConsultationsPage() {
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null)
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('new') !== '1') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('new') !== '1') return
 
+    const preselect = Number(params.get('etablissement'))
     const timer = window.setTimeout(() => {
+      if (Number.isFinite(preselect) && preselect > 0) setEtablissementId(preselect)
       setShowForm(true)
       router.replace('/patient/consultations', { scroll: false })
     }, 0)
@@ -181,6 +187,21 @@ export default function PatientConsultationsPage() {
     user ? '/api/patient/consultations/stats' : null,
     async (url) => (await api.get(url)).data,
     { revalidateOnFocus: false },
+  )
+
+  const { data: etablissementsData } = useSWR(
+    showForm ? '/api/centre_de_santes?estActif=true&itemsPerPage=60' : null,
+    async (url) => (await api.get(url)).data,
+    { revalidateOnFocus: false },
+  )
+  const etablissementsList = useMemo(() => {
+    if (!etablissementsData) return []
+    const raw = etablissementsData['hydra:member'] ?? etablissementsData
+    return Array.isArray(raw) ? raw : []
+  }, [etablissementsData])
+  const selectedEtablissement = useMemo(
+    () => etablissementsList.find((e: any) => e.id === etablissementId) ?? null,
+    [etablissementsList, etablissementId],
   )
 
   const loadedConsultations = useMemo(
@@ -320,10 +341,13 @@ export default function PatientConsultationsPage() {
 
     setSubmitting(true)
     try {
-      await api.post('/api/consultations', { motif: motif.trim(), priorite })
+      const body: Record<string, unknown> = { motif: motif.trim(), priorite }
+      if (etablissementId) body.etablissement = `/api/centre_de_santes/${etablissementId}`
+      await api.post('/api/consultations', body)
       setShowForm(false)
       setMotif('')
       setPriorite('NORMALE')
+      setEtablissementId(null)
       await Promise.all([mutate(), mutateConsultationStats()])
       toast.success(t('patient.consultations.sentToast'))
     } catch {
@@ -519,6 +543,33 @@ export default function PatientConsultationsPage() {
               </fieldset>
             </div>
 
+            <div className="mt-5 border-t border-slate-100 pt-5 dark:border-white/10">
+              <label className="block">
+                <span className="flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500">
+                  <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t('patient.consultations.establishmentLabel')}
+                </span>
+                <select
+                  value={etablissementId ?? ''}
+                  onChange={(event) => setEtablissementId(event.target.value ? Number(event.target.value) : null)}
+                  className="mt-2 h-11 w-full border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-slate-950 dark:text-white"
+                >
+                  <option value="">{t('patient.consultations.establishmentAny')}</option>
+                  {etablissementsList.map((e: any) => (
+                    <option key={e.id} value={e.id}>
+                      {e.nom}{e.ville ? ` — ${e.ville}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-400">
+                <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+                {selectedEtablissement
+                  ? t('patient.consultations.establishmentTargetedNote')
+                  : t('patient.consultations.establishmentBroadcastNote')}
+              </p>
+            </div>
+
             <div className="mt-5 flex flex-col-reverse gap-2 border-t border-slate-100 pt-5 dark:border-white/10 sm:flex-row sm:justify-end">
               <button
                 type="button"
@@ -707,6 +758,12 @@ export default function PatientConsultationsPage() {
                             <p className="flex items-center gap-2">
                               <Stethoscope className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300" aria-hidden="true" />
                               Dr {consultation.medecin.prenom} {consultation.medecin.nom}
+                            </p>
+                          )}
+                          {consultation.etablissement?.nom && (
+                            <p className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                              {t('patient.consultations.targetedBadge', { name: consultation.etablissement.nom })}
                             </p>
                           )}
                         </div>
