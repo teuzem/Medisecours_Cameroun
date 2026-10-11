@@ -10,6 +10,11 @@ name: Deploy to Coolify
 #   COOLIFY_WEBHOOK_WS       -> Coolify deploy webhook URL for the WS app
 #
 # In Coolify, each Application has a "Webhooks" tab that exposes the URL.
+#
+# NOTE: the `secrets` context is NOT available inside step-level `if:`
+# conditionals (GitHub Actions context restrictions), which made every run
+# of this workflow fail before reaching curl. The emptiness check is done in
+# the shell instead, where the secret is passed through `env`.
 
 on:
   push:
@@ -25,22 +30,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Backend
-        if: ${{ secrets.COOLIFY_WEBHOOK_BACKEND != '' }}
+        env:
+          WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK_BACKEND }}
         run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "COOLIFY_WEBHOOK_BACKEND not set; skipping backend trigger."
+            exit 0
+          fi
           curl -sS --fail --max-time 60 \
             --retry 3 --retry-delay 5 \
-            -X GET "${{ secrets.COOLIFY_WEBHOOK_BACKEND }}" || exit 1
+            -X GET "$WEBHOOK"
 
       - name: Frontend
-        if: ${{ secrets.COOLIFY_WEBHOOK_FRONTEND != '' }}
+        env:
+          WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK_FRONTEND }}
         run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "COOLIFY_WEBHOOK_FRONTEND not set; skipping frontend trigger."
+            exit 0
+          fi
           curl -sS --fail --max-time 60 \
             --retry 3 --retry-delay 5 \
-            -X GET "${{ secrets.COOLIFY_WEBHOOK_FRONTEND }}" || exit 1
+            -X GET "$WEBHOOK"
 
       - name: WebSocket
-        if: ${{ secrets.COOLIFY_WEBHOOK_WS != '' }}
+        env:
+          WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK_WS }}
         run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "COOLIFY_WEBHOOK_WS not set; skipping websocket trigger."
+            exit 0
+          fi
           curl -sS --fail --max-time 60 \
             --retry 3 --retry-delay 5 \
-            -X GET "${{ secrets.COOLIFY_WEBHOOK_WS }}" || exit 1
+            -X GET "$WEBHOOK"
