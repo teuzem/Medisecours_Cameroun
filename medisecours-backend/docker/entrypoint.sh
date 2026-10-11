@@ -102,23 +102,40 @@ fi
 # every auth-couched query (login, carte, equipe) into a 500. If the objects
 # this release requires are missing, fail the deploy so the platform keeps
 # serving the previous healthy release instead.
+#
+# The probe MUST cover the same objects as HealthController::REQUIRED_SCHEMA
+# (7 objects). A thinner probe lets a hollow schema pass the deploy gate and
+# then take every instance out of rotation at runtime (Oct 12 outage).
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ] && [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "1" ]; then
     echo "==> Verifying required schema objects..."
-    if ! php bin/console doctrine:query:sql \
-        "SELECT 1 FROM \"user\" WHERE type_personnel IS NULL LIMIT 0" \
-        --env=prod; then
-        echo "ERROR: required schema is missing (user.type_personnel)."
+    schema_probe_failed=0
+    probe_schema() {
+        label="$1"
+        sql="$2"
+        if ! php bin/console doctrine:query:sql "$sql" --env=prod; then
+            echo "ERROR: required schema is missing (${label})."
+            schema_probe_failed=1
+        fi
+    }
+    probe_schema 'user.type_personnel' \
+        "SELECT 1 FROM \"user\" WHERE type_personnel IS NULL LIMIT 0"
+    probe_schema 'signature_numerique' \
+        "SELECT 1 FROM signature_numerique LIMIT 0"
+    probe_schema 'centre_de_sante.dirigeant_id' \
+        "SELECT 1 FROM centre_de_sante WHERE dirigeant_id IS NULL LIMIT 0"
+    probe_schema 'etablissement_equipe' \
+        "SELECT 1 FROM etablissement_equipe LIMIT 0"
+    probe_schema 'dossier_medical' \
+        "SELECT 1 FROM dossier_medical LIMIT 0"
+    probe_schema 'soin_administre' \
+        "SELECT 1 FROM soin_administre LIMIT 0"
+    probe_schema 'ordonnance_pharmacie' \
+        "SELECT 1 FROM ordonnance_pharmacie LIMIT 0"
+    if [ "$schema_probe_failed" = "1" ]; then
         echo "       Refusing to boot: failing the deploy to keep the previous release online."
         exit 1
     fi
-    if ! php bin/console doctrine:query:sql \
-        "SELECT 1 FROM signature_numerique LIMIT 0" \
-        --env=prod; then
-        echo "ERROR: required schema is missing (signature_numerique)."
-        echo "       Refusing to boot: failing the deploy to keep the previous release online."
-        exit 1
-    fi
-    echo "==> Schema probe OK."
+    echo "==> Schema probe OK (7/7 objects)."
 fi
 
 # Legacy option (off by default) : seed des 232 mock data de

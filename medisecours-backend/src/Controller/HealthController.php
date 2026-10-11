@@ -15,9 +15,17 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * Un simple `SELECT 1` ne prouve rien du schéma : la panne de production du
  * 11 octobre avait une base « joignable » pendant que chaque requête ORM
- * explosait sur des colonnes manquantes. Le health check vérifie donc aussi
- * les objets de schéma que ce déploiement exige — Render utilise ce même
- * endpoint comme healthCheckPath, ce qui en fait un second verrou de deploy.
+ * explosait sur des colonnes manquantes. Le health check sonde donc aussi
+ * les objets de schéma que ce déploiement exige.
+ *
+ * Un schéma incomplet ne doit JAMAIS produire un 503 ici : Render utilise
+ * cet endpoint comme healthCheckPath, et un 503 retire l'instance de la
+ * pool — couplant la dispo de TOUTE l'API (login, chat, consultations) à
+ * la complétude du schéma carte. La spirale du 12 octobre (schéma creux →
+ * toutes les releases en 503 → « no available server ») en est l'exemple.
+ * Le verrou de deploy est l'entrypoint (probe stricte avant boot) ; ici,
+ * on ne 503 que si la base elle-même est injoignable, et le détail du
+ * schéma reste exposé dans le corps de la réponse pour le diagnostic.
  */
 class HealthController extends AbstractController
 {
@@ -75,6 +83,9 @@ class HealthController extends AbstractController
         $problems = $this->probeSchema($connection);
         $schemaOk = $problems === [];
 
+        // Schéma incomplet => 200 "degraded" (voir docblock) : l'instance
+        // reste routable, les endpoints dont le schéma est intact servent,
+        // et le corps de réponse liste précisément ce qui manque.
         return new JsonResponse([
             'status' => $schemaOk ? 'ok' : 'degraded',
             'services' => [
@@ -85,7 +96,7 @@ class HealthController extends AbstractController
             'schema' => $schemaOk ? 'ok' : 'missing',
             'problems' => $problems,
             'timestamp' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
-        ], $schemaOk ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
+        ], Response::HTTP_OK);
     }
 
     /**
