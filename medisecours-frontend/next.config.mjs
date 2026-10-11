@@ -41,6 +41,13 @@ const securityHeaders = [
 const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  // Photography on the landing page is served from Unsplash (real photos,
+  // never AI-generated). next/image refuses remote hosts unless declared.
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+    ],
+  },
   // Accepte les noms exacts du projet de référence Manus (VITE_FRONTEND_FORGE_*)
   // comme alias des NEXT_PUBLIC_FRONTEND_FORGE_* inlinés au build par Next.js.
   // Sans ce mapping, ces variables seraient ignorées sur un build non-Docker

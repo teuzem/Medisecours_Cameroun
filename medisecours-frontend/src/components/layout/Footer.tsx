@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, MapPin } from 'lucide-react'
+import { ArrowRight, MapPin, Phone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthContext } from '../../contexts/AuthContext'
+import { emergencyCallHref, EMERGENCY_NUMBER } from '../../config/firstAid'
 
 export default function Footer({ compact = false }: { compact?: boolean }) {
   const { isAuthenticated } = useAuthContext()
@@ -112,25 +113,55 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
              </p>
            </div>
 
-           {/* Right Columns: Links */}
-            <div className="grid min-w-0 flex-1 grid-cols-1 gap-8 sm:grid-cols-2">
-              {/* Col 1 */}
-              <div>
-                <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.servicesTitle')}</h4>
-                <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
-                  <li><Link href="/centres" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.healthCentres')}</Link></li>
-                </ul>
-              </div>
-              
-              {/* Col 2 */}
-              <div>
-                <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.learnTitle')}</h4>
-                <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
-                  <li><Link href="/premiers-soins" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.firstAidActs')}</Link></li>
-                  <li><Link href="/categories" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.medicalCategories')}</Link></li>
-                  <li><Link href="/guide-utilisation" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.guide')}</Link></li>
-                </ul>
-              </div>
+            {/* Right Columns: Links */}
+             <div className="grid min-w-0 flex-1 grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+               {/* Solution */}
+               <div>
+                 <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.servicesTitle')}</h4>
+                 <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
+                   <li><Link href="/carte" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.carteItem')}</Link></li>
+                   <li><Link href="/premiers-soins" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.firstAidActs')}</Link></li>
+                   <li><Link href="/maladies" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.maladiesItem')}</Link></li>
+                   <li><Link href="/centres" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.healthCentres')}</Link></li>
+                 </ul>
+               </div>
+
+               {/* Professionnels */}
+               <div>
+                 <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.professionalsTitle')}</h4>
+                 <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
+                   <li><Link href="/medecins" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.doctorsItem')}</Link></li>
+                   <li><Link href="/personnel" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.personnelItem')}</Link></li>
+                   <li><Link href="/espace-etablissement" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.etablissementItem')}</Link></li>
+                   <li><Link href="/login" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.nav.login')}</Link></li>
+                 </ul>
+               </div>
+
+               {/* Apprendre */}
+               <div>
+                 <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.learnTitle')}</h4>
+                 <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
+                   <li><Link href="/categories" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.medicalCategories')}</Link></li>
+                   <li><Link href="/guide-utilisation" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.guide')}</Link></li>
+                 </ul>
+               </div>
+
+               {/* Contact */}
+               <div>
+                 <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.contactTitle')}</h4>
+                 <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
+                   <li>{t('visitor.footer.contactLine')}</li>
+                   <li>
+                     <a
+                       href={emergencyCallHref()}
+                       className="inline-flex items-center gap-2 font-semibold text-urgence-600 transition-colors hover:text-urgence-700 dark:text-urgence-400 dark:hover:text-urgence-300"
+                     >
+                       <Phone className="h-4 w-4" aria-hidden="true" />
+                       {t('visitor.footer.emergencyItem', { number: EMERGENCY_NUMBER })}
+                     </a>
+                   </li>
+                 </ul>
+               </div>
            </div>
         </div>
 

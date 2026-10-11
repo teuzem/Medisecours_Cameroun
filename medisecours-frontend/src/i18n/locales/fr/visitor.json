@@ -39,11 +39,21 @@
       "newsletterPlaceholder": "Votre email",
       "newsletterSubmit": "Valider",
       "newsletterConsent": "En vous inscrivant, vous acceptez notre Politique de confidentialité et consentez à recevoir des mises à jour de notre plateforme.",
-      "servicesTitle": "Services",
+      "servicesTitle": "Solution",
       "healthCentres": "Centres de santé",
       "learnTitle": "Apprendre",
       "firstAidActs": "Gestes de secours",
       "medicalCategories": "Catégories médicales",
+      "professionalsTitle": "Professionnels",
+      "doctorsItem": "Annuaire des médecins",
+      "personnelItem": "Personnel soignant",
+      "etablissementItem": "Espace établissement",
+      "sosItem": "SOS urgence",
+      "carteItem": "Carte santé",
+      "maladiesItem": "Maladies & symptômes",
+      "contactTitle": "Contact",
+      "contactLine": "Plateforme médicale d'urgence — Cameroun",
+      "emergencyItem": "Urgences : {{number}}",
       "rightsReserved": "Tous droits réservés."
     },
     "floatingHelp": {
@@ -332,6 +342,165 @@
       "title": "Diagnostic : page introuvable",
       "description": "Aucun premier soin ne répare ce lien cassé. Retournons à un endroit plus sûr.",
       "backHome": "Retour à l'accueil"
+    },
+    "landing": {
+      "ariaLabel": "Présentation de la plateforme MediSecours",
+      "hero": {
+        "previous": "Diapositive précédente",
+        "next": "Diapositive suivante",
+        "goTo": "Afficher la diapositive {{number}}",
+        "pause": "Mettre le carrousel en pause",
+        "play": "Reprendre le carrousel",
+        "slides": [
+          {
+            "title": "Toute la santé du Cameroun, réunie sur une seule plateforme",
+            "subtitle": "Patients, médecins et établissements travaillent enfin sur le même circuit : de l'urgence au dossier médical signé, en passant par la carte des structures de santé.",
+            "ctaPrimary": "Créer mon compte gratuit",
+            "ctaSecondary": "Explorer la carte santé"
+          },
+          {
+            "title": "Une urgence ? Le SOS part en quelques secondes",
+            "subtitle": "Depuis votre téléphone, alertez les structures de santé autour de vous, suivez la prise en charge et gardez la trace de chaque geste.",
+            "ctaPrimary": "Découvrir le SOS patient",
+            "ctaSecondary": "Appeler les urgences"
+          },
+          {
+            "title": "Votre établissement, piloté comme un poste de commandement",
+            "subtitle": "Fiche vérifiée, équipe validée, médias, avis et analytiques temps réel : votre structure gagne la visibilité qu'elle mérite, avec un tableau de bord complet.",
+            "ctaPrimary": "Ouvrir l'espace établissement",
+            "ctaSecondary": "Voir des établissements"
+          },
+          {
+            "title": "Les premiers gestes qui sauvent, même sans réseau",
+            "subtitle": "Des protocoles de premiers soins clairs, illustrés et hiérarchisés par danger : hémorragies, brûlures, convulsions… savoir quoi faire avant l'arrivée des secours.",
+            "ctaPrimary": "Apprendre les premiers soins",
+            "ctaSecondary": "Consulter les maladies"
+          }
+        ]
+      },
+      "emergency": {
+        "title": "Danger immédiat ?",
+        "desc": "Une consultation en ligne ne remplace jamais les urgences. Appelez le service national.",
+        "call": "Appeler le {{number}}"
+      },
+      "solution": {
+        "title": "Une solution complète, du premier appel au dossier médical",
+        "subtitle": "MediSecours relie les quatre métiers de la santé camerounaise dans un seul circuit numérique, sécurisé et traçable.",
+        "items": {
+          "sos": {
+            "title": "SOS urgence",
+            "desc": "Le patient déclenche une alerte depuis son téléphone ; les structures proches reçoivent la demande avec position et motif, et l'historique conserve chaque étape.",
+            "link": "Découvrir les urgences",
+            "href": "/premiers-soins"
+          },
+          "carte": {
+            "title": "Carte santé interactive",
+            "desc": "Hôpitaux, cliniques, pharmacies et laboratoires géolocalisés, avec recherche par ville, quartier ou langue parlée — Google, Mapbox ou Leaflet selon la disponibilité.",
+            "link": "Ouvrir la carte",
+            "href": "/carte"
+          },
+          "premiersSoins": {
+            "title": "Premiers soins & protocoles",
+            "desc": "Des gestes qui sauvent expliqués pas à pas, classés par niveau de danger, accessibles même hors connexion pour agir dans l'instant.",
+            "link": "Lire les protocoles",
+            "href": "/premiers-soins"
+          },
+          "maladies": {
+            "title": "Maladies & symptômes",
+            "desc": "Un catalogue médical référencé pour reconnaître les symptômes, comprendre les pathologies et orienter vers le bon niveau de soin.",
+            "link": "Explorer le catalogue",
+            "href": "/maladies"
+          },
+          "medecins": {
+            "title": "Médecins & téléconsultation",
+            "desc": "Annuaire vérifié, profils complets, disponibilités en direct : prenez rendez-vous en cabinet ou en téléconsultation, ordonnances numériques incluses.",
+            "link": "Trouver un médecin",
+            "href": "/medecins"
+          },
+          "messagerie": {
+            "title": "Messagerie sécurisée",
+            "desc": "Patient et médecin échangent dans un fil privé, pièce jointe et ordonnance à l'appui, avec notifications en temps réel.",
+            "link": "Accéder à la messagerie",
+            "href": "/login"
+          },
+          "etablissement": {
+            "title": "Espace établissement",
+            "desc": "Fiche publique vérifiée, galerie, avis clients, synchronisation cartographique et tableau de bord analytique : votre vitrine numérique complète.",
+            "link": "Gérer mon établissement",
+            "href": "/espace-etablissement"
+          },
+          "personnel": {
+            "title": "Personnel soignant",
+            "desc": "Accueil et constantes vitales, ouverture automatique du dossier médical, soins signés non répudiables et circuit pharmacie complet.",
+            "link": "Espace personnel soignant",
+            "href": "/personnel"
+          }
+        }
+      },
+      "roles": {
+        "title": "Quatre espaces, un seul circuit de soins",
+        "subtitle": "Chaque acteur dispose de son propre poste de travail — mais tous partagent la même information, au bon moment.",
+        "patient": {
+          "title": "Je suis patient",
+          "desc": "Consultations, ordonnances, dossiers et avis : votre santé suivie de bout en bout.",
+          "step1": "Créez votre compte en une minute",
+          "step2": "Trouvez un médecin ou une structure près de vous",
+          "step3": "Suivez consultations, ordonnances et demandes de soins",
+          "cta": "Créer un compte patient"
+        },
+        "medecin": {
+          "title": "Je suis médecin",
+          "desc": "Consultations, prescriptions numériques et suivi de vos patients, où que vous soyez.",
+          "step1": "Inscrivez-vous avec vos justificatifs",
+          "step2": "Consultez en cabinet ou en téléconsultation",
+          "step3": "Prescrivez et signez numériquement",
+          "cta": "Devenir médecin partenaire"
+        },
+        "personnel": {
+          "title": "Je suis personnel soignant",
+          "desc": "Accueil, constantes, soins signés et pharmacie : le circuit infirmier complet.",
+          "step1": "Faites valider votre compte par votre établissement",
+          "step2": "Accueillez les patients et ouvrez les dossiers",
+          "step3": "Réalisez des soins signés non répudiables",
+          "cta": "Accéder à l'espace personnel"
+        },
+        "etablissement": {
+          "title": "Je gère un établissement",
+          "desc": "Hôpital, clinique, centre de santé ou pharmacie : pilotez votre vitrine et votre équipe.",
+          "step1": "Déclarez et faites vérifier votre fiche",
+          "step2": "Validez les comptes de votre équipe",
+          "step3": "Suivez avis, médias et analytiques",
+          "cta": "Ouvrir l'espace établissement"
+        }
+      },
+      "trust": {
+        "title": "Conçu pour la confiance, la traçabilité et l'urgence",
+        "subtitle": "La santé exige plus qu'une belle interface : chaque compte, chaque acte et chaque document laisse une preuve.",
+        "items": {
+          "signatures": {
+            "title": "Signatures non répudiables",
+            "desc": "Chaque soin réalisé est signé par l'agent, horodaté et conservé dans l'historique du dossier médical."
+          },
+          "validation": {
+            "title": "Comptes validés par un humain",
+            "desc": "Médecins et personnel soignant sont vérifiés pièce par pièce avant tout accès aux outils de travail."
+          },
+          "confidentialite": {
+            "title": "Données protégées",
+            "desc": "Échanges chiffrés et accès par rôle strict : vos informations ne sont visibles que par les professionnels qui vous suivent."
+          },
+          "reference": {
+            "title": "Contenu médical référencé",
+            "desc": "Protocoles de premiers soins et catalogue de maladies relus par des professionnels de santé."
+          }
+        }
+      },
+      "closing": {
+        "title": "Prêt à rejoindre MediSecours ?",
+        "desc": "Patient, soignant ou gestionnaire d'établissement : votre espace vous attend, gratuitement.",
+        "ctaPatient": "Créer mon compte patient",
+        "ctaPro": "Espace professionnel"
+      }
     },
     "home": {
       "hero": {

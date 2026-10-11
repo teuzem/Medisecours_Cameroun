@@ -39,11 +39,21 @@
       "newsletterPlaceholder": "Your email",
       "newsletterSubmit": "Subscribe",
       "newsletterConsent": "By signing up, you accept our Privacy Policy and consent to receiving updates from our platform.",
-      "servicesTitle": "Services",
+      "servicesTitle": "Solution",
       "healthCentres": "Health centres",
       "learnTitle": "Learn",
-      "firstAidActs": "First aid steps",
+      "firstAidActs": "First-aid gestures",
       "medicalCategories": "Medical categories",
+      "professionalsTitle": "Professionals",
+      "doctorsItem": "Doctor directory",
+      "personnelItem": "Care staff",
+      "etablissementItem": "Facility space",
+      "sosItem": "Emergency SOS",
+      "carteItem": "Health map",
+      "maladiesItem": "Conditions & symptoms",
+      "contactTitle": "Contact",
+      "contactLine": "Emergency medical platform — Cameroon",
+      "emergencyItem": "Emergencies: {{number}}",
       "rightsReserved": "All rights reserved."
     },
     "floatingHelp": {
@@ -332,6 +342,165 @@
       "title": "Diagnosis: page not found",
       "description": "No first aid can fix this broken link. Let's get back to somewhere safer.",
       "backHome": "Back to home"
+    },
+    "landing": {
+      "ariaLabel": "MediSecours platform overview",
+      "hero": {
+        "previous": "Previous slide",
+        "next": "Next slide",
+        "goTo": "Show slide {{number}}",
+        "pause": "Pause the carousel",
+        "play": "Resume the carousel",
+        "slides": [
+          {
+            "title": "All of Cameroon's healthcare, united on one platform",
+            "subtitle": "Patients, doctors and facilities finally work through the same circuit: from emergency alert to signed medical file, via the map of health structures.",
+            "ctaPrimary": "Create my free account",
+            "ctaSecondary": "Explore the health map"
+          },
+          {
+            "title": "Emergency? SOS goes out in seconds",
+            "subtitle": "From your phone, alert the health facilities around you, follow the response and keep a trace of every step.",
+            "ctaPrimary": "Discover patient SOS",
+            "ctaSecondary": "Call emergency services"
+          },
+          {
+            "title": "Your facility, run like a command centre",
+            "subtitle": "Verified listing, validated team, media, reviews and real-time analytics: your structure gains the visibility it deserves, with a complete dashboard.",
+            "ctaPrimary": "Open the facility space",
+            "ctaSecondary": "Browse facilities"
+          },
+          {
+            "title": "Life-saving first aid, even offline",
+            "subtitle": "Clear first-aid protocols, illustrated and ranked by danger: bleeding, burns, seizures… knowing what to do before help arrives.",
+            "ctaPrimary": "Learn first aid",
+            "ctaSecondary": "Browse conditions"
+          }
+        ]
+      },
+      "emergency": {
+        "title": "Immediate danger?",
+        "desc": "An online consultation never replaces emergency services. Call the national number.",
+        "call": "Call {{number}}"
+      },
+      "solution": {
+        "title": "A complete solution, from the first call to the medical file",
+        "subtitle": "MediSecours connects the four corners of Cameroonian healthcare into one secure, traceable digital circuit.",
+        "items": {
+          "sos": {
+            "title": "Emergency SOS",
+            "desc": "The patient triggers an alert from their phone; nearby facilities receive the request with location and reason, and the timeline keeps every step.",
+            "link": "Discover emergencies",
+            "href": "/premiers-soins"
+          },
+          "carte": {
+            "title": "Interactive health map",
+            "desc": "Hospitals, clinics, pharmacies and labs geolocated, searchable by city, neighbourhood or spoken language — Google, Mapbox or Leaflet depending on availability.",
+            "link": "Open the map",
+            "href": "/carte"
+          },
+          "premiersSoins": {
+            "title": "First aid & protocols",
+            "desc": "Life-saving gestures explained step by step, ranked by danger level, reachable even offline so you can act in the moment.",
+            "link": "Read the protocols",
+            "href": "/premiers-soins"
+          },
+          "maladies": {
+            "title": "Conditions & symptoms",
+            "desc": "A referenced medical catalogue to recognise symptoms, understand conditions and orient toward the right level of care.",
+            "link": "Explore the catalogue",
+            "href": "/maladies"
+          },
+          "medecins": {
+            "title": "Doctors & teleconsultation",
+            "desc": "Verified directory, complete profiles, live availability: book an in-clinic or teleconsultation appointment, digital prescriptions included.",
+            "link": "Find a doctor",
+            "href": "/medecins"
+          },
+          "messagerie": {
+            "title": "Secure messaging",
+            "desc": "Patient and doctor exchange in a private thread, with attachments and prescriptions, plus real-time notifications.",
+            "link": "Open messaging",
+            "href": "/login"
+          },
+          "etablissement": {
+            "title": "Facility space",
+            "desc": "Verified public listing, gallery, client reviews, map synchronisation and an analytics dashboard: your complete digital storefront.",
+            "link": "Manage my facility",
+            "href": "/espace-etablissement"
+          },
+          "personnel": {
+            "title": "Care staff",
+            "desc": "Reception and vitals, automatic medical file opening, non-repudiable signed care and the full pharmacy circuit.",
+            "link": "Care staff space",
+            "href": "/personnel"
+          }
+        }
+      },
+      "roles": {
+        "title": "Four spaces, one care circuit",
+        "subtitle": "Every actor gets their own workstation — but all of them share the same information, at the right moment.",
+        "patient": {
+          "title": "I am a patient",
+          "desc": "Consultations, prescriptions, files and reviews: your health followed end to end.",
+          "step1": "Create your account in one minute",
+          "step2": "Find a doctor or facility near you",
+          "step3": "Track consultations, prescriptions and care requests",
+          "cta": "Create a patient account"
+        },
+        "medecin": {
+          "title": "I am a doctor",
+          "desc": "Consultations, digital prescriptions and patient follow-up, wherever you are.",
+          "step1": "Sign up with your credentials",
+          "step2": "Consult in clinic or by teleconsultation",
+          "step3": "Prescribe and sign digitally",
+          "cta": "Become a partner doctor"
+        },
+        "personnel": {
+          "title": "I am care staff",
+          "desc": "Reception, vitals, signed care and pharmacy: the complete nursing circuit.",
+          "step1": "Get your account validated by your facility",
+          "step2": "Welcome patients and open their files",
+          "step3": "Deliver non-repudiable signed care",
+          "cta": "Open the staff space"
+        },
+        "etablissement": {
+          "title": "I manage a facility",
+          "desc": "Hospital, clinic, health centre or pharmacy: run your storefront and your team.",
+          "step1": "Declare your listing and get it verified",
+          "step2": "Validate your team's accounts",
+          "step3": "Track reviews, media and analytics",
+          "cta": "Open the facility space"
+        }
+      },
+      "trust": {
+        "title": "Built for trust, traceability and urgency",
+        "subtitle": "Healthcare demands more than a pretty interface: every account, every act and every document leaves a proof.",
+        "items": {
+          "signatures": {
+            "title": "Non-repudiable signatures",
+            "desc": "Every delivered care act is signed by the agent, timestamped and kept in the medical file history."
+          },
+          "validation": {
+            "title": "Human-validated accounts",
+            "desc": "Doctors and care staff are checked document by document before any access to work tools."
+          },
+          "confidentialite": {
+            "title": "Protected data",
+            "desc": "Encrypted exchanges and strict role-based access: your information is visible only to the professionals following you."
+          },
+          "reference": {
+            "title": "Referenced medical content",
+            "desc": "First-aid protocols and the condition catalogue reviewed by healthcare professionals."
+          }
+        }
+      },
+      "closing": {
+        "title": "Ready to join MediSecours?",
+        "desc": "Patient, care worker or facility manager: your space is waiting, free of charge.",
+        "ctaPatient": "Create my patient account",
+        "ctaPro": "Professional space"
+      }
     },
     "home": {
       "hero": {
