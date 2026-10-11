@@ -41,11 +41,13 @@ const securityHeaders = [
 const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
-  // Photography on the landing page is served from Unsplash (real photos,
-  // never AI-generated). next/image refuses remote hosts unless declared.
+  // Photography on the landing page is served from Pexels and Unsplash
+  // (real photos, never AI-generated). next/image refuses remote hosts
+  // unless declared.
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'images.pexels.com' },
     ],
   },
   // Accepte les noms exacts du projet de référence Manus (VITE_FRONTEND_FORGE_*)

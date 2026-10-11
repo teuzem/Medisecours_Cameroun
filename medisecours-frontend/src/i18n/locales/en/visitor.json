@@ -500,6 +500,73 @@
         "desc": "Patient, care worker or facility manager: your space is waiting, free of charge.",
         "ctaPatient": "Create my patient account",
         "ctaPro": "Professional space"
+      },
+      "bands": {
+        "carte": {
+          "title": "Cameroon's health map, neighbourhood by neighbourhood",
+          "desc": "Hospitals, health centres, pharmacies and labs, geolocated. Search by city or neighbourhood, filter by facility type, open the full profile and start directions — on Google, Mapbox or fallback mode, depending on availability.",
+          "points": {
+            "p1": "Instant text search",
+            "p2": "Directions and open/closed status",
+            "p3": "Profiles, reviews and photo gallery"
+          },
+          "cta": "Open the map",
+          "href": "/carte"
+        },
+        "teleconsult": {
+          "title": "From diagnosis to the signed medical file",
+          "desc": "The doctor sees you in clinic or by teleconsultation, opens your file, prescribes digitally and signs every act. The patient keeps their full history, wherever they are.",
+          "points": {
+            "p1": "Secure patient-doctor messaging",
+            "p2": "Traceable digital prescriptions",
+            "p3": "Timestamped, non-repudiable medical file"
+          },
+          "cta": "Find a doctor",
+          "href": "/medecins"
+        },
+        "pharmacie": {
+          "title": "The pharmacy, in the same circuit",
+          "desc": "The prescription reaches the facility pharmacy: the pharmacist bills in CFA francs, takes payment at the counter, marks the administration and keeps the record. No lost paper, no broken follow-up.",
+          "points": {
+            "p1": "Billing and counter payment",
+            "p2": "RECEIVED, PAID, ADMINISTERED tracking",
+            "p3": "Full per-patient traceability"
+          },
+          "cta": "Explore the facility space",
+          "href": "/espace-etablissement"
+        },
+        "premiersSoins": {
+          "title": "Life-saving gestures, even offline",
+          "desc": "Bleeding, burns, seizures, unconsciousness: illustrated protocols, ranked by severity and readable without a connection. In immediate danger, call 119 first.",
+          "points": {
+            "p1": "Protocols reviewed by professionals",
+            "p2": "Ranked by danger level",
+            "p3": "Mobile-ready, across Cameroon"
+          },
+          "cta": "Learn first aid",
+          "href": "/premiers-soins"
+        }
+      },
+      "facts": {
+        "title": "Built for Cameroon's ground reality",
+        "items": {
+          "urgence": {
+            "value": "119",
+            "label": "National emergency number, recalled at every critical step"
+          },
+          "langues": {
+            "value": "FR / EN",
+            "label": "Bilingual interface, just like the country"
+          },
+          "regions": {
+            "value": "10 regions",
+            "label": "National coverage, from Douala to Garoua"
+          },
+          "paiement": {
+            "value": "FCFA",
+            "label": "Counter payment in cash, no bank card required"
+          }
+        }
       }
     },
     "home": {
