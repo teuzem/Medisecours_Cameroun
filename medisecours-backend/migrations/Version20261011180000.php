@@ -30,10 +30,13 @@ final class Version20261011180000 extends AbstractMigration
             image_data TEXT NOT NULL,
             hash_sha256 VARCHAR(64) NOT NULL,
             grade VARCHAR(120) DEFAULT NULL,
-            signed_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
+            signed_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
             est_active BOOLEAN DEFAULT \'true\' NOT NULL,
             PRIMARY KEY(id)
         )');
+        // Postgres rejects inline COMMENT inside CREATE TABLE (MySQL syntax).
+        // The DC2Type marker must be a standalone COMMENT ON COLUMN statement.
+        $this->addSql('COMMENT ON COLUMN signature_numerique.signed_at IS \'(DC2Type:datetime_immutable)\'');
         $this->addSql('CREATE INDEX IF NOT EXISTS IDX_SIGNATURE_USER_ACTIVE ON signature_numerique (utilisateur_id, est_active)');
         $this->addSql('CREATE INDEX IF NOT EXISTS IDX_9E0C1F5A13044D9 ON signature_numerique (utilisateur_id)');
         $this->addSql('ALTER TABLE signature_numerique DROP CONSTRAINT IF EXISTS FK_9E0C1F5A13044D9');

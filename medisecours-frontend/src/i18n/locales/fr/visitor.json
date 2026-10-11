@@ -495,78 +495,59 @@
           }
         }
       },
+      "journey": {
+        "title": "Du premier symptôme au dossier signé",
+        "subtitle": "Un seul circuit, six postes de travail : rien ne se perd entre l'alerte, le soin et la pharmacie.",
+        "steps": [
+          {
+            "title": "Repérer",
+            "desc": "Symptômes, doute ou urgence : la plateforme vous dit d'abord ce qui ne peut pas attendre."
+          },
+          {
+            "title": "Alerter",
+            "desc": "SOS en quelques secondes : position, photo de situation, structures autour de vous prévenues."
+          },
+          {
+            "title": "Orienter",
+            "desc": "La carte affiche les hôpitaux, cliniques, pharmacies et laboratoires réels autour de vous."
+          },
+          {
+            "title": "Consulter",
+            "desc": "Médecin en cabinet ou en téléconsultation : demande, échanges et rendez-vous au même endroit."
+          },
+          {
+            "title": "Soigner",
+            "desc": "Accueil, constantes, soins réalisés et signés de façon non répudiable par le personnel soignant."
+          },
+          {
+            "title": "Conserver",
+            "desc": "Ordonnances, dossier et historique restent chez le patient, traçables de bout en bout."
+          }
+        ]
+      },
+      "coverage": {
+        "title": "Sur le terrain, partout au Cameroun",
+        "desc": "Des urgences de Douala aux centres de santé ruraux, MediSecours cartographie les structures réelles du pays : type, ville, horaires, urgences 24 h et itinéraire. Google Maps en priorité, replis Mapbox et Leaflet garantis.",
+        "cta": "Explorer la carte santé",
+        "photoYaounde": "Hôpital Général de Yaoundé",
+        "photoRural": "Centre de santé rural",
+        "photoSalle": "Salle d'hospitalisation"
+      },
+      "care": {
+        "title": "Savoir quoi faire, avant que ça ne devienne grave",
+        "desc": "Le référentiel de premiers soins et le catalogue de maladies expliquent les gestes qui sauvent et les signes à reconnaître — hiérarchisés par danger, illustrés, et relus par des professionnels de santé.",
+        "ctaFirstAid": "Lire les protocoles de premiers soins",
+        "ctaDiseases": "Consulter le catalogue des maladies",
+        "imageAlt": "Examen ophtalmologique dans un hôpital camerounais"
+      },
       "closing": {
         "title": "Prêt à rejoindre MediSecours ?",
         "desc": "Patient, soignant ou gestionnaire d'établissement : votre espace vous attend, gratuitement.",
         "ctaPatient": "Créer mon compte patient",
         "ctaPro": "Espace professionnel"
       },
-      "bands": {
-        "carte": {
-          "title": "La carte santé du Cameroun, quartier par quartier",
-          "desc": "Hôpitaux, centres de santé, pharmacies et laboratoires géolocalisés. Recherchez par ville ou quartier, filtrez par type de structure, ouvrez la fiche complète et lancez l'itinéraire — en Google, Mapbox ou mode repli selon la disponibilité.",
-          "points": {
-            "p1": "Recherche textuelle instantanée",
-            "p2": "Itinéraire et statut d'ouverture",
-            "p3": "Fiches, avis et galerie photo"
-          },
-          "cta": "Ouvrir la carte",
-          "href": "/carte"
-        },
-        "teleconsult": {
-          "title": "Du diagnostic au dossier médical signé",
-          "desc": "Le médecin reçoit en consultation ou en téléconsultation, établit le dossier, prescrit en ordonnance numérique et signe chaque acte. Le patient retrouve tout son historique, où qu'il soit.",
-          "points": {
-            "p1": "Messagerie sécurisée patient-médecin",
-            "p2": "Ordonnances numériques traçables",
-            "p3": "Dossier médical horodaté et non répudiable"
-          },
-          "cta": "Trouver un médecin",
-          "href": "/medecins"
-        },
-        "pharmacie": {
-          "title": "La pharmacie, dans le même circuit",
-          "desc": "L'ordonnance arrive à la pharmacie de l'établissement : le préparateur facture en francs CFA, encaisse au comptoir, marque l'administré et garde l'historique. Zéro papier perdu, zéro rupture de suivi.",
-          "points": {
-            "p1": "Facturation et paiement au comptoir",
-            "p2": "Suivi RECUE, PAYEE, ADMINISTREE",
-            "p3": "Traçabilité complète par patient"
-          },
-          "cta": "Découvrir l'espace établissement",
-          "href": "/espace-etablissement"
-        },
-        "premiersSoins": {
-          "title": "Les gestes qui sauvent, même hors ligne",
-          "desc": "Hémorragies, brûlures, convulsions, inconscience : des protocoles illustrés, classés par niveau de gravité et consultables sans connexion. En cas de danger immédiat, appelez le 119 avant tout.",
-          "points": {
-            "p1": "Protocoles validés par des professionnels",
-            "p2": "Classement par niveau de danger",
-            "p3": "Accessible sur mobile, partout au Cameroun"
-          },
-          "cta": "Apprendre les gestes de secours",
-          "href": "/premiers-soins"
-        }
-      },
-      "facts": {
-        "title": "Pensé pour le terrain camerounais",
-        "items": {
-          "urgence": {
-            "value": "119",
-            "label": "Numéro national d'urgence, rappelé à chaque étape critique"
-          },
-          "langues": {
-            "value": "FR / EN",
-            "label": "Interface bilingue, comme le pays"
-          },
-          "regions": {
-            "value": "10 régions",
-            "label": "Couverture nationale, de Douala à Garoua"
-          },
-          "paiement": {
-            "value": "FCFA",
-            "label": "Paiement physique au comptoir, aucune carte bancaire requise"
-          }
-        }
+      "credits": {
+        "line": "Photographies de structures et de soins au Cameroun : Happi Raphael, Destiny Deffo, Kondah, Serieminou, Fotang (CC BY-SA 4.0, Wikimedia Commons) ; CDC Global (CC BY 2.0)."
       }
     },
     "home": {

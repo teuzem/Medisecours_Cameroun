@@ -495,78 +495,59 @@
           }
         }
       },
+      "journey": {
+        "title": "From the first symptom to the signed record",
+        "subtitle": "One circuit, six workstations: nothing is lost between the alert, the care and the pharmacy.",
+        "steps": [
+          {
+            "title": "Notice",
+            "desc": "Symptoms, doubt or emergency: the platform first tells you what cannot wait."
+          },
+          {
+            "title": "Alert",
+            "desc": "SOS in seconds: location, situation photo, nearby facilities notified."
+          },
+          {
+            "title": "Orient",
+            "desc": "The map shows the real hospitals, clinics, pharmacies and labs around you."
+          },
+          {
+            "title": "Consult",
+            "desc": "Doctor in clinic or by telemedicine: request, messages and appointments in one place."
+          },
+          {
+            "title": "Treat",
+            "desc": "Reception, vitals, care performed and non-repudiable signed by the care team."
+          },
+          {
+            "title": "Keep",
+            "desc": "Prescriptions, records and history stay with the patient, traceable end to end."
+          }
+        ]
+      },
+      "coverage": {
+        "title": "On the ground, across Cameroon",
+        "desc": "From Douala emergency rooms to rural health centres, MediSecours maps the country's real facilities: type, city, hours, 24/7 emergency care and directions. Google Maps first, with guaranteed Mapbox and Leaflet fallbacks.",
+        "cta": "Explore the health map",
+        "photoYaounde": "Yaoundé General Hospital",
+        "photoRural": "Rural health centre",
+        "photoSalle": "Hospital ward"
+      },
+      "care": {
+        "title": "Knowing what to do, before it becomes critical",
+        "desc": "The first-aid reference and the disease catalogue explain life-saving gestures and the signs to recognise — ranked by danger, illustrated, and reviewed by health professionals.",
+        "ctaFirstAid": "Read the first-aid protocols",
+        "ctaDiseases": "Browse the disease catalogue",
+        "imageAlt": "Eye examination in a Cameroonian hospital"
+      },
       "closing": {
         "title": "Ready to join MediSecours?",
         "desc": "Patient, care worker or facility manager: your space is waiting, free of charge.",
         "ctaPatient": "Create my patient account",
         "ctaPro": "Professional space"
       },
-      "bands": {
-        "carte": {
-          "title": "Cameroon's health map, neighbourhood by neighbourhood",
-          "desc": "Hospitals, health centres, pharmacies and labs, geolocated. Search by city or neighbourhood, filter by facility type, open the full profile and start directions — on Google, Mapbox or fallback mode, depending on availability.",
-          "points": {
-            "p1": "Instant text search",
-            "p2": "Directions and open/closed status",
-            "p3": "Profiles, reviews and photo gallery"
-          },
-          "cta": "Open the map",
-          "href": "/carte"
-        },
-        "teleconsult": {
-          "title": "From diagnosis to the signed medical file",
-          "desc": "The doctor sees you in clinic or by teleconsultation, opens your file, prescribes digitally and signs every act. The patient keeps their full history, wherever they are.",
-          "points": {
-            "p1": "Secure patient-doctor messaging",
-            "p2": "Traceable digital prescriptions",
-            "p3": "Timestamped, non-repudiable medical file"
-          },
-          "cta": "Find a doctor",
-          "href": "/medecins"
-        },
-        "pharmacie": {
-          "title": "The pharmacy, in the same circuit",
-          "desc": "The prescription reaches the facility pharmacy: the pharmacist bills in CFA francs, takes payment at the counter, marks the administration and keeps the record. No lost paper, no broken follow-up.",
-          "points": {
-            "p1": "Billing and counter payment",
-            "p2": "RECEIVED, PAID, ADMINISTERED tracking",
-            "p3": "Full per-patient traceability"
-          },
-          "cta": "Explore the facility space",
-          "href": "/espace-etablissement"
-        },
-        "premiersSoins": {
-          "title": "Life-saving gestures, even offline",
-          "desc": "Bleeding, burns, seizures, unconsciousness: illustrated protocols, ranked by severity and readable without a connection. In immediate danger, call 119 first.",
-          "points": {
-            "p1": "Protocols reviewed by professionals",
-            "p2": "Ranked by danger level",
-            "p3": "Mobile-ready, across Cameroon"
-          },
-          "cta": "Learn first aid",
-          "href": "/premiers-soins"
-        }
-      },
-      "facts": {
-        "title": "Built for Cameroon's ground reality",
-        "items": {
-          "urgence": {
-            "value": "119",
-            "label": "National emergency number, recalled at every critical step"
-          },
-          "langues": {
-            "value": "FR / EN",
-            "label": "Bilingual interface, just like the country"
-          },
-          "regions": {
-            "value": "10 regions",
-            "label": "National coverage, from Douala to Garoua"
-          },
-          "paiement": {
-            "value": "FCFA",
-            "label": "Counter payment in cash, no bank card required"
-          }
-        }
+      "credits": {
+        "line": "Photographs of Cameroonian facilities and care: Happi Raphael, Destiny Deffo, Kondah, Serieminou, Fotang (CC BY-SA 4.0, Wikimedia Commons); CDC Global (CC BY 2.0)."
       }
     },
     "home": {

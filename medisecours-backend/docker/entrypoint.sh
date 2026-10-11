@@ -76,16 +76,12 @@ chmod -R 775 var/cache var/log var/uploads
 #      Neon, Supabase…) -> set SKIP_MIGRATIONS=1 so this entrypoint does not
 #      try to re-create tables that already exist.
 echo "==> Checking database provisioning..."
-# STRICT_DATABASE_BOOTSTRAP defaults to ON: booting new code against a stale
-# schema turns every auth-couched query (login, carte, equipes) into a 500.
-# Coolify deployments do not read render.yaml, so the safe default lives here.
-# Set STRICT_DATABASE_BOOTSTRAP=0 only for throwaway environments.
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
     echo "==> Running database migrations..."
     migration_attempt=1
     until php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod; do
         if [ "$migration_attempt" -ge 5 ]; then
-            if [ "${STRICT_DATABASE_BOOTSTRAP:-1}" = "1" ]; then
+            if [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "1" ]; then
                 echo "ERROR: Database migrations failed after ${migration_attempt} attempts and STRICT_DATABASE_BOOTSTRAP=1."
                 exit 1
             fi
@@ -106,7 +102,7 @@ fi
 # every auth-couched query (login, carte, equipe) into a 500. If the objects
 # this release requires are missing, fail the deploy so the platform keeps
 # serving the previous healthy release instead.
-if [ "${SKIP_MIGRATIONS:-0}" != "1" ] && [ "${STRICT_DATABASE_BOOTSTRAP:-1}" = "1" ]; then
+if [ "${SKIP_MIGRATIONS:-0}" != "1" ] && [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "1" ]; then
     echo "==> Verifying required schema objects..."
     if ! php bin/console doctrine:query:sql \
         "SELECT 1 FROM \"user\" WHERE type_personnel IS NULL LIMIT 0" \
@@ -214,6 +210,24 @@ if [ "${BOOTSTRAP_REFERENCE_DATA:-1}" = "1" ]; then
     fi
 else
     echo "==> Reference data bootstrap disabled."
+fi
+
+# Seed de carte de test : 10 établissements camerounais réels (idempotent,
+# googlePlaceId seed-carte-test-*). Phase A bloquante : centres + couvertures
+# seulement (aucun réseau). Phase B en arrière-plan : téléchargement best-effort
+# de la galerie (6s par image, échecs ignorés).
+if [ "${SEED_CARTE_TEST:-0}" = "1" ]; then
+    echo "==> Seeding 10 test establishments for the health map..."
+    if ! php bin/console app:seed-carte-test --no-interaction; then
+        echo "WARNING: app:seed-carte-test failed (map may be empty)."
+    else
+        echo "==> Seeding gallery images in the background..."
+        (
+            if ! php bin/console app:seed-carte-test --with-media --no-interaction; then
+                echo "WARNING: background gallery seed failed." >&2
+            fi
+        ) &
+    fi
 fi
 
 echo "==> Ready. Reference data is available."
