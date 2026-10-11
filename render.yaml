@@ -37,8 +37,11 @@ services:
         sync: false
       - key: SKIP_MIGRATIONS
         value: "0"
+      # A failed migration must FAIL the deploy: Render then keeps serving the
+      # previous healthy release (zero downtime) instead of booting new code
+      # against a stale schema (which 500s every auth-couched query).
       - key: STRICT_DATABASE_BOOTSTRAP
-        value: "0"
+        value: "1"
       - key: BOOTSTRAP_REFERENCE_DATA
         value: "1"
       - key: STRICT_REFERENCE_DATA_BOOTSTRAP

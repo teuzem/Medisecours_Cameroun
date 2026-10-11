@@ -98,6 +98,29 @@ else
     echo "==> SKIP_MIGRATIONS=1 => schema assumed to already exist (imported via database/schema.sql)."
 fi
 
+# Post-migration schema probe: booting new code against a stale schema turns
+# every auth-couched query (login, carte, equipe) into a 500. If the objects
+# this release requires are missing, fail the deploy so the platform keeps
+# serving the previous healthy release instead.
+if [ "${SKIP_MIGRATIONS:-0}" != "1" ] && [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "1" ]; then
+    echo "==> Verifying required schema objects..."
+    if ! php bin/console doctrine:query:sql \
+        "SELECT 1 FROM \"user\" WHERE type_personnel IS NULL LIMIT 0" \
+        --env=prod; then
+        echo "ERROR: required schema is missing (user.type_personnel)."
+        echo "       Refusing to boot: failing the deploy to keep the previous release online."
+        exit 1
+    fi
+    if ! php bin/console doctrine:query:sql \
+        "SELECT 1 FROM signature_numerique LIMIT 0" \
+        --env=prod; then
+        echo "ERROR: required schema is missing (signature_numerique)."
+        echo "       Refusing to boot: failing the deploy to keep the previous release online."
+        exit 1
+    fi
+    echo "==> Schema probe OK."
+fi
+
 # Legacy option (off by default) : seed des 232 mock data de
 # data/centres_sante.json (idempotent — rows existantes ignorées). Deprecated :
 # privilégier les données réelles Google Places via SYNC_STRUCTURES_INTERVAL_MIN
@@ -137,7 +160,11 @@ if [ "$SYNC_INTERVAL" -gt 0 ]; then
     echo "==> Structures sync (Google Places) every ${SYNC_INTERVAL} min (cap ${SYNC_CAP})."
     (
         sync_structures() {
-            php bin/console app:carte:sync-structures --cap="${SYNC_CAP}" --no-interaction >/dev/null 2>&1 || true
+            # Log failures to stderr (Render captures it) instead of swallowing
+            # them silently — an empty map with no clue why is an outage too.
+            if ! php bin/console app:carte:sync-structures --cap="${SYNC_CAP}" --no-interaction; then
+                echo "WARNING: app:carte:sync-structures failed (check FORGE/GOOGLE keys and DATABASE_URL)." >&2
+            fi
         }
         sync_structures
         while true; do
