@@ -17,18 +17,24 @@ class CentreDeSanteImportService
     private array $warnings = [];
 
     private const TYPE_MAP = [
-        'Hôpital'              => 'hopital_general',
-        'Hôpital général'      => 'hopital_general',
-        'Hôpital de district'  => 'hopital_de_district',
-        'CHU'                  => 'chu',
-        'CMA'                  => 'cma',
-        'CSI'                  => 'csi',
-        'Clinique'             => 'clinique_privee',
-        'Clinique privée'      => 'clinique_privee',
-        'Pharmacie'            => 'pharmacie',
-        'Laboratoire'          => 'laboratoire',
-        'Centre spécialisé'    => 'centre_specialise',
-        'Centre de santé'      => 'csi',
+        'Hôpital'                  => 'hopital',
+        'Hôpital général'          => 'hopital_general',
+        'Hôpital central'          => 'hopital_central',
+        'Hôpital régional'         => 'hopital_regional',
+        'Hôpital de district'      => 'hopital_de_district',
+        'CHU'                      => 'chu',
+        'CMA'                      => 'cma',
+        'Dispensaire'              => 'dispensaire',
+        'CSI'                      => 'csi',
+        'Clinique'                 => 'clinique_privee',
+        'Clinique privée'          => 'clinique_privee',
+        'Polyclinique'             => 'polyclinique',
+        'Cabinet médical'          => 'cabinet_medical',
+        'Pharmacie'                => 'pharmacie',
+        'Laboratoire'              => 'laboratoire',
+        'Centre spécialisé'        => 'centre_specialise',
+        'Centre de santé'          => 'centre_de_sante',
+        'Centre de santé intégré'  => 'csi',
     ];
 
     public function __construct(
@@ -272,8 +278,9 @@ class CentreDeSanteImportService
 
         // Déjà un slug ?
         if (in_array($lower, [
-            'hopital_general', 'hopital_de_district', 'chu', 'cma', 'csi',
-            'clinique_privee', 'pharmacie', 'laboratoire', 'centre_specialise',
+            'hopital_general', 'hopital_central', 'hopital_regional', 'hopital_de_district',
+            'hopital', 'chu', 'cma', 'dispensaire', 'csi', 'clinique_privee', 'polyclinique',
+            'cabinet_medical', 'centre_de_sante', 'pharmacie', 'laboratoire', 'centre_specialise',
         ], true)) {
             return $lower;
         }

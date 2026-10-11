@@ -260,14 +260,25 @@
 .maps-search-shell { position: absolute; left: 84px; top: 12px; width: 384px; z-index: 1400; }
 .maps-search-shell > div { padding: 3px; }
 .maps-search-shell input { height: 42px; padding-left: 4px; }
+.maps-search-dropdown { margin-top: 6px; max-height: min(60vh, 460px); overflow-y: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px 0; color: #202124; }
+.maps-search-section { padding: 4px 0; }
+.maps-search-section + .maps-search-section { border-top: 1px solid #eceff1; }
+.maps-search-section-title { padding: 6px 16px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: #5f6368; }
+.maps-search-row { display: flex; width: 100%; align-items: center; gap: 12px; padding: 10px 16px; background: transparent; border: 0; cursor: pointer; text-align: left; }
+.maps-search-row:hover { background: #f1f3f4; }
+.maps-search-link { flex-shrink: 0; color: #1a73e8; font-size: 12px; font-weight: 600; background: none; border: 0; cursor: pointer; padding: 0; }
+.maps-search-link:hover { text-decoration: underline; }
+.maps-search-muted { flex-shrink: 0; color: #5f6368; font-size: 12px; background: none; border: 0; cursor: pointer; padding: 0; }
+.maps-search-place-edit { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #f8f9fa; }
 .maps-search-menu-button { border: 0; background: transparent; }
 .maps-search-menu-button:focus-visible { outline: 2px solid var(--maps-blue); outline-offset: -2px; }
 .maps-categories-wrap { position: absolute; top: 18px; left: 496px; right: 84px; z-index: 1100; isolation: isolate; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; max-width: calc(100% - 580px); overflow: visible; pointer-events: none; }
 .maps-categories-wrap > * { pointer-events: auto; }
 .maps-categories { display: flex; flex: 1 1 auto; min-width: 0; justify-content: center; gap: 8px; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: none; -ms-overflow-style: none; }
 .maps-categories::-webkit-scrollbar { display: none; width: 0; height: 0; }
-.maps-categories button { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; border: 1px solid #dadce0; border-radius: 4px; padding: 8px 13px; background: #fff; font-size: 12px; color: #3c4043; }
-.maps-categories button[aria-pressed="true"] { border-color: var(--maps-blue); color: #1a3252; background: #eaf0f7; }
+.maps-categories button { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; border: 1px solid #dadce0; border-radius: 999px; padding: 8px 15px; background: #fff; font-size: 13px; font-weight: 500; color: #3c4043; box-shadow: 0 1px 4px rgba(32,33,36,0.2); transition: background 0.12s ease, box-shadow 0.12s ease; }
+.maps-categories button:hover { background: #f8f9fa; box-shadow: 0 2px 6px rgba(32,33,36,0.28); }
+.maps-categories button[aria-pressed="true"] { border-color: #1a73e8; color: #174ea6; background: #e8f0fe; box-shadow: 0 2px 6px rgba(26,115,232,0.3); }
 .maps-category-arrow { position: relative; z-index: 3; display: grid; flex: 0 0 30px; place-items: center; width: 30px; height: 30px; border: 1px solid #dadce0; border-radius: 50%; background: #fff; color: #5f6368; }
 .maps-brand { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 650; display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; color: #3c4043; pointer-events: none; white-space: nowrap; }
 .maps-brand img { width: 28px; height: 28px; object-fit: contain; }
@@ -289,14 +300,18 @@
 .maps-map-status { position: absolute; bottom: 64px; left: 84px; z-index: 650; background: #fff; border: 1px solid #dadce0; padding: 12px; max-width: 300px; font-size: 13px; }
 .maps-map-status button { display: inline-flex; align-items: center; gap: 8px; color: var(--maps-blue); margin-left: 10px; }
 .medisecours-map .leaflet-control-zoom { margin-bottom: 80px !important; }
-.maps-layer-control { position: absolute; bottom: 28px; left: 84px; z-index: 750; display: flex; align-items: flex-end; gap: 10px; }
-.maps-layer-control-open { left: 496px; }
-.maps-layer-control > button { display: flex; flex-direction: column; align-items: center; gap: 6px; background: #fff; border: 1px solid #dadce0; border-radius: 6px; padding: 12px 16px; font-size: 12px; }
-.maps-layer-control > div { display: flex; flex-wrap: wrap; gap: 8px; max-width: 260px; padding: 14px; background: #fff; border: 1px solid #dadce0; border-radius: 6px; }
-.maps-layer-control > div button { background: transparent; padding: 8px 12px; border: 1px solid #dadce0; border-radius: 4px; font-size: 12px; }
-.maps-layer-control > div button[aria-pressed="true"] { border-color: var(--maps-blue); color: var(--maps-blue); }
-.maps-layer-control button:disabled { color: #9aa0a6; cursor: not-allowed; }
-.maps-layer-control small { font-size: 11px; color: #5f6368; }
+.maps-layers { position: absolute; bottom: 28px; left: 84px; z-index: 750; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.maps-layers-current { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #dadce0; border-radius: 12px; padding: 6px 14px 6px 6px; font-size: 13px; font-weight: 600; color: #3c4043; box-shadow: 0 2px 8px rgba(32,33,36,0.28); cursor: pointer; }
+.maps-layers-current:hover { background: #f8f9fa; }
+.maps-layers-thumb { display: block; width: 64px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; flex-shrink: 0; line-height: 0; }
+.maps-layers-thumb svg { display: block; width: 100%; height: 100%; }
+.maps-layers-flyout { display: flex; flex-direction: column; gap: 2px; min-width: 220px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 10px; }
+.maps-layers-flyout hr { border: 0; border-top: 1px solid #eceff1; margin: 6px 4px; }
+.maps-layers-flyout button { display: flex; align-items: center; gap: 12px; padding: 6px 8px; background: transparent; border: 0; border-radius: 8px; font-size: 13px; font-weight: 500; color: #3c4043; cursor: pointer; text-align: left; }
+.maps-layers-flyout button:hover { background: #f1f3f4; }
+.maps-layers-flyout button[aria-pressed="true"] { background: #e8f0fe; color: #174ea6; }
+.maps-layers-flyout button:disabled { color: #9aa0a6; cursor: not-allowed; }
+.maps-layers-flyout button:disabled .maps-layers-thumb { opacity: 0.45; }
 .maps-gallery-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .maps-gallery-section-heading h2 { margin-bottom: 0; }
 .maps-gallery-section-heading button { display: inline-flex; align-items: center; gap: 6px; color: var(--maps-blue); font-size: 12px; font-weight: 600; background: transparent; }
@@ -398,8 +413,16 @@
   .maps-brand { font-size: 16px; bottom: 76px; }
   .maps-brand img { width: 24px; height: 24px; }
   .maps-map-status { left: 12px; bottom: 110px; }
-  .maps-layer-control { bottom: 76px; left: 12px; }
-  .maps-layer-control-open { display: none; }
+  .maps-layers { bottom: 76px; left: 12px; }
+  /* Fiche établissement ouverte sur mobile : plus d'overlays sur la couverture,
+     seul le bouton « Voir les photos » de la fiche reste visible. */
+  .medisecours-map--fiche-open .maps-search-shell,
+  .medisecours-map--fiche-open .maps-categories-wrap,
+  .medisecours-map--fiche-open .maps-brand,
+  .medisecours-map--fiche-open .maps-layers,
+  .medisecours-map--fiche-open .maps-profile-btn,
+  .medisecours-map--fiche-open .maps-rail-close,
+  .medisecours-map--fiche-open .maps-rail-open { display: none !important; }
   .maps-dialog { padding: 20px; }
   .maps-modal-backdrop { padding: 12px; }
   .maps-media-nav { width: 34px; height: 34px; flex-basis: 34px; }

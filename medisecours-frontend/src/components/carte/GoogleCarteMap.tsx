@@ -26,6 +26,8 @@ interface RouteGeometry {
   coordinates: [number, number][]
 }
 
+export type BasemapMode = 'plan' | 'satellite' | 'relief'
+
 interface GoogleCarteMapProps {
   centres: CarteCentre[]
   selectedId?: number | null
@@ -34,7 +36,11 @@ interface GoogleCarteMapProps {
   route?: RouteGeometry | null
   isFallback?: boolean
   destination?: { lat: number; lng: number; nom?: string } | null
-  satellite?: boolean
+  basemap?: BasemapMode
+  traffic?: boolean
+  transit?: boolean
+  cycling?: boolean
+  flyTo?: { lat: number; lng: number } | null
   onRequestDirections?: (id: number) => void
   onToggleFavorite?: (id: number) => void
   favoriteIds?: number[]
@@ -125,7 +131,11 @@ export default function GoogleCarteMap({
   route,
   isFallback = false,
   destination,
-  satellite = false,
+  basemap = 'plan',
+  traffic = false,
+  transit = false,
+  cycling = false,
+  flyTo = null,
   onRequestDirections,
   onToggleFavorite,
   favoriteIds = [],
@@ -139,6 +149,9 @@ export default function GoogleCarteMap({
   const destinationRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
   const polylineRef = useRef<google.maps.Polyline | null>(null)
   const recenteredRef = useRef(false)
+  const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null)
+  const transitLayerRef = useRef<google.maps.TransitLayer | null>(null)
+  const cyclingLayerRef = useRef<{ setMap: (map: google.maps.Map | null) => void } | null>(null)
 
   const routePath = useMemo(() => {
     return route ? route.coordinates.map(([lng, lat]) => ({ lat, lng })) : null
@@ -167,14 +180,67 @@ export default function GoogleCarteMap({
       if (patientRef.current) patientRef.current.map = null
       if (destinationRef.current) destinationRef.current.map = null
       polylineRef.current?.setMap(null)
+      trafficLayerRef.current?.setMap(null)
+      transitLayerRef.current?.setMap(null)
+      cyclingLayerRef.current?.setMap(null)
       mapRef.current = null
       clustererRef.current = null
     }
   }, [])
 
   useEffect(() => {
-    mapRef.current?.setMapTypeId(satellite ? 'satellite' : 'roadmap')
-  }, [satellite])
+    const map = mapRef.current
+    if (map && flyTo) {
+      map.panTo({ lat: flyTo.lat, lng: flyTo.lng })
+      if (map.getZoom() != null && map.getZoom() < 13) map.setZoom(13)
+    }
+  }, [flyTo])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    map.setMapTypeId(basemap === 'satellite' ? 'satellite' : basemap === 'relief' ? 'terrain' : 'roadmap')
+  }, [basemap])
+
+  // ── Calques superposés (Google uniquement) ───────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !window.google?.maps) return
+    try {
+      trafficLayerRef.current?.setMap(traffic ? map : null)
+      if (traffic && !trafficLayerRef.current) {
+        trafficLayerRef.current = new window.google.maps.TrafficLayer()
+        trafficLayerRef.current.setMap(map)
+      }
+    } catch { /* SDK sans TrafficLayer */ }
+  }, [traffic])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !window.google?.maps) return
+    try {
+      transitLayerRef.current?.setMap(transit ? map : null)
+      if (transit && !transitLayerRef.current) {
+        transitLayerRef.current = new window.google.maps.TransitLayer()
+        transitLayerRef.current.setMap(map)
+      }
+    } catch { /* SDK sans TransitLayer */ }
+  }, [transit])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !window.google?.maps) return
+    try {
+      cyclingLayerRef.current?.setMap(cycling ? map : null)
+      if (cycling && !cyclingLayerRef.current) {
+        const LayerCtor = (window.google.maps as any).BicyclingLayer
+        if (LayerCtor) {
+          cyclingLayerRef.current = new LayerCtor()
+          cyclingLayerRef.current.setMap(map)
+        }
+      }
+    } catch { /* SDK sans BicyclingLayer */ }
+  }, [cycling])
 
   // ── Marqueurs des établissements (regroupés) ─────────────────────────────
   useEffect(() => {

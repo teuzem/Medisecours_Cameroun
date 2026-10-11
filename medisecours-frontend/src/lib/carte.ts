@@ -4,11 +4,18 @@ import type { Position, WayfindingMode } from '../hooks/useWayfinding'
 
 export type EtablissementType =
   | 'hopital_general'
+  | 'hopital_central'
+  | 'hopital_regional'
   | 'hopital_de_district'
+  | 'hopital'
   | 'chu'
   | 'cma'
+  | 'dispensaire'
   | 'csi'
   | 'clinique_privee'
+  | 'polyclinique'
+  | 'cabinet_medical'
+  | 'centre_de_sante'
   | 'pharmacie'
   | 'laboratoire'
   | 'centre_specialise'
@@ -131,30 +138,45 @@ export interface SosResult {
   createdAt: string
 }
 
-// ─── Couleurs & libellés par type d'établissement ───────────────────────────
+// ─── Couleurs & libellés par type d'établissement �──────────────────────────
 
+/** Palette inspirée des pastilles Google Maps (hôpital rouge, pharmacie verte…). */
 export const FACILITY_COLORS: Record<EtablissementType, string> = {
-  hopital_general: '#D32F2F',
-  hopital_de_district: '#E57373',
-  chu: '#B71C1C',
-  cma: '#FB8C00',
-  csi: '#F57C00',
-  clinique_privee: '#1E88E5',
-  laboratoire: '#6D4C41',
-  pharmacie: '#43A047',
-  centre_specialise: '#8E24AA',
+  hopital_general: '#EA4335',
+  hopital_central: '#C5221F',
+  hopital_regional: '#EA4335',
+  hopital_de_district: '#F28B82',
+  hopital: '#EA4335',
+  chu: '#B31412',
+  cma: '#12B5CB',
+  dispensaire: '#12B5CB',
+  csi: '#00897B',
+  clinique_privee: '#1A73E8',
+  polyclinique: '#1A73E8',
+  cabinet_medical: '#1A73E8',
+  centre_de_sante: '#00897B',
+  pharmacie: '#34A853',
+  laboratoire: '#9334E6',
+  centre_specialise: '#F9AB00',
 }
 
-/** i18n keys — chaque type possède une clé `visitor.carte.type.<type>` */
+/** Catégories officielles des établissements de santé reconnus (ordre d'affichage). */
 export const FACILITY_TYPES: EtablissementType[] = [
   'hopital_general',
+  'hopital_central',
+  'hopital_regional',
   'hopital_de_district',
+  'hopital',
   'chu',
   'cma',
-  'csi',
+  'dispensaire',
   'clinique_privee',
-  'pharmacie',
+  'polyclinique',
+  'cabinet_medical',
+  'csi',
+  'centre_de_sante',
   'laboratoire',
+  'pharmacie',
   'centre_specialise',
 ]
 

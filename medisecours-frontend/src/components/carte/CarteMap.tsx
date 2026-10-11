@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
 import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
@@ -184,9 +184,53 @@ interface CarteMapProps {
   route?: RouteGeometry | null
   isFallback?: boolean
   destination?: { lat: number; lng: number; nom?: string } | null
+  basemap?: 'plan' | 'satellite' | 'relief'
+  flyTo?: { lat: number; lng: number } | null
   onRequestDirections?: (id: number) => void
   onToggleFavorite?: (id: number) => void
   favoriteIds?: number[]
+}
+
+const BASEMAP_TILES: Record<'plan' | 'satellite' | 'relief', { url: string; attribution: string; maxZoom: number }> = {
+  plan: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    maxZoom: 19,
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics',
+    maxZoom: 19,
+  },
+  relief: {
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors, SRTM | OpenTopoMap (CC-BY-SA)',
+    maxZoom: 17,
+  },
+}
+
+/** Bascule les tuiles de fond (Plan / Vue aérienne Esri / Relief OpenTopoMap). */
+function BasemapLayer({ basemap }: { basemap: 'plan' | 'satellite' | 'relief' }) {
+  const map = useMap()
+  useEffect(() => {
+    const spec = BASEMAP_TILES[basemap] ?? BASEMAP_TILES.plan
+    const layer = L.tileLayer(spec.url, { attribution: spec.attribution, maxZoom: spec.maxZoom })
+    layer.addTo(map)
+    return () => {
+      layer.remove()
+    }
+  }, [basemap, map])
+  return null
+}
+
+/** Recentre la carte sur un lieu enregistré (Domicile / Travail / École). */
+function FlyToTarget({ target }: { target: { lat: number; lng: number } | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (!target) return
+    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 13), { duration: 0.8 })
+  }, [map, target])
+  return null
 }
 
 const FacilityMarker = React.memo(function FacilityMarker({
@@ -308,6 +352,8 @@ export default function CarteMap({
   route,
   isFallback = false,
   destination,
+  basemap = 'satellite',
+  flyTo = null,
   onRequestDirections,
   onToggleFavorite,
   favoriteIds = [],
@@ -327,10 +373,8 @@ export default function CarteMap({
       style={{ height: '100%', width: '100%' }}
       keyboard={true}
     >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-      />
+      <BasemapLayer basemap={basemap} />
+      <FlyToTarget target={flyTo} />
       <PulseStyle />
       <ForceMapRefresh />
 

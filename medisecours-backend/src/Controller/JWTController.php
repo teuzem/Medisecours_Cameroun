@@ -405,11 +405,18 @@ class JWTController extends AbstractController
                 }
                 $allowedTypes = [
                     'hopital_general',
+                    'hopital_central',
+                    'hopital_regional',
                     'hopital_de_district',
+                    'hopital',
                     'chu',
                     'cma',
+                    'dispensaire',
                     'csi',
                     'clinique_privee',
+                    'polyclinique',
+                    'cabinet_medical',
+                    'centre_de_sante',
                     'pharmacie',
                     'laboratoire',
                     'centre_specialise',

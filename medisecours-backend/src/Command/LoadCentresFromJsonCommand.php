@@ -79,8 +79,9 @@ class LoadCentresFromJsonCommand extends Command
             }
 
             $validTypes = [
-                'hopital_general', 'hopital_de_district', 'chu', 'cma', 'csi',
-                'clinique_privee', 'pharmacie', 'laboratoire', 'centre_specialise',
+                'hopital_general', 'hopital_central', 'hopital_regional', 'hopital_de_district',
+                'hopital', 'chu', 'cma', 'dispensaire', 'csi', 'clinique_privee', 'polyclinique',
+                'cabinet_medical', 'centre_de_sante', 'pharmacie', 'laboratoire', 'centre_specialise',
             ];
             if (!in_array($type, $validTypes, true)) {
                 $errors++;

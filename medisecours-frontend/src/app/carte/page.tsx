@@ -12,6 +12,7 @@ import {
   Bell,
   Bookmark,
   Building2,
+  Briefcase,
   Car,
   ClipboardList,
   ChevronLeft,
@@ -19,8 +20,8 @@ import {
   Clock,
   Database,
   Footprints,
+  Home,
   Loader2,
-  Layers,
   LocateFixed,
   FlaskConical,
   HelpCircle,
@@ -29,6 +30,7 @@ import {
   Hospital,
   Pill,
   Printer,
+  School,
   Share2,
   Stethoscope,
   MapPin,
@@ -113,6 +115,131 @@ const MODE_META: Record<WayfindingMode, { icon: typeof Car; key: string }> = {
   bicycling: { icon: Bike, key: 'visitor.carte.directions.bicycling' },
 }
 
+type BasemapMode = 'plan' | 'satellite' | 'relief'
+type PlaceKey = 'home' | 'work' | 'school'
+
+interface SavedPlace {
+  label: string
+  lat?: number
+  lng?: number
+}
+
+const BASEMAP_STORAGE_KEY = 'medisecours_carte_basemap'
+const QUERIES_STORAGE_KEY = 'medisecours_carte_queries'
+const PLACES_STORAGE_KEY = 'medisecours_carte_places'
+
+const TYPE_ICONS: Record<string, typeof Car> = {
+  all: MapPin,
+  hopital_general: Hospital,
+  hopital_central: Hospital,
+  hopital_regional: Hospital,
+  hopital_de_district: Hospital,
+  hopital: Hospital,
+  chu: Hospital,
+  cma: Stethoscope,
+  dispensaire: Stethoscope,
+  csi: Stethoscope,
+  clinique_privee: Stethoscope,
+  polyclinique: Stethoscope,
+  cabinet_medical: Stethoscope,
+  centre_de_sante: Stethoscope,
+  pharmacie: Pill,
+  laboratoire: FlaskConical,
+  centre_specialise: Building2,
+}
+
+const PLACE_META: Record<PlaceKey, { icon: typeof Home; labelKey: string }> = {
+  home: { icon: Home, labelKey: 'visitor.carte.searchPanel.home' },
+  work: { icon: Briefcase, labelKey: 'visitor.carte.searchPanel.work' },
+  school: { icon: School, labelKey: 'visitor.carte.searchPanel.school' },
+}
+
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = window.localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function writeJson(key: string, value: unknown) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    // stockage indisponible
+  }
+}
+
+/** Vignettes abstraites originales des fonds de carte (aucune capture tierce). */
+function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'cycling' }) {
+  const common = { width: 64, height: 44, viewBox: '0 0 64 44', 'aria-hidden': true as const }
+  if (mode === 'satellite') {
+    return (
+      <svg {...common}>
+        <rect width="64" height="44" fill="#2f3b2c" />
+        <path d="M0 28 L18 12 L36 24 L52 8 L64 18 V44 H0Z" fill="#3d5238" />
+        <rect x="6" y="6" width="16" height="12" fill="#4a6342" opacity="0.9" />
+        <rect x="38" y="26" width="14" height="10" fill="#556b4d" opacity="0.85" />
+        <path d="M0 36 Q20 30 40 38 T64 34" stroke="#7d8f6a" strokeWidth="2" fill="none" opacity="0.7" />
+      </svg>
+    )
+  }
+  if (mode === 'relief') {
+    return (
+      <svg {...common}>
+        <rect width="64" height="44" fill="#e8e0cf" />
+        <path d="M4 34 Q16 18 32 24 T60 14" stroke="#b7a67e" strokeWidth="1.5" fill="none" />
+        <path d="M2 30 Q18 12 34 20 T62 10" stroke="#c9ba92" strokeWidth="1.5" fill="none" />
+        <path d="M6 38 Q20 22 36 28 T60 20" stroke="#a89468" strokeWidth="1.5" fill="none" />
+        <ellipse cx="32" cy="20" rx="12" ry="7" fill="#d6c9a4" stroke="#a89468" strokeWidth="1" />
+      </svg>
+    )
+  }
+  if (mode === 'traffic') {
+    return (
+      <svg {...common}>
+        <rect width="64" height="44" fill="#f1f3f4" />
+        <path d="M0 22 H64" stroke="#dadce0" strokeWidth="8" />
+        <path d="M0 22 H24" stroke="#34a853" strokeWidth="5" />
+        <path d="M24 22 H44" stroke="#fbbc04" strokeWidth="5" />
+        <path d="M44 22 H64" stroke="#ea4335" strokeWidth="5" />
+        <path d="M32 0 V44" stroke="#dadce0" strokeWidth="6" />
+      </svg>
+    )
+  }
+  if (mode === 'transit') {
+    return (
+      <svg {...common}>
+        <rect width="64" height="44" fill="#f8f9fa" />
+        <path d="M4 36 L28 8 L60 20" stroke="#1a73e8" strokeWidth="3" fill="none" />
+        <path d="M8 8 L36 36 L60 32" stroke="#ea4335" strokeWidth="3" fill="none" />
+        <circle cx="28" cy="8" r="3" fill="#1a73e8" />
+        <circle cx="36" cy="36" r="3" fill="#ea4335" />
+      </svg>
+    )
+  }
+  if (mode === 'cycling') {
+    return (
+      <svg {...common}>
+        <rect width="64" height="44" fill="#f8f9fa" />
+        <path d="M4 30 Q20 10 36 24 T60 14" stroke="#34a853" strokeWidth="3" strokeDasharray="6 4" fill="none" />
+        <circle cx="18" cy="20" r="4" fill="none" stroke="#34a853" strokeWidth="2" />
+        <circle cx="44" cy="20" r="4" fill="none" stroke="#34a853" strokeWidth="2" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...common}>
+      <rect width="64" height="44" fill="#e8eaed" />
+      <path d="M0 30 H64 M0 14 H64 M20 0 V44 M46 0 V44" stroke="#fff" strokeWidth="3" />
+      <path d="M0 22 Q16 18 32 24 T64 20" stroke="#c6dafc" strokeWidth="5" fill="none" />
+      <rect x="6" y="4" width="10" height="8" fill="#d7e3fc" />
+      <rect x="50" y="28" width="10" height="10" fill="#d7e3fc" />
+    </svg>
+  )
+}
+
 export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
@@ -129,7 +256,6 @@ export default function CartePage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [layersOpen, setLayersOpen] = useState(false)
-  const [satellite, setSatellite] = useState(false)
   const [railOpen, setRailOpen] = useState(true)
   const categoryRef = useRef<HTMLDivElement | null>(null)
   const [panelView, setPanelView] = useState<'explore' | 'saved' | 'recent'>('explore')
@@ -140,8 +266,77 @@ export default function CartePage() {
   const [sosEtablissement, setSosEtablissement] = useState<{ id: number; nom: string } | null>(null)
   const [favorites, setFavorites] = useState<number[]>(() => readFavorites())
   const [recentIds, setRecentIds] = useState<number[]>(() => readRecentCentres())
+  const [basemap, setBasemap] = useState<BasemapMode>(() => {
+    if (typeof window === 'undefined') return 'satellite'
+    const stored = window.localStorage.getItem(BASEMAP_STORAGE_KEY)
+    return stored === 'plan' || stored === 'satellite' || stored === 'relief' ? stored : 'satellite'
+  })
+  const [trafficOn, setTrafficOn] = useState(false)
+  const [transitOn, setTransitOn] = useState(false)
+  const [cyclingOn, setCyclingOn] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQueries, setSearchQueries] = useState<string[]>(() =>
+    typeof window === 'undefined' ? [] : readJson<string[]>(QUERIES_STORAGE_KEY, []),
+  )
+  const [savedPlaces, setSavedPlaces] = useState<Partial<Record<PlaceKey, SavedPlace>>>(() =>
+    typeof window === 'undefined' ? {} : readJson<Partial<Record<PlaceKey, SavedPlace>>>(PLACES_STORAGE_KEY, {}),
+  )
+  const [editingPlace, setEditingPlace] = useState<PlaceKey | null>(null)
+  const [placeDraft, setPlaceDraft] = useState('')
+  const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number } | null>(null)
   const remoteFilterActive = useRef(false)
   const sharedCentreHandled = useRef(false)
+  const searchShellRef = useRef<HTMLDivElement | null>(null)
+
+  // ── Préférences locales : fond de carte persisté ──────────────────────────
+  useEffect(() => {
+    window.localStorage.setItem(BASEMAP_STORAGE_KEY, basemap)
+  }, [basemap])
+
+  useEffect(() => {
+    if (!searchOpen) return
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!searchShellRef.current?.contains(event.target as Node)) {
+        setSearchOpen(false)
+        setEditingPlace(null)
+      }
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [searchOpen])
+
+  const pushSearchQuery = useCallback((query: string) => {
+    const trimmed = query.trim()
+    if (trimmed.length < 2) return
+    setSearchQueries((current) => {
+      const next = [trimmed, ...current.filter((item) => item !== trimmed)].slice(0, 8)
+      writeJson(QUERIES_STORAGE_KEY, next)
+      return next
+    })
+  }, [])
+
+  const savePlace = useCallback((key: PlaceKey) => {
+    const label = placeDraft.trim()
+    if (!label && !position) {
+      toast.info(t('visitor.carte.searchPanel.addressPlaceholder'))
+      return
+    }
+    const entry: SavedPlace = {
+      label: label || `${position!.lat.toFixed(4)}, ${position!.lng.toFixed(4)}`,
+      lat: position?.lat,
+      lng: position?.lng,
+    }
+    setSavedPlaces((current) => {
+      const next = { ...current, [key]: entry }
+      writeJson(PLACES_STORAGE_KEY, next)
+      return next
+    })
+    setEditingPlace(null)
+    setPlaceDraft('')
+    if (entry.lat != null && entry.lng != null) {
+      setFlyTarget({ lat: entry.lat, lng: entry.lng })
+    }
+  }, [placeDraft, position, t, toast])
 
   const shareMap = useCallback(async () => {
     const url = window.location.href
@@ -427,6 +622,14 @@ export default function CartePage() {
   const isFallback = provider === 'google' ? googleIsFallback : osrmIsFallback
 
   // ── Filtrage + tri ────────────────────────────────────────────────────────
+  const byRating = useCallback((a: CarteCentre, b: CarteCentre) => {
+    const noteDiff = (b.noteMoyenne ?? 0) - (a.noteMoyenne ?? 0)
+    if (noteDiff !== 0) return noteDiff
+    const avisDiff = (b.totalAvis ?? 0) - (a.totalAvis ?? 0)
+    if (avisDiff !== 0) return avisDiff
+    return a.nom.localeCompare(b.nom, 'fr')
+  }, [])
+
   const visibleCentres = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLocaleLowerCase('fr')
     let result = centres
@@ -442,8 +645,8 @@ export default function CartePage() {
           .filter(Boolean)
           .some((value) => String(value).toLocaleLowerCase('fr').includes(normalizedQuery)),
       )
-    }
-    if (position) {
+      result = [...result].sort(byRating)
+    } else if (position) {
       result = [...result].sort(
         (a, b) =>
           (haversineKm(position, a) ?? Number.MAX_VALUE) -
@@ -451,20 +654,44 @@ export default function CartePage() {
       )
     }
     return result
-  }, [activeType, centres, onlyUrgence, position, searchQuery])
+  }, [activeType, byRating, centres, onlyUrgence, position, searchQuery])
+
+  // Suggestions d'autocomplétion temps réel (les mieux notées d'abord).
+  const suggestions = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase('fr')
+    if (normalizedQuery.length < 2) return []
+    return centres
+      .filter((c) =>
+        [c.nom, c.adresse, c.ville, c.quartier]
+          .filter(Boolean)
+          .some((value) => String(value).toLocaleLowerCase('fr').includes(normalizedQuery)),
+      )
+      .sort(byRating)
+      .slice(0, 8)
+  }, [byRating, centres, searchQuery])
+
+  const selectSuggestion = useCallback((centre: CarteCentre) => {
+    pushSearchQuery(centre.nom)
+    setSearchOpen(false)
+    handleSelect(centre.id)
+  }, [handleSelect, pushSearchQuery])
 
   const routeActive = Boolean(position && destination)
 
   return (
-    <div className="medisecours-map relative isolate h-dvh w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+    <div className={`medisecours-map relative isolate h-dvh w-full overflow-hidden bg-slate-100 dark:bg-slate-950${drawerOpen ? ' medisecours-map--fiche-open' : ''}`}>
       {/* ═══ Carte plein écran (Google par défaut, Leaflet en repli) ═══ */}
       <div className="absolute inset-0 z-0">
         {provider === 'google' ? (
           <GoogleCarteMap
-            satellite={satellite}
+            basemap={basemap}
+            traffic={trafficOn}
+            transit={transitOn}
+            cycling={cyclingOn}
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
+            flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
             onToggleFavorite={toggleFavorite}
@@ -475,10 +702,11 @@ export default function CartePage() {
           />
         ) : provider === 'mapbox' ? (
           <MapboxCarteMap
-            satellite={satellite}
+            basemap={basemap}
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
+            flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
             onToggleFavorite={toggleFavorite}
@@ -491,9 +719,11 @@ export default function CartePage() {
           <CarteMapLoading />
         ) : (
           <CarteMap
+            basemap={basemap}
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
+            flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
             onToggleFavorite={toggleFavorite}
@@ -505,40 +735,149 @@ export default function CartePage() {
         )}
       </div>
 
-      <div className="maps-search-shell">
-        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-slate-950/95">
+      <div className="maps-search-shell" ref={searchShellRef}>
+        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-lg border border-slate-200 bg-white p-1.5 shadow-md dark:border-white/10 dark:bg-slate-950/95">
           <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label={t('visitor.carte.menuOpen')} className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
           <input
             value={searchQuery}
-            onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true) }}
+            onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true); setSearchOpen(true) }}
+            onFocus={() => setSearchOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && suggestions[0]) {
+                event.preventDefault()
+                selectSuggestion(suggestions[0])
+              } else if (event.key === 'Escape') {
+                setSearchOpen(false)
+              }
+            }}
             type="search"
             placeholder={t('visitor.carte.searchPlaceholder')}
             className="h-11 min-w-0 flex-1 bg-transparent px-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
             aria-label={t('visitor.carte.searchAria')}
+            role="combobox"
+            aria-expanded={searchOpen}
+            aria-controls="maps-search-suggestions"
           />
-          <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true) }} title={t('visitor.carte.showResults')} aria-label={t('visitor.carte.showResults')} className="grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
+          <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true); setSearchOpen(true) }} title={t('visitor.carte.showResults')} aria-label={t('visitor.carte.showResults')} className="grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
           {searchQuery && (
             <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label={t('visitor.carte.clearSearch')}>
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
+
+        {searchOpen && (
+          <div id="maps-search-suggestions" className="maps-search-dropdown pointer-events-auto" role="listbox" aria-label={t('visitor.carte.searchAria')}>
+            {searchQuery.trim().length < 2 ? (
+              <>
+                {savedPlaces.home || savedPlaces.work || savedPlaces.school || editingPlace ? (
+                  <div className="maps-search-section">
+                    <p className="maps-search-section-title">{t('visitor.carte.searchPanel.savedPlaces')}</p>
+                    {(Object.keys(PLACE_META) as PlaceKey[]).map((key) => {
+                      const Meta = PLACE_META[key]
+                      const Icon = Meta.icon
+                      const place = savedPlaces[key]
+                      if (!place && editingPlace !== key) return null
+                      if (editingPlace === key) {
+                        return (
+                          <div key={key} className="maps-search-place-edit">
+                            <Icon className="h-4 w-4 shrink-0 text-primary-600" />
+                            <input
+                              value={placeDraft}
+                              onChange={(event) => setPlaceDraft(event.target.value)}
+                              placeholder={t('visitor.carte.searchPanel.addressPlaceholder')}
+                              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                              autoFocus
+                            />
+                            <button type="button" onClick={() => { if (position) { savePlace(key) } else { locate(); toast.info(t('visitor.carte.searchPanel.useMyPosition')) } }} className="maps-search-link">{t('visitor.carte.searchPanel.useMyPosition')}</button>
+                            <button type="button" onClick={() => savePlace(key)} className="maps-search-link">{t('visitor.carte.searchPanel.save')}</button>
+                            <button type="button" onClick={() => { setEditingPlace(null); setPlaceDraft('') }} className="maps-search-muted">{t('visitor.carte.searchPanel.cancel')}</button>
+                          </div>
+                        )
+                      }
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          className="maps-search-row"
+                          onClick={() => {
+                            if (place?.lat != null && place.lng != null) {
+                              setFlyTarget({ lat: place.lat, lng: place.lng })
+                              setSearchOpen(false)
+                            } else {
+                              setEditingPlace(key)
+                              setPlaceDraft(place?.label ?? '')
+                            }
+                          }}
+                        >
+                          <Icon className="h-4 w-4 shrink-0 text-primary-600" />
+                          <span className="min-w-0 flex-1 text-left text-sm font-semibold text-slate-800 dark:text-slate-100">{t(Meta.labelKey)}</span>
+                          <span className="max-w-40 truncate text-xs text-slate-500">{place?.label}</span>
+                          <span className="maps-search-link" onClick={(event) => { event.stopPropagation(); setEditingPlace(key); setPlaceDraft(place?.label ?? '') }}>{place ? t('visitor.carte.searchPanel.editPlace') : t('visitor.carte.searchPanel.setPlace')}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <button type="button" className="maps-search-row" onClick={() => setEditingPlace('home')}>
+                    <Home className="h-4 w-4 shrink-0 text-primary-600" />
+                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-slate-800 dark:text-slate-100">{t('visitor.carte.searchPanel.home')}</span>
+                    <span className="maps-search-link">{t('visitor.carte.searchPanel.setPlace')}</span>
+                  </button>
+                )}
+
+                {searchQueries.length > 0 && (
+                  <div className="maps-search-section">
+                    <div className="flex items-center justify-between">
+                      <p className="maps-search-section-title">{t('visitor.carte.searchPanel.history')}</p>
+                      <button
+                        type="button"
+                        className="maps-search-muted"
+                        onClick={() => { setSearchQueries([]); writeJson(QUERIES_STORAGE_KEY, []) }}
+                      >
+                        {t('visitor.carte.searchPanel.clearHistory')}
+                      </button>
+                    </div>
+                    {searchQueries.map((query) => (
+                      <button key={query} type="button" className="maps-search-row" onClick={() => { setSearchQuery(query); setSearchOpen(false) }}>
+                        <History className="h-4 w-4 shrink-0 text-slate-400" />
+                        <span className="min-w-0 flex-1 truncate text-left text-sm text-slate-700 dark:text-slate-200">{query}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="maps-search-section">
+                <p className="maps-search-section-title">{t('visitor.carte.searchPanel.suggestions')}</p>
+                {suggestions.length === 0 && (
+                  <p className="px-3 py-2 text-xs text-slate-400">{t('visitor.carte.noResultDesc')}</p>
+                )}
+                {suggestions.map((centre) => {
+                  const Icon = TYPE_ICONS[centre.type] ?? MapPin
+                  return (
+                    <button key={centre.id} type="button" className="maps-search-row" onClick={() => selectSuggestion(centre)}>
+                      <Icon className="h-4 w-4 shrink-0" style={{ color: FACILITY_COLORS[centre.type] ?? '#64748B' }} />
+                      <span className="min-w-0 flex-1 text-left">
+                        <span className="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{centre.nom}</span>
+                        <span className="block truncate text-xs text-slate-500">{[centre.quartier, centre.ville].filter(Boolean).join(', ') || centre.adresse}</span>
+                      </span>
+                      {centre.noteMoyenne != null && centre.noteMoyenne > 0 && (
+                        <span className="shrink-0 text-xs font-semibold text-amber-600">★ {centre.noteMoyenne.toFixed(1)}</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
         <div className="maps-categories-wrap">
           <button type="button" className="maps-category-arrow" onClick={() => categoryRef.current?.scrollBy({ left: -260, behavior: 'smooth' })} aria-label={t('visitor.carte.prevCategories')}><ChevronLeft size={18} /></button>
           <div ref={categoryRef} className="maps-categories" aria-label={t('visitor.carte.categoriesAria')}>
-            {([
-              ['all', MapPin],
-              ['hopital_general', Hospital],
-              ['chu', Hospital],
-              ['hopital_de_district', Hospital],
-              ['cma', Stethoscope],
-              ['csi', Stethoscope],
-              ['clinique_privee', Stethoscope],
-              ['pharmacie', Pill],
-              ['laboratoire', FlaskConical],
-              ['centre_specialise', Building2],
-            ] as const).map(([type, Icon]) => {
+            {(['all', ...FACILITY_TYPES] as const).map((type) => {
+              const Icon = TYPE_ICONS[type] ?? MapPin
               const label = t(`visitor.carte.type.${type}`)
               return (
                 <button key={type} type="button" onClick={() => setActiveType(type as 'all' | EtablissementType)} aria-pressed={activeType === type} title={label}>
@@ -588,7 +927,7 @@ export default function CartePage() {
       <div className="absolute right-4 top-4 z-[710]">
         <a
           href={isAuthenticated ? '/profil' : '/login'}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
+          className="maps-profile-btn flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
           aria-label={isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria')}
           title={user?.email || (isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria'))}
         >
@@ -602,13 +941,58 @@ export default function CartePage() {
       </div>
       {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label={t('visitor.carte.menuClose')}><Menu size={18} /></button>}
       {!railOpen && <button type="button" className="maps-rail-open" onClick={() => setRailOpen(true)} aria-label={t('visitor.carte.menuPanel')}><ChevronRight size={18} /></button>}
-      <div className={`maps-layer-control ${drawerOpen ? 'maps-layer-control-open' : ''}`}>
-        <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen(current => !current)}><Layers size={24} /><span>{t('visitor.carte.layers')}</span></button>
-        {layersOpen && <div role="group" aria-label={t('visitor.carte.layersBaseAria')}>
-          <button type="button" aria-pressed={!satellite || provider === 'leaflet'} onClick={() => setSatellite(false)}>{t('visitor.carte.layersPlan')}</button>
-          <button type="button" disabled={provider !== 'google' && provider !== 'mapbox'} aria-pressed={satellite && provider !== 'leaflet'} onClick={() => setSatellite(true)}>{t('visitor.carte.layersSatellite')}</button>
-          {provider !== 'google' && provider !== 'mapbox' && <small>{t('visitor.carte.layersSatelliteUnavailable')}</small>}
-        </div>}
+      {/* ═══ Contrôle de calques façon Google Maps (fond + superpositions) ═══ */}
+      <div
+        className={`maps-layers ${layersOpen ? 'maps-layers-open' : ''}`}
+        onMouseEnter={() => setLayersOpen(true)}
+        onMouseLeave={() => setLayersOpen(false)}
+      >
+        <button
+          type="button"
+          className="maps-layers-current"
+          aria-expanded={layersOpen}
+          aria-label={t('visitor.carte.basemap.title')}
+          onClick={() => setLayersOpen((current) => !current)}
+        >
+          <span className="maps-layers-thumb"><BasemapThumb mode={basemap} /></span>
+          <span>{t(`visitor.carte.basemap.${basemap}`)}</span>
+        </button>
+        {layersOpen && (
+          <div className="maps-layers-flyout" role="group" aria-label={t('visitor.carte.basemap.title')}>
+            {(['satellite', 'plan', 'relief'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={basemap === mode}
+                onClick={() => setBasemap(mode)}
+              >
+                <span className="maps-layers-thumb"><BasemapThumb mode={mode} /></span>
+                <span>{t(`visitor.carte.basemap.${mode}`)}</span>
+              </button>
+            ))}
+            <hr />
+            {([
+              ['traffic', trafficOn, setTrafficOn, 'traffic'],
+              ['transit', transitOn, setTransitOn, 'transit'],
+              ['cycling', cyclingOn, setCyclingOn, 'cycling'],
+            ] as const).map(([key, active, setActive, thumb]) => {
+              const supported = provider === 'google'
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={!supported}
+                  title={supported ? undefined : t('visitor.carte.basemap.unavailable')}
+                  onClick={() => supported && setActive(!active)}
+                >
+                  <span className="maps-layers-thumb"><BasemapThumb mode={thumb} /></span>
+                  <span>{t(`visitor.carte.basemap.${key}`)}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* ═══ État vide : aucune donnée sur la carte ═══ */}

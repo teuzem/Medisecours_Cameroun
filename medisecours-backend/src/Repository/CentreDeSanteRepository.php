@@ -180,6 +180,12 @@ class CentreDeSanteRepository extends ServiceEntityRepository
                     $qb->expr()->like('LOWER(c.quartier)', ':q')
                 )
             )->setParameter('q', '%' . strtolower($q) . '%');
+
+            // Les établissements les mieux notés et les plus avisés passent
+            // en tête des suggestions de recherche temps réel.
+            $qb->orderBy('c.noteMoyenne', 'DESC')
+                ->addOrderBy('c.totalAvis', 'DESC')
+                ->addOrderBy('c.nom', 'ASC');
         }
 
         if ($type !== null && $type !== '') {

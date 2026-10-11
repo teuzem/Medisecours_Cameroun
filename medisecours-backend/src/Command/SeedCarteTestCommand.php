@@ -73,7 +73,7 @@ class SeedCarteTestCommand extends Command
         [
             'slug' => 'pisam',
             'nom' => 'Polyclinique Internationale Sainte Anne-Marie (PISAM)',
-            'type' => 'clinique_privee',
+            'type' => 'polyclinique',
             'adresse' => 'Rue Njo-Njo, Bonamoussadi',
             'quartier' => 'Bonamoussadi',
             'ville' => 'Douala',
@@ -114,7 +114,7 @@ class SeedCarteTestCommand extends Command
         [
             'slug' => 'metropole',
             'nom' => 'Hôpital de la Métropole',
-            'type' => 'hopital_general',
+            'type' => 'hopital',
             'adresse' => 'Quartier Mvog-Ada, Yaoundé',
             'quartier' => 'Mvog-Ada',
             'ville' => 'Yaoundé',
@@ -155,7 +155,7 @@ class SeedCarteTestCommand extends Command
         [
             'slug' => 'chu-yaounde',
             'nom' => 'Centre Hospitalier Universitaire de Yaoundé',
-            'type' => 'chu',
+            'type' => 'hopital_central',
             'adresse' => 'Rue Henri Dunant, Yaoundé',
             'quartier' => 'Hôpital',
             'ville' => 'Yaoundé',
@@ -196,7 +196,7 @@ class SeedCarteTestCommand extends Command
         [
             'slug' => 'chu-garoua',
             'nom' => 'Centre Hospitalier Universitaire de Garoua',
-            'type' => 'chu',
+            'type' => 'hopital_central',
             'adresse' => 'Quartier Djarengol, Garoua',
             'quartier' => 'Djarengol',
             'ville' => 'Garoua',
@@ -236,7 +236,7 @@ class SeedCarteTestCommand extends Command
         [
             'slug' => 'hopital-bafoussam',
             'nom' => 'Hôpital de la Référence de Bafoussam',
-            'type' => 'hopital_general',
+            'type' => 'hopital_regional',
             'adresse' => 'Quartier Tamdja, Bafoussam',
             'quartier' => 'Tamdja',
             'ville' => 'Bafoussam',
@@ -316,7 +316,7 @@ class SeedCarteTestCommand extends Command
         [
             'slug' => 'notre-dame-paix',
             'nom' => 'Polyclinique Notre-Dame de la Paix',
-            'type' => 'clinique_privee',
+            'type' => 'polyclinique',
             'adresse' => 'Mvog-Ada, Yaoundé',
             'quartier' => 'Mvog-Ada',
             'ville' => 'Yaoundé',
@@ -432,7 +432,7 @@ class SeedCarteTestCommand extends Command
         [
             'slug' => 'hopital-buea',
             'nom' => 'Hôpital Régional de Buea',
-            'type' => 'hopital_general',
+            'type' => 'hopital_regional',
             'adresse' => 'Quartier Molyko, Buea',
             'quartier' => 'Molyko',
             'ville' => 'Buea',

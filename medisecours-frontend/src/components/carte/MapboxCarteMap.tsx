@@ -21,10 +21,17 @@ interface Props {
   route?: RouteGeometry | null
   isFallback?: boolean
   destination?: { lat: number; lng: number; nom?: string } | null
-  satellite?: boolean
+  basemap?: 'plan' | 'satellite' | 'relief'
+  flyTo?: { lat: number; lng: number } | null
   onRequestDirections?: (id: number) => void
   onToggleFavorite?: (id: number) => void
   favoriteIds?: number[]
+}
+
+const MAPBOX_STYLES: Record<'plan' | 'satellite' | 'relief', string> = {
+  plan: 'mapbox://styles/mapbox/streets-v12',
+  satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+  relief: 'mapbox://styles/mapbox/outdoors-v12',
 }
 
 const CAMEROUN_CENTER: [number, number] = [11.65, 4.05]
@@ -51,13 +58,13 @@ function patientMarkerElement(label: string) {
   return el
 }
 
-export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, isFallback = false, destination, satellite = false, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
+export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, isFallback = false, destination, basemap = 'satellite', flyTo = null, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
   const markersRef = useRef<any[]>([])
   const patientMarkerRef = useRef<any>(null)
-  const initialSatelliteRef = useRef(satellite)
+  const initialBasemapRef = useRef(basemap)
 
   // The map instance is intentionally created once; satellite changes are applied by the dedicated style effect below.
   useEffect(() => {
@@ -75,7 +82,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
     }
     const map = new window.mapboxgl.Map({
       container: containerRef.current,
-      style: initialSatelliteRef.current ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/streets-v12',
+      style: MAPBOX_STYLES[initialBasemapRef.current] ?? MAPBOX_STYLES.satellite,
       center: CAMEROUN_CENTER,
       zoom: 5.5,
       attributionControl: true,
@@ -94,8 +101,8 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
 
   useEffect(() => {
     const map = mapRef.current
-    if (map) map.setStyle(satellite ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/streets-v12')
-  }, [satellite])
+    if (map) map.setStyle(MAPBOX_STYLES[basemap] ?? MAPBOX_STYLES.satellite)
+  }, [basemap])
 
   useEffect(() => {
     const map = mapRef.current
@@ -265,6 +272,13 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
     const target = destination ?? (position ? { lat: position.lat, lng: position.lng } : null)
     if (map && target) map.flyTo({ center: [target.lng, target.lat], zoom: 13, essential: true })
   }, [destination, position])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (map && flyTo) {
+      map.flyTo({ center: [flyTo.lng, flyTo.lat], zoom: Math.max(map.getZoom() ?? 0, 13), essential: true })
+    }
+  }, [flyTo])
 
   void getMapboxToken
   return <div ref={containerRef} className="h-full w-full" aria-label={t('visitor.carte.title')} />
