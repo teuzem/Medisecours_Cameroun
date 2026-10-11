@@ -24,6 +24,9 @@ const PAGE_TITLE_KEYS: Record<string, string> = {
   '/medecin/messages': 'layout.messages',
   '/medecin/rapports': 'layout.reports',
   '/medecin/notifications': 'layout.notifications',
+  '/medecin/parametres': 'medecin.settings.title',
+  '/medecin/avis': 'medecin.sidebar.patientReviews',
+  '/medecin/guide-utilisation': 'medecin.sidebar.guide',
 }
 
 function SidebarWrapper({ setMobileOpen }: { setMobileOpen: (open: boolean) => void }) {

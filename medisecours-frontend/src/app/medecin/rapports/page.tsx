@@ -11,6 +11,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import EmptyState from '../../../components/ui/EmptyState'
 import { CONSULTATIONS_KEY } from '../../../lib/keys'
+import { useMySignature, useDocumentSeals, buildPrintSealsHtml } from '../../../lib/documentSeals'
 import { idStrFromRelation } from '../../../types/api'
 
 function idFromRelation(r) {
@@ -50,6 +51,9 @@ export default function MedecinRapportsPage() {
     () => consultations.find((c) => String(c.id) === String(selectedId)),
     [consultations, selectedId]
   )
+
+  const { signature } = useMySignature()
+  const { seal } = useDocumentSeals(selected?.etablissement?.id ?? null)
 
   const filtered = useMemo(() => {
     if (!search.trim()) return consultations
@@ -93,6 +97,18 @@ export default function MedecinRapportsPage() {
 
   function handlePrint() {
     const patientName = selected?.patient ? `${selected.patient.prenom || ''} ${selected.patient.nom || ''}`.trim() : '—'
+    const sealsHtml = buildPrintSealsHtml({
+      medecinPrenom: user?.prenom,
+      medecinNom: user?.nom,
+      medecinSignature: signature,
+      seal,
+      labels: {
+        signatureMedecin: t('medecin.rapports.printSignature'),
+        cachetOfficiel: t('medecin.rapports.printOfficialStamp'),
+        signeElectroniquement: t('medecin.rapports.printElectronicallySigned'),
+        dirigeant: t('medecin.rapports.printDirector'),
+      },
+    })
     const content = `
       <html><head><title>${t('medecin.rapports.printTitle', { name: patientName })}</title>
       <style>
@@ -103,7 +119,7 @@ export default function MedecinRapportsPage() {
         .section { margin-bottom: 16px; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }
         .footer { margin-top: 40px; font-size: 11px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
       </style></head><body>
-        <h1>${t('medecin.rapports.printDocTitle')}</h1>
+        <h1>${seal?.nom ? seal.nom + ' — ' : ''}${t('medecin.rapports.printDocTitle')}</h1>
         <div class="meta">
           <p><strong>${t('medecin.rapports.printPatient')}</strong> ${patientName}</p>
           <p><strong>${t('medecin.rapports.printDate')}</strong> ${formatDate(selected?.createdAt, locale)}</p>
@@ -114,6 +130,7 @@ export default function MedecinRapportsPage() {
         <div class="section">${observations || t('medecin.rapports.noObservations')}</div>
         <h2>${t('medecin.rapports.conclusions')}</h2>
         <div class="section">${conclusions || t('medecin.rapports.noConclusions')}</div>
+        ${sealsHtml}
         <div class="footer">${t('medecin.rapports.printFooter', { date: new Date().toLocaleDateString(locale), name: `${user?.prenom || ''} ${user?.nom || ''}` })}</div>
       </body></html>
     `

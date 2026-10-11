@@ -197,12 +197,15 @@
       "sendError": "Send failed. Please try again.",
       "establishmentLabel": "Target facility (optional)",
       "establishmentAny": "All available doctors",
-      "establishmentSearchPlaceholder": "Search for a facility...",
+      "establishmentSearchPlaceholder": "Search for a facility…",
       "establishmentTargetedNote": "Your request will be visible to doctors at this facility.",
       "establishmentBroadcastNote": "Your request will be broadcast to all available doctors.",
       "targetedBadge": "Targeted: {{name}}",
       "filterTargeted": "Targeted",
-      "loadEstablishmentsError": "Unable to load the facility list."
+      "loadEstablishmentsError": "Unable to load the facility list.",
+      "establishmentSearching": "Searching…",
+      "establishmentNoResult": "No facility found",
+      "establishmentClear": "Remove selection"
     },
     "messages": {
       "searchConversation": "Search a conversation...",
@@ -257,6 +260,33 @@
       "statutValide": "Valid",
       "reasonLabel": "Reason:",
       "viewPrescription": "View prescription"
+    },
+    "analytics": {
+      "title": "My statistics",
+      "periodLabel": "Period",
+      "periodDays": "{{count}} d",
+      "kpiConsultations": "Consultations",
+      "kpiPeriod": "This period",
+      "kpiPrescriptions": "Active prescriptions",
+      "kpiFavorites": "Favorites",
+      "growthUp": "+{{value}} % vs previous period",
+      "growthDown": "−{{value}} % vs previous period",
+      "timelineTitle": "Consultation trend",
+      "statusTitle": "By status",
+      "weekdayTitle": "Busiest days",
+      "etablissementTitle": "Facilities visited",
+      "consultationsLabel": "Consultations",
+      "noData": "No data for this period",
+      "totalLabel": "Total",
+      "dayShort": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      }
     }
   }
 }

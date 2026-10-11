@@ -6,6 +6,8 @@ namespace App\Service;
 
 use App\Entity\Consultation;
 use App\Entity\Prescription;
+use App\Repository\AffiliationMedecinRepository;
+use App\Repository\SignatureNumeriqueRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -19,6 +21,8 @@ class ConsultationEmailService
         private readonly string $senderEmail,
         private readonly string $senderName,
         private readonly PdfGeneratorService $pdfGenerator,
+        private readonly SignatureNumeriqueRepository $signatureRepository,
+        private readonly AffiliationMedecinRepository $affiliationRepository,
     ) {
     }
 
@@ -105,6 +109,15 @@ HTML;
             ];
         }, $prescription->getMedicaments());
 
+        $centre = $consultation?->getEtablissement() ?? ($medecin ? $this->findFirstAffiliatedCentre($medecin) : null);
+        $medecinSignature = $medecin ? $this->signatureRepository->findOneActiveByUser($medecin) : null;
+        $dirigeantSignature = $centre?->getDirigeant()
+            ? $this->signatureRepository->findOneActiveByUser($centre->getDirigeant())
+            : null;
+
+        $logo = (string) ($centre?->getLogoUrl() ?? '');
+        $logoIsDataUri = str_starts_with($logo, 'data:image/');
+
         $data = [
             'patientPrenom' => $patient?->getPrenom() ?? '',
             'patientNom' => $patient?->getNom() ?? '',
@@ -117,15 +130,33 @@ HTML;
             'telephone' => $medecin?->getTelephone() ?? '—',
             'telephoneUrgences' => $medecin?->getTelephone() ?? '—',
             'email' => $medecin?->getEmail() ?? 'doctor@medisecours.com',
-            'hopital' => 'MediSecours Clinic',
-            'quartier' => $medecin?->getQuartier() ?? 'Cameroun',
+            'hopital' => $centre?->getNom() ?? 'MediSecours Clinic',
+            'quartier' => $centre?->getQuartier() ?? ($medecin?->getQuartier() ?? 'Cameroun'),
             'diagnostic' => $prescription->getDiagnostic() ?? '',
             'medicaments' => $medicaments,
             'recommandations' => $prescription->getRecommandations() ?? '',
             'date' => (new \DateTimeImmutable())->format('d/m/Y'),
+            // Sceaux officiels (data URIs — Dompdf n'autorise pas le remote).
+            'etablissementNom' => $centre?->getNom() ?? '',
+            'etablissementVille' => $centre?->getVille() ?? '',
+            'logoDataUri' => $logoIsDataUri ? $logo : null,
+            'cachetDataUri' => $centre?->getCachetUrl(),
+            'signatureMedecinDataUri' => $medecinSignature?->getImageData(),
+            'signatureHash' => $medecinSignature ? substr($medecinSignature->getHashSha256(), 0, 12) : null,
         ];
 
         $pdfContent = $this->pdfGenerator->generatePrescriptionPdf($data);
         $email->attach($pdfContent, 'ordonnance.pdf', 'application/pdf');
+    }
+
+    private function findFirstAffiliatedCentre(\App\Entity\Medecin $medecin): ?\App\Entity\CentreDeSante
+    {
+        foreach ($this->affiliationRepository->findByMedecin($medecin) as $affiliation) {
+            if ($affiliation->getStatut() === 'ACCEPTEE' && $affiliation->getEtablissement()) {
+                return $affiliation->getEtablissement();
+            }
+        }
+
+        return null;
     }
 }

@@ -17,6 +17,7 @@ use App\Repository\AvisEtablissementRepository;
 use App\Repository\CentreDeSanteRepository;
 use App\Repository\DemandeSosRepository;
 use App\Repository\EtablissementEquipeRepository;
+use App\Repository\SignatureNumeriqueRepository;
 use App\Repository\UserRepository;
 use App\Service\StructureSyncService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,7 +53,8 @@ class CarteController extends AbstractController
         private AffiliationMedecinRepository $affiliationRepository,
         private AvisEtablissementRepository $avisRepository,
         private DemandeSosRepository $sosRepository,
-        private StructureSyncService $structureSync
+        private StructureSyncService $structureSync,
+        private SignatureNumeriqueRepository $signatureRepository
     ) {
     }
 
@@ -321,6 +323,50 @@ class CarteController extends AbstractController
                 }
             }
             $centre->setLogoUrl($logoUrl);
+        }
+
+        if (array_key_exists('cachetUrl', $data)) {
+            $cachet = $data['cachetUrl'];
+            if ($cachet === null || $cachet === '') {
+                $centre->setCachetUrl(null);
+            } else {
+                if (!is_string($cachet)
+                    || !preg_match('#^data:image/(png|webp|jpeg);base64,[A-Za-z0-9+/]+={0,2}$#', $cachet)) {
+                    throw new BadRequestHttpException('Cachet invalide : un data URI PNG/JPEG/WebP est attendu.');
+                }
+                if (strlen($cachet) > 2_500_000) {
+                    throw new BadRequestHttpException('Cachet trop volumineux (2,5 Mo max).');
+                }
+                $centre->setCachetUrl($cachet);
+            }
+        }
+
+        if (array_key_exists('dirigeantNom', $data)) {
+            $nom = $data['dirigeantNom'] === null ? null : trim((string) $data['dirigeantNom']);
+            if ($nom !== null && ($nom === '' || mb_strlen($nom) > 255)) {
+                throw new BadRequestHttpException('Nom du dirigeant invalide (255 caractères max).');
+            }
+            $centre->setDirigeantNom($nom === '' ? null : $nom);
+        }
+
+        if (array_key_exists('dirigeantGrade', $data)) {
+            $grade = $data['dirigeantGrade'] === null ? null : trim((string) $data['dirigeantGrade']);
+            if ($grade !== null && ($grade === '' || mb_strlen($grade) > 120)) {
+                throw new BadRequestHttpException('Grade du dirigeant invalide (120 caractères max).');
+            }
+            $centre->setDirigeantGrade($grade === '' ? null : $grade);
+        }
+
+        // Confirmation de la signature officielle : attache la signature
+        // numérique du manager connecté au poste de dirigeant de l'établissement.
+        if (!empty($data['confirmDirigeantSignature'])) {
+            $signature = $this->signatureRepository->findOneActiveByUser($user);
+            if ($signature === null) {
+                throw new BadRequestHttpException(
+                    'Enregistrez d\u2019abord votre signature numérique dans vos paramètres.'
+                );
+            }
+            $centre->setDirigeant($user);
         }
 
         if (isset($data['horaires'])) {
@@ -1157,6 +1203,21 @@ class CarteController extends AbstractController
 
     private function serializeCentre(CentreDeSante $centre): array
     {
+        $dirigeant = $centre->getDirigeant();
+        $dirigeantSignature = null;
+        if ($dirigeant) {
+            $signature = $this->signatureRepository->findOneActiveByUser($dirigeant);
+            if ($signature) {
+                $dirigeantSignature = [
+                    'imageData' => $signature->getImageData(),
+                    'hashShort' => substr($signature->getHashSha256(), 0, 12),
+                    'signedAt' => $signature->getSignedAt()->format(\DateTimeInterface::RFC3339),
+                    'prenom' => $dirigeant->getPrenom(),
+                    'nom' => $dirigeant->getNom(),
+                ];
+            }
+        }
+
         return [
             'id' => $centre->getId(),
             'nom' => $centre->getNom(),
@@ -1175,6 +1236,11 @@ class CarteController extends AbstractController
             'siteWeb' => $centre->getSiteWeb(),
             'imageUrl' => $centre->getImageUrl(),
             'logoUrl' => $centre->getLogoUrl(),
+            'cachetUrl' => $centre->getCachetUrl(),
+            'dirigeantNom' => $centre->getDirigeantNom(),
+            'dirigeantGrade' => $centre->getDirigeantGrade(),
+            'dirigeantId' => $dirigeant?->getId(),
+            'dirigeantSignature' => $dirigeantSignature,
             'horaires' => $centre->getHoraires(),
             'horairesDetails' => $centre->getHorairesDetails(),
             'urgences24h' => $centre->isUrgences24h(),

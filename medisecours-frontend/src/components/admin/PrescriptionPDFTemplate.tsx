@@ -3,6 +3,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Phone, Globe, MapPin, HeartPulse } from 'lucide-react'
+import type { EstablishmentSeal, MySignature } from '../../lib/documentSeals'
 
 const T = '#0A4A5C'
 const L = '#E5EFEF'
@@ -12,10 +13,16 @@ export default function PrescriptionPDFTemplate({
   medicaments,
   recommandations,
   consultation,
-  medecin
+  medecin,
+  seal,
+  signature,
 }) {
   const { t } = useTranslation()
   const patient = consultation?.patient || {}
+  const sealData = seal as EstablishmentSeal | null | undefined
+  const signatureData = signature as MySignature | null | undefined
+  const doctorGrade = signatureData?.grade ? `${signatureData.grade} ` : ''
+  const etablissementNom = sealData?.nom || t('admin.pdfTemplate.clinicName')
 
   return (
     <div
@@ -28,8 +35,8 @@ export default function PrescriptionPDFTemplate({
       {/* Header */}
       <div style={{ background: '#F8F9FA', padding: '32px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid ' + T }}>
         <div>
-          <h1 style={{ color: '#2B838A', fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>{t('admin.pdfTemplate.clinicName')}</h1>
-          <h2 style={{ color: T, fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>Dr. {medecin?.prenom} {medecin?.nom}</h2>
+          <h1 style={{ color: '#2B838A', fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>{etablissementNom}</h1>
+          <h2 style={{ color: T, fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>{doctorGrade}Dr. {medecin?.prenom} {medecin?.nom}</h2>
           <p style={{ color: '#888', fontSize: '12px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '2px' }}>{medecin?.specialite || t('admin.pdfTemplate.specialiteFallback')}</p>
           <p style={{ color: '#555', fontSize: '12px' }}>{t('admin.pdfTemplate.registrationNo', { id: medecin?.id ? `MS-${medecin.id.toString().padStart(6, '0')}` : 'MS-000000' })}</p>
         </div>
@@ -117,10 +124,38 @@ export default function PrescriptionPDFTemplate({
               </div>
             )}
 
-            {/* Signature */}
-            <div style={{ position: 'absolute', bottom: '24px', right: '32px', textAlign: 'center' }}>
-              <div style={{ width: '160px', borderTop: '1px solid #333', marginBottom: '4px' }}></div>
-              <span style={{ color: '#555', fontSize: '11px', fontWeight: 700 }}>{t('admin.pdfTemplate.signatureMedecin')}</span>
+            {/* Signature + cachet officiel (positionnement papier réel) */}
+            <div style={{ position: 'absolute', bottom: '20px', left: '32px', right: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px' }}>
+              {/* Cachet / logo établissement — gauche */}
+              <div style={{ textAlign: 'left' }}>
+                {sealData?.cachetUrl ? (
+                  <img src={sealData.cachetUrl} alt="" style={{ maxHeight: '100px', maxWidth: '150px', display: 'block' }} />
+                ) : sealData?.logoUrl && sealData.logoUrl.startsWith('data:') ? (
+                  <img src={sealData.logoUrl} alt="" style={{ maxHeight: '72px', maxWidth: '120px', display: 'block' }} />
+                ) : null}
+                {sealData?.nom && (
+                  <>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: T, marginTop: '4px' }}>{sealData.nom}</div>
+                    {sealData.ville && <div style={{ fontSize: '10px', color: '#6B7280' }}>{sealData.ville}</div>}
+                    <div style={{ fontSize: '9px', color: '#9CA3AF' }}>{t('admin.pdfTemplate.officialStamp')}</div>
+                  </>
+                )}
+              </div>
+
+              {/* Signature médecin — droite */}
+              <div style={{ textAlign: 'center' }}>
+                {signatureData?.imageData && (
+                  <img src={signatureData.imageData} alt="" style={{ maxHeight: '56px', maxWidth: '180px', display: 'block', margin: '0 0 4px auto' }} />
+                )}
+                <div style={{ width: '160px', borderTop: '1px solid #333', margin: '0 0 4px auto' }}></div>
+                <span style={{ color: '#555', fontSize: '11px', fontWeight: 700 }}>{t('admin.pdfTemplate.signatureMedecin')}</span>
+                <div style={{ color: '#333', fontSize: '12px', fontWeight: 700, marginTop: '2px' }}>{doctorGrade}Dr. {medecin?.prenom} {medecin?.nom}</div>
+                {signatureData && (
+                  <div style={{ color: '#9CA3AF', fontSize: '9px', marginTop: '2px' }}>
+                    {t('admin.pdfTemplate.electronicallySigned')} — {signatureData.hashShort}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

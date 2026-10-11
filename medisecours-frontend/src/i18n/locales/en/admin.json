@@ -846,7 +846,9 @@
       "hopitalFallback": "Health Care Clinic",
       "quartierFallback": "By boose, Austria",
       "phoneFallback": "123 456 789",
-      "emailFallback": "doctor@medisecours.com"
+      "emailFallback": "doctor@medisecours.com",
+      "officialStamp": "Official stamp",
+      "electronicallySigned": "Electronically signed"
     }
   }
 }

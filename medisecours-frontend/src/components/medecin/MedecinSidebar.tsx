@@ -43,6 +43,12 @@ const NAV_GROUPS = [
       { href: '/medecin/avis', labelKey: 'medecin.sidebar.patientReviews', icon: MessageCircle },
     ],
   },
+  {
+    labelKey: 'medecin.sidebar.account',
+    items: [
+      { href: '/medecin/parametres', labelKey: 'medecin.sidebar.settings', icon: Settings },
+    ],
+  },
 ]
 
 export default function MedecinSidebar({ setMobileOpen }: { setMobileOpen: (open: boolean) => void }) {

@@ -9,6 +9,7 @@ import GlassCard from '../../../components/ui/GlassCard'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import SectionHeader from '../../../components/ui/SectionHeader'
 import Toggle from '../../../components/ui/Toggle'
+import SignatureSettings from '../../../components/medecin/SignatureSettings'
 
 type MedecinPrefs = {
   language: 'fr' | 'en'
@@ -108,7 +109,9 @@ export default function ParametresPage() {
         description={t('medecin.settings.description')}
       />
 
-      <GlassCard className="mt-6 p-5">
+      <SignatureSettings />
+
+      <GlassCard className="mt-4 p-5">
         <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-slate-400">{t('medecin.settings.appearanceTitle')}</p>
         <div className="mt-3 space-y-3">
           <Toggle

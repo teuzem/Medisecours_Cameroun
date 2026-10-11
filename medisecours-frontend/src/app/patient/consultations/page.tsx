@@ -33,6 +33,7 @@ import ConsultationDetailModal from '../../../components/consultations/Consultat
 import PrescriptionsModal from '../../../components/consultations/PrescriptionsModal'
 import PrescriptionDetailModal from '../../../components/admin/PrescriptionDetailModal'
 import ConfirmModal from '../../../components/ui/ConfirmModal'
+import EstablishmentSearchSelect from '../../../components/patient/EstablishmentSearchSelect'
 import type { Prescription } from '../../../types/api'
 
 const CONSULTATIONS_PAGE_SIZE = 5
@@ -187,21 +188,6 @@ export default function PatientConsultationsPage() {
     user ? '/api/patient/consultations/stats' : null,
     async (url) => (await api.get(url)).data,
     { revalidateOnFocus: false },
-  )
-
-  const { data: etablissementsData } = useSWR(
-    showForm ? '/api/centre_de_santes?estActif=true&itemsPerPage=60' : null,
-    async (url) => (await api.get(url)).data,
-    { revalidateOnFocus: false },
-  )
-  const etablissementsList = useMemo(() => {
-    if (!etablissementsData) return []
-    const raw = etablissementsData['hydra:member'] ?? etablissementsData
-    return Array.isArray(raw) ? raw : []
-  }, [etablissementsData])
-  const selectedEtablissement = useMemo(
-    () => etablissementsList.find((e: any) => e.id === etablissementId) ?? null,
-    [etablissementsList, etablissementId],
   )
 
   const loadedConsultations = useMemo(
@@ -549,22 +535,13 @@ export default function PatientConsultationsPage() {
                   <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
                   {t('patient.consultations.establishmentLabel')}
                 </span>
-                <select
-                  value={etablissementId ?? ''}
-                  onChange={(event) => setEtablissementId(event.target.value ? Number(event.target.value) : null)}
-                  className="mt-2 h-11 w-full border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-slate-950 dark:text-white"
-                >
-                  <option value="">{t('patient.consultations.establishmentAny')}</option>
-                  {etablissementsList.map((e: any) => (
-                    <option key={e.id} value={e.id}>
-                      {e.nom}{e.ville ? ` — ${e.ville}` : ''}
-                    </option>
-                  ))}
-                </select>
+                <span className="mt-2 block">
+                  <EstablishmentSearchSelect value={etablissementId} onChange={setEtablissementId} />
+                </span>
               </label>
               <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-400">
                 <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-                {selectedEtablissement
+                {etablissementId !== null
                   ? t('patient.consultations.establishmentTargetedNote')
                   : t('patient.consultations.establishmentBroadcastNote')}
               </p>

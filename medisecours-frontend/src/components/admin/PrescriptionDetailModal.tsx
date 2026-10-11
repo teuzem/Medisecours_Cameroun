@@ -5,10 +5,14 @@ import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Loader2, Download, FileText, Send, Ban, RefreshCw, AlertTriangle } from 'lucide-react'
 import { createPortal } from 'react-dom'
+import useSWR from 'swr'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../ui/Toast'
 import PrescriptionPDFTemplate from './PrescriptionPDFTemplate'
 import { downloadPrescriptionPDF } from '../../lib/prescriptionPdf'
+import { fetcher } from '../../lib/fetcher'
+import { useMySignature, useDocumentSeals } from '../../lib/documentSeals'
+import { ME_SIGNATURE_KEY, DOCUMENT_SEAUX_KEY } from '../../lib/keys'
 import api from '../../api/axios'
 import type { Prescription, StatutPrescription } from '../../types/api'
 
@@ -35,6 +39,13 @@ export default function PrescriptionDetailModal({ prescription, onClose, onActio
   const patient = (prescription.patient as any) || {}
   const patientName = `${patient.prenom || ''} ${patient.nom || ''}`.trim() || t('admin.prescriptionDetail.fallback')
   const consultation = (prescription.consultation as any) || {}
+  const centreId = consultation?.etablissement?.id ?? (prescription as any)?.etablissement?.id ?? null
+
+  const { signature } = useMySignature()
+  const { seal } = useDocumentSeals(centreId)
+  const { data: sealsData } = useSWR(centreId ? null : DOCUMENT_SEAUX_KEY, fetcher, { revalidateOnFocus: false })
+  const fallbackSeal = !centreId && Array.isArray(sealsData?.seaux) && sealsData.seaux.length > 0 ? sealsData.seaux[0] : null
+  const activeSeal = seal ?? fallbackSeal
 
   const handleDownload = async () => {
     try {
@@ -127,6 +138,8 @@ export default function PrescriptionDetailModal({ prescription, onClose, onActio
                 }
                 consultation={{ ...consultation, patient }}
                 medecin={prescription.medecin || user}
+                seal={activeSeal}
+                signature={signature}
               />
             </div>
           </div>

@@ -1882,7 +1882,29 @@
         "insightTopType": "{{type}} dominates your interactions ({{count}} · {{share}}% of total).",
         "insightGrowthUp": "Your activity is up +{{rate}}% compared to the previous period.",
         "insightGrowthDown": "Your activity is down {{rate}}% compared to the previous period."
-      }
+      },
+      "stampSectionTitle": "Official stamp & director",
+      "stampSectionDescription": "The stamp and the director’s signature appear on the prescription and report PDFs generated for your facility.",
+      "stampLabel": "Facility stamp",
+      "stampDescription": "Upload the official stamp. The background is removed automatically for a transparent result on documents.",
+      "stampPreviewAlt": "Stamp preview",
+      "stampUpload": "Upload stamp",
+      "stampProcessing": "Removing background…",
+      "stampProcessingFailed": "Could not process the stamp image.",
+      "stampBackgroundRemovedHint": "Background removed automatically · transparent PNG",
+      "stampSaved": "Stamp and director saved",
+      "stampSaveFailed": "Could not save",
+      "stampSave": "Save",
+      "directorNameLabel": "Director name",
+      "directorNamePlaceholder": "e.g. Dr Jean Mballa",
+      "directorGradeLabel": "Director role",
+      "directorGradePlaceholder": "e.g. Medical director",
+      "directorSignedLabel": "Director’s signature registered",
+      "directorSign": "Sign with my signature",
+      "directorSignAgain": "Renew signature",
+      "directorSignHint": "Uses your registered digital signature (doctor settings)",
+      "directorSignNeedSignature": "Register your signature in your doctor settings first to certify documents.",
+      "directorSignatureConfirmed": "Director’s signature certified"
     }
   }
 }

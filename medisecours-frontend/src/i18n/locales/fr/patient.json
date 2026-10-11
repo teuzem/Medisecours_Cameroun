@@ -197,12 +197,15 @@
       "sendError": "Échec de l'envoi. Veuillez réessayer.",
       "establishmentLabel": "Établissement ciblé (optionnel)",
       "establishmentAny": "Tous les médecins disponibles",
-      "establishmentSearchPlaceholder": "Rechercher un établissement...",
+      "establishmentSearchPlaceholder": "Rechercher un établissement…",
       "establishmentTargetedNote": "Votre demande sera visible par les médecins de cet établissement.",
       "establishmentBroadcastNote": "Votre demande sera diffusée à tous les médecins disponibles.",
       "targetedBadge": "Ciblé : {{name}}",
       "filterTargeted": "Ciblées",
-      "loadEstablishmentsError": "Impossible de charger la liste des établissements."
+      "loadEstablishmentsError": "Impossible de charger la liste des établissements.",
+      "establishmentSearching": "Recherche…",
+      "establishmentNoResult": "Aucun établissement trouvé",
+      "establishmentClear": "Retirer la sélection"
     },
     "messages": {
       "searchConversation": "Rechercher une conversation...",
@@ -257,6 +260,33 @@
       "statutValide": "Valide",
       "reasonLabel": "Motif :",
       "viewPrescription": "Voir l'ordonnance"
+    },
+    "analytics": {
+      "title": "Mes statistiques",
+      "periodLabel": "Période",
+      "periodDays": "{{count}} j",
+      "kpiConsultations": "Consultations",
+      "kpiPeriod": "Sur la période",
+      "kpiPrescriptions": "Ordonnances actives",
+      "kpiFavorites": "Favoris",
+      "growthUp": "+{{value}} % vs période précédente",
+      "growthDown": "−{{value}} % vs période précédente",
+      "timelineTitle": "Évolution des consultations",
+      "statusTitle": "Répartition par statut",
+      "weekdayTitle": "Jours les plus fréquentés",
+      "etablissementTitle": "Établissements consultés",
+      "consultationsLabel": "Consultations",
+      "noData": "Aucune donnée sur cette période",
+      "totalLabel": "Total",
+      "dayShort": {
+        "0": "Dim",
+        "1": "Lun",
+        "2": "Mar",
+        "3": "Mer",
+        "4": "Jeu",
+        "5": "Ven",
+        "6": "Sam"
+      }
     }
   }
 }

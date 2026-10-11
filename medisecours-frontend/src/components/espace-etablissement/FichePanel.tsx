@@ -62,6 +62,17 @@ export type FicheCentre = {
   siteWeb?: string | null
   imageUrl?: string | null
   logoUrl?: string | null
+  cachetUrl?: string | null
+  dirigeantNom?: string | null
+  dirigeantGrade?: string | null
+  dirigeantId?: number | null
+  dirigeantSignature?: {
+    imageData: string
+    hashShort: string
+    signedAt: string
+    prenom?: string | null
+    nom?: string | null
+  } | null
   horaires?: string | null
   horairesDetails?: {
     weekly?: Record<string, { open?: string | null; close?: string | null; closed?: boolean }>

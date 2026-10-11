@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 
+import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -94,11 +95,15 @@ export default function MedecinDashboard() {
   const { t, i18n } = useTranslation()
   const locale = i18n.language === 'en' ? 'en-GB' : 'fr-FR'
 
+  const [analyticsPeriod, setAnalyticsPeriod] = useState(30)
+
   const { data, error, isLoading, mutate } = useSWR<DashboardData>(
-    DASHBOARD_KEY,
+    `${DASHBOARD_KEY}?period=${analyticsPeriod}`,
     dashboardFetcher,
     { revalidateOnFocus: false, errorRetryCount: 3, keepPreviousData: true }
   )
+
+  const handlePeriodChange = useCallback((period: number) => setAnalyticsPeriod(period), [])
 
   const wsHandlers = {
     onConsultationCreated: () => mutate(),
@@ -197,7 +202,7 @@ export default function MedecinDashboard() {
         <AffiliationsCard />
 
         {/* ── Animated Analytics Charts ─────────────────── */}
-        <DashboardAnalytics data={data} />
+        <DashboardAnalytics data={data} period={analyticsPeriod} onPeriodChange={handlePeriodChange} />
 
         {/* ── Consultation Progress Table (like "Recruitment Progress") ─── */}
         <div className="dashboard-panel rounded-xl p-5">

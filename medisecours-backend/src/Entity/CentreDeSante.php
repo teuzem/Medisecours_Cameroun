@@ -159,6 +159,27 @@ class CentreDeSante
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
     private ?string $logoUrl = null;
 
+    /**
+     * Cachet officiel de l'établissement — data URI PNG détouré (fond transparent).
+     * NON exposé dans centre_sante:read (payloads carte/lourds) — visible via
+     * /api/carte/mon-etablissement et /api/documents/seaux.
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $cachetUrl = null;
+
+    /** Nom du haut cadre dirigeant (Pr Manaouda Moussa, Sr Marielle Mve…). */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $dirigeantNom = null;
+
+    /** Grade rattaché au nom du dirigeant (Directeur Général, Promoteur…). */
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $dirigeantGrade = null;
+
+    /** Utilisateur (manager/dirigeant) dont la signature officielle authentifie les documents. */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(name: 'dirigeant_id', nullable: true, onDelete: 'SET NULL')]
+    private ?User $dirigeant = null;
+
     #[ORM\Column(length: 50, options: ['default' => 'prive'])]
     #[Assert\Choice(choices: ['public', 'prive', 'associatif'])]
     #[Groups(['centre_sante:read', 'centre_sante:write'])]
@@ -414,6 +435,18 @@ class CentreDeSante
 
     public function getLogoUrl(): ?string { return $this->logoUrl; }
     public function setLogoUrl(?string $logoUrl): static { $this->logoUrl = $logoUrl; return $this; }
+
+    public function getCachetUrl(): ?string { return $this->cachetUrl; }
+    public function setCachetUrl(?string $cachetUrl): static { $this->cachetUrl = $cachetUrl; return $this; }
+
+    public function getDirigeantNom(): ?string { return $this->dirigeantNom; }
+    public function setDirigeantNom(?string $dirigeantNom): static { $this->dirigeantNom = $dirigeantNom; return $this; }
+
+    public function getDirigeantGrade(): ?string { return $this->dirigeantGrade; }
+    public function setDirigeantGrade(?string $dirigeantGrade): static { $this->dirigeantGrade = $dirigeantGrade; return $this; }
+
+    public function getDirigeant(): ?User { return $this->dirigeant; }
+    public function setDirigeant(?User $dirigeant): static { $this->dirigeant = $dirigeant; return $this; }
 
     public function getStatut(): string { return $this->statut; }
     public function setStatut(string $statut): static { $this->statut = $statut; return $this; }

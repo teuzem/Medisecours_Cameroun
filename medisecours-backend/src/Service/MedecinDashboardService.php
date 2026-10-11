@@ -25,11 +25,14 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class MedecinDashboardService
 {
+    public const ALLOWED_PERIODS = [7, 30, 90, 365];
+
     /** Seuil de garde (consultations actives > 48h = alerte). */
     private const ALERT_THRESHOLD_HOURS = 48;
     private const WIDGET_LIMIT = 5;
     private const TOP_MOTIFS_LIMIT = 8;
     private const TOP_ALLERGIES_LIMIT = 5;
+    private const TOP_ETABLISSEMENTS_LIMIT = 8;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -40,18 +43,27 @@ class MedecinDashboardService
     /**
      * @return array<string, mixed>
      */
-    public function buildDashboard(Medecin $medecin): array
+    public function buildDashboard(Medecin $medecin, int $period = 30): array
     {
+        if (!in_array($period, self::ALLOWED_PERIODS, true)) {
+            $period = 30;
+        }
         $conn = $this->entityManager->getConnection();
 
         // --- Agrégats purs (aucune hydratation d'entité) ---
         $kpis = $this->buildKpis($conn, $medecin);
+        $kpisPeriode = $this->buildKpisPeriode($conn, $medecin, $period);
         $statusCounts = $this->buildStatusCounts($conn, $medecin);
         $alerts = $this->buildAlerts($conn, $medecin);
         $bloodDistribution = $this->buildBloodDistribution($conn, $medecin);
         $allergies = $this->buildAllergies($conn, $medecin);
-        $topMotifs = $this->buildTopMotifs($conn, $medecin);
-        $timeline = $this->buildTimeline($conn, $medecin, 30);
+        $topMotifs = $this->buildTopMotifs($conn, $medecin, $period);
+        $timeline = $this->buildTimeline($conn, $medecin, $period);
+        $weekdayDistribution = $this->buildWeekdayDistribution($conn, $medecin, $period);
+        $hourlyDistribution = $this->buildHourlyDistribution($conn, $medecin, $period);
+        $prescriptionsByStatut = $this->buildPrescriptionCounts($conn, $medecin, $period);
+        $etablissementBreakdown = $this->buildEtablissementBreakdown($conn, $medecin, $period);
+        $comparaison = $this->buildComparaison($conn, $medecin, $period);
         $avisStats = $this->buildAvisStats($medecin);
         $unreadMessages = $this->countUnreadMessages($medecin);
 
@@ -62,7 +74,9 @@ class MedecinDashboardService
         $recentPatients = $this->fetchRecentPatients($medecin);
 
         return [
+            'period' => $period,
             'kpis' => $kpis,
+            'kpisPeriode' => $kpisPeriode,
             'statusCounts' => $statusCounts,
             'alerts' => $alerts,
             'noteMoyenne' => $avisStats['noteMoyenne'],
@@ -73,6 +87,11 @@ class MedecinDashboardService
             'allergies' => $allergies,
             'motifsCount' => $topMotifs,
             'timeline' => $timeline,
+            'weekdayDistribution' => $weekdayDistribution,
+            'hourlyDistribution' => $hourlyDistribution,
+            'prescriptionsByStatut' => $prescriptionsByStatut,
+            'etablissementBreakdown' => $etablissementBreakdown,
+            'comparaison' => $comparaison,
             'activeConsultations' => $activeConsultations,
             'riskConsultations' => $riskConsultations,
             'upcomingAppointments' => $upcomingAppointments,
@@ -260,12 +279,13 @@ class MedecinDashboardService
      *
      * @return array<int, array{motif: string, count: int}>
      */
-    private function buildTopMotifs(Connection $conn, Medecin $medecin): array
+    private function buildTopMotifs(Connection $conn, Medecin $medecin, int $period = 30): array
     {
         $rows = $conn->fetchAllAssociative(
             'SELECT motif, COUNT(*) AS n
              FROM consultation
              WHERE medecin_id = :uid AND motif IS NOT NULL AND motif <> \'\'
+               AND created_at >= (CURRENT_DATE - INTERVAL \'' . $period . ' days\')
              GROUP BY motif
              ORDER BY n DESC
              LIMIT ' . self::TOP_MOTIFS_LIMIT,
@@ -310,6 +330,186 @@ class MedecinDashboardService
         }
 
         return $series;
+    }
+
+    /**
+     * KPI bornés à la période sélectionnée.
+     *
+     * @return array{consultations: int, terminees: int, nouvellesPrescriptions: int, patientsDistinct: int}
+     */
+    private function buildKpisPeriode(Connection $conn, Medecin $medecin, int $period): array
+    {
+        $uid = $this->userId($medecin);
+        $params = ['uid' => $uid, 'since' => date('Y-m-d', strtotime("-{$period} days"))];
+
+        return [
+            'consultations' => (int) $conn->fetchOne(
+                'SELECT COUNT(*) FROM consultation WHERE medecin_id = :uid AND created_at >= :since',
+                $params
+            ),
+            'terminees' => (int) $conn->fetchOne(
+                "SELECT COUNT(*) FROM consultation WHERE medecin_id = :uid AND statut = 'TERMINEE' AND created_at >= :since",
+                $params
+            ),
+            'nouvellesPrescriptions' => (int) $conn->fetchOne(
+                'SELECT COUNT(*) FROM prescription WHERE medecin_id = :uid AND created_at >= :since',
+                $params
+            ),
+            'patientsDistinct' => (int) $conn->fetchOne(
+                'SELECT COUNT(DISTINCT patient_id) FROM consultation WHERE medecin_id = :uid AND created_at >= :since',
+                $params
+            ),
+        ];
+    }
+
+    /**
+     * Répartition par jour de semaine (0 = dimanche … 6 = samedi, standard DOW).
+     *
+     * @return array<int, int> indexé 0..6
+     */
+    private function buildWeekdayDistribution(Connection $conn, Medecin $medecin, int $period): array
+    {
+        $rows = $conn->fetchAllAssociative(
+            'SELECT CAST(EXTRACT(DOW FROM created_at) AS INT) AS dow, COUNT(*) AS n
+             FROM consultation
+             WHERE medecin_id = :uid AND created_at >= (CURRENT_DATE - INTERVAL \'' . $period . ' days\')
+             GROUP BY dow',
+            ['uid' => $this->userId($medecin)]
+        );
+
+        $distribution = array_fill(0, 7, 0);
+        foreach ($rows as $row) {
+            $dow = (int) $row['dow'];
+            if ($dow >= 0 && $dow <= 6) {
+                $distribution[$dow] = (int) $row['n'];
+            }
+        }
+
+        return $distribution;
+    }
+
+    /**
+     * Volume d'interactions par heure de journée (0..23).
+     *
+     * @return array<int, int>
+     */
+    private function buildHourlyDistribution(Connection $conn, Medecin $medecin, int $period): array
+    {
+        $rows = $conn->fetchAllAssociative(
+            'SELECT CAST(EXTRACT(HOUR FROM created_at) AS INT) AS h, COUNT(*) AS n
+             FROM consultation
+             WHERE medecin_id = :uid AND created_at >= (CURRENT_DATE - INTERVAL \'' . $period . ' days\')
+             GROUP BY h',
+            ['uid' => $this->userId($medecin)]
+        );
+
+        $distribution = array_fill(0, 24, 0);
+        foreach ($rows as $row) {
+            $hour = (int) $row['h'];
+            if ($hour >= 0 && $hour <= 23) {
+                $distribution[$hour] = (int) $row['n'];
+            }
+        }
+
+        return $distribution;
+    }
+
+    /**
+     * Prescriptions du médecin par statut sur la période.
+     *
+     * @return array<string, int>
+     */
+    private function buildPrescriptionCounts(Connection $conn, Medecin $medecin, int $period): array
+    {
+        $rows = $conn->fetchAllAssociative(
+            'SELECT statut, COUNT(*) AS n
+             FROM prescription
+             WHERE medecin_id = :uid AND created_at >= (CURRENT_DATE - INTERVAL \'' . $period . ' days\')
+             GROUP BY statut',
+            ['uid' => $this->userId($medecin)]
+        );
+
+        $counts = [
+            'BROUILLON' => 0,
+            'SIGNEE' => 0,
+            'TRANSMISE' => 0,
+            'ANNULEE' => 0,
+            'EXPIREE' => 0,
+            'REMPLACEE' => 0,
+        ];
+        foreach ($rows as $row) {
+            $statut = (string) $row['statut'];
+            if (isset($counts[$statut])) {
+                $counts[$statut] = (int) $row['n'];
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Volume de consultations par établissement rattaché.
+     *
+     * @return array<int, array{etablissementId: int|null, nom: string, count: int}>
+     */
+    private function buildEtablissementBreakdown(Connection $conn, Medecin $medecin, int $period): array
+    {
+        $rows = $conn->fetchAllAssociative(
+            'SELECT c.etablissement_id AS eid, COALESCE(cs.nom, \'—\') AS nom, COUNT(*) AS n
+             FROM consultation c
+             LEFT JOIN centre_de_sante cs ON cs.id = c.etablissement_id
+             WHERE c.medecin_id = :uid AND c.created_at >= (CURRENT_DATE - INTERVAL \'' . $period . ' days\')
+             GROUP BY c.etablissement_id, cs.nom
+             ORDER BY n DESC
+             LIMIT ' . self::TOP_ETABLISSEMENTS_LIMIT,
+            ['uid' => $this->userId($medecin)]
+        );
+
+        return array_map(
+            static fn (array $row): array => [
+                'etablissementId' => $row['eid'] !== null ? (int) $row['eid'] : null,
+                'nom' => (string) $row['nom'],
+                'count' => (int) $row['n'],
+            ],
+            $rows
+        );
+    }
+
+    /**
+     * Comparaison avec la période précédente de même longueur.
+     *
+     * @return array{totalPeriode: int, totalPeriodePrecedente: int, croissancePourcent: float|null}
+     */
+    private function buildComparaison(Connection $conn, Medecin $medecin, int $period): array
+    {
+        $uid = $this->userId($medecin);
+
+        $totalPeriode = (int) $conn->fetchOne(
+            'SELECT COUNT(*) FROM consultation
+             WHERE medecin_id = :uid AND created_at >= (CURRENT_DATE - INTERVAL \'' . $period . ' days\')',
+            ['uid' => $uid]
+        );
+
+        $totalPrecedente = (int) $conn->fetchOne(
+            'SELECT COUNT(*) FROM consultation
+             WHERE medecin_id = :uid
+               AND created_at < (CURRENT_DATE - INTERVAL \'' . $period . ' days\')
+               AND created_at >= (CURRENT_DATE - INTERVAL \'' . ($period * 2) . ' days\')',
+            ['uid' => $uid]
+        );
+
+        $croissance = null;
+        if ($totalPrecedente > 0) {
+            $croissance = round((($totalPeriode - $totalPrecedente) / $totalPrecedente) * 100, 1);
+        } elseif ($totalPeriode > 0) {
+            $croissance = 100.0;
+        }
+
+        return [
+            'totalPeriode' => $totalPeriode,
+            'totalPeriodePrecedente' => $totalPrecedente,
+            'croissancePourcent' => $croissance,
+        ];
     }
 
     /**

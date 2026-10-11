@@ -1,16 +1,16 @@
 {
   "medecin": {
     "affiliations": {
-    "titre": "Mes établissements",
-    "intro": "Vos rattachements aux structures de santé.",
-    "chargement": "Chargement…",
-    "erreurChargement": "Impossible de charger vos affiliations.",
-    "aucune": "Aucun établissement",
-    "aucuneDesc": "Rejoignez une structure depuis la Carte Santé pour recevoir ses urgences et collaborer avec son équipe.",
-    "rejoindre": "Rejoindre un établissement",
-    "retireOk": "Demande retirée.",
-    "actionErreur": "Action impossible.",
-    "retirer": "Retirer la demande"
+      "titre": "Mes établissements",
+      "intro": "Vos rattachements aux structures de santé.",
+      "chargement": "Chargement…",
+      "erreurChargement": "Impossible de charger vos affiliations.",
+      "aucune": "Aucun établissement",
+      "aucuneDesc": "Rejoignez une structure depuis la Carte Santé pour recevoir ses urgences et collaborer avec son équipe.",
+      "rejoindre": "Rejoindre un établissement",
+      "retireOk": "Demande retirée.",
+      "actionErreur": "Action impossible.",
+      "retirer": "Retirer la demande"
     },
     "alertes": {
       "title": "Alertes SOS",
@@ -162,7 +162,9 @@
       "openGuide": "Ouvrir le guide",
       "doctorRole": "Médecin",
       "profileTitle": "Profil professionnel",
-      "logout": "Déconnexion"
+      "logout": "Déconnexion",
+      "account": "Mon compte",
+      "settings": "Paramètres"
     },
     "avis": {
       "patientFallback": "Patient",
@@ -288,7 +290,15 @@
       "languageEn": "Anglais",
       "weekStartLabel": "Premier jour de la semaine",
       "weekStartMonday": "Lundi",
-      "weekStartSunday": "Dimanche"
+      "weekStartSunday": "Dimanche",
+      "signatureTitle": "Signature numérique",
+      "signatureDesc": "Votre signature est apposée automatiquement sous chaque ordonnance et rapport médical qu'elle signe. Elle garantit l'authenticité du document (non-répudiation).",
+      "gradeLabel": "Grade / fonction",
+      "gradePlaceholder": "Ex. : Médecin généraliste",
+      "affiliationStampsTitle": "Cachets de mes établissements",
+      "affiliationStampsDesc": "Aperçu des cachets officiels des établissements où vous exercez. Ils accompagnent votre signature sur les documents.",
+      "noAffiliationStamps": "Aucun établissement affilié pour le moment.",
+      "stampPending": "Cachet non configuré"
     },
     "patients": {
       "eyebrow": "Suivi médical",
@@ -387,7 +397,11 @@
       "printStatus": "Statut :",
       "noObservations": "Aucune observation.",
       "noConclusions": "Aucune conclusion.",
-      "printFooter": "MediSecours+ — Rapport généré le {{date}} par Dr {{name}}"
+      "printFooter": "MediSecours+ — Rapport généré le {{date}} par Dr {{name}}",
+      "printSignature": "Signature du médecin",
+      "printOfficialStamp": "Cachet officiel",
+      "printElectronicallySigned": "Signé électroniquement",
+      "printDirector": "Dirigeant"
     },
     "dashboard": {
       "status": {
@@ -422,7 +436,35 @@
         "satisfaction": "Satisfaction patient",
         "reviewsDistribution": "Distribution des avis reçus",
         "reviews": "Avis",
-        "noReviews": "Aucun avis"
+        "noReviews": "Aucun avis",
+        "periodLabel": "Période",
+        "periodDays": "{{count}} jours",
+        "exportCsv": "Exporter (CSV)",
+        "csvMetric": "Indicateur",
+        "csvValue": "Valeur",
+        "newPrescriptions": "Nouvelles prescriptions",
+        "distinctPatients": "Patients uniques",
+        "growthUp": "+{{value}} %",
+        "growthDown": "−{{value}} %",
+        "vsPrevious": "vs période précédente",
+        "insights": "Tendances",
+        "insightPeakHour": "Pic d'activité à {{hour}} ({{count}} interactions).",
+        "insightPeakDay": "Journée la plus chargée : {{day}} ({{count}} consultations).",
+        "insightTopCentre": "Établissement principal : {{name}} ({{count}} consultations).",
+        "insightGrowthUp": "Activité en hausse de {{value}} % sur la période.",
+        "insightGrowthDown": "Activité en baisse de {{value}} % sur la période.",
+        "hourlyTitle": "Activité par heure",
+        "hourlySub": "Volume de consultations par créneau horaire",
+        "weekdayLabel": "Jour",
+        "hourLabel": "Heure",
+        "weekdayTitle": "Activité par jour",
+        "weekdaySub": "Répartition des consultations sur la semaine",
+        "prescriptionsTitle": "Prescriptions par statut",
+        "prescriptionsSub": "Ordonnances émises sur la période",
+        "prescriptions": "Prescriptions",
+        "etablissementTitle": "Par établissement",
+        "etablissementSub": "Consultations rattachées à chaque structure",
+        "etablissementLabel": "Établissement"
       },
       "blood": {
         "patients": "Patients",
@@ -493,6 +535,14 @@
         "today": "Aujourd'hui",
         "patientFallback": "Patient",
         "motifFallback": "Consultation"
+      },
+      "prescriptions": {
+        "draft": "Brouillon",
+        "signed": "Signée",
+        "sent": "Transmise",
+        "cancelled": "Annulée",
+        "expired": "Expirée",
+        "replaced": "Remplacée"
       }
     },
     "guide": {
@@ -590,5 +640,21 @@
       "endDesc": "Notre équipe technique est disponible pour vous accompagner.",
       "backDashboard": "Retour au tableau de bord"
     }
+  },
+  "signature": {
+    "padAria": "Zone de signature manuscrite",
+    "padPlaceholder": "Signez ici avec la souris ou le doigt",
+    "processing": "Traitement de l’image…",
+    "upload": "Importer une image",
+    "clear": "Effacer",
+    "save": "Enregistrer la signature",
+    "saving": "Enregistrement…",
+    "saved": "Signature enregistrée",
+    "saveError": "Enregistrement impossible",
+    "registeredTitle": "Signature enregistrée",
+    "noneYet": "Aucune signature enregistrée pour le moment.",
+    "fingerprint": "Empreinte {{hash}}",
+    "directorSigned": "Signature du dirigeant enregistrée",
+    "directorUnsigned": "Signature du dirigeant non enregistrée"
   }
 }

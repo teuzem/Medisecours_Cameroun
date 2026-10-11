@@ -297,6 +297,13 @@ export interface DashboardAllergie {
 
 export interface DashboardData {
   kpis: DashboardKpis
+  period?: number
+  kpisPeriode?: {
+    consultations: number
+    terminees: number
+    nouvellesPrescriptions: number
+    patientsDistinct: number
+  }
   statusCounts?: DashboardStatusCounts
   alerts?: DashboardAlerts
   noteMoyenne: number
@@ -309,8 +316,41 @@ export interface DashboardData {
   allergies?: DashboardAllergie[]
   motifsCount: { motif: string; count: number }[]
   timeline?: DashboardTimelinePoint[]
+  /** 0 = dimanche … 6 = samedi (DOW PostgreSQL). */
+  weekdayDistribution?: number[]
+  /** Volume par heure (0..23). */
+  hourlyDistribution?: number[]
+  prescriptionsByStatut?: Record<string, number>
+  etablissementBreakdown?: { etablissementId: number | null; nom: string; count: number }[]
+  comparaison?: {
+    totalPeriode: number
+    totalPeriodePrecedente: number
+    croissancePourcent: number | null
+  }
   ratingsDistribution: Record<number, number>
   upcomingAppointments: Consultation[]
+}
+
+export interface PatientDashboardData {
+  period: number
+  kpis: {
+    consultations: number
+    consultationsPeriode: number
+    favoris: number
+    prescriptionsActives: number
+    prescriptionsTotal: number
+  }
+  statusCounts: Record<string, number>
+  timeline: DashboardTimelinePoint[]
+  weekdayDistribution: number[]
+  hourlyDistribution: number[]
+  etablissementBreakdown: { etablissementId: number | null; nom: string; count: number }[]
+  prescriptionsByStatut: Record<string, number>
+  comparaison: {
+    totalPeriode: number
+    totalPeriodePrecedente: number
+    croissancePourcent: number | null
+  }
 }
 
 /* ------------------------------------------------------------------ */

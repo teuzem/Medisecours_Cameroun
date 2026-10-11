@@ -1,16 +1,16 @@
 {
   "medecin": {
     "affiliations": {
-    "titre": "My establishments",
-    "intro": "Your affiliations with health facilities.",
-    "chargement": "Loading…",
-    "erreurChargement": "Could not load your affiliations.",
-    "aucune": "No establishment yet",
-    "aucuneDesc": "Join a facility from the Health Map to receive its emergencies and work with its team.",
-    "rejoindre": "Join an establishment",
-    "retireOk": "Request removed.",
-    "actionErreur": "Action failed.",
-    "retirer": "Remove request"
+      "titre": "My establishments",
+      "intro": "Your affiliations with health facilities.",
+      "chargement": "Loading…",
+      "erreurChargement": "Could not load your affiliations.",
+      "aucune": "No establishment yet",
+      "aucuneDesc": "Join a facility from the Health Map to receive its emergencies and work with its team.",
+      "rejoindre": "Join an establishment",
+      "retireOk": "Request removed.",
+      "actionErreur": "Action failed.",
+      "retirer": "Remove request"
     },
     "alertes": {
       "title": "SOS alerts",
@@ -162,7 +162,9 @@
       "openGuide": "Open guide",
       "doctorRole": "Doctor",
       "profileTitle": "Professional profile",
-      "logout": "Log out"
+      "logout": "Log out",
+      "account": "My account",
+      "settings": "Settings"
     },
     "avis": {
       "patientFallback": "Patient",
@@ -288,7 +290,15 @@
       "languageEn": "English",
       "weekStartLabel": "First day of the week",
       "weekStartMonday": "Monday",
-      "weekStartSunday": "Sunday"
+      "weekStartSunday": "Sunday",
+      "signatureTitle": "Digital signature",
+      "signatureDesc": "Your signature is automatically applied under every prescription and medical report you sign. It guarantees document authenticity (non-repudiation).",
+      "gradeLabel": "Rank / role",
+      "gradePlaceholder": "e.g. General practitioner",
+      "affiliationStampsTitle": "My facilities’ stamps",
+      "affiliationStampsDesc": "Preview of the official stamps of the facilities you work at. They accompany your signature on documents.",
+      "noAffiliationStamps": "No affiliated facility yet.",
+      "stampPending": "Stamp not configured"
     },
     "patients": {
       "eyebrow": "Medical tracking",
@@ -387,7 +397,11 @@
       "printStatus": "Status:",
       "noObservations": "No observations.",
       "noConclusions": "No conclusions.",
-      "printFooter": "MediSecours+ — Report generated on {{date}} by Dr {{name}}"
+      "printFooter": "MediSecours+ — Report generated on {{date}} by Dr {{name}}",
+      "printSignature": "Doctor’s signature",
+      "printOfficialStamp": "Official stamp",
+      "printElectronicallySigned": "Electronically signed",
+      "printDirector": "Director"
     },
     "dashboard": {
       "status": {
@@ -422,7 +436,35 @@
         "satisfaction": "Patient satisfaction",
         "reviewsDistribution": "Distribution of reviews received",
         "reviews": "Reviews",
-        "noReviews": "No reviews"
+        "noReviews": "No reviews",
+        "periodLabel": "Period",
+        "periodDays": "{{count}} days",
+        "exportCsv": "Export (CSV)",
+        "csvMetric": "Metric",
+        "csvValue": "Value",
+        "newPrescriptions": "New prescriptions",
+        "distinctPatients": "Unique patients",
+        "growthUp": "+{{value}} %",
+        "growthDown": "−{{value}} %",
+        "vsPrevious": "vs previous period",
+        "insights": "Trends",
+        "insightPeakHour": "Peak activity at {{hour}} ({{count}} interactions).",
+        "insightPeakDay": "Busiest day: {{day}} ({{count}} consultations).",
+        "insightTopCentre": "Top facility: {{name}} ({{count}} consultations).",
+        "insightGrowthUp": "Activity up {{value}} % over the period.",
+        "insightGrowthDown": "Activity down {{value}} % over the period.",
+        "hourlyTitle": "Activity by hour",
+        "hourlySub": "Consultation volume per time slot",
+        "weekdayLabel": "Day",
+        "hourLabel": "Hour",
+        "weekdayTitle": "Activity by weekday",
+        "weekdaySub": "Consultation spread across the week",
+        "prescriptionsTitle": "Prescriptions by status",
+        "prescriptionsSub": "Prescriptions issued during the period",
+        "prescriptions": "Prescriptions",
+        "etablissementTitle": "By facility",
+        "etablissementSub": "Consultations linked to each structure",
+        "etablissementLabel": "Facility"
       },
       "blood": {
         "patients": "Patients",
@@ -493,6 +535,14 @@
         "today": "Today",
         "patientFallback": "Patient",
         "motifFallback": "Consultation"
+      },
+      "prescriptions": {
+        "draft": "Draft",
+        "signed": "Signed",
+        "sent": "Sent",
+        "cancelled": "Cancelled",
+        "expired": "Expired",
+        "replaced": "Replaced"
       }
     },
     "guide": {
@@ -590,5 +640,21 @@
       "endDesc": "Our technical team is available to assist you.",
       "backDashboard": "Back to dashboard"
     }
+  },
+  "signature": {
+    "padAria": "Handwritten signature area",
+    "padPlaceholder": "Sign here with mouse or finger",
+    "processing": "Processing image…",
+    "upload": "Upload an image",
+    "clear": "Clear",
+    "save": "Save signature",
+    "saving": "Saving…",
+    "saved": "Signature saved",
+    "saveError": "Could not save",
+    "registeredTitle": "Registered signature",
+    "noneYet": "No signature registered yet.",
+    "fingerprint": "Fingerprint {{hash}}",
+    "directorSigned": "Director’s signature registered",
+    "directorUnsigned": "Director’s signature not registered"
   }
 }

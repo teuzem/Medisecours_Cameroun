@@ -67,11 +67,19 @@
 
   .reco-text { font-size: 13px; color: #333; line-height: 1.6; font-weight: 500; margin-top: 8px; }
 
-  /* Signature */
-  .signature-table { width: 100%; margin-top: 60px; }
-  .signature-cell { text-align: right; padding-right: 32px; }
-  .signature-line { width: 160px; border-top: 1px solid #333; margin-bottom: 4px; display: inline-block; }
+  /* Signature + cachet */
+  .seals-table { width: 100%; margin-top: 48px; border-collapse: collapse; }
+  .seals-table td { vertical-align: bottom; }
+  .seal-etab { width: 50%; text-align: left; padding-left: 32px; }
+  .seal-medecin { width: 50%; text-align: right; padding-right: 32px; }
+  .seal-img { max-height: 84px; max-width: 160px; }
+  .seal-cachet { max-height: 100px; max-width: 140px; }
+  .seal-etab-nom { font-size: 12px; font-weight: bold; color: #0A4A5C; margin-top: 4px; }
+  .seal-etab-ville { font-size: 10px; color: #777; }
+  .signature-line { width: 180px; border-top: 1px solid #333; margin: 4px 0 4px auto; display: block; }
   .signature-label { font-size: 11px; font-weight: bold; color: #555; }
+  .signature-name { font-size: 12px; font-weight: bold; color: #333; margin-top: 2px; }
+  .signature-hash { font-size: 9px; color: #999; margin-top: 2px; }
 
   /* Footer */
   .footer { background: #0A4A5C; color: #fff; padding: 20px 24px; position: absolute; bottom: 0; width: 100%; height: 80px; }
@@ -95,7 +103,7 @@
   <table class="table-wrapper header">
     <tr>
       <td class="header-left" style="width: 50%;">
-        <h1>MediSecours Clinic</h1>
+        <h1>{{ etablissementNom|default('MediSecours Clinic') }}</h1>
         <h2>Dr. {{ medecinPrenom }} {{ medecinNom }}</h2>
         <div class="specialite">{{ specialite }}</div>
         <div class="reg-no">Registration No: MS-{{ medecinId|default(0) }}</div>
@@ -183,12 +191,30 @@
           </div>
           {% endif %}
 
-          <!-- Signature -->
-          <table class="signature-table">
+          <!-- Signature + cachet officiel -->
+          <table class="seals-table">
             <tr>
-              <td class="signature-cell">
-                <div class="signature-line"></div><br>
-                <span class="signature-label">Signature du Médecin</span>
+              <td class="seal-etab">
+                {% if cachetDataUri %}
+                  <img src="{{ cachetDataUri }}" alt="Cachet officiel" class="seal-cachet">
+                {% elseif logoDataUri %}
+                  <img src="{{ logoDataUri }}" alt="Logo" class="seal-img">
+                {% endif %}
+                {% if etablissementNom %}
+                  <div class="seal-etab-nom">{{ etablissementNom }}</div>
+                  {% if etablissementVille %}<div class="seal-etab-ville">{{ etablissementVille }}</div>{% endif %}
+                {% endif %}
+              </td>
+              <td class="seal-medecin">
+                {% if signatureMedecinDataUri %}
+                  <img src="{{ signatureMedecinDataUri }}" alt="Signature" class="seal-img" style="max-height:56px;">
+                {% endif %}
+                <span class="signature-line"></span>
+                <div class="signature-label">Signature du Médecin</div>
+                <div class="signature-name">Dr. {{ medecinPrenom }} {{ medecinNom }}</div>
+                {% if signatureHash %}
+                  <div class="signature-hash">Signé électroniquement — empreinte {{ signatureHash }}</div>
+                {% endif %}
               </td>
             </tr>
           </table>

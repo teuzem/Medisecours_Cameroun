@@ -44,7 +44,7 @@ class MedecinDashboardController extends AbstractController
 
     #[Route('/dashboard', name: 'dashboard', methods: ['GET'], priority: 10)]
     #[IsGranted('ROLE_MEDECIN')]
-    public function dashboard(): JsonResponse
+    public function dashboard(Request $request): JsonResponse
     {
         try {
             $user = $this->getUser();
@@ -52,7 +52,12 @@ class MedecinDashboardController extends AbstractController
                 throw new AccessDeniedHttpException('Réservé aux médecins.');
             }
 
-            $data = $this->dashboardService->buildDashboard($user);
+            $period = (int) $request->query->get('period', 30);
+            if (!in_array($period, MedecinDashboardService::ALLOWED_PERIODS, true)) {
+                $period = 30;
+            }
+
+            $data = $this->dashboardService->buildDashboard($user, $period);
 
             $consultationCtx = ['groups' => ['consultation:read', 'user:search']];
             $patientCtx = ['groups' => ['user:search']];

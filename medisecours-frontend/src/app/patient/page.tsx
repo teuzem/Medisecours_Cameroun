@@ -31,6 +31,7 @@ import GlassCard from '../../components/ui/GlassCard'
 import SectionHeader from '../../components/ui/SectionHeader'
 import StatCard from '../../components/ui/StatCard'
 import EstablishmentCard from '../../components/patient/EstablishmentCard'
+import PatientAnalytics from '../../components/patient/PatientAnalytics'
 import type { CarteCentre } from '../../lib/carte'
 import { extractArray } from '../../lib/api'
 
@@ -188,6 +189,10 @@ export default function PatientHomePage() {
           </ul>
         )}
       </GlassCard>
+
+      <div className="mt-6">
+        <PatientAnalytics />
+      </div>
 
       {/* Nearby establishments */}
       <GlassCard className="mt-4 p-5">

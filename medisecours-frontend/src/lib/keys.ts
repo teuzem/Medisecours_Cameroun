@@ -53,6 +53,15 @@ export const AVIS_ETABLISSEMENTS_KEY = '/api/avis_etablissements'
 /** Statistiques agrégées des consultations du patient connecté. */
 export const PATIENT_CONSULTATIONS_STATS_KEY = '/api/patient/consultations/stats'
 
+/** Dashboard patient enrichi (séries, répartitions, prescriptions). */
+export const PATIENT_DASHBOARD_KEY = '/api/patient/dashboard'
+
+/** Signature numérique de l'utilisateur connecté (médecin ou dirigeant). */
+export const ME_SIGNATURE_KEY = '/api/me/signature'
+
+/** Sceaux officiels (logo + cachet + dirigeant) des documents administratifs. */
+export const DOCUMENT_SEAUX_KEY = '/api/documents/seaux'
+
 /** Construit la clé SWR conditionnelle : retourne null si l'utilisateur n'est pas prêt. */
 export function keyed<T>(key: T, condition: unknown): T | null {
   return condition ? key : null

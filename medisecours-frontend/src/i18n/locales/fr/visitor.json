@@ -1882,7 +1882,29 @@
         "insightTopType": "{{type}} domine vos interactions ({{count}} · {{share}}% du total).",
         "insightGrowthUp": "Votre activité progresse de +{{rate}}% par rapport à la période précédente.",
         "insightGrowthDown": "Votre activité recule de {{rate}}% par rapport à la période précédente."
-      }
+      },
+      "stampSectionTitle": "Cachet officiel & dirigeant",
+      "stampSectionDescription": "Le cachet et la signature du dirigeant apparaissent sur les ordonnances et rapports PDF générés pour votre établissement.",
+      "stampLabel": "Cachet de l’établissement",
+      "stampDescription": "Importez le cachet officiel. L’arrière-plan est retiré automatiquement pour un rendu transparent sur les documents.",
+      "stampPreviewAlt": "Aperçu du cachet",
+      "stampUpload": "Importer le cachet",
+      "stampProcessing": "Détourage…",
+      "stampProcessingFailed": "Impossible de traiter l’image du cachet.",
+      "stampBackgroundRemovedHint": "Fond supprimé automatiquement · PNG transparent",
+      "stampSaved": "Cachet et dirigeant enregistrés",
+      "stampSaveFailed": "Enregistrement impossible",
+      "stampSave": "Enregistrer",
+      "directorNameLabel": "Nom du dirigeant",
+      "directorNamePlaceholder": "Ex. : Dr Jean Mballa",
+      "directorGradeLabel": "Fonction du dirigeant",
+      "directorGradePlaceholder": "Ex. : Directeur médical",
+      "directorSignedLabel": "Signature du dirigeant enregistrée",
+      "directorSign": "Signer avec ma signature",
+      "directorSignAgain": "Renouveler la signature",
+      "directorSignHint": "Utilise votre signature numérique enregistrée (paramètres médecin)",
+      "directorSignNeedSignature": "Enregistrez d’abord votre signature dans vos paramètres médecin pour certifier les documents.",
+      "directorSignatureConfirmed": "Signature du dirigeant certifiée"
     }
   }
 }

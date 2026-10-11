@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   Siren,
   Sparkles,
+  Stamp,
   Star,
   Stethoscope,
   Trash2,
@@ -47,6 +48,8 @@ import AffiliationsPanel from '../../components/espace-etablissement/Affiliation
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { imgUrl } from '../../lib/config'
+import { removeImageBackground } from '../../lib/imageBackground'
+import { useMySignature } from '../../lib/documentSeals'
 import GlassCard from '../../components/ui/GlassCard'
 import StatCard from '../../components/ui/StatCard'
 import Toggle from '../../components/ui/Toggle'
@@ -725,6 +728,17 @@ export default function EtablissementEspacePage() {
     }
   }, [mon, t, toast])
 
+  const patchCentre = useCallback(async (payload: Record<string, unknown>): Promise<FicheCentre | null> => {
+    if (!mon?.centre?.id) return null
+    try {
+      const { data } = await api.patch<{ centre: FicheCentre }>('/api/carte/mon-etablissement', payload)
+      setMon(current => (current ? { ...current, centre: data.centre } : current))
+      return data.centre
+    } catch {
+      return null
+    }
+  }, [mon?.centre?.id])
+
   const moderateReview = useCallback(async (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => {
     setModeratingReview(review.id)
     try {
@@ -890,6 +904,7 @@ export default function EtablissementEspacePage() {
                 applyPrefs={applyPrefs}
                 resetPrefs={resetPrefs}
                 setLogoUrl={setLogoUrl}
+                patchCentre={patchCentre}
                 handleFicheSaved={handleFicheSaved}
               />
             </>
@@ -938,6 +953,7 @@ function DashboardWorkspace({
   applyPrefs,
   resetPrefs,
   setLogoUrl,
+  patchCentre,
   handleFicheSaved,
 }: {
   activeSection: DashboardSectionId
@@ -977,6 +993,7 @@ function DashboardWorkspace({
   applyPrefs: (prefs: Prefs) => void
   resetPrefs: () => void
   setLogoUrl: (url: string | null) => Promise<boolean>
+  patchCentre: (payload: Record<string, unknown>) => Promise<FicheCentre | null>
   handleFicheSaved: (centre: FicheCentre) => void
 }) {
   const panelClass = compact ? 'dashboard-workspace mt-4' : 'dashboard-workspace mt-4'
@@ -1083,6 +1100,7 @@ function DashboardWorkspace({
               media={media}
               onSetCover={setCoverMedia}
               onSetLogo={setLogoUrl}
+              onPatchCentre={patchCentre}
               onUploadImage={uploadMedia}
               uploadingMedia={uploadingMedia}
               settingCover={settingCover}
@@ -2501,6 +2519,7 @@ function PersonalizationPanel({
   media,
   onSetCover,
   onSetLogo,
+  onPatchCentre,
   onUploadImage,
   uploadingMedia,
   settingCover,
@@ -2514,12 +2533,15 @@ function PersonalizationPanel({
   media: ManagedMedia[]
   onSetCover: (item: ManagedMedia | null) => Promise<boolean>
   onSetLogo: (url: string | null) => Promise<boolean>
+  onPatchCentre: (payload: Record<string, unknown>) => Promise<FicheCentre | null>
   onUploadImage: (file: File) => Promise<ManagedMedia | null>
   uploadingMedia: boolean
   settingCover: boolean
   canManageBranding: boolean
 }) {
   const { t, i18n } = useTranslation()
+  const toast = useToast()
+  const { signature: mySignature, mutate: mutateSignature } = useMySignature()
   const [logoDraft, setLogoDraft] = useState(centre.logoUrl ?? '')
   const [savingLogo, setSavingLogo] = useState(false)
   const [uploadTarget, setUploadTarget] = useState<'logo' | 'cover' | null>(null)
@@ -2530,6 +2552,12 @@ function PersonalizationPanel({
   const [coverFeedback, setCoverFeedback] = useState<string | null>(null)
   const [importingCoverId, setImportingCoverId] = useState<string | null>(null)
   const imageMedia = media.filter(item => item.kind === 'image')
+
+  const [cachetDraft, setCachetDraft] = useState<string | null>(null)
+  const [dirigeantNomDraft, setDirigeantNomDraft] = useState(centre.dirigeantNom ?? '')
+  const [dirigeantGradeDraft, setDirigeantGradeDraft] = useState(centre.dirigeantGrade ?? '')
+  const [savingCachet, setSavingCachet] = useState(false)
+  const [processingCachet, setProcessingCachet] = useState(false)
 
   const persistLogo = async (url: string | null) => {
     if (savingLogo) return
@@ -2555,6 +2583,58 @@ function PersonalizationPanel({
       }
     } finally {
       setUploadTarget(null)
+    }
+  }
+
+  const persistCachet = async () => {
+    if (savingCachet) return
+    setSavingCachet(true)
+    try {
+      const saved = await onPatchCentre({
+        cachetUrl: cachetDraft,
+        dirigeantNom: dirigeantNomDraft.trim() || null,
+        dirigeantGrade: dirigeantGradeDraft.trim() || null,
+      })
+      if (saved) {
+        setCachetDraft(null)
+        toast.success(t('etablissement.stampSaved'))
+      } else {
+        toast.error(t('etablissement.stampSaveFailed'))
+      }
+    } finally {
+      setSavingCachet(false)
+    }
+  }
+
+  const onCachetFile = async (file: File) => {
+    if (processingCachet || savingCachet) return
+    setProcessingCachet(true)
+    try {
+      setCachetDraft(await removeImageBackground(file))
+    } catch {
+      toast.error(t('etablissement.stampProcessingFailed'))
+    } finally {
+      setProcessingCachet(false)
+    }
+  }
+
+  const confirmDirectorSignature = async () => {
+    if (!mySignature || savingCachet) return
+    setSavingCachet(true)
+    try {
+      const saved = await onPatchCentre({
+        dirigeantNom: dirigeantNomDraft.trim() || null,
+        dirigeantGrade: dirigeantGradeDraft.trim() || null,
+        confirmDirigeantSignature: true,
+      })
+      if (saved) {
+        toast.success(t('etablissement.directorSignatureConfirmed'))
+        await mutateSignature()
+      } else {
+        toast.error(t('etablissement.stampSaveFailed'))
+      }
+    } finally {
+      setSavingCachet(false)
     }
   }
 
@@ -2942,6 +3022,115 @@ function PersonalizationPanel({
           )}
         </section>
       </div>
+
+      <section className="mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-700 dark:bg-slate-950/30">
+        <div className="flex items-center gap-2">
+          <Stamp className="h-4 w-4 text-slate-400" />
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{t('etablissement.stampSectionTitle')}</p>
+        </div>
+        <p className="mt-1 text-xs leading-5 text-slate-500">{t('etablissement.stampSectionDescription')}</p>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div>
+            <div className="flex items-start gap-3">
+              <div className="flex h-20 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                {cachetDraft ? (
+                  <img src={cachetDraft} alt={t('etablissement.stampPreviewAlt')} className="max-h-20 max-w-28 object-contain" />
+                ) : centre.cachetUrl ? (
+                  <img src={imgUrl(centre.cachetUrl) || centre.cachetUrl} alt={t('etablissement.stampPreviewAlt')} className="max-h-20 max-w-28 object-contain" />
+                ) : (
+                  <Stamp className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('etablissement.stampLabel')}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t('etablissement.stampDescription')}</p>
+              </div>
+            </div>
+
+            <label className="mt-3 inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+              {processingCachet ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {processingCachet ? t('etablissement.stampProcessing') : t('etablissement.stampUpload')}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={processingCachet || savingCachet}
+                className="sr-only"
+                onChange={event => {
+                  const file = event.currentTarget.files?.[0]
+                  event.currentTarget.value = ''
+                  if (file) void onCachetFile(file)
+                }}
+              />
+            </label>
+            <p className="mt-1 text-[10px] text-slate-400">{t('etablissement.stampBackgroundRemovedHint')}</p>
+          </div>
+
+          <div>
+            <label className="block">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t('etablissement.directorNameLabel')}</span>
+              <input
+                type="text"
+                value={dirigeantNomDraft}
+                onChange={event => setDirigeantNomDraft(event.target.value)}
+                maxLength={150}
+                className="mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+                placeholder={t('etablissement.directorNamePlaceholder')}
+              />
+            </label>
+            <label className="mt-3 block">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t('etablissement.directorGradeLabel')}</span>
+              <input
+                type="text"
+                value={dirigeantGradeDraft}
+                onChange={event => setDirigeantGradeDraft(event.target.value)}
+                maxLength={120}
+                className="mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-900"
+                placeholder={t('etablissement.directorGradePlaceholder')}
+              />
+            </label>
+
+            {centre.dirigeantSignature ? (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                <p className="flex items-center gap-1.5 text-[11px] font-bold text-mint-600 dark:text-mint-400">
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  {t('etablissement.directorSignedLabel')}
+                </p>
+                <img src={centre.dirigeantSignature.imageData} alt={t('etablissement.directorSignedLabel')} className="mt-2 max-h-14 w-auto" />
+                <p className="mt-1 text-[10px] text-slate-400">
+                  {centre.dirigeantSignature.hashShort} · {new Date(centre.dirigeantSignature.signedAt).toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+            ) : null}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void persistCachet()}
+                disabled={savingCachet || (!cachetDraft && dirigeantNomDraft.trim() === (centre.dirigeantNom ?? '') && dirigeantGradeDraft.trim() === (centre.dirigeantGrade ?? ''))}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ backgroundColor: accent }}
+              >
+                {savingCachet ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                {t('etablissement.stampSave')}
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmDirectorSignature()}
+                disabled={!mySignature || savingCachet}
+                title={mySignature ? t('etablissement.directorSignHint') : t('signature.noneYet')}
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+              >
+                {centre.dirigeantSignature ? <BadgeCheck className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                {centre.dirigeantSignature ? t('etablissement.directorSignAgain') : t('etablissement.directorSign')}
+              </button>
+            </div>
+            {!mySignature && (
+              <p className="mt-2 text-[10px] text-slate-400">{t('etablissement.directorSignNeedSignature')}</p>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="mt-4 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">

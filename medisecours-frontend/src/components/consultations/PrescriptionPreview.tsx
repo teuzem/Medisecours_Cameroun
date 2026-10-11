@@ -10,12 +10,23 @@ import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { useToast } from '../ui/Toast'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { fetcher } from '../../lib/fetcher'
+import { useMySignature, useDocumentSeals } from '../../lib/documentSeals'
+import { DOCUMENT_SEAUX_KEY } from '../../lib/keys'
 
 export default function PrescriptionPreview({ prescription, consultation, medecin, onClose }) {
   const [zoom, setZoom] = useState(0.8)
   const [downloading, setDownloading] = useState(false)
   const toast = useToast()
   const { t } = useTranslation()
+
+  const centreId = consultation?.etablissement?.id ?? null
+  const { signature } = useMySignature()
+  const { seal } = useDocumentSeals(centreId)
+  const { data: sealsData } = useSWR(centreId ? null : DOCUMENT_SEAUX_KEY, fetcher, { revalidateOnFocus: false })
+  const fallbackSeal = !centreId && Array.isArray(sealsData?.seaux) && sealsData.seaux.length > 0 ? sealsData.seaux[0] : null
+  const activeSeal = seal ?? fallbackSeal
 
   const generatePDF = async () => {
     try {
@@ -131,6 +142,8 @@ export default function PrescriptionPreview({ prescription, consultation, medeci
                   recommandations={prescription.recommandations || ''}
                   consultation={consultation}
                   medecin={medecin}
+                  seal={activeSeal}
+                  signature={signature}
                 />
               </div>
             </div>
