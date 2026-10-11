@@ -45,6 +45,7 @@ import FichePanel, { type FicheCentre } from '../../components/espace-etablissem
 import AnalyticsPanel from '../../components/espace-etablissement/AnalyticsPanel'
 import SosAlertesPanel from '../../components/espace-etablissement/SosAlertesPanel'
 import AffiliationsPanel from '../../components/espace-etablissement/AffiliationsPanel'
+import PersonnelValidationPanel from '../../components/espace-etablissement/PersonnelValidationPanel'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { imgUrl } from '../../lib/config'
@@ -219,6 +220,7 @@ type DashboardSectionId =
   | 'dashboard-fiche'
   | 'dashboard-team'
   | 'dashboard-affiliations'
+  | 'dashboard-personnel'
   | 'dashboard-media'
   | 'dashboard-reviews'
   | 'dashboard-analytics'
@@ -229,6 +231,7 @@ const DASHBOARD_SECTION_IDS: DashboardSectionId[] = [
   'dashboard-fiche',
   'dashboard-team',
   'dashboard-affiliations',
+  'dashboard-personnel',
   'dashboard-media',
   'dashboard-reviews',
   'dashboard-analytics',
@@ -1043,6 +1046,14 @@ function DashboardWorkspace({
           </div>
         </div>
       )
+    case 'dashboard-personnel':
+      return (
+        <div className={panelClass}>
+          <div id="dashboard-personnel" {...panelProps}>
+            <PersonnelValidationPanel centreId={mon.centre.id} />
+          </div>
+        </div>
+      )
     case 'dashboard-media':
       return (
         <div className={panelClass}>
@@ -1146,6 +1157,7 @@ function DashboardSectionNav({
     { id: 'dashboard-fiche', label: t('etablissement.navFiche'), icon: Building2 },
     { id: 'dashboard-team', label: t('etablissement.navTeam'), icon: Users },
     { id: 'dashboard-affiliations', label: t('etablissement.navAffiliations'), icon: UserCheck },
+    { id: 'dashboard-personnel', label: t('etablissement.navPersonnel'), icon: ShieldCheck },
     { id: 'dashboard-media', label: t('etablissement.navMedia'), icon: FileImage },
     { id: 'dashboard-reviews', label: t('etablissement.navReviews'), icon: MessageSquare },
     { id: 'dashboard-analytics', label: t('etablissement.navAnalytics'), icon: Activity },

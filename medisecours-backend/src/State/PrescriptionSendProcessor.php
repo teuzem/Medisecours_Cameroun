@@ -6,8 +6,11 @@ namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Entity\DossierEvenement;
 use App\Entity\Medecin;
+use App\Entity\OrdonnancePharmacie;
 use App\Entity\Prescription;
+use App\Repository\OrdonnancePharmacieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -18,6 +21,7 @@ class PrescriptionSendProcessor implements ProcessorInterface
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly Security $security,
+        private readonly OrdonnancePharmacieRepository $ordonnancePharmacieRepository,
     ) {
     }
 
@@ -45,6 +49,34 @@ class PrescriptionSendProcessor implements ProcessorInterface
         }
 
         $prescription->setStatut(Prescription::STATUT_TRANSMISE);
+
+        // Circuit pharmacie : si la consultation est rattachée à un établissement,
+        // l'ordonnance entre automatiquement dans la file de la pharmacie (RECUE).
+        $etablissement = $prescription->getConsultation()?->getEtablissement();
+        if ($etablissement && !$this->ordonnancePharmacieRepository->findOneByPrescription($prescription)) {
+            $ordonnance = (new OrdonnancePharmacie())
+                ->setPrescription($prescription)
+                ->setCentre($etablissement)
+                ->setPatient($prescription->getPatient())
+                ->setStatut(OrdonnancePharmacie::STATUT_RECUE);
+            $this->em->persist($ordonnance);
+
+            $dossier = $prescription->getPatient()
+                ? $this->em->getRepository(\App\Entity\DossierMedical::class)
+                    ->findOneByCentrePatient($etablissement, $prescription->getPatient())
+                : null;
+            if ($dossier) {
+                $this->em->persist((new DossierEvenement())
+                    ->setDossier($dossier)
+                    ->setPatient($prescription->getPatient())
+                    ->setCentre($etablissement)
+                    ->setType(DossierEvenement::TYPE_ORDONNANCE)
+                    ->setTitre('Ordonnance transmise à la pharmacie')
+                    ->setDetails(['prescriptionId' => $prescription->getId(), 'statut' => OrdonnancePharmacie::STATUT_RECUE])
+                    ->setAuteur($user));
+            }
+        }
+
         $this->em->flush();
 
         return $prescription;

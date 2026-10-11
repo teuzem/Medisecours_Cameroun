@@ -5,11 +5,13 @@ import frBase from './locales/fr.json'
 import frAdmin from './locales/fr/admin.json'
 import frMedecin from './locales/fr/medecin.json'
 import frPatient from './locales/fr/patient.json'
+import frPersonnel from './locales/fr/personnel.json'
 import frVisitor from './locales/fr/visitor.json'
 import enBase from './locales/en.json'
 import enAdmin from './locales/en/admin.json'
 import enMedecin from './locales/en/medecin.json'
 import enPatient from './locales/en/patient.json'
+import enPersonnel from './locales/en/personnel.json'
 import enVisitor from './locales/en/visitor.json'
 
 export const LOCALES = ['fr', 'en'] as const
@@ -34,6 +36,7 @@ const fr = {
   ...frAdmin,
   ...frMedecin,
   ...frPatient,
+  ...frPersonnel,
   ...frVisitor,
   etablissement: frVisitor.visitor.etablissement,
 }
@@ -42,6 +45,7 @@ const en = {
   ...enAdmin,
   ...enMedecin,
   ...enPatient,
+  ...enPersonnel,
   ...enVisitor,
   etablissement: enVisitor.visitor.etablissement,
 }

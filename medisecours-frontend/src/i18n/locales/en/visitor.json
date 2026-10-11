@@ -1324,6 +1324,7 @@
       "navFiche": "Facility profile",
       "navTeam": "Doctors and team",
       "navAffiliations": "Affiliations",
+      "navPersonnel": "Staff",
       "navMedia": "Media",
       "navReviews": "Reviews",
       "reviewPendingLabel": "Pending review",
@@ -1904,7 +1905,47 @@
       "directorSignAgain": "Renew signature",
       "directorSignHint": "Uses your registered digital signature (doctor settings)",
       "directorSignNeedSignature": "Register your signature in your doctor settings first to certify documents.",
-      "directorSignatureConfirmed": "Director’s signature certified"
+      "directorSignatureConfirmed": "Director’s signature certified",
+      "personnelValidation": {
+        "titre": "Staff validation",
+        "intro": "Review identity and employment documents before unlocking staff access.",
+        "enAttente": "Pending",
+        "valide": "Approved",
+        "rejete": "Rejected",
+        "aucun": "No staff account linked to this establishment.",
+        "aucunEnAttente": "No pending request.",
+        "documents": "Submitted documents",
+        "aucunDocument": "No document submitted.",
+        "voirDocuments": "View documents",
+        "valider": "Approve",
+        "rejeter": "Reject",
+        "confirmerValider": "Approve this account and unlock access?",
+        "motifRejet": "Rejection reason",
+        "motifRejetPlaceholder": "E.g. unreadable document, incorrect licence number…",
+        "motifRejetRequis": "A reason is required to reject.",
+        "valideOk": "Account approved and access unlocked.",
+        "rejeteOk": "Account rejected.",
+        "erreur": "Something went wrong.",
+        "documentsTitre": "Documents for",
+        "telecharger": "Open document",
+        "typeDiplome": "Diploma",
+        "typeAttestation": "Employment letter",
+        "typeCarmed": "CARMED",
+        "typeCertificat": "Certificate",
+        "typeAutre": "Other document",
+        "types": {
+          "DIPLOME": "Diploma",
+          "ATTESTATION_FONCTION": "Employment letter",
+          "CARMED": "CARMED",
+          "CERTIFICAT": "Certificate",
+          "AUTRE": "Other document"
+        },
+        "statutsDocuments": {
+          "EN_ATTENTE": "Pending",
+          "VALIDE": "Approved",
+          "REJETE": "Rejected"
+        }
+      }
     }
   }
 }

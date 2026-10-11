@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  FileText, Pill, Clock, CheckCircle, Search, Eye, History, Ban
+  FileText, Pill, Clock, CheckCircle, Search, Eye, History, Ban, Package, Syringe
 } from 'lucide-react'
 import useSWR from 'swr'
 import { fetcher } from '../../../lib/fetcher'
@@ -14,8 +14,21 @@ import EmptyState from '../../../components/ui/EmptyState'
 import Avatar from '../../../components/ui/Avatar'
 import { imgUrl } from '../../../lib/config'
 import PrescriptionDetailModal from '../../../components/admin/PrescriptionDetailModal'
+import api from '../../../api/axios'
+import { useToast } from '../../../components/ui/Toast'
 import type { Prescription, StatutPrescription } from '../../../types/api'
 import { PRESCRIPTIONS_KEY } from '../../../lib/keys'
+
+const ORDONNANCES_PHARMACIE_KEY = '/api/patient/ordonnances-pharmacie'
+
+const ORD_PHARM_STATUT_PILL: Record<string, { bg: string; text: string }> = {
+  RECUE: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400' },
+  FACTUREE: { bg: 'bg-sky-100 dark:bg-sky-900/30', text: 'text-sky-700 dark:text-sky-400' },
+  PAYEE: { bg: 'bg-mint-100 dark:bg-mint-900/30', text: 'text-mint-700 dark:text-mint-400' },
+  A_ADMINISTRER: { bg: 'bg-violet-100 dark:bg-violet-900/30', text: 'text-violet-700 dark:text-violet-400' },
+  ADMINISTREE: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400' },
+  ANNULEE: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400' },
+}
 
 type TabKey = 'TOUTES' | 'ACTIVES' | 'HISTORIQUE'
 
@@ -251,6 +264,121 @@ export default function PatientPrescriptionsPage() {
           onClose={() => setDetailFor(null)}
         />
       )}
+
+      <OrdonnancesPharmacieSection locale={locale} />
     </div>
+  )
+}
+
+/* ── Suivi pharmacie (circuit établissement) ───────────────────────────── */
+
+function OrdonnancesPharmacieSection({ locale }: { locale: string }) {
+  const { t } = useTranslation()
+  const toast = useToast()
+  const { data, isLoading, mutate } = useSWR(ORDONNANCES_PHARMACIE_KEY, fetcher, {
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+  })
+  const [busyId, setBusyId] = useState<number | null>(null)
+
+  const ordonnances = useMemo(() => (Array.isArray(data) ? data : []), [data])
+
+  const demander = async (id: number) => {
+    setBusyId(id)
+    try {
+      await api.post(`/api/patient/ordonnances-pharmacie/${id}/demander-administration`)
+      toast.success(t('personnel.patient.demandeOk'))
+      void mutate()
+    } catch (err: any) {
+      const statut = err?.response?.data?.error
+      toast.error(typeof statut === 'string' ? statut : t('personnel.commun.erreur'))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  return (
+    <section className="mt-12">
+      <div className="flex items-center gap-3">
+        <Package className="w-5 h-5 text-primary-500 dark:text-mint-400" />
+        <h2 className="text-lg font-bold text-primary-900 dark:text-sable">
+          {t('personnel.patient.ordonnancesTitre')}
+        </h2>
+      </div>
+      <p className="mt-1 text-sm text-primary-300">{t('personnel.patient.intro')}</p>
+
+      {isLoading ? (
+        <div className="py-10"><LoadingSpinner /></div>
+      ) : ordonnances.length === 0 ? (
+        <p className="py-8 text-sm text-primary-300">{t('personnel.patient.aucune')}</p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {ordonnances.map((o: any) => {
+            const pill = ORD_PHARM_STATUT_PILL[o.statut] ?? ORD_PHARM_STATUT_PILL.RECUE
+            const statutLabelKey =
+              o.statut === 'RECUE' ? 'personnel.patient.recue'
+              : o.statut === 'FACTUREE' ? 'personnel.patient.facturee'
+              : o.statut === 'PAYEE' ? 'personnel.patient.payee'
+              : o.statut === 'A_ADMINISTRER' ? 'personnel.patient.aAdministrer'
+              : o.statut === 'ADMINISTREE' ? 'personnel.patient.administree'
+              : 'personnel.patient.annulee'
+
+            return (
+              <div
+                key={o.id}
+                className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-primary-800"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-primary-900 dark:text-sable">
+                        {o.prescription?.medecin
+                          ? `Dr ${o.prescription.medecin.prenom || ''} ${o.prescription.medecin.nom || ''}`.trim()
+                          : t('patient.doctor')}
+                      </h3>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${pill.bg} ${pill.text}`}>
+                        {t(statutLabelKey)}
+                      </span>
+                    </div>
+                    {o.prescription?.diagnostic && (
+                      <p className="mt-1.5 text-sm text-primary-600 dark:text-sable/80">
+                        {o.prescription.diagnostic}
+                      </p>
+                    )}
+                    {o.montantTotal != null && (
+                      <p className="mt-1 text-sm font-semibold text-primary-900 dark:text-sable">
+                        {Number(o.montantTotal).toLocaleString('fr-FR')} FCFA
+                      </p>
+                    )}
+                    {o.cancelMotif && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                        {o.cancelMotif}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-primary-300">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      {new Date(o.createdAt || '').toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                    {o.statut === 'PAYEE' && (
+                      <button
+                        type="button"
+                        disabled={busyId === o.id}
+                        onClick={() => demander(o.id)}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-mint-600 px-4 py-2 text-xs font-semibold text-white hover:bg-mint-500 disabled:opacity-60"
+                      >
+                        <Syringe className="w-3.5 h-3.5" />
+                        {t('personnel.patient.demanderAdministration')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }

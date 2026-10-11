@@ -707,7 +707,7 @@ class CarteController extends AbstractController
 
         $email = trim((string) ($data['email'] ?? ''));
         $role = (string) ($data['role'] ?? 'LECTURE');
-        $allowedRoles = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'LECTURE'];
+        $allowedRoles = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'AIDE_SOIGNANT', 'RECEPTIONNISTE', 'PHARMACIEN', 'LECTURE'];
 
         if ($email === '') {
             throw new BadRequestHttpException("L'email du membre est obligatoire.");
@@ -786,7 +786,7 @@ class CarteController extends AbstractController
         $data = $request->toArray();
 
         if (isset($data['role'])) {
-            $allowedRoles = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'LECTURE'];
+            $allowedRoles = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'AIDE_SOIGNANT', 'RECEPTIONNISTE', 'PHARMACIEN', 'LECTURE'];
             if (!in_array((string) $data['role'], $allowedRoles, true)) {
                 throw new BadRequestHttpException('Rôle invalide.');
             }
@@ -874,7 +874,7 @@ class CarteController extends AbstractController
         ];
 
         // Équipe : effectif par rôle (membres ACTIF uniquement)
-        $equipeStats = ['DIRECTEUR' => 0, 'GESTIONNAIRE' => 0, 'MEDECIN' => 0, 'INFIRMIER' => 0, 'LECTURE' => 0, 'total' => 0];
+        $equipeStats = ['DIRECTEUR' => 0, 'GESTIONNAIRE' => 0, 'MEDECIN' => 0, 'INFIRMIER' => 0, 'AIDE_SOIGNANT' => 0, 'RECEPTIONNISTE' => 0, 'PHARMACIEN' => 0, 'LECTURE' => 0, 'total' => 0];
         foreach ($this->equipeRepository->findActiveByCentre($centre->getId()) as $member) {
             $role = $member->getRole();
             if (array_key_exists($role, $equipeStats)) {

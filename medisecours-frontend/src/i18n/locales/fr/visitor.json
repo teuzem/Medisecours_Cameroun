@@ -1324,6 +1324,7 @@
       "navFiche": "Fiche établissement",
       "navTeam": "Médecins et équipe",
       "navAffiliations": "Affiliations",
+      "navPersonnel": "Personnel",
       "navMedia": "Médias",
       "navReviews": "Avis",
       "reviewPendingLabel": "À valider",
@@ -1904,7 +1905,47 @@
       "directorSignAgain": "Renouveler la signature",
       "directorSignHint": "Utilise votre signature numérique enregistrée (paramètres médecin)",
       "directorSignNeedSignature": "Enregistrez d’abord votre signature dans vos paramètres médecin pour certifier les documents.",
-      "directorSignatureConfirmed": "Signature du dirigeant certifiée"
+      "directorSignatureConfirmed": "Signature du dirigeant certifiée",
+      "personnelValidation": {
+        "titre": "Validation du personnel",
+        "intro": "Contrôlez les pièces d'identité et de fonction des membres du personnel avant de débloquer leur accès.",
+        "enAttente": "En attente",
+        "valide": "Validé",
+        "rejete": "Rejeté",
+        "aucun": "Aucun compte de personnel rattaché à cet établissement.",
+        "aucunEnAttente": "Aucune demande en attente.",
+        "documents": "Pièces déposées",
+        "aucunDocument": "Aucune pièce déposée.",
+        "voirDocuments": "Voir les pièces",
+        "valider": "Valider",
+        "rejeter": "Rejeter",
+        "confirmerValider": "Valider ce compte et débloquer l'accès ?",
+        "motifRejet": "Motif du rejet",
+        "motifRejetPlaceholder": "Ex. : pièce illisible, numéro d'ordre erroné…",
+        "motifRejetRequis": "Le motif est obligatoire pour un rejet.",
+        "valideOk": "Compte validé et accès débloqué.",
+        "rejeteOk": "Compte rejeté.",
+        "erreur": "Une erreur est survenue.",
+        "documentsTitre": "Pièces de",
+        "telecharger": "Ouvrir la pièce",
+        "typeDiplome": "Diplôme",
+        "typeAttestation": "Attestation de fonction",
+        "typeCarmed": "CARMED",
+        "typeCertificat": "Certificat",
+        "typeAutre": "Autre pièce",
+        "types": {
+          "DIPLOME": "Diplôme",
+          "ATTESTATION_FONCTION": "Attestation de fonction",
+          "CARMED": "CARMED",
+          "CERTIFICAT": "Certificat",
+          "AUTRE": "Autre pièce"
+        },
+        "statutsDocuments": {
+          "EN_ATTENTE": "En attente",
+          "VALIDE": "Validée",
+          "REJETE": "Rejetée"
+        }
+      }
     }
   }
 }

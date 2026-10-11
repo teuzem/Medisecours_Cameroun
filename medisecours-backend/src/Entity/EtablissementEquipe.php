@@ -44,7 +44,7 @@ class EtablissementEquipe
     private ?User $user = null;
 
     #[ORM\Column(length: 30)]
-    #[Assert\Choice(choices: ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'LECTURE'])]
+    #[Assert\Choice(choices: ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'AIDE_SOIGNANT', 'RECEPTIONNISTE', 'PHARMACIEN', 'LECTURE'])]
     #[Groups(['etablissement_equipe:read'])]
     private string $role = 'LECTURE';
 
