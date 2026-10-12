@@ -7,6 +7,7 @@ import {
   Clock,
   Loader2,
   MapPin,
+  Navigation,
   Radio,
   RefreshCw,
   ShieldCheck,
@@ -211,6 +212,19 @@ export default function MedecinAlertesPage() {
               >
                 {t('medecin.alertes.preuve')}
               </button>
+
+              {lat != null && lng != null && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={t('medecin.alertes.itineraireHint')}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-primary-200 px-4 py-2 text-xs font-bold text-primary-700 transition hover:bg-primary-50 dark:border-mint-500/30 dark:text-mint-300 dark:hover:bg-mint-500/10"
+                >
+                  <Navigation className="h-3.5 w-3.5" />
+                  {t('medecin.alertes.itineraire')}
+                </a>
+              )}
 
               {mode === 'ouverte' ? (
                 <button

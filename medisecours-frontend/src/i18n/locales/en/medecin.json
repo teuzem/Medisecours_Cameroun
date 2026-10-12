@@ -29,6 +29,8 @@
       "anonyme": "Anonymous reporter",
       "preuve": "Photo evidence",
       "prendre": "Take in charge",
+      "itineraire": "Directions",
+      "itineraireHint": "Open directions to the patient in Google Maps",
       "cloturer": "Close intervention",
       "habilitation": {
         "admin": "Administrator",

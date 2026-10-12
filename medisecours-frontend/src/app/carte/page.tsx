@@ -607,6 +607,8 @@ export default function CartePage() {
         void api.post('/api/carte/history', { type: 'route', centre: centre.id, metadata: { mode } }).catch(() => undefined)
       }
     }
+    // Itinéraire actif : fermer le panneau de recherche pour une visibilité totale.
+    setSearchOpen(false)
     if (!position) {
       toast.info(t('visitor.carte.directions.needPosition'))
       locate()
@@ -626,6 +628,8 @@ export default function CartePage() {
         void api.post('/api/carte/history', { type: 'route', centre: centre.id, metadata: { mode, source: 'marker-preview' } }).catch(() => undefined)
       }
     }
+    // Itinéraire actif : fermer le panneau de recherche pour une visibilité totale.
+    setSearchOpen(false)
     if (!position) {
       toast.info(t('visitor.carte.directions.needPosition'))
       locate()
@@ -733,7 +737,7 @@ export default function CartePage() {
   const routeActive = Boolean(position && destination)
 
   return (
-    <div className={`medisecours-map relative isolate h-dvh w-full overflow-hidden bg-slate-100 dark:bg-slate-950${drawerOpen ? ' medisecours-map--fiche-open' : ''}${pickingPosition ? ' medisecours-map--picking' : ''}`}>
+    <div className={`medisecours-map relative isolate h-dvh w-full overflow-hidden bg-slate-100 dark:bg-slate-950${drawerOpen ? ' medisecours-map--fiche-open' : ''}${pickingPosition ? ' medisecours-map--picking' : ''}${routeActive ? ' medisecours-map--route-active' : ''}`}>
       {/* ═══ Carte plein écran (Google par défaut, Leaflet en repli) ═══ */}
       <div className="absolute inset-0 z-0">
         {provider === 'google' ? (
@@ -1016,8 +1020,8 @@ export default function CartePage() {
           aria-label={t('visitor.carte.basemap.title')}
           onClick={() => setLayersOpen((current) => !current)}
         >
-          <span className="maps-layers-thumb"><BasemapThumb mode="plan" /></span>
-          <span className="maps-layers-current-label"><Layers className="h-3.5 w-3.5" aria-hidden />{t('visitor.carte.basemap.layers')}</span>
+          <span className="maps-layers-thumb maps-layers-cover-img" aria-hidden><BasemapThumb mode="plan" /></span>
+          <span className="maps-layers-cover-label"><Layers className="h-3.5 w-3.5" aria-hidden />{t('visitor.carte.basemap.layers')}</span>
         </button>
         {layersOpen && (
           <div className="maps-layers-strip" role="group" aria-label={t('visitor.carte.basemap.title')}>

@@ -26,6 +26,8 @@
     "preuveAbsente": "No evidence",
     "preuveAlt": "SOS alert photo evidence",
     "appeler": "Call",
+    "itineraire": "Directions",
+    "itineraireHint": "Open directions to the patient in Google Maps",
     "options": "Options",
     "decisionTitle": "Verify the emergency",
     "decisionDesc": "Confirm the emergency (triggers the siren on staff stations) or mark it as fake.",

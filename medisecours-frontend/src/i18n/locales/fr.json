@@ -26,6 +26,8 @@
     "preuveAbsente": "Aucune preuve",
     "preuveAlt": "Preuve photo de l'alerte SOS",
     "appeler": "Appeler",
+    "itineraire": "Itinéraire",
+    "itineraireHint": "Ouvrir l'itinéraire vers le patient dans Google Maps",
     "options": "Options",
     "decisionTitle": "Vérifier l'urgence",
     "decisionDesc": "Confirmez la réalité de l'urgence (active la sirène sur les postes) ou marquez-la comme fausse.",

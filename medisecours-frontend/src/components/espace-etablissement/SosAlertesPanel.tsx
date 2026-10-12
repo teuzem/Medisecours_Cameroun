@@ -11,6 +11,7 @@ import {
   History,
   Loader2,
   MapPin,
+  Navigation,
   Phone,
   Radio,
   RefreshCw,
@@ -409,6 +410,18 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                         >
                           <Phone className="h-3.5 w-3.5" />
                           {t('sos.appeler')}
+                        </a>
+                      )}
+                      {lat != null && lng != null && (
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={t('sos.itineraireHint')}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-primary-800 dark:bg-mint-600 dark:text-primary-950 dark:hover:bg-mint-500"
+                        >
+                          <Navigation className="h-3.5 w-3.5" />
+                          {t('sos.itineraire')}
                         </a>
                       )}
                       <button

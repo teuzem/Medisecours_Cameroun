@@ -29,6 +29,8 @@
       "anonyme": "Demandeur anonyme",
       "preuve": "Preuve photo",
       "prendre": "Prendre en charge",
+      "itineraire": "Itinéraire",
+      "itineraireHint": "Ouvrir l'itinéraire vers le patient dans Google Maps",
       "cloturer": "Clôturer l'intervention",
       "habilitation": {
         "admin": "Administrateur",
