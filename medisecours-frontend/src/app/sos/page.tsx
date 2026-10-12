@@ -10,10 +10,14 @@ import {
   CheckCircle2,
   Clock,
   FileText,
+  FolderOpen,
   MapPin,
+  PenLine,
+  Printer,
   ShieldCheck,
   Siren,
   Stethoscope,
+  Users,
   Video,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -63,6 +67,28 @@ const MODALITES = [
   { titreKey: 'visitor.sosPage.terms3t', descKey: 'visitor.sosPage.terms3d' },
   { titreKey: 'visitor.sosPage.terms4t', descKey: 'visitor.sosPage.terms4d' },
   { titreKey: 'visitor.sosPage.terms5t', descKey: 'visitor.sosPage.terms5d' },
+] as const
+
+const SYSTEME = [
+  { icone: MapPin, titreKey: 'visitor.sosPage.sys1t', descKey: 'visitor.sosPage.sys1d' },
+  { icone: Siren, titreKey: 'visitor.sosPage.sys2t', descKey: 'visitor.sosPage.sys2d' },
+  { icone: Users, titreKey: 'visitor.sosPage.sys3t', descKey: 'visitor.sosPage.sys3d' },
+  { icone: PenLine, titreKey: 'visitor.sosPage.sys4t', descKey: 'visitor.sosPage.sys4d' },
+  { icone: FolderOpen, titreKey: 'visitor.sosPage.sys5t', descKey: 'visitor.sosPage.sys5d' },
+  { icone: Printer, titreKey: 'visitor.sosPage.sys6t', descKey: 'visitor.sosPage.sys6d' },
+] as const
+
+const FAQ = [
+  { qKey: 'visitor.sosPage.q1', rKey: 'visitor.sosPage.r1' },
+  { qKey: 'visitor.sosPage.q2', rKey: 'visitor.sosPage.r2' },
+  { qKey: 'visitor.sosPage.q3', rKey: 'visitor.sosPage.r3' },
+  { qKey: 'visitor.sosPage.q4', rKey: 'visitor.sosPage.r4' },
+  { qKey: 'visitor.sosPage.q5', rKey: 'visitor.sosPage.r5' },
+  { qKey: 'visitor.sosPage.q6', rKey: 'visitor.sosPage.r6' },
+  { qKey: 'visitor.sosPage.q7', rKey: 'visitor.sosPage.r7' },
+  { qKey: 'visitor.sosPage.q8', rKey: 'visitor.sosPage.r8' },
+  { qKey: 'visitor.sosPage.q9', rKey: 'visitor.sosPage.r9' },
+  { qKey: 'visitor.sosPage.q10', rKey: 'visitor.sosPage.r10' },
 ] as const
 
 export default function SosPage() {
@@ -205,6 +231,59 @@ export default function SosPage() {
                 {t('visitor.sosPage.graviteLegereDesc')}
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* ── Système complet : documentation de prise en main ────────── */}
+        <section className="mt-20 md:mt-28">
+          <h2 className="max-w-xl text-3xl font-black tracking-tight">
+            {t('visitor.sosPage.sysTitre')}
+          </h2>
+          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+            {t('visitor.sosPage.sysIntro')}
+          </p>
+          <dl className="mt-8 grid gap-x-10 gap-y-6 md:grid-cols-2">
+            {SYSTEME.map(({ icone: Icone, titreKey, descKey }) => (
+              <div key={titreKey} className="flex gap-4 border-t-2 border-red-600/80 pt-4 dark:border-red-500/60">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                  <Icone className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <dt className="text-sm font-black">{t(titreKey)}</dt>
+                  <dd className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                    {t(descKey)}
+                  </dd>
+                </div>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* ── FAQ ───────────────────────────────────────────────────── */}
+        <section className="mt-20 md:mt-28">
+          <h2 className="max-w-xl text-3xl font-black tracking-tight">
+            {t('visitor.sosPage.faqTitre')}
+          </h2>
+          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+            {t('visitor.sosPage.faqIntro')}
+          </p>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10">
+            {FAQ.map(({ qKey, rKey }, index) => (
+              <details
+                key={qKey}
+                className={`group bg-white px-5 py-4 transition dark:bg-slate-900 ${index > 0 ? 'border-t border-slate-200 dark:border-white/10' : ''} open:bg-slate-50 dark:open:bg-white/5`}
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold [&::-webkit-details-marker]:hidden">
+                  {t(qKey)}
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-600/10 text-lg font-black leading-none text-red-600 transition group-open:rotate-45 dark:text-red-400">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-2 max-w-[68ch] text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                  {t(rKey)}
+                </p>
+              </details>
+            ))}
           </div>
         </section>
 

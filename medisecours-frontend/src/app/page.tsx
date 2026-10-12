@@ -284,6 +284,86 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── SOS : soumission d'alerte + régulation ── */}
+      <section
+        aria-labelledby="sos-home-title"
+        className="border-b border-primary-500/20 bg-white py-14 dark:border-white/10 dark:bg-primary-800 sm:py-20"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="max-w-3xl">
+            <h2
+              id="sos-home-title"
+              className="font-display text-2xl font-bold tracking-tight text-primary-500 sm:text-3xl lg:text-4xl dark:text-white"
+            >
+              {t('visitor.landing.sosHome.title')}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-primary-400 sm:text-base dark:text-primary-200">
+              {t('visitor.landing.sosHome.subtitle')}
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-5">
+            <div className="border border-primary-500/20 bg-white p-6 dark:border-white/10 dark:bg-primary-900/60 lg:col-span-3">
+              <h3 className="font-display text-lg font-bold text-primary-500 dark:text-white">
+                {t('visitor.landing.sosHome.stepsTitle')}
+              </h3>
+              <ol className="mt-5 space-y-4">
+                {[
+                  { n: '1', titleKey: 'visitor.landing.sosHome.s1t', descKey: 'visitor.landing.sosHome.s1d' },
+                  { n: '2', titleKey: 'visitor.landing.sosHome.s2t', descKey: 'visitor.landing.sosHome.s2d' },
+                  { n: '3', titleKey: 'visitor.landing.sosHome.s3t', descKey: 'visitor.landing.sosHome.s3d' },
+                  { n: '4', titleKey: 'visitor.landing.sosHome.s4t', descKey: 'visitor.landing.sosHome.s4d' },
+                ].map((etape) => (
+                  <li key={etape.n} className="flex gap-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-urgence-500 text-sm font-black text-white">
+                      {etape.n}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-primary-500 dark:text-white">{t(etape.titleKey)}</p>
+                      <p className="mt-0.5 text-sm leading-6 text-primary-400 dark:text-primary-200">{t(etape.descKey)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-6 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/carte"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 bg-urgence-500 px-6 text-sm font-bold text-white transition hover:bg-urgence-600"
+                >
+                  {t('visitor.landing.sosHome.ctaMap')}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/sos"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-primary-500 underline-offset-4 hover:underline dark:text-mint-400"
+                >
+                  {t('visitor.landing.sosHome.ctaGuide')}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-urgence-500 p-6 text-white lg:col-span-2">
+              <h3 className="font-display text-lg font-bold">
+                {t('visitor.landing.sosHome.regulationTitle')}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-white/90">
+                {t('visitor.landing.sosHome.regulationDesc')}
+              </p>
+              <div className="mt-5 border border-white/40 bg-white/10 p-4">
+                <p className="flex items-center gap-2 text-sm font-black uppercase tracking-wide">
+                  <Siren className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {t('visitor.landing.sosHome.warningTitle')}
+                </p>
+                <p className="mt-1.5 text-sm leading-6 text-white/90">
+                  {t('visitor.landing.sosHome.warningDesc')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Complete solution: every feature of the platform ── */}
       <section
         aria-labelledby="solution-title"
