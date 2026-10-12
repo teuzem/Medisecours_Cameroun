@@ -276,10 +276,12 @@
 .maps-search-shell button { border: 0; background: transparent; }
 .maps-search-shell button:focus { outline: none; box-shadow: none; }
 .maps-search-shell button:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
-.maps-search-dropdown { margin-top: 6px; max-height: min(60vh, 460px); overflow-y: auto; background: #fff; border: 0; border-radius: 12px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px 0; color: #202124; }
+.maps-search-dropdown { margin-top: 6px; max-height: min(60vh, 460px); overflow-y: auto; overflow-x: clip; background: #fff; border: 0; border-radius: 8px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px 0; color: #202124; }
+.maps-search-dropdown > * { min-width: 0; }
 .maps-search-section { padding: 4px 0; }
-.maps-search-section-title { padding: 6px 16px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: #5f6368; }
+.maps-search-section-title { padding: 6px 16px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: #5f6368; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .maps-search-row { display: flex; width: 100%; align-items: center; gap: 12px; padding: 10px 16px; background: transparent; border: 0; cursor: pointer; text-align: left; }
+.maps-search-row > * { min-width: 0; }
 .maps-search-row:hover { background: #f1f3f4; }
 .maps-search-link { flex-shrink: 0; color: #1a73e8; font-size: 12px; font-weight: 600; background: none; border: 0; cursor: pointer; padding: 0; }
 .maps-search-link:hover { text-decoration: underline; }
@@ -421,6 +423,7 @@
   .maps-rail button { flex: 1; min-height: 56px; gap: 3px; }
   .maps-rail button svg { width: 18px; height: 18px; }
   .maps-search-shell { left: 12px; right: 64px; width: auto; }
+  .maps-search-dropdown { position: fixed; left: 8px; right: 8px; top: 72px; max-height: calc(100dvh - 160px); }
   .maps-categories-wrap { left: 12px; right: 12px; top: 76px; }
   .maps-categories { justify-content: flex-start; }
   .maps-rail-close, .maps-rail-open { left: 12px; top: 76px; }

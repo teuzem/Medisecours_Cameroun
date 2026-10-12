@@ -333,6 +333,8 @@
         "ageLabel": "Patient age (optional)",
         "agePlaceholder": "E.g. 68",
         "enceinteLabel": "Pregnant woman",
+        "urgenceVitaleLabel": "This is a life-threatening emergency",
+        "urgenceVitaleDesc": "Switches triage to URGENT: available doctors are alerted first.",
         "descriptionPlaceholder": "E.g. medical emergency at my home…",
         "send": "Send SOS alert",
         "sending": "Sending…",

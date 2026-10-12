@@ -382,6 +382,17 @@ class SosWorkflowController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // Priorité d'abord (cas graves + anciens), puis les clôturées récentes.
+        $ouverts = array_values(array_filter(
+            $sos,
+            static fn (DemandeSos $s): bool => in_array($s->getStatut(), ['EN_COURS', 'VERIFIEE', 'EN_PRISE_EN_CHARGE'], true)
+        ));
+        $fermes = array_values(array_filter(
+            $sos,
+            static fn (DemandeSos $s): bool => !in_array($s->getStatut(), ['EN_COURS', 'VERIFIEE', 'EN_PRISE_EN_CHARGE'], true)
+        ));
+        $sos = [...self::trierParPriorite($ouverts), ...$fermes];
+
         $ouvertes = 0;
         $items = array_map(function (DemandeSos $item) use (&$ouvertes): array {
             if (in_array($item->getStatut(), ['EN_COURS', 'VERIFIEE', 'EN_PRISE_EN_CHARGE'], true)) {
@@ -495,13 +506,14 @@ class SosWorkflowController extends AbstractController
                 ->where('d.statut = :statut')
                 ->setParameter('statut', 'VERIFIEE')
                 ->andWhere('d.prisEnChargePar IS NULL')
-                ->andWhere('d.gravite IN (:gravites)')
-                ->setParameter('gravites', [DemandeSos::GRAVITE_URGENTE, DemandeSos::GRAVITE_CRITIQUE])
-                ->orderBy('d.createdAt', 'ASC')
-                ->setMaxResults(30)
-                ->getQuery()
-                ->getResult();
-        }
+            ->andWhere('d.gravite IN (:gravites)')
+            ->setParameter('gravites', [DemandeSos::GRAVITE_URGENTE, DemandeSos::GRAVITE_CRITIQUE])
+            ->orderBy('d.createdAt', 'ASC')
+            ->setMaxResults(30)
+            ->getQuery()
+            ->getResult();
+
+        $ouvertes = self::trierParPriorite($ouvertes);
 
         $mesPrises = $this->em->createQueryBuilder()
             ->select('d')
@@ -562,13 +574,15 @@ class SosWorkflowController extends AbstractController
                 ->andWhere('d.prisEnChargePar IS NULL')
                 ->andWhere('d.gravite = :gravite')
                 ->setParameter('gravite', DemandeSos::GRAVITE_LEGERE)
-                ->andWhere('d.etablissement = :centre')
-                ->setParameter('centre', $centre->getId())
-                ->orderBy('d.createdAt', 'ASC')
-                ->setMaxResults(30)
-                ->getQuery()
-                ->getResult();
+            ->andWhere('d.etablissement = :centre')
+            ->setParameter('centre', $centre->getId())
+            ->orderBy('d.createdAt', 'ASC')
+            ->setMaxResults(30)
+            ->getQuery()
+            ->getResult();
         }
+
+        $ouvertes = self::trierParPriorite($ouvertes);
 
         $mesPrises = $this->em->createQueryBuilder()
             ->select('d')
@@ -753,6 +767,34 @@ class SosWorkflowController extends AbstractController
 
     // ── Helpers ────────────────────────────────────────────────────────────
 
+    /**
+     * Tri de triage : CRITIQUE → URGENTE → LEGERE, puis ancienneté (les plus
+     * anciennes d'abord : l'attente fait monter la pression). Appliqué à la
+     * lecture pour que médecins, ambulanciers et managers voient toujours le
+     * cas le plus grave en tête, sans tâche planifiée.
+     *
+     * @param list<DemandeSos> $rows
+     * @return list<DemandeSos>
+     */
+    private static function trierParPriorite(array $rows): array
+    {
+        $rang = [
+            DemandeSos::GRAVITE_CRITIQUE => 0,
+            DemandeSos::GRAVITE_URGENTE => 1,
+            DemandeSos::GRAVITE_LEGERE => 2,
+        ];
+        usort($rows, static function (DemandeSos $a, DemandeSos $b) use ($rang): int {
+            $diff = ($rang[$a->getGravite()] ?? 9) <=> ($rang[$b->getGravite()] ?? 9);
+            if ($diff !== 0) {
+                return $diff;
+            }
+
+            return $a->getCreatedAt() <=> $b->getCreatedAt();
+        });
+
+        return $rows;
+    }
+
     private function findSos(int $id): DemandeSos
     {
         $sos = $this->sosRepository->find($id);
@@ -874,6 +916,7 @@ class SosWorkflowController extends AbstractController
             'gravite' => $sos->getGravite(),
             'agePatient' => $sos->getAgePatient(),
             'enceinte' => $sos->isEnceinte(),
+            'urgenceVitale' => $sos->isUrgenceVitale(),
             'nom' => $sos->getNom(),
             'telephone' => $sos->getTelephone(),
             'description' => $sos->getDescription(),
@@ -903,6 +946,7 @@ class SosWorkflowController extends AbstractController
         return [
             'id' => $sos->getId(),
             'statut' => $sos->getStatut(),
+            'gravite' => $sos->getGravite(),
             'sireneActive' => $sos->isSireneActive(),
             'etablissement' => $sos->getEtablissement() ? [
                 'id' => $sos->getEtablissement()->getId(),

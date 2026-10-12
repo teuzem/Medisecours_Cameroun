@@ -120,6 +120,15 @@ class DemandeSos
     private bool $enceinte = false;
 
     /**
+     * Urgence vitale déclarée par le demandeur (« C'est une urgence
+     * vitale ») : bascule le triage automatique en URGENTE, même sans
+     * facteur d'âge ou grossesse. Le manager peut toujours requalifier.
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['demande_sos:read', 'demande_sos:write'])]
+    private bool $urgenceVitale = false;
+
+    /**
      * Établissements les plus proches calculés au moment de l'alerte.
      * Format : [{"id": 12, "nom": "...", "distance": 1.2, "telephone": "...", "type": "...", "ville": "...", "adresse": "...", "urgences24h": true}]
      */
@@ -330,6 +339,18 @@ class DemandeSos
     public function setEnceinte(bool $enceinte): static
     {
         $this->enceinte = $enceinte;
+
+        return $this;
+    }
+
+    public function isUrgenceVitale(): bool
+    {
+        return $this->urgenceVitale;
+    }
+
+    public function setUrgenceVitale(bool $urgenceVitale): static
+    {
+        $this->urgenceVitale = $urgenceVitale;
 
         return $this;
     }

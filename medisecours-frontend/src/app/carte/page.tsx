@@ -291,6 +291,9 @@ export default function CartePage() {
   // Positionné par le bouton « me localiser » : au prochain fix GPS frais,
   // voler vers la position exacte en vue détaillée du quartier.
   const pendingLocateZoomRef = useRef(false)
+  // Vrai uniquement après une demande explicite : évite la bannière d'erreur
+  // au chargement quand la permission est refusée d'emblée.
+  const [locationRequested, setLocationRequested] = useState(false)
   const [panelView, setPanelView] = useState<'explore' | 'saved' | 'recent'>('explore')
   const [mode, setMode] = useState<WayfindingMode>('driving')
   const [destination, setDestination] = useState<Destination | null>(null)
@@ -515,11 +518,23 @@ export default function CartePage() {
     }
     setIsTracking(true)
     pendingLocateZoomRef.current = true
+    setLocationRequested(true)
     // Retour au GPS live : abandonne un éventuel point placé manuellement.
     clearManualPosition()
     setPickingPosition(false)
     locate()
   }, [isTracking, locate, clearManualPosition])
+
+  // ── Vue initiale : ville GPS de l'utilisateur (façon Google Maps) ───────
+  // Un seul fix frais au chargement, sans suivi continu : la carte vole vers
+  // le quartier exact ; en cas de refus, la vue Cameroun reste affichée.
+  const initialLocateDoneRef = useRef(false)
+  useEffect(() => {
+    if (initialLocateDoneRef.current) return
+    initialLocateDoneRef.current = true
+    pendingLocateZoomRef.current = true
+    locate()
+  }, [locate])
 
   // Point exact touché sur la carte : devient la position effective
   // (marqueur, distances, itinéraire, SOS) jusqu'à restauration du GPS.
@@ -979,7 +994,7 @@ export default function CartePage() {
             <a href={isAuthenticated ? '/profil' : '/login'} onClick={() => setMenuOpen(false)} className="maps-menu-link"><Database className="h-5 w-5" />{t('visitor.carte.menuYourData')}</a>
             <button type="button" onClick={() => { void shareMap(); setMenuOpen(false) }} className="maps-menu-link"><Share2 className="h-5 w-5" />{t('visitor.carte.menuShareMap')}</button>
             <button type="button" onClick={() => { window.print(); setMenuOpen(false) }} className="maps-menu-link"><Printer className="h-5 w-5" />{t('visitor.carte.menuPrint')}</button>
-            <button type="button" onClick={() => { void locate(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />{t('visitor.carte.menuLocate')}</button>
+            <button type="button" onClick={() => { setLocationRequested(true); void locate(); setMenuOpen(false) }} className="maps-menu-link"><LocateFixed className="h-5 w-5" />{t('visitor.carte.menuLocate')}</button>
              <a href="/guide-utilisation" onClick={() => setMenuOpen(false)} className="maps-menu-link"><HelpCircle className="h-5 w-5" />{t('visitor.carte.menuHelp')}</a>
             <button type="button" onClick={() => { toast.info(t('visitor.carte.languageHint')); setMenuOpen(false) }} className="maps-menu-link"><Languages className="h-5 w-5" />{t('visitor.carte.menuLanguage')}</button>
             <button type="button" onClick={() => { setDrawerOpen(true); setPanelView('recent'); setMenuOpen(false) }} className="maps-menu-link"><Clock className="h-5 w-5" />{t('visitor.carte.menuHistory')}</button>
@@ -1280,8 +1295,8 @@ export default function CartePage() {
         onClearRoute={clearRoute}
       />
 
-      {/* ═══ État géolocalisation (erreur) ═══ */}
-      {geoError && !position && (
+      {/* ═══ État géolocalisation (erreur après demande explicite) ═══ */}
+      {geoError && !position && locationRequested && (
         <p className="absolute bottom-24 left-3 z-[600] flex max-w-64 items-start gap-2 rounded-xl bg-red-50 px-3 py-2 text-xs leading-5 text-red-700 shadow-lg dark:bg-red-500/10 dark:text-red-300">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {geoError}

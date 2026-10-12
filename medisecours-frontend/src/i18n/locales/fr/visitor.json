@@ -334,6 +334,8 @@
         "ageLabel": "Âge du patient (optionnel)",
         "agePlaceholder": "Ex. : 68",
         "enceinteLabel": "Femme enceinte",
+        "urgenceVitaleLabel": "C'est une urgence vitale",
+        "urgenceVitaleDesc": "Bascule le triage en URGENTE : les médecins disponibles sont alertés en priorité.",
         "descriptionPlaceholder": "Ex : urgence médicale à mon domicile…",
         "send": "Envoyer l'alerte SOS",
         "sending": "Envoi en cours…",

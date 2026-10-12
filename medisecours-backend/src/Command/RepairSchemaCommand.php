@@ -160,10 +160,11 @@ class RepairSchemaCommand extends Command
             'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS sos_alertes_active BOOLEAN DEFAULT \'true\' NOT NULL',
             'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS en_service BOOLEAN DEFAULT \'true\' NOT NULL',
 
-            // ── demande_sos : triage gravité / âge / grossesse ──
+            // ── demande_sos : triage gravité / âge / grossesse / urgence vitale ──
             'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS gravite VARCHAR(20) DEFAULT \'LEGERE\' NOT NULL',
             'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS age_patient INT DEFAULT NULL',
             'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS enceinte BOOLEAN DEFAULT \'false\' NOT NULL',
+            'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS urgence_vitale BOOLEAN DEFAULT \'false\' NOT NULL',
 
             // ── etablissement_equipe (sonde health/deploy) ──
             'CREATE TABLE IF NOT EXISTS etablissement_equipe (

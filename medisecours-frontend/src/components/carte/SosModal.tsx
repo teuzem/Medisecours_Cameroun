@@ -146,6 +146,8 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   // femmes enceintes). Optionnels : le manager confirme la gravité.
   const [agePatient, setAgePatient] = useState('')
   const [enceinte, setEnceinte] = useState(false)
+  // Urgence vitale déclarée : triage immédiat en URGENTE (médecins).
+  const [urgenceVitale, setUrgenceVitale] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -370,6 +372,7 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
     setDescription('')
     setAgePatient('')
     setEnceinte(false)
+    setUrgenceVitale(false)
     cameraAttemptedRef.current = false
   }, [stopRecording, stopStream])
 
@@ -480,6 +483,7 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
         description: description.trim() || null,
         agePatient: agePatient.trim() === '' ? undefined : Math.max(0, Math.min(120, Number(agePatient))),
         enceinte: enceinte || undefined,
+        urgenceVitale: urgenceVitale || undefined,
         etablissementId: etablissementId ?? undefined,
         preuvePhoto: preuve ?? undefined,
         preuveIndisponible: preuve ? undefined : true,
@@ -1023,6 +1027,20 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
               </div>
 
               {error && <p className="text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>}
+
+              {/* Urgence vitale déclarée : triage immédiat côté médecins */}
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-2 border-red-200 bg-red-50 p-3 dark:border-red-500/30 dark:bg-red-500/10">
+                <input
+                  type="checkbox"
+                  checked={urgenceVitale}
+                  onChange={(event) => setUrgenceVitale(event.target.checked)}
+                  className="mt-0.5 h-5 w-5 rounded border-red-300 text-red-600 focus:ring-red-500"
+                />
+                <span>
+                  <span className="block text-sm font-black text-red-700 dark:text-red-300">{t('visitor.carte.sos.urgenceVitaleLabel')}</span>
+                  <span className="mt-0.5 block text-xs leading-5 text-red-600/80 dark:text-red-400/80">{t('visitor.carte.sos.urgenceVitaleDesc')}</span>
+                </span>
+              </label>
 
               <button
                 type="button"
