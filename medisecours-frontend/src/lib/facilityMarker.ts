@@ -1,4 +1,4 @@
-import type { CarteCentre, EtablissementMedia } from './carte'
+import type { CarteCentre, EtablissementMedia, EtablissementType } from './carte'
 
 type MarkerLabels = {
   directions?: string
@@ -38,8 +38,12 @@ export function escapeMarkerHtml(value: string): string {
   })[char]!)
 }
 
-function iconSvg(kind: 'pin' | 'accessibility' | 'ambulance' | 'image' | 'clock' | 'navigation' | 'bookmark'): string {
-  const paths: Record<typeof kind, string> = {
+export type MarkerGlyph =
+  | 'pin' | 'accessibility' | 'ambulance' | 'image' | 'clock' | 'navigation' | 'bookmark'
+  | 'cross' | 'pill' | 'flask' | 'building' | 'heart'
+
+function iconSvg(kind: MarkerGlyph): string {
+  const paths: Record<MarkerGlyph, string> = {
     pin: '<path d="M12 21s7-5.4 7-11A7 7 0 0 0 5 10c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
     accessibility: '<circle cx="12" cy="4" r="1.8"/><path d="M5 8.5h14M12 7v5m0 0-4 8m4-8 4 8M8 12l-3 4m11-4 3 4"/>',
     ambulance: '<path d="M3 16V8.5h10.5L17 12h3v4"/><path d="M6 16a2 2 0 1 0 4 0m6 0a2 2 0 1 0 4 0M13.5 8.5V12H17M15.5 10.25h-4"/>',
@@ -47,15 +51,42 @@ function iconSvg(kind: 'pin' | 'accessibility' | 'ambulance' | 'image' | 'clock'
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     navigation: '<path d="m4 4 16 7-7 2-2 7-7-16Z"/>',
     bookmark: '<path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z"/>',
+    cross: '<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4Z" fill="currentColor" stroke="none"/>',
+    pill: '<rect x="2.5" y="8.5" width="19" height="7" rx="3.5"/><path d="M12 8.5v7"/>',
+    flask: '<path d="M9.5 3h5M10.5 3v4.8L5.7 17a2.6 2.6 0 0 0 2.3 3.9h8a2.6 2.6 0 0 0 2.3-3.9L13.5 7.8V3"/><path d="M8 14.5h8"/>',
+    building: '<rect x="6" y="3" width="12" height="18" rx="1"/><path d="M9.5 7h5M9.5 11h5M9.5 15h5M10 21v-2.5h4V21"/>',
+    heart: '<path d="M12 20.5s-7.5-4.7-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.5-7.5 10.2-7.5 10.2Z"/>',
   }
   return `<svg class="maps-marker-icon maps-marker-icon-${kind}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[kind]}</svg>`
 }
 
-export function facilityMarkerHtml(color: string, selected: boolean, name: string) {
-  const safeColor = /^#[0-9a-f]{6}$/i.test(color) ? color : '#1a73e8'
+/**
+ * Glyphe blanc par type d'établissement (cohérence visuelle façon
+ * Google Maps : pin rouge unique, pictogramme adapté au type).
+ */
+export const FACILITY_GLYPH: Record<EtablissementType, MarkerGlyph> = {
+  hopital_general: 'cross',
+  hopital_central: 'cross',
+  hopital_regional: 'cross',
+  hopital_de_district: 'cross',
+  hopital: 'cross',
+  chu: 'cross',
+  cma: 'building',
+  dispensaire: 'building',
+  csi: 'building',
+  clinique_privee: 'building',
+  polyclinique: 'building',
+  cabinet_medical: 'building',
+  centre_de_sante: 'building',
+  pharmacie: 'pill',
+  laboratoire: 'flask',
+  centre_specialise: 'heart',
+}
+
+export function facilityMarkerHtml(selected: boolean, name: string, glyph: MarkerGlyph = 'pin') {
   const safeName = escapeMarkerHtml(name)
-  return `<div class="maps-marker-label${selected ? ' is-selected' : ''}" style="--marker-color:${safeColor};" tabindex="0">
-    <span class="maps-marker-pin" aria-hidden="true">${iconSvg('pin')}</span>
+  return `<div class="maps-marker-label${selected ? ' is-selected' : ''}" tabindex="0">
+    <span class="maps-marker-pin" aria-hidden="true">${iconSvg(glyph)}</span>
     <span class="maps-marker-name">${safeName}</span>
   </div>`
 }

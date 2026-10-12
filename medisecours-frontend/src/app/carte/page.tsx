@@ -288,9 +288,6 @@ export default function CartePage() {
   // (quartier réel) quand le GPS du navigateur est faux.
   const [pickingPosition, setPickingPosition] = useState(false)
   const categoryRef = useRef<HTMLDivElement | null>(null)
-  // Positionné par le bouton « me localiser » : au prochain fix GPS frais,
-  // voler vers la position exacte en vue détaillée du quartier.
-  const pendingLocateZoomRef = useRef(false)
   // Vrai uniquement après une demande explicite : évite la bannière d'erreur
   // au chargement quand la permission est refusée d'emblée.
   const [locationRequested, setLocationRequested] = useState(false)
@@ -517,7 +514,6 @@ export default function CartePage() {
       return
     }
     setIsTracking(true)
-    pendingLocateZoomRef.current = true
     setLocationRequested(true)
     // Retour au GPS live : abandonne un éventuel point placé manuellement.
     clearManualPosition()
@@ -526,13 +522,13 @@ export default function CartePage() {
   }, [isTracking, locate, clearManualPosition])
 
   // ── Vue initiale : ville GPS de l'utilisateur (façon Google Maps) ───────
-  // Un seul fix frais au chargement, sans suivi continu : la carte vole vers
-  // le quartier exact ; en cas de refus, la vue Cameroun reste affichée.
+  // Un seul fix frais au chargement, sans suivi continu : les moteurs volent
+  // vers la ville exacte (zoom 13, tous les établissements visibles).
+  // En cas de refus, la vue Cameroun reste affichée.
   const initialLocateDoneRef = useRef(false)
   useEffect(() => {
     if (initialLocateDoneRef.current) return
     initialLocateDoneRef.current = true
-    pendingLocateZoomRef.current = true
     locate()
   }, [locate])
 
@@ -543,14 +539,6 @@ export default function CartePage() {
     setPickingPosition(false)
     toast.success(t('visitor.carte.positionAdjusted'))
   }, [setManualPosition, t, toast])
-
-  // ── Après une localisation manuelle : voler vers la position GPS exacte
-  // en vue détaillée du quartier (les trois moteurs suivent flyTarget).
-  useEffect(() => {
-    if (!pendingLocateZoomRef.current || !position) return
-    pendingLocateZoomRef.current = false
-    setFlyTarget({ lat: position.lat, lng: position.lng })
-  }, [position])
 
   // ── Sélection + itinéraire ────────────────────────────────────────────────
   const centreById = useMemo(() => {

@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
-import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
+import { type CarteCentre } from '../../lib/carte'
+import { clusterBubbleHtml, clusterPoints } from '../../lib/markerCluster'
 import type { Position } from '../../hooks/useWayfinding'
-import { bindFacilityPopupInteractions, facilityMarkerHtml, facilityMarkerPopupHtml } from '../../lib/facilityMarker'
+import { bindFacilityPopupInteractions, FACILITY_GLYPH, facilityMarkerHtml, facilityMarkerPopupHtml } from '../../lib/facilityMarker'
 
 // ─── Fix default Leaflet icon paths ─────────────────────────────────────────
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -43,34 +44,6 @@ function makeUserIcon() {
 }
 
 const userIcon = makeUserIcon()
-
-/** Épingle ronde colorée par type d'établissement */
-function makeFacilityIcon(color: string, selected: boolean) {
-  const size = selected ? 34 : 26
-  return L.divIcon({
-    html: `
-      <div style="
-        width:${size}px;height:${size}px;
-        border-radius:50% 50% 50% 0;
-        transform: rotate(-45deg);
-        background:${color};
-        border:3px solid #fff;
-        box-shadow:${selected ? `0 0 0 4px rgba(255,255,255,0.9), 0 0 0 7px ${color}, 0 6px 14px rgba(0,0,0,0.35)` : '0 3px 10px rgba(0,0,0,0.3)'};
-        display:flex;align-items:center;justify-content:center;
-      ">
-        <span style="
-          transform: rotate(45deg);
-          width:${size - 12}px;height:${size - 12}px;
-          border-radius:50%;
-          background:#fff;
-          display:block;
-        "></span>
-      </div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    className: '',
-  })
-}
 
 /** Épingle rouge pour la destination courante */
 function makeDestinationIcon() {
@@ -160,7 +133,7 @@ function FitBounds({
         { animate: true, maxZoom: 16 },
       )
     } else {
-      map.flyTo([position.lat!, position.lng!], Math.max(map.getZoom(), 16), { duration: 0.8 })
+      map.flyTo([position.lat!, position.lng!], Math.max(map.getZoom(), 13), { duration: 0.8 })
     }
     return () => {
       if (map && (map as any)._mapPane) map.stop()
@@ -177,6 +150,41 @@ function PositionPicker({ onPick }: { onPick: (pos: { lat: number; lng: number }
     },
   })
   return null
+}
+
+/** Suit le zoom pour le regroupement anti-chevauchement. */
+function MapZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
+  const map = useMap()
+  useEffect(() => {
+    onZoom(map.getZoom())
+  }, [map, onZoom])
+  useMapEvents({
+    zoomend: () => onZoom(map.getZoom()),
+  })
+  return null
+}
+
+/** Pastille de regroupement : un toucher zoome pour détailler. */
+function ClusterLeafletMarker({ lat, lng, count }: { lat: number; lng: number; count: number }) {
+  const map = useMap()
+  const icon = useMemo(() => L.divIcon({
+    html: clusterBubbleHtml(count),
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    className: '',
+  }), [count])
+  return (
+    <Marker
+      position={[lat, lng]}
+      icon={icon}
+      zIndexOffset={500}
+      eventHandlers={{
+        click: () => {
+          map.flyTo([lat, lng], Math.min(map.getZoom() + 2, 18), { duration: 0.6 })
+        },
+      }}
+    />
+  )
 }
 
 interface RouteGeometry {
@@ -262,13 +270,12 @@ const FacilityMarker = React.memo(function FacilityMarker({
   favoriteIds?: number[]
 }) {
   const { t } = useTranslation()
-  const color = FACILITY_COLORS[c.type] ?? '#64748B'
   const closeTimer = useRef<number | null>(null)
   const popupCleanup = useRef<(() => void) | null>(null)
   const icon = useMemo(() => L.divIcon({
-    html: facilityMarkerHtml(color, selected, c.nom),
+    html: facilityMarkerHtml(selected, c.nom, FACILITY_GLYPH[c.type] ?? 'pin'),
     iconSize: [180, 30], iconAnchor: [15, 15], className: '',
-  }), [color, selected, c.nom])
+  }), [selected, c.nom, c.type])
   if (c.latitude == null || c.longitude == null) return null
 
   const clearCloseTimer = () => {
@@ -381,6 +388,10 @@ export default function CarteMap({
       ? route.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
       : null
   }, [route])
+  const [mapZoom, setMapZoom] = useState(DEFAULT_ZOOM)
+  const handleZoom = useCallback((zoom: number) => setMapZoom(zoom), [])
+  const centreById = useMemo(() => new Map(centres.map((centre) => [centre.id, centre])), [centres])
+  const groupes = useMemo(() => clusterPoints(centres, mapZoom), [centres, mapZoom])
 
   return (
     <MapContainer
@@ -394,6 +405,7 @@ export default function CarteMap({
       <FlyToTarget target={flyTo} />
       <PulseStyle />
       <ForceMapRefresh />
+      <MapZoomTracker onZoom={handleZoom} />
       {picking && onPickPosition && <PositionPicker onPick={onPickPosition} />}
 
       {position && !destination && <MapAutoCenter coords={position} />}
@@ -435,17 +447,31 @@ export default function CarteMap({
         />
       )}
 
-      {centres.map((c) => (
-        <FacilityMarker
-          key={c.id}
-          c={c}
-          selected={selectedId === c.id}
-          onSelect={onSelect}
-          onRequestDirections={onRequestDirections}
-          onToggleFavorite={onToggleFavorite}
-          favoriteIds={favoriteIds}
-        />
-      ))}
+      {groupes.map((groupe) => {
+        if (groupe.ids.length === 1) {
+          const centre = centreById.get(groupe.ids[0])
+          if (!centre) return null
+          return (
+            <FacilityMarker
+              key={centre.id}
+              c={centre}
+              selected={selectedId === centre.id}
+              onSelect={onSelect}
+              onRequestDirections={onRequestDirections}
+              onToggleFavorite={onToggleFavorite}
+              favoriteIds={favoriteIds}
+            />
+          )
+        }
+        return (
+          <ClusterLeafletMarker
+            key={`cluster-${groupe.ids.join('-')}`}
+            lat={groupe.lat}
+            lng={groupe.lng}
+            count={groupe.ids.length}
+          />
+        )
+      })}
 
       {destination && !centres.some((c) => c.latitude === destination.lat && c.longitude === destination.lng) && (
         <Marker

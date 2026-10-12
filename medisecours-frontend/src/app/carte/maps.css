@@ -44,14 +44,16 @@
 .maps-panel::-webkit-scrollbar-thumb { background: #c7cdd4; border-radius: 999px; }
 .maps-panel-detail { top: 0; bottom: 0; z-index: 1000; }
 .maps-panel-list { top: 76px; }
-.maps-marker-label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; cursor: pointer; transition: filter .16s ease, transform .16s ease; }
+.maps-marker-label { display: inline-flex; align-items: center; gap: 7px; max-width: 220px; cursor: pointer; transition: filter .16s ease, transform .16s ease; }
 .maps-marker-label:focus-visible { outline: 2px solid #1e3a5f; outline-offset: 3px; border-radius: 6px; }
-.maps-marker-pin { display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid #fff; border-radius: 50%; background: var(--marker-color, #1e3a5f); color: #fff; transition: background-color .16s ease, transform .16s ease; }
+.maps-marker-pin { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border: 2px solid #fff; border-radius: 50%; background: #EA4335; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.35); transition: background-color .16s ease, transform .16s ease, box-shadow .16s ease; }
 .maps-marker-icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.maps-marker-name { max-width: 210px; overflow: hidden; text-overflow: ellipsis; color: var(--marker-color, #1e3a5f); font: 800 14px/1.25 Arial, sans-serif; text-shadow: 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff; transition: color .16s ease, font-size .16s ease; }
+.maps-marker-name { max-width: 180px; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: center; color: #202124; font: 800 13px/1.3 Arial, sans-serif; text-shadow: 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff; transition: color .16s ease; }
 .maps-marker-label:hover, .maps-marker-label:focus-visible { transform: translateY(-1px); }
-.maps-marker-label:hover .maps-marker-pin, .maps-marker-label.is-selected .maps-marker-pin { background: #1e3a5f; transform: scale(1.1); }
-.maps-marker-label:hover .maps-marker-name, .maps-marker-label.is-selected .maps-marker-name { color: #1e3a5f; font-size: 15px; }
+.maps-marker-label:hover .maps-marker-pin, .maps-marker-label.is-selected .maps-marker-pin { background: #1A73E8; transform: scale(1.12); box-shadow: 0 0 0 3px rgba(255,255,255,0.92), 0 0 0 6px rgba(26,115,232,0.5), 0 4px 12px rgba(0,0,0,0.35); }
+.maps-marker-label:hover .maps-marker-name, .maps-marker-label.is-selected .maps-marker-name { color: #174EA6; }
+.maps-cluster-bubble { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #1A73E8; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.4); color: #fff; font: 800 14px/1 Arial, sans-serif; cursor: pointer; transition: transform .15s ease; }
+.maps-cluster-bubble:hover { transform: scale(1.1); }
 .maps-marker-popup { width: max-content; min-width: 320px; max-width: min(460px, calc(100vw - 16px)); overflow: hidden; padding: 0; border: 1px solid #dadce0; border-radius: 4px; background: #fff; color: #202124; font-family: Arial, sans-serif; }
 .maps-marker-popup-body { padding: 12px 14px 14px; }
 .maps-marker-popup h3 { margin: 0; max-width: none; overflow: visible; color: #202124; font-size: clamp(15px, 1.15vw, 18px); line-height: 1.25; font-weight: 800; white-space: nowrap; text-overflow: clip; }

@@ -16,9 +16,9 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
-import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
+import { type CarteCentre } from '../../lib/carte'
 import type { Position } from '../../hooks/useWayfinding'
-import { bindFacilityPopupInteractions, facilityMarkerHtml, facilityMarkerPopupHtml } from '../../lib/facilityMarker'
+import { bindFacilityPopupInteractions, FACILITY_GLYPH, facilityMarkerHtml, facilityMarkerPopupHtml, type MarkerGlyph } from '../../lib/facilityMarker'
 import { useTranslation } from 'react-i18next'
 
 interface RouteGeometry {
@@ -52,44 +52,11 @@ interface GoogleCarteMapProps {
 const CAMEROUN_CENTER = { lat: 4.05, lng: 11.65 }
 const DEFAULT_ZOOM = 6
 
-function FACILITY_COLOR(type: string): string {
-  return FACILITY_COLORS[type as keyof typeof FACILITY_COLORS] ?? '#64748B'
-}
-
-/** Épingle ronde colorée par type — mêmes couleurs que la version Leaflet. */
-function makePinContent(color: string, selected: boolean, name: string): HTMLDivElement {
-  const size = selected ? 34 : 26
+/** Épingle établissement façon Google Maps (partagée avec Leaflet/Mapbox). */
+function makePinContent(selected: boolean, name: string, glyph: MarkerGlyph): HTMLDivElement {
   const element = document.createElement('div')
-  element.setAttribute('aria-hidden', 'true')
-  element.style.cssText = [
-    `width:${size}px`,
-    `height:${size}px`,
-    'border-radius:50% 50% 50% 0',
-    'transform:rotate(-45deg)',
-    `background:${color}`,
-    'border:3px solid #fff',
-    'box-shadow:0 3px 10px rgba(0,0,0,0.35)',
-    'display:flex',
-    'align-items:center',
-    'justify-content:center',
-    'cursor:pointer',
-  ].join(';')
-
-  if (selected) {
-    element.style.boxShadow = `0 0 0 4px rgba(255,255,255,0.92), 0 0 0 7px ${color}, 0 6px 14px rgba(0,0,0,0.35)`
-  }
-
-  const pin = document.createElement('span')
-  pin.style.cssText = [
-    'transform:rotate(45deg)',
-    `width:${size - 12}px`,
-    `height:${size - 12}px`,
-    'border-radius:50%',
-    'background:#fff',
-    'display:block',
-  ].join(';')
   element.style.cssText = 'cursor:pointer'
-  element.innerHTML = facilityMarkerHtml(color, selected, name)
+  element.innerHTML = facilityMarkerHtml(selected, name, glyph)
   return element
 }
 
@@ -269,7 +236,7 @@ export default function GoogleCarteMap({
         map,
         position: { lat: centre.latitude, lng: centre.longitude },
         title: centre.nom,
-        content: makePinContent(FACILITY_COLOR(centre.type), selected, centre.nom),
+        content: makePinContent(selected, centre.nom, FACILITY_GLYPH[centre.type] ?? 'pin'),
         zIndex: selected ? 1000 : undefined,
       })
       const markerContent = marker.content as HTMLElement | null
@@ -502,7 +469,7 @@ export default function GoogleCarteMap({
 
     if (position && !recenteredRef.current) {
       map.panTo(position)
-      map.setZoom(16)
+      map.setZoom(13)
       recenteredRef.current = true
     }
   }, [position, destination])

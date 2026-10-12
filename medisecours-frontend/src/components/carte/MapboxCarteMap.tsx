@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CarteCentre } from '../../lib/carte'
-import { FACILITY_COLORS } from '../../lib/carte'
+import { clusterBubbleHtml, clusterPoints } from '../../lib/markerCluster'
 import type { Position } from '../../hooks/useWayfinding'
 import { getMapboxToken } from '../../lib/mapboxMaps'
-import { bindFacilityPopupInteractions, facilityMarkerHtml, facilityMarkerPopupHtml } from '../../lib/facilityMarker'
+import { bindFacilityPopupInteractions, FACILITY_GLYPH, facilityMarkerHtml, facilityMarkerPopupHtml, type MarkerGlyph } from '../../lib/facilityMarker'
 
 interface RouteGeometry {
   type: 'LineString'
@@ -39,11 +39,11 @@ const MAPBOX_STYLES: Record<'plan' | 'satellite' | 'relief', string> = {
 
 const CAMEROUN_CENTER: [number, number] = [11.65, 4.05]
 
-function markerElement(color: string, selected: boolean, name: string) {
+function markerElement(selected: boolean, name: string, glyph: MarkerGlyph) {
   const el = document.createElement('button')
   el.type = 'button'
   el.style.cssText = 'background:transparent;border:0;cursor:pointer;padding:0'
-  el.innerHTML = facilityMarkerHtml(color, selected, name)
+  el.innerHTML = facilityMarkerHtml(selected, name, glyph)
   el.setAttribute('aria-label', name)
   return el
 }
@@ -68,6 +68,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
   const markersRef = useRef<any[]>([])
   const patientMarkerRef = useRef<any>(null)
   const initialBasemapRef = useRef(basemap)
+  const [mapZoom, setMapZoom] = useState(5.5)
 
   // The map instance is intentionally created once; satellite changes are applied by the dedicated style effect below.
   useEffect(() => {
@@ -107,6 +108,18 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
     if (map) map.setStyle(MAPBOX_STYLES[basemap] ?? MAPBOX_STYLES.satellite)
   }, [basemap])
 
+  // Suit le zoom pour le regroupement anti-chevauchement.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const sync = () => setMapZoom(map.getZoom())
+    sync()
+    map.on('zoomend', sync)
+    return () => {
+      map.off('zoomend', sync)
+    }
+  }, [])
+
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -114,8 +127,12 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
       marker.__medisecoursCleanup?.()
       marker.remove()
     })
-    markersRef.current = centres
-      .filter((centre) => centre.latitude != null && centre.longitude != null)
+    // Regroupement anti-chevauchement : les structures proches fusionnent
+    // en pastille de comptage (un toucher zoome pour détailler).
+    const groupes = clusterPoints(centres, mapZoom)
+    const regroupes = new Set(groupes.filter((groupe) => groupe.ids.length > 1).flatMap((groupe) => groupe.ids))
+    const marqueursEtablissements = centres
+      .filter((centre) => centre.latitude != null && centre.longitude != null && !regroupes.has(centre.id))
       .map((centre) => {
         const popupElement = document.createElement('div')
         popupElement.innerHTML = facilityMarkerPopupHtml(centre, {
@@ -153,7 +170,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
         }, 1800)
         }
         const marker = new window.mapboxgl.Marker({
-          element: markerElement(FACILITY_COLORS[centre.type] ?? '#64748B', centre.id === selectedId, centre.nom),
+          element: markerElement(centre.id === selectedId, centre.nom, FACILITY_GLYPH[centre.type] ?? 'pin'),
         })
           .setLngLat([centre.longitude!, centre.latitude!])
           .setPopup(popup)
@@ -214,7 +231,27 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
         ;(marker as any).__medisecoursCleanup = cleanup
         return marker
       })
-  }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t])
+    const marqueursGroupes = groupes
+      .filter((groupe) => groupe.ids.length > 1)
+      .map((groupe) => {
+        const element = document.createElement('div')
+        element.innerHTML = clusterBubbleHtml(groupe.ids.length)
+        const bulle = element.firstElementChild as HTMLElement | null
+        const marker = new window.mapboxgl.Marker({ element: bulle ?? element })
+          .setLngLat([groupe.lng, groupe.lat])
+          .addTo(map)
+        const zoomer = () => {
+          map.flyTo({ center: [groupe.lng, groupe.lat], zoom: Math.min(map.getZoom() + 2, 18), essential: true })
+        }
+        ;(bulle ?? element).addEventListener('click', zoomer)
+        ;(marker as any).__medisecoursCleanup = () => {
+          ;(bulle ?? element).removeEventListener('click', zoomer)
+          marker.remove()
+        }
+        return marker
+      })
+    markersRef.current = [...marqueursEtablissements, ...marqueursGroupes]
+  }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t, mapZoom])
 
   // Position GPS de l'utilisateur (dot bleu + cercle de précision) — créée
   // une fois, déplacée à chaque changement de position GPS.
@@ -331,8 +368,12 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
 
   useEffect(() => {
     const map = mapRef.current
-    const target = destination ?? (position ? { lat: position.lat, lng: position.lng } : null)
-    if (map && target) map.flyTo({ center: [target.lng, target.lat], zoom: 16, essential: true })
+    if (!map) return
+    if (destination) {
+      map.flyTo({ center: [destination.lng, destination.lat], zoom: 16, essential: true })
+    } else if (position) {
+      map.flyTo({ center: [position.lng, position.lat], zoom: 13, essential: true })
+    }
   }, [destination, position])
 
   useEffect(() => {
