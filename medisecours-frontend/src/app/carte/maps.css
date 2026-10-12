@@ -304,11 +304,10 @@
 .maps-map-status button { display: inline-flex; align-items: center; gap: 8px; color: var(--maps-blue); margin-left: 10px; }
 .medisecours-map .leaflet-control-zoom { margin-bottom: 116px !important; }
 .maps-layers { position: absolute; bottom: 28px; left: 84px; z-index: 750; display: flex; flex-direction: row; align-items: flex-end; gap: 8px; }
-.maps-layers-current { display: flex; align-items: center; gap: 8px; padding: 8px 14px 8px 10px; background: #fff; border: 1px solid #dadce0; border-radius: 12px; font-size: 13px; font-weight: 600; color: #3c4043; box-shadow: 0 2px 8px rgba(32,33,36,0.28); cursor: pointer; white-space: nowrap; }
+.maps-layers-current { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px; background: #fff; border: 1px solid #dadce0; border-radius: 10px; font-size: 12px; font-weight: 600; color: #3c4043; box-shadow: 0 2px 8px rgba(32,33,36,0.28); cursor: pointer; }
 .maps-layers-current:hover { background: #f8f9fa; }
 .maps-layers-current[aria-expanded="true"] { border-color: #1a73e8; color: #174ea6; }
-.maps-layers-current svg { color: #5f6368; flex-shrink: 0; }
-.maps-layers-current[aria-expanded="true"] svg { color: #1a73e8; }
+.maps-layers-current-label { display: inline-flex; align-items: center; gap: 4px; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .maps-layers-thumb { display: block; width: 64px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; flex-shrink: 0; line-height: 0; }
 .maps-layers-thumb svg { display: block; width: 100%; height: 100%; }
 .maps-layers-strip { display: flex; flex-direction: row; align-items: stretch; gap: 8px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px; }

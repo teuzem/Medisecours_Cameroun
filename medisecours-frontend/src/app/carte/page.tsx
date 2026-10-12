@@ -995,8 +995,8 @@ export default function CartePage() {
           aria-label={t('visitor.carte.basemap.title')}
           onClick={() => setLayersOpen((current) => !current)}
         >
-          <Layers className="h-5 w-5" aria-hidden />
-          <span>{t('visitor.carte.basemap.layers')}</span>
+          <span className="maps-layers-thumb"><BasemapThumb mode="plan" /></span>
+          <span className="maps-layers-current-label"><Layers className="h-3.5 w-3.5" aria-hidden />{t('visitor.carte.basemap.layers')}</span>
         </button>
         {layersOpen && (
           <div className="maps-layers-strip" role="group" aria-label={t('visitor.carte.basemap.title')}>
