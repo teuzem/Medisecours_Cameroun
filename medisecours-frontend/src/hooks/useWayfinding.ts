@@ -102,13 +102,14 @@ function haversineMeters(a: Position, b: Position): number {
 }
 
 /**
- * Build a stable cache key from destination coordinates + travel mode.
- * Patient position is NOT part of the key because the patient may move slightly
- * during live tracking — we only re-fetch if the DESTINATION or MODE changes.
- * For significant patient movement, the useEffect dependency array handles it.
+ * Build a stable cache key from patient position + destination + travel mode.
+ * The patient position (rounded to ~11 m) IS part of the key: when the GPS
+ * fix refines (coarse IP fix, then exact GPS) or the patient moves, the
+ * itinerary is recomputed from the true position instead of reusing a stale
+ * route drawn from the old one (which falsified SOS itineraries).
  */
-function cacheKey(dest: Position, mode: string): string {
-  return `${dest.lat.toFixed(5)},${dest.lng.toFixed(5)}|${mode}`
+function cacheKey(patient: Position, dest: Position, mode: string): string {
+  return `${patient.lat.toFixed(4)},${patient.lng.toFixed(4)}|${dest.lat.toFixed(5)},${dest.lng.toFixed(5)}|${mode}`
 }
 
 // ─── Hook ───────────────────────────────────────────────────────────────────
@@ -128,7 +129,7 @@ export function useWayfinding({
 
   const abortRef = useRef<AbortController | null>(null)
 
-  // ── Route cache: Map<"lat,lng|mode", CachedRoute> ─────────────────────
+  // ── Route cache: Map<"patientLat,patientLng|destLat,destLng|mode", CachedRoute> ──
   const cacheRef = useRef<Map<string, CachedRoute>>(new Map())
 
   const clear = useCallback(() => {
@@ -162,7 +163,7 @@ export function useWayfinding({
     }
 
     // ── Check cache first → instant hit, zero network ───────────────────
-    const key = cacheKey(destination, mode)
+    const key = cacheKey(patientPosition, destination, mode)
     const cached = cacheRef.current.get(key)
     if (cached) {
       setRoute(cached.route)

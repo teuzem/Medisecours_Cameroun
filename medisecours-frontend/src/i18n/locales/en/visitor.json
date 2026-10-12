@@ -112,6 +112,10 @@
       "locating": "Locating…",
       "tracking": "Tracking active",
       "stopTracking": "Stop tracking",
+      "adjustPosition": "Set my exact position on the map",
+      "adjustHint": "Tap your exact neighbourhood on the map to place your position there.",
+      "positionAdjusted": "Position adjusted: the route will start from this exact point.",
+      "positionGpsRestored": "GPS position restored.",
       "sosFabAria": "Request help",
       "verified": "Verified",
       "unverified": "Not verified",
@@ -1615,6 +1619,7 @@
       "centresMap": {
         "yourPosition": "Your current position",
         "accuracyMeters": "GPS accuracy: ±{{meters}} m",
+        "approximatePosition": "Approximate position — adjust it if needed",
         "detailsFor": "Details for {{name}}"
       }
     },

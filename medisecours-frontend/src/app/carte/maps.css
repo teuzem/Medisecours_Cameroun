@@ -303,6 +303,7 @@
 .maps-map-status { position: absolute; bottom: 64px; left: 84px; z-index: 650; background: #fff; border: 1px solid #dadce0; padding: 12px; max-width: 300px; font-size: 13px; }
 .maps-map-status button { display: inline-flex; align-items: center; gap: 8px; color: var(--maps-blue); margin-left: 10px; }
 .medisecours-map .leaflet-control-zoom { margin-bottom: 116px !important; }
+.medisecours-map--picking, .medisecours-map--picking .leaflet-container { cursor: crosshair !important; }
 .maps-layers { position: absolute; bottom: 28px; left: 84px; z-index: 750; display: flex; flex-direction: row; align-items: flex-end; gap: 8px; }
 .maps-layers-current { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px; background: #fff; border: 1px solid #dadce0; border-radius: 10px; font-size: 12px; font-weight: 600; color: #3c4043; box-shadow: 0 2px 8px rgba(32,33,36,0.28); cursor: pointer; }
 .maps-layers-current:hover { background: #f8f9fa; }

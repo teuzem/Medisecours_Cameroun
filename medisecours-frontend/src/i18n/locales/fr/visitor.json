@@ -112,6 +112,10 @@
       "locating": "Localisation…",
       "tracking": "Suivi actif",
       "stopTracking": "Arrêter le suivi",
+      "adjustPosition": "Préciser ma position sur la carte",
+      "adjustHint": "Touchez votre quartier exact sur la carte pour y placer votre position.",
+      "positionAdjusted": "Position ajustée : l’itinéraire partira de ce point exact.",
+      "positionGpsRestored": "Position GPS restaurée.",
       "sosFabAria": "Demander de l'aide",
       "verified": "Vérifié",
       "unverified": "Non vérifié",
@@ -1615,6 +1619,7 @@
       "centresMap": {
         "yourPosition": "Votre position actuelle",
         "accuracyMeters": "Précision GPS : ±{{meters}} m",
+        "approximatePosition": "Position approximative — ajustez-la si besoin",
         "detailsFor": "Détails pour {{name}}"
       }
     },

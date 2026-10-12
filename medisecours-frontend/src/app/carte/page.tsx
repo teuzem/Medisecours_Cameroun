@@ -20,6 +20,7 @@ import {
   Database,
   Footprints,
   Home,
+  Crosshair,
   Layers,
   Loader2,
   LocateFixed,
@@ -271,7 +272,7 @@ export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
   const { user, isAuthenticated, isMedecin, isEtablissement } = useAuth()
-  const { position, accuracy, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
+  const { position, accuracy, isManual, setManualPosition, clearManualPosition, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
   const { provider, state: providerState } = useMapProvider()
 
   const [centres, setCentres] = useState<CarteCentre[]>([])
@@ -284,6 +285,9 @@ export default function CartePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [layersOpen, setLayersOpen] = useState(false)
   const [railOpen, setRailOpen] = useState(true)
+  // Mode « préciser ma position » : toucher la carte place le point exact
+  // (quartier réel) quand le GPS du navigateur est faux.
+  const [pickingPosition, setPickingPosition] = useState(false)
   const categoryRef = useRef<HTMLDivElement | null>(null)
   // Positionné par le bouton « me localiser » : au prochain fix GPS frais,
   // voler vers la position exacte en vue détaillée du quartier.
@@ -512,8 +516,19 @@ export default function CartePage() {
     }
     setIsTracking(true)
     pendingLocateZoomRef.current = true
+    // Retour au GPS live : abandonne un éventuel point placé manuellement.
+    clearManualPosition()
+    setPickingPosition(false)
     locate()
-  }, [isTracking, locate])
+  }, [isTracking, locate, clearManualPosition])
+
+  // Point exact touché sur la carte : devient la position effective
+  // (marqueur, distances, itinéraire, SOS) jusqu'à restauration du GPS.
+  const handlePickPosition = useCallback((point: { lat: number; lng: number }) => {
+    setManualPosition(point)
+    setPickingPosition(false)
+    toast.success(t('visitor.carte.positionAdjusted'))
+  }, [setManualPosition, t, toast])
 
   // ── Après une localisation manuelle : voler vers la position GPS exacte
   // en vue détaillée du quartier (les trois moteurs suivent flyTarget).
@@ -718,7 +733,7 @@ export default function CartePage() {
   const routeActive = Boolean(position && destination)
 
   return (
-    <div className={`medisecours-map relative isolate h-dvh w-full overflow-hidden bg-slate-100 dark:bg-slate-950${drawerOpen ? ' medisecours-map--fiche-open' : ''}`}>
+    <div className={`medisecours-map relative isolate h-dvh w-full overflow-hidden bg-slate-100 dark:bg-slate-950${drawerOpen ? ' medisecours-map--fiche-open' : ''}${pickingPosition ? ' medisecours-map--picking' : ''}`}>
       {/* ═══ Carte plein écran (Google par défaut, Leaflet en repli) ═══ */}
       <div className="absolute inset-0 z-0">
         {provider === 'google' ? (
@@ -731,6 +746,8 @@ export default function CartePage() {
             selectedId={selectedId}
             position={position}
             accuracy={accuracy}
+            picking={pickingPosition}
+            onPickPosition={handlePickPosition}
             flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
@@ -747,6 +764,8 @@ export default function CartePage() {
             selectedId={selectedId}
             position={position}
             accuracy={accuracy}
+            picking={pickingPosition}
+            onPickPosition={handlePickPosition}
             flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
@@ -765,6 +784,8 @@ export default function CartePage() {
             selectedId={selectedId}
             position={position}
             accuracy={accuracy}
+            picking={pickingPosition}
+            onPickPosition={handlePickPosition}
             flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
@@ -1181,6 +1202,31 @@ export default function CartePage() {
         >
           {locating ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <LocateFixed className={`h-4.5 w-4.5 ${isTracking ? 'animate-pulse' : ''}`} />}
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (pickingPosition) {
+              setPickingPosition(false)
+              return
+            }
+            if (isManual) {
+              clearManualPosition()
+              toast.success(t('visitor.carte.positionGpsRestored'))
+              return
+            }
+            setPickingPosition(true)
+          }}
+          aria-pressed={pickingPosition || isManual}
+          aria-label={t('visitor.carte.adjustPosition')}
+          title={t('visitor.carte.adjustPosition')}
+          className={`flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition ${
+            pickingPosition || isManual
+              ? 'border-primary-700 bg-primary-700 text-white hover:bg-primary-800'
+              : 'border-slate-200 bg-white text-primary-700 hover:bg-slate-100 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800'
+          }`}
+        >
+          <Crosshair className="h-4.5 w-4.5" />
+        </button>
       </div>
 
       {/* ═══ Panneau (liste / fiche) ═══ */}
@@ -1227,6 +1273,14 @@ export default function CartePage() {
         <p className="absolute bottom-24 left-3 z-[600] flex max-w-64 items-start gap-2 rounded-xl bg-red-50 px-3 py-2 text-xs leading-5 text-red-700 shadow-lg dark:bg-red-500/10 dark:text-red-300">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {geoError}
+        </p>
+      )}
+
+      {/* ═══ Mode ajustement : consigne de toucher la carte ═══ */}
+      {pickingPosition && (
+        <p className="absolute bottom-24 left-3 z-[600] flex max-w-64 items-start gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-800 shadow-lg dark:bg-blue-500/10 dark:text-blue-300">
+          <Crosshair className="mt-0.5 h-4 w-4 shrink-0" />
+          {t('visitor.carte.adjustHint')}
         </p>
       )}
 

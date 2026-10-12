@@ -9,7 +9,13 @@ const ERROR_MESSAGE_KEYS: Record<number, string> = {
 }
 
 export function useGeolocation() {
-  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null)
+  const [gpsPosition, setGpsPosition] = useState<{ lat: number; lng: number } | null>(null)
+  const [manualPosition, setManualPositionState] = useState<{ lat: number; lng: number } | null>(null)
+  // Position effective : le point placé manuellement prime sur le GPS.
+  // Indispensable quand le capteur du navigateur est faux (géolocalisation
+  // IP à plusieurs kilomètres) : l'itinéraire — notamment SOS — part alors
+  // du quartier exact au lieu d'une position fantôme.
+  const position = manualPosition ?? gpsPosition
   const [accuracy, setAccuracy] = useState<number | null>(null)
   const [permission, setPermission] = useState<'granted' | 'prompt' | 'denied' | 'unknown'>('unknown')
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +41,7 @@ export function useGeolocation() {
   }, [])
 
   const applyPosition = useCallback((pos: GeolocationPosition) => {
-    setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+    setGpsPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
     setAccuracy(Number.isFinite(pos.coords.accuracy) && pos.coords.accuracy > 0 ? pos.coords.accuracy : null)
     setPermission('granted')
     setLoading(false)
@@ -95,10 +101,30 @@ export function useGeolocation() {
     setIsWatching(false)
   }, [])
 
+  /**
+   * Placement manuel exact (« toucher la carte ») : remplace le fix GPS
+   * jusqu'à restauration explicite. La précision repasse à null (point
+   * exact placé par l'utilisateur : aucun cercle d'incertitude).
+   */
+  const setManualPosition = useCallback((point: { lat: number; lng: number }) => {
+    setManualPositionState(point)
+    setAccuracy(null)
+    setError(null)
+    setLoading(false)
+  }, [])
+
+  /** Restaure le fix GPS live (abandonne le point manuel). */
+  const clearManualPosition = useCallback(() => {
+    setManualPositionState(null)
+  }, [])
+
   return {
     position,
     accuracy,
     permission,
+    isManual: manualPosition !== null,
+    setManualPosition,
+    clearManualPosition,
     error,
     loading,
     locate,

@@ -33,6 +33,8 @@ interface GoogleCarteMapProps {
   selectedId?: number | null
   position?: Position | null
   accuracy?: number | null
+  picking?: boolean
+  onPickPosition?: (pos: { lat: number; lng: number }) => void
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
   isFallback?: boolean
@@ -129,6 +131,8 @@ export default function GoogleCarteMap({
   selectedId,
   position,
   accuracy = null,
+  picking = false,
+  onPickPosition,
   onSelect,
   route,
   isFallback = false,
@@ -467,6 +471,20 @@ export default function GoogleCarteMap({
         : undefined,
     })
   }, [isFallback, routePath])
+
+  // ── Mode « préciser ma position » : un toucher place le point exact ────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !picking || !onPickPosition) return
+    const listener = map.addListener('click', (event: google.maps.MapMouseEvent) => {
+      const latLng = event.latLng
+      if (!latLng) return
+      onPickPosition({ lat: latLng.lat(), lng: latLng.lng() })
+    })
+    return () => {
+      listener.remove()
+    }
+  }, [picking, onPickPosition])
 
   // ── Recentrage / cadrage ────────────────────────────────────────────────
   useEffect(() => {

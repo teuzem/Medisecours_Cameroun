@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef } from 'react'
-import { MapContainer, Marker, Popup, Polyline, Circle, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
 import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
@@ -169,6 +169,16 @@ function FitBounds({
   return null
 }
 
+/** Mode « préciser ma position » : un toucher sur la carte place le point exact. */
+function PositionPicker({ onPick }: { onPick: (pos: { lat: number; lng: number }) => void }) {
+  useMapEvents({
+    click(event) {
+      onPick({ lat: event.latlng.lat, lng: event.latlng.lng })
+    },
+  })
+  return null
+}
+
 interface RouteGeometry {
   type: 'LineString'
   coordinates: [number, number][]
@@ -181,6 +191,8 @@ interface CarteMapProps {
   selectedId?: number | null
   position?: Position | null
   accuracy?: number | null
+  picking?: boolean
+  onPickPosition?: (pos: { lat: number; lng: number }) => void
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
   isFallback?: boolean
@@ -351,6 +363,8 @@ export default function CarteMap({
   selectedId,
   position,
   accuracy = null,
+  picking = false,
+  onPickPosition,
   onSelect,
   route,
   isFallback = false,
@@ -380,6 +394,7 @@ export default function CarteMap({
       <FlyToTarget target={flyTo} />
       <PulseStyle />
       <ForceMapRefresh />
+      {picking && onPickPosition && <PositionPicker onPick={onPickPosition} />}
 
       {position && !destination && <MapAutoCenter coords={position} />}
       <FitBounds position={position || null} destination={destination || null} />
@@ -396,6 +411,9 @@ export default function CarteMap({
               <p className="text-sm font-medium">{t('visitor.components.centresMap.yourPosition')}</p>
               {accuracy != null && accuracy > 0 && (
                 <p className="mt-1 text-xs text-slate-500">{t('visitor.components.centresMap.accuracyMeters', { meters: Math.round(accuracy) })}</p>
+              )}
+              {accuracy != null && accuracy > 500 && (
+                <p className="mt-1 text-xs font-semibold text-amber-600">{t('visitor.components.centresMap.approximatePosition')}</p>
               )}
             </div>
           </Popup>

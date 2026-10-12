@@ -18,6 +18,8 @@ interface Props {
   selectedId?: number | null
   position?: Position | null
   accuracy?: number | null
+  picking?: boolean
+  onPickPosition?: (pos: { lat: number; lng: number }) => void
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
   isFallback?: boolean
@@ -59,7 +61,7 @@ function userMarkerElement(label: string) {
   return el
 }
 
-export default function MapboxCarteMap({ centres, selectedId, position, accuracy = null, onSelect, route, isFallback = false, destination, basemap = 'satellite', flyTo = null, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
+export default function MapboxCarteMap({ centres, selectedId, position, accuracy = null, picking = false, onPickPosition, onSelect, route, isFallback = false, destination, basemap = 'satellite', flyTo = null, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
@@ -279,6 +281,19 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
       map.once('styledata', applyAccuracy)
     }
   }, [position, accuracy, t])
+
+  // ── Mode « préciser ma position » : un toucher place le point exact ───
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !picking || !onPickPosition) return
+    const handler = (event: { lngLat: { lng: number; lat: number } }) => {
+      onPickPosition({ lat: event.lngLat.lat, lng: event.lngLat.lng })
+    }
+    map.on('click', handler)
+    return () => {
+      map.off('click', handler)
+    }
+  }, [picking, onPickPosition])
 
   useEffect(() => {
     const map = mapRef.current
