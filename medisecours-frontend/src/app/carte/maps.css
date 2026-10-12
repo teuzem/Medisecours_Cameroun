@@ -35,6 +35,7 @@
   background: #fff; border: 1px solid var(--maps-line); border-left: 0; border-radius: 0 20px 20px 0;
   scrollbar-width: thin; scrollbar-color: #c7cdd4 transparent;
 }
+.maps-panel > * { min-width: 0; }
 .maps-panel::-webkit-scrollbar { width: 5px; }
 .maps-panel::-webkit-scrollbar-track { background: transparent; }
 .maps-panel::-webkit-scrollbar-thumb { background: #c7cdd4; border-radius: 999px; }
@@ -266,7 +267,12 @@
 .maps-dialog form { display: flex; gap: 12px; margin-top: 12px; }
 .maps-search-shell { position: absolute; left: 84px; top: 12px; width: 384px; z-index: 1400; }
 .maps-search-shell > div { padding: 3px; border-radius: 999px; box-shadow: 0 2px 10px rgba(32,33,36,0.24); border: 1px solid #dadce0; background: #fff; }
+.maps-search-shell > div:focus-within { border-color: #1a73e8; box-shadow: 0 2px 10px rgba(26,115,232,0.30); }
 .maps-search-shell input { height: 42px; padding-left: 4px; border-radius: 999px; }
+.maps-search-shell input:focus { outline: none; box-shadow: none; }
+.maps-search-shell button { border: 0; background: transparent; }
+.maps-search-shell button:focus { outline: none; box-shadow: none; }
+.maps-search-shell button:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
 .maps-search-dropdown { margin-top: 6px; max-height: min(60vh, 460px); overflow-y: auto; background: #fff; border: 0; border-radius: 12px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px 0; color: #202124; }
 .maps-search-section { padding: 4px 0; }
 .maps-search-section-title { padding: 6px 16px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: #5f6368; }

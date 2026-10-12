@@ -639,8 +639,14 @@ export default function CartePage() {
     setDestination(null)
   }, [])
 
-  // ── Moteurs d'itinéraire (Google par défaut, OSRM en repli) ───────────────
-  const osrmEnabled = provider !== 'google'
+  // ── Moteurs d'itinéraire ────────────────────────────────────────────────
+  // Google par défaut (voiture/marche), OSRM/FOSSGIS pour le vélo et en repli.
+  // Le profil vélo n'existe pas chez Google Directions au Cameroun
+  // (ZERO_RESULTS systématique) : le vélo passe toujours par le routeur
+  // OSRM bike (FOSSGIS), quel que soit le moteur de carte actif. Le moteur
+  // Google affiche la polyligne GeoJSON retournée comme les autres.
+  const googleRouting = provider === 'google' && mode !== 'bicycling'
+
   const {
     route: osrmRoute,
     distance: osrmDistance,
@@ -650,8 +656,8 @@ export default function CartePage() {
     error: osrmError,
     isFallback: osrmIsFallback,
   } = useWayfinding({
-    patientPosition: osrmEnabled ? position : null,
-    destination: osrmEnabled ? destination : null,
+    patientPosition: googleRouting ? null : position,
+    destination: googleRouting ? null : destination,
     mode,
   })
 
@@ -664,19 +670,19 @@ export default function CartePage() {
     error: googleError,
     isFallback: googleIsFallback,
   } = useGoogleDirections({
-    enabled: provider === 'google',
+    enabled: googleRouting,
     position,
     destination,
     mode,
   })
 
-  const route = provider === 'google' ? googleRoute : osrmRoute
-  const distance = provider === 'google' ? googleDistance : osrmDistance
-  const duration = provider === 'google' ? googleDuration : osrmDuration
-  const steps = provider === 'google' ? googleSteps : osrmSteps
-  const routeLoading = provider === 'google' ? googleLoading : osrmLoading
-  const routeError = provider === 'google' ? googleError : osrmError
-  const isFallback = provider === 'google' ? googleIsFallback : osrmIsFallback
+  const route = googleRouting ? googleRoute : osrmRoute
+  const distance = googleRouting ? googleDistance : osrmDistance
+  const duration = googleRouting ? googleDuration : osrmDuration
+  const steps = googleRouting ? googleSteps : osrmSteps
+  const routeLoading = googleRouting ? googleLoading : osrmLoading
+  const routeError = googleRouting ? googleError : osrmError
+  const isFallback = googleRouting ? googleIsFallback : osrmIsFallback
 
   // ── Filtrage + tri ────────────────────────────────────────────────────────
   const byRating = useCallback((a: CarteCentre, b: CarteCentre) => {
