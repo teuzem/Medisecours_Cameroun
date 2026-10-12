@@ -80,7 +80,16 @@ USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
+# Bind explicite IPv4-any : sans lui, certaines résolutions de `localhost`
+# (musl → ::1 en premier) ratent le healthcheck alors que le serveur tourne.
+ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Healthcheck explicite sur loopback IPv4 (jamais ::1) et PORT effectif :
+# un `wget http://localhost:3000/` peut échouer par résolution alors que
+# l'application répond — ce qui provoquait un rollback à chaque déploiement.
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:${PORT:-3000}/ || exit 1
 
 CMD ["node", "server.js"]
