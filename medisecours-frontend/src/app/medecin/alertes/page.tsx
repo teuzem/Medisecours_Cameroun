@@ -368,8 +368,12 @@ export default function MedecinAlertesPage() {
           aria-label={t('sos.preuve')}
         >
           <div className="max-h-full w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- preuve photo base64 serveur */}
-            <img src={photoOuverte} alt={t('sos.preuveAlt')} className="max-h-[70vh] w-full object-contain bg-slate-100 dark:bg-slate-950" />
+            {photoOuverte.startsWith('data:video/') ? (
+              <video src={photoOuverte} controls playsInline preload="metadata" className="max-h-[70vh] w-full bg-black" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- preuve image base64 serveur
+              <img src={photoOuverte} alt={t('sos.preuveAlt')} className="max-h-[70vh] w-full object-contain bg-slate-100 dark:bg-slate-950" />
+            )}
           </div>
         </div>
       )}

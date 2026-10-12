@@ -37,6 +37,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class DemandeSosProcessor implements ProcessorInterface
 {
     private const MAX_PREUVE_OCTETS = 1_500_000;
+    private const MAX_PREUVE_VIDEO_OCTETS = 4_000_000;
 
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
@@ -72,12 +73,20 @@ class DemandeSosProcessor implements ProcessorInterface
             }
 
             $preuve = trim((string) ($data->getPreuvePhoto() ?? ''));
+            $preuveEstVideo = $preuve !== '' && str_starts_with($preuve, 'data:video/');
             if ($preuve !== '') {
-                if (strlen($preuve) > self::MAX_PREUVE_OCTETS) {
-                    throw new BadRequestHttpException('La preuve photo dépasse la taille maximale (1,5 Mo).');
+                $tailleMax = $preuveEstVideo ? self::MAX_PREUVE_VIDEO_OCTETS : self::MAX_PREUVE_OCTETS;
+                if (strlen($preuve) > $tailleMax) {
+                    throw new BadRequestHttpException($preuveEstVideo
+                        ? 'La preuve vidéo dépasse la taille maximale (4 Mo).'
+                        : 'La preuve photo dépasse la taille maximale (1,5 Mo).');
                 }
-                if (!str_starts_with($preuve, 'data:image/')) {
-                    throw new BadRequestHttpException('Format de preuve photo invalide.');
+                if ($preuveEstVideo) {
+                    if (!preg_match('#^data:video/(mp4|webm)(;[^,]*)?;base64,#', $preuve)) {
+                        throw new BadRequestHttpException('Format de preuve vidéo invalide (MP4/WebM attendu).');
+                    }
+                } elseif (!str_starts_with($preuve, 'data:image/')) {
+                    throw new BadRequestHttpException('Format de preuve invalide (image ou vidéo attendu).');
                 }
             } elseif (!$data->isPreuveIndisponible()) {
                 throw new BadRequestHttpException(
@@ -140,7 +149,7 @@ class DemandeSosProcessor implements ProcessorInterface
                 ->setDetails([
                     'source' => $cibleSource,
                     'etablissementId' => $cible?->getId(),
-                    'preuve' => $preuve !== '' ? 'capture_camera' : 'indisponible',
+                    'preuve' => $preuve !== '' ? ($preuveEstVideo ? 'capture_video' : 'capture_camera') : 'indisponible',
                     'ip' => $ip,
                 ]);
             $this->em->persist($trace);

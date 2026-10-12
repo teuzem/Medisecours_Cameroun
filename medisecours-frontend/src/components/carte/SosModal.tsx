@@ -14,13 +14,16 @@ import {
   Send,
   ShieldCheck,
   Siren,
+  Square,
   Stethoscope,
+  Video,
   VideoOff,
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../ui/Toast'
 import type { Position } from '../../hooks/useWayfinding'
 import { formatDistanceKm, type SosResult, type SosProche } from '../../lib/carte'
 
@@ -51,18 +54,32 @@ const STATUTS_TERMINAUX = ['TRAITEE', 'FRAUDULEUSE', 'CLOTUREE']
 export default function SosModal({ open, onClose, position, onLocate, etablissementId, etablissementNom }: SosModalProps) {
   const { t } = useTranslation()
   const { user } = useAuth()
+  const toast = useToast()
   const [telephone, setTelephone] = useState('')
   const [description, setDescription] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // ── Preuve caméra ────────────────────────────────────────────────────────
+  // ── Preuve caméra (photo ou vidéo) ─────────────────────────────────────
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const cameraAttemptedRef = useRef(false)
   const [cameraState, setCameraState] = useState<CameraState>('idle')
   const [preuve, setPreuve] = useState<string | null>(null)
   const [sansCamera, setSansCamera] = useState(false)
+  // Studio vidéo : enregistrement live court (validation immédiate).
+  const [preuveMode, setPreuveMode] = useState<'photo' | 'video'>('photo')
+  const [recording, setRecording] = useState(false)
+  const [recordSecs, setRecordSecs] = useState(0)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const recordSecsRef = useRef(0)
+  const discardRecordingRef = useRef(false)
+  const autoVideoRef = useRef(false)
+
+  const MAX_VIDEO_SECS = 8
+  const mediaRecorderSupported = typeof MediaRecorder !== 'undefined'
+  const preuveIsVideo = preuve?.startsWith('data:video/') ?? false
 
   // ── Suivi temps réel ─────────────────────────────────────────────────────
   const [sos, setSos] = useState<{ id: number; token: string } | null>(null)
@@ -115,25 +132,113 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
     setCameraState('unsupported')
   }, [])
 
+  /** Démarre l'enregistrement vidéo live (MP4 iOS, WebM sinon), ~600 kb/s. */
+  const startRecording = useCallback(() => {
+    const stream = streamRef.current
+    if (!stream || recorderRef.current || typeof MediaRecorder === 'undefined') return
+    const candidats = ['video/mp4', 'video/webm;codecs=vp9', 'video/webm']
+    let mime: string | undefined
+    try {
+      const verifie = (MediaRecorder as unknown as { isTypeSupported?: (t: string) => boolean }).isTypeSupported
+      if (typeof verifie === 'function') {
+        for (const candidat of candidats) {
+          try {
+            if (verifie.call(MediaRecorder, candidat)) { mime = candidat; break }
+          } catch { /* suivant */ }
+        }
+      }
+    } catch { /* défaut navigateur */ }
+    let recorder: MediaRecorder
+    try {
+      recorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 600_000 })
+        : new MediaRecorder(stream)
+    } catch {
+      try {
+        recorder = new MediaRecorder(stream)
+      } catch {
+        return
+      }
+    }
+    chunksRef.current = []
+    discardRecordingRef.current = false
+    recorder.ondataavailable = (event: BlobEvent) => {
+      if (event.data && event.data.size > 0) chunksRef.current.push(event.data)
+    }
+    recorder.onstop = () => {
+      const morceaux = chunksRef.current
+      chunksRef.current = []
+      setRecording(false)
+      if (discardRecordingRef.current) {
+        discardRecordingRef.current = false
+        return
+      }
+      const type = recorder.mimeType || 'video/webm'
+      const blob = new Blob(morceaux, { type })
+      // Garde-fou : rester sous le plafond backend (4 Mo en base64).
+      if (blob.size === 0 || blob.size > 2_800_000) {
+        recordSecsRef.current = 0
+        setRecordSecs(0)
+        toast.error(t('visitor.carte.sos.cameraVideoTooLarge'))
+        return
+      }
+      const lecteur = new FileReader()
+      lecteur.onload = () => {
+        if (typeof lecteur.result === 'string') {
+          setPreuve(lecteur.result)
+          recordSecsRef.current = 0
+          setRecordSecs(0)
+        }
+      }
+      lecteur.readAsDataURL(blob)
+    }
+    try {
+      recorderRef.current = recorder
+      recorder.start(500)
+      recordSecsRef.current = 0
+      setRecordSecs(0)
+      setRecording(true)
+    } catch {
+      recorderRef.current = null
+    }
+  }, [t, toast])
+
+  const stopRecording = useCallback((abandonner = false) => {
+    const recorder = recorderRef.current
+    recorderRef.current = null
+    setRecording(false)
+    if (abandonner) discardRecordingRef.current = true
+    try {
+      if (recorder && recorder.state !== 'inactive') recorder.stop()
+    } catch { /* déjà arrêté */ }
+  }, [])
+
   const retryCamera = useCallback(() => {
+    stopRecording(true)
     stopStream()
     setCameraState('idle')
     cameraAttemptedRef.current = true
     void startCamera()
-  }, [startCamera, stopStream])
+  }, [startCamera, stopRecording, stopStream])
 
   const reset = useCallback(() => {
+    stopRecording(true)
     stopStream()
     setPreuve(null)
     setSansCamera(false)
     setCameraState('idle')
+    setPreuveMode('photo')
+    recordSecsRef.current = 0
+    setRecordSecs(0)
+    autoVideoRef.current = false
+    discardRecordingRef.current = false
     setSos(null)
     setSuivi(null)
     setError(null)
     setSending(false)
     setDescription('')
     cameraAttemptedRef.current = false
-  }, [stopStream])
+  }, [stopRecording, stopStream])
 
   const handleClose = useCallback(() => {
     reset()
@@ -159,6 +264,31 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
     }
   }, [cameraState])
 
+  // Lancement automatique de l'enregistrement dès le live (mode vidéo) :
+  // la preuve animée part avec l'alerte, sans geste supplémentaire.
+  useEffect(() => {
+    if (preuveMode !== 'video' || cameraState !== 'live' || preuve || sansCamera) return
+    if (recording || recorderRef.current || !autoVideoRef.current) return
+    autoVideoRef.current = false
+    startRecording()
+  }, [preuveMode, cameraState, preuve, sansCamera, recording, startRecording])
+
+  // Chronomètre d'enregistrement + arrêt automatique à la durée maximale
+  // (preuve courte validable). L'arrêt a lieu dans le callback d'intervalle,
+  // jamais dans le corps de l'effet (set-state-in-effect).
+  useEffect(() => {
+    if (!recording) return
+    const id = window.setInterval(() => {
+      recordSecsRef.current += 1
+      setRecordSecs(recordSecsRef.current)
+      if (recordSecsRef.current >= MAX_VIDEO_SECS) {
+        window.clearInterval(id)
+        stopRecording()
+      }
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [recording, stopRecording])
+
   // Nettoyage à la fermeture / démontage.
   useEffect(() => {
     if (!open) stopStream()
@@ -183,9 +313,13 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   }
 
   const retakePhoto = () => {
+    stopRecording(true)
     setPreuve(null)
+    recordSecsRef.current = 0
+    setRecordSecs(0)
     setCameraState('idle')
     cameraAttemptedRef.current = false
+    autoVideoRef.current = preuveMode === 'video'
     void startCamera()
   }
 
@@ -554,6 +688,15 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
                 </div>
 
                 {preuve ? (
+                  preuveIsVideo ? (
+                    <div className="relative overflow-hidden rounded-xl border border-emerald-300 dark:border-emerald-500/40">
+                      <video src={preuve} controls playsInline preload="metadata" className="max-h-48 w-full bg-black object-contain" />
+                      <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold uppercase text-white">
+                        <CheckCircle2 className="h-3 w-3" />
+                        {t('visitor.carte.sos.cameraVideoReady')}
+                      </span>
+                    </div>
+                  ) : (
                   <div className="relative overflow-hidden rounded-xl border border-emerald-300 dark:border-emerald-500/40">
                     {/* eslint-disable-next-line @next/next/no-img-element -- aperçu base64 de la capture caméra */}
                     <img src={preuve} alt={t('visitor.carte.sos.cameraCaptured')} className="max-h-48 w-full object-cover" />
@@ -562,18 +705,72 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
                       {t('visitor.carte.sos.cameraCaptured')}
                     </span>
                   </div>
+                  )
                 ) : cameraState === 'live' ? (
-                  <div className="relative overflow-hidden rounded-xl border border-slate-300 dark:border-white/15">
-                    <video ref={videoRef} playsInline muted autoPlay className="max-h-48 w-full bg-black object-cover" />
-                    <button
-                      type="button"
-                      onClick={capturePhoto}
-                      className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-lg transition hover:bg-slate-100"
-                    >
-                      <Camera className="h-4 w-4" />
-                      {t('visitor.carte.sos.cameraCapture')}
-                    </button>
-                  </div>
+                  <>
+                    {mediaRecorderSupported && (
+                      <div role="tablist" aria-label={t('visitor.carte.sos.cameraModeLabel')} className="mb-2 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-white/10">
+                        {(['photo', 'video'] as const).map((modeOption) => (
+                          <button
+                            key={modeOption}
+                            type="button"
+                            role="tab"
+                            aria-selected={preuveMode === modeOption}
+                            onClick={() => {
+                              if (modeOption === preuveMode) return
+                              stopRecording(true)
+                              setPreuveMode(modeOption)
+                              if (modeOption === 'video') autoVideoRef.current = true
+                            }}
+                            className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition ${preuveMode === modeOption ? 'bg-white text-slate-900 shadow dark:bg-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                          >
+                            {modeOption === 'photo' ? <Camera className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
+                            {t(modeOption === 'photo' ? 'visitor.carte.sos.cameraModePhoto' : 'visitor.carte.sos.cameraModeVideo')}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {preuveMode === 'video' ? (
+                      <div className="relative overflow-hidden rounded-xl border border-slate-300 dark:border-white/15">
+                        <video ref={videoRef} playsInline muted autoPlay className="max-h-48 w-full bg-black object-cover" />
+                        <span className="absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-red-600 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                          <span className={`h-2 w-2 rounded-full bg-white ${recording ? 'animate-pulse' : ''}`} aria-hidden />
+                          {t('visitor.carte.sos.cameraRecording')} 0:{String(Math.min(recordSecs, 99)).padStart(2, '0')} / 0:{String(MAX_VIDEO_SECS).padStart(2, '0')}
+                        </span>
+                        {recording ? (
+                          <button
+                            type="button"
+                            onClick={() => stopRecording()}
+                            className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-lg transition hover:bg-slate-100"
+                          >
+                            <Square className="h-4 w-4" />
+                            {t('visitor.carte.sos.cameraStop')}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { autoVideoRef.current = false; startRecording() }}
+                            className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-lg transition hover:bg-slate-100"
+                          >
+                            <Video className="h-4 w-4" />
+                            {t('visitor.carte.sos.cameraRecord')}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                    <div className="relative overflow-hidden rounded-xl border border-slate-300 dark:border-white/15">
+                      <video ref={videoRef} playsInline muted autoPlay className="max-h-48 w-full bg-black object-cover" />
+                      <button
+                        type="button"
+                        onClick={capturePhoto}
+                        className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-lg transition hover:bg-slate-100"
+                      >
+                        <Camera className="h-4 w-4" />
+                        {t('visitor.carte.sos.cameraCapture')}
+                      </button>
+                    </div>
+                    )}
+                  </>
                 ) : cameraBloquee || sansCamera ? (
                   <div className="space-y-2">
                     <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-dashed border-slate-300 bg-white p-3 dark:border-white/15 dark:bg-slate-900">

@@ -606,8 +606,12 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element -- preuve photo base64 serveur */}
-            <img src={photoOuverte} alt={t('sos.preuveAlt')} className="max-h-[70vh] w-full object-contain bg-slate-100 dark:bg-slate-950" />
+            {photoOuverte.startsWith('data:video/') ? (
+              <video src={photoOuverte} controls playsInline preload="metadata" className="max-h-[70vh] w-full bg-black" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- preuve image base64 serveur
+              <img src={photoOuverte} alt={t('sos.preuveAlt')} className="max-h-[70vh] w-full object-contain bg-slate-100 dark:bg-slate-950" />
+            )}
           </div>
         </div>
       )}
