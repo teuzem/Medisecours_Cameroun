@@ -299,6 +299,8 @@
         "cameraRecording": "REC",
         "cameraVideoReady": "Video ready",
         "cameraVideoTooLarge": "Video too large, please retry shorter.",
+        "cameraCompressing": "Compressing video…",
+        "cameraVideoInfo": "{{secs}}s · {{mo}} MB — ready to send",
         "cameraCaptured": "Photo ready",
         "cameraDenied": "Camera denied",
         "cameraDeniedDesc": "Allow camera access in your browser settings, or tick “no camera”.",

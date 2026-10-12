@@ -300,6 +300,8 @@
         "cameraRecording": "REC",
         "cameraVideoReady": "Vidéo prête",
         "cameraVideoTooLarge": "Vidéo trop lourde, réessayez plus court.",
+        "cameraCompressing": "Compression de la vidéo…",
+        "cameraVideoInfo": "{{secs}} s · {{mo}} Mo — prête à envoyer",
         "cameraCaptured": "Photo prête",
         "cameraDenied": "Caméra refusée",
         "cameraDeniedDesc": "Autorisez la caméra dans les réglages du navigateur, ou cochez « sans caméra ».",

@@ -37,7 +37,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class DemandeSosProcessor implements ProcessorInterface
 {
     private const MAX_PREUVE_OCTETS = 1_500_000;
-    private const MAX_PREUVE_VIDEO_OCTETS = 4_000_000;
+    private const MAX_PREUVE_VIDEO_OCTETS = 10_000_000;
 
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
@@ -78,7 +78,7 @@ class DemandeSosProcessor implements ProcessorInterface
                 $tailleMax = $preuveEstVideo ? self::MAX_PREUVE_VIDEO_OCTETS : self::MAX_PREUVE_OCTETS;
                 if (strlen($preuve) > $tailleMax) {
                     throw new BadRequestHttpException($preuveEstVideo
-                        ? 'La preuve vidéo dépasse la taille maximale (4 Mo).'
+                        ? 'La preuve vidéo dépasse la taille maximale (10 Mo). Réduisez la durée ou laissez la compression automatique agir.'
                         : 'La preuve photo dépasse la taille maximale (1,5 Mo).');
                 }
                 if ($preuveEstVideo) {

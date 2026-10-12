@@ -51,6 +51,91 @@ interface SuiviSos {
 
 const STATUTS_TERMINAUX = ['TRAITEE', 'FRAUDULEUSE', 'CLOTUREE']
 
+/**
+ * Compression vidéo automatique (ré-encodage 480p / 400 kb/s via canvas) :
+ * au lieu de rejeter une preuve trop lourde, on la réduit pour qu'elle
+ * passe sous le plafond d'envoi. Tout échec retombe sur le blob d'origine
+ * (jamais de blocage, jamais de crash — Safari partiel inclus).
+ */
+async function compressVideoBlob(source: Blob): Promise<Blob> {
+  try {
+    if (typeof document === 'undefined') return source
+    const url = URL.createObjectURL(source)
+    try {
+      const video = document.createElement('video')
+      video.muted = true
+      video.playsInline = true
+      video.preload = 'auto'
+      video.src = url
+      await new Promise<void>((resolve, reject) => {
+        video.onloadedmetadata = () => resolve()
+        video.onerror = () => reject(new Error('metadata'))
+      })
+      const srcW = video.videoWidth || 640
+      const srcH = video.videoHeight || 360
+      const targetW = Math.min(480, srcW)
+      const targetH = Math.max(2, Math.round(((srcH * targetW) / srcW / 2)) * 2)
+      const canvas = document.createElement('canvas')
+      canvas.width = targetW
+      canvas.height = targetH
+      const ctx = canvas.getContext('2d')
+      const capture = (canvas as unknown as { captureStream?: (fps?: number) => MediaStream }).captureStream
+      const stream = ctx && typeof capture === 'function' ? capture.call(canvas, 24) : null
+      if (!stream) return source
+      let recorder: MediaRecorder
+      try {
+        recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 400_000 })
+      } catch {
+        recorder = new MediaRecorder(stream)
+      }
+      const morceaux: Blob[] = []
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) morceaux.push(event.data)
+      }
+      const termine = new Promise<Blob>((resolveTermine) => {
+        recorder.onstop = () => resolveTermine(morceaux.length ? new Blob(morceaux, { type: recorder.mimeType || 'video/webm' }) : source)
+      })
+      await video.play().catch(() => undefined)
+      let actif = true
+      const dessiner = () => {
+        if (!actif) return
+        try {
+          ctx.drawImage(video, 0, 0, targetW, targetH)
+        } catch { /* image pas prête */ }
+        requestAnimationFrame(dessiner)
+      }
+      dessiner()
+      try {
+        recorder.start(500)
+      } catch { /* ignore */ }
+      const dureeMs = Math.min(25000, ((video.duration && Number.isFinite(video.duration) ? video.duration : 20) + 1.5) * 1000)
+      await new Promise<void>((resolveAttente) => {
+        const aLaFin = () => {
+          video.removeEventListener('ended', aLaFin)
+          resolveAttente()
+        }
+        video.addEventListener('ended', aLaFin)
+        window.setTimeout(() => {
+          video.removeEventListener('ended', aLaFin)
+          resolveAttente()
+        }, dureeMs)
+      })
+      actif = false
+      try {
+        video.pause()
+      } catch { /* ignore */ }
+      try {
+        if (recorder.state !== 'inactive') recorder.stop()
+      } catch { /* ignore */ }
+      return await termine
+    } finally {
+      URL.revokeObjectURL(url)
+    }
+  } catch {
+    return source
+  }
+}
+
 export default function SosModal({ open, onClose, position, onLocate, etablissementId, etablissementNom }: SosModalProps) {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -71,13 +156,16 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   const [preuveMode, setPreuveMode] = useState<'photo' | 'video'>('photo')
   const [recording, setRecording] = useState(false)
   const [recordSecs, setRecordSecs] = useState(0)
+  const [compressing, setCompressing] = useState(false)
+  const [videoMeta, setVideoMeta] = useState<{ secs: number; mo: string } | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const recordSecsRef = useRef(0)
   const discardRecordingRef = useRef(false)
   const autoVideoRef = useRef(false)
 
-  const MAX_VIDEO_SECS = 8
+  const MAX_VIDEO_SECS = 20
+  const MAX_VIDEO_BLOB_OCTETS = 7_000_000
   const mediaRecorderSupported = typeof MediaRecorder !== 'undefined'
   const preuveIsVideo = preuve?.startsWith('data:video/') ?? false
 
@@ -175,22 +263,42 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
       }
       const type = recorder.mimeType || 'video/webm'
       const blob = new Blob(morceaux, { type })
-      // Garde-fou : rester sous le plafond backend (4 Mo en base64).
-      if (blob.size === 0 || blob.size > 2_800_000) {
+      if (blob.size === 0) {
         recordSecsRef.current = 0
         setRecordSecs(0)
-        toast.error(t('visitor.carte.sos.cameraVideoTooLarge'))
         return
       }
-      const lecteur = new FileReader()
-      lecteur.onload = () => {
-        if (typeof lecteur.result === 'string') {
-          setPreuve(lecteur.result)
+      const duree = recordSecsRef.current
+      const finaliser = (final: Blob) => {
+        const lecteur = new FileReader()
+        lecteur.onload = () => {
+          if (typeof lecteur.result === 'string') {
+            setPreuve(lecteur.result)
+            setVideoMeta({ secs: duree, mo: (final.size / 1048576).toFixed(1) })
+          }
           recordSecsRef.current = 0
           setRecordSecs(0)
+          setCompressing(false)
         }
+        lecteur.readAsDataURL(final)
       }
-      lecteur.readAsDataURL(blob)
+      // Sous le plafond : envoi direct. Au-delà : compression automatique
+      // au lieu d'un rejet frustrant (base64 ≈ taille × 4/3, plafond 10 Mo).
+      if (Math.ceil((blob.size * 4) / 3) <= 9_000_000) {
+        finaliser(blob)
+        return
+      }
+      setCompressing(true)
+      void compressVideoBlob(blob).then((compresse) => {
+        if (Math.ceil((compresse.size * 4) / 3) > 9_600_000) {
+          setCompressing(false)
+          recordSecsRef.current = 0
+          setRecordSecs(0)
+          toast.error(t('visitor.carte.sos.cameraVideoTooLarge'))
+          return
+        }
+        finaliser(compresse)
+      })
     }
     try {
       recorderRef.current = recorder
@@ -225,6 +333,8 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
     stopRecording(true)
     stopStream()
     setPreuve(null)
+    setVideoMeta(null)
+    setCompressing(false)
     setSansCamera(false)
     setCameraState('idle')
     setPreuveMode('photo')
@@ -315,6 +425,8 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   const retakePhoto = () => {
     stopRecording(true)
     setPreuve(null)
+    setVideoMeta(null)
+    setCompressing(false)
     recordSecsRef.current = 0
     setRecordSecs(0)
     setCameraState('idle')
@@ -689,13 +801,20 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
 
                 {preuve ? (
                   preuveIsVideo ? (
-                    <div className="relative overflow-hidden rounded-xl border border-emerald-300 dark:border-emerald-500/40">
-                      <video src={preuve} controls playsInline preload="metadata" className="max-h-48 w-full bg-black object-contain" />
-                      <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold uppercase text-white">
-                        <CheckCircle2 className="h-3 w-3" />
-                        {t('visitor.carte.sos.cameraVideoReady')}
-                      </span>
-                    </div>
+                    <>
+                      <div className="relative overflow-hidden rounded-xl border border-emerald-300 dark:border-emerald-500/40">
+                        <video src={preuve} controls playsInline preload="metadata" className="max-h-48 w-full bg-black object-contain" />
+                        <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold uppercase text-white">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {t('visitor.carte.sos.cameraVideoReady')}
+                        </span>
+                      </div>
+                      {videoMeta && (
+                        <p className="mt-1 text-center text-[11px] text-slate-500 dark:text-slate-400">
+                          {t('visitor.carte.sos.cameraVideoInfo', { secs: videoMeta.secs, mo: videoMeta.mo })}
+                        </p>
+                      )}
+                    </>
                   ) : (
                   <div className="relative overflow-hidden rounded-xl border border-emerald-300 dark:border-emerald-500/40">
                     {/* eslint-disable-next-line @next/next/no-img-element -- aperçu base64 de la capture caméra */}
@@ -737,7 +856,12 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
                           <span className={`h-2 w-2 rounded-full bg-white ${recording ? 'animate-pulse' : ''}`} aria-hidden />
                           {t('visitor.carte.sos.cameraRecording')} 0:{String(Math.min(recordSecs, 99)).padStart(2, '0')} / 0:{String(MAX_VIDEO_SECS).padStart(2, '0')}
                         </span>
-                        {recording ? (
+                        {compressing ? (
+                          <p className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-lg">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {t('visitor.carte.sos.cameraCompressing')}
+                          </p>
+                        ) : recording ? (
                           <button
                             type="button"
                             onClick={() => stopRecording()}

@@ -3,6 +3,9 @@
   color: #202124;
   --maps-blue: #1e3a5f;
   --maps-line: #e5e7eb;
+  /* Verrou anti-scroll : la page derrière ne défile jamais (rebond iOS,
+     molette sur les fiches) ; seul le panneau défile en interne. */
+  overscroll-behavior: none;
 }
 .medisecours-map *, .medisecours-map *::before, .medisecours-map *::after {
   box-shadow: none !important;
@@ -30,7 +33,7 @@
 .maps-rail-close:hover, .maps-rail-open:hover { background: #f8f9fa; color: var(--maps-blue); }
 .maps-rail-open { left: 12px; top: 18px; }
 .maps-panel {
-  position: absolute; left: 72px; top: 76px; bottom: 0; width: 408px; max-width: calc(100vw - 84px); z-index: 850;
+  position: absolute; left: 72px; top: 76px; bottom: 0; width: 408px; max-width: calc(100% - 84px); z-index: 850;
   overflow-y: auto; overflow-x: clip; overscroll-behavior: contain;
   background: #fff; border: 1px solid var(--maps-line); border-left: 0; border-radius: 0 20px 20px 0;
   scrollbar-width: thin; scrollbar-color: #c7cdd4 transparent;
@@ -391,7 +394,7 @@
 @media (max-width: 1100px) {
   .maps-categories-wrap { left: 84px; right: 20px; top: 76px; max-width: none; justify-content: flex-start; }
   .maps-rail-close, .maps-rail-open { left: 19px; top: 76px; }
-  .maps-panel { top: 128px; width: min(408px, calc(100vw - 72px)); }
+  .maps-panel { top: 128px; width: min(408px, calc(100% - 72px)); }
   .maps-panel-detail { top: 0; bottom: 0; }
   .maps-actions { grid-template-columns: repeat(5, minmax(52px, 1fr)); overflow-x: auto; }
 }
@@ -412,7 +415,7 @@
   .maps-media-sidebar-avatar { width: 26px; height: 26px; flex-basis: 26px; font-size: 9px; }
   .maps-media-main-actions { top: 10px; right: 12px; }
   .maps-media-viewer-stage { gap: 8px; padding: 38px 8px 10px; }
-  .maps-media-canvas { width: calc(100vw - 76px); height: 52dvh; }
+  .maps-media-canvas { width: calc(100% - 76px); height: 52dvh; }
   .maps-media-main-footer { padding: 8px 12px; }
   .maps-rail { top: auto; right: 0; width: auto; height: 58px; padding: 0 64px 0 0; flex-direction: row; gap: 0; border-top: 1px solid var(--maps-line); }
   .maps-rail button { flex: 1; min-height: 56px; gap: 3px; }
@@ -433,7 +436,7 @@
   .maps-cover-gallery-trigger { right: 12px; bottom: 12px; }
   .maps-brand { font-size: 16px; bottom: 76px; }
   .maps-map-status { left: 12px; bottom: 110px; }
-  .maps-layers { bottom: 76px; left: 12px; max-width: calc(100vw - 24px); overflow-x: auto; }
+  .maps-layers { bottom: 76px; left: 12px; max-width: calc(100% - 24px); overflow-x: auto; }
   /* Fiche établissement ouverte sur mobile : plus d'overlays sur la couverture,
      seul le bouton « Voir les photos » de la fiche reste visible. */
   .medisecours-map--fiche-open .maps-search-shell,
@@ -454,7 +457,7 @@
   .maps-review-tools select { width: 100%; border: 1px solid #dadce0; padding: 8px 10px; }
   .maps-dialog footer { flex-wrap: wrap; gap: 8px; }
   .maps-dialog footer button { flex: 1 1 120px; }
-  .maps-offcanvas { width: min(320px, calc(100vw - 20px)); padding: 14px 12px; }
+  .maps-offcanvas { width: min(320px, calc(100% - 20px)); padding: 14px 12px; }
   .maps-menu-brand { padding-inline: 4px; }
   .maps-menu-top-actions { margin-top: 8px; }
 }
