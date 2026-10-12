@@ -429,7 +429,7 @@
   .maps-categories-wrap { left: 12px; right: 12px; top: 76px; }
   .maps-categories { justify-content: flex-start; }
   .maps-rail-close, .maps-rail-open { left: 12px; top: 76px; }
-  .maps-panel { left: 0; right: 0; top: 128px; bottom: 58px; width: auto; border-left: 1px solid var(--maps-line); border-radius: 4px 4px 0 0; }
+  .maps-panel { left: 0; right: 0; top: 128px; bottom: 58px; width: auto; max-width: none; border-left: 1px solid var(--maps-line); border-radius: 4px 4px 0 0; }
   .maps-panel-detail { top: 0; bottom: 58px; border-radius: 4px 4px 0 0; }
   .maps-actions { grid-template-columns: repeat(5, minmax(56px, 1fr)); padding: 14px 8px 12px; gap: 2px; }
   .maps-action { gap: 5px; font-size: 10px; }

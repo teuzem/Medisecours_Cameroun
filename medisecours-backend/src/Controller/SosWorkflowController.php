@@ -506,14 +506,15 @@ class SosWorkflowController extends AbstractController
                 ->where('d.statut = :statut')
                 ->setParameter('statut', 'VERIFIEE')
                 ->andWhere('d.prisEnChargePar IS NULL')
-            ->andWhere('d.gravite IN (:gravites)')
-            ->setParameter('gravites', [DemandeSos::GRAVITE_URGENTE, DemandeSos::GRAVITE_CRITIQUE])
-            ->orderBy('d.createdAt', 'ASC')
-            ->setMaxResults(30)
-            ->getQuery()
-            ->getResult();
+                ->andWhere('d.gravite IN (:gravites)')
+                ->setParameter('gravites', [DemandeSos::GRAVITE_URGENTE, DemandeSos::GRAVITE_CRITIQUE])
+                ->orderBy('d.createdAt', 'ASC')
+                ->setMaxResults(30)
+                ->getQuery()
+                ->getResult();
 
-        $ouvertes = self::trierParPriorite($ouvertes);
+            $ouvertes = self::trierParPriorite($ouvertes);
+        }
 
         $mesPrises = $this->em->createQueryBuilder()
             ->select('d')
