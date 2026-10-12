@@ -278,7 +278,7 @@
 .maps-search-shell button { border: 0; background: transparent; }
 .maps-search-shell button:focus { outline: none; box-shadow: none; }
 .maps-search-shell button:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
-.maps-search-dropdown { margin-top: 6px; max-height: min(60vh, 460px); overflow-y: auto; overflow-x: clip; background: #fff; border: 0; border-radius: 8px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px 0; color: #202124; }
+.maps-search-dropdown { margin-top: 6px; max-height: min(60vh, 460px); overflow-y: auto; overflow-x: clip; background: #fff; border: 0; border-radius: 0; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px 0; color: #202124; }
 .maps-search-dropdown > * { min-width: 0; }
 .maps-search-section { padding: 4px 0; }
 .maps-search-section-title { padding: 6px 16px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: #5f6368; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -330,6 +330,8 @@
 .maps-layers-current > .maps-layers-thumb img, .maps-layers-current > .maps-layers-thumb svg { display: block; width: 100%; height: 100%; object-fit: cover; }
 .maps-layers-cover-label { position: absolute; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 5px 4px 4px; background: linear-gradient(180deg, rgba(32,33,36,0) 0%, rgba(32,33,36,0.55) 100%); color: #fff; font-size: 11px; font-weight: 700; line-height: 1.2; text-shadow: 0 1px 3px rgba(0,0,0,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .medisecours-map--route-active .maps-layers { display: none; }
+.medisecours-map--route-active .maps-rail { display: none; }
+.medisecours-map--route-active .maps-panel-list { display: none; }
 .maps-layers-thumb { display: block; width: 64px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; flex-shrink: 0; line-height: 0; }
 .maps-layers-thumb svg { display: block; width: 100%; height: 100%; }
 .maps-layers-strip { display: flex; flex-direction: row; align-items: stretch; gap: 8px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 16px rgba(32,33,36,0.28); padding: 8px; }
@@ -442,6 +444,12 @@
   .maps-brand { font-size: 16px; bottom: 76px; }
   .maps-map-status { left: 12px; bottom: 110px; }
   .maps-layers { bottom: 76px; left: 12px; max-width: calc(100% - 24px); overflow-x: auto; }
+  /* Établissements facilement identifiables sur mobile : épingles et
+     libellés agrandis (forte audience tactile). */
+  .maps-marker-pin { width: 36px; height: 36px; border-width: 3px; }
+  .maps-marker-icon { width: 20px; height: 20px; }
+  .maps-marker-name { font-size: 14px; max-width: 200px; }
+  .maps-cluster-bubble { width: 48px; height: 48px; font-size: 16px; }
   /* Fiche établissement ouverte sur mobile : plus d'overlays sur la couverture,
      seul le bouton « Voir les photos » de la fiche reste visible. */
   .medisecours-map--fiche-open .maps-search-shell,

@@ -32,7 +32,6 @@ interface GoogleCarteMapProps {
   centres: CarteCentre[]
   selectedId?: number | null
   position?: Position | null
-  accuracy?: number | null
   picking?: boolean
   onPickPosition?: (pos: { lat: number; lng: number }) => void
   onSelect?: (id: number) => void
@@ -97,7 +96,6 @@ export default function GoogleCarteMap({
   centres,
   selectedId,
   position,
-  accuracy = null,
   picking = false,
   onPickPosition,
   onSelect,
@@ -119,7 +117,6 @@ export default function GoogleCarteMap({
   const clustererRef = useRef<MarkerClusterer | null>(null)
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([])
   const patientRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
-  const accuracyCircleRef = useRef<google.maps.Circle | null>(null)
   const destinationRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
   const polylineRef = useRef<google.maps.Polyline | null>(null)
   const recenteredRef = useRef(false)
@@ -152,7 +149,6 @@ export default function GoogleCarteMap({
       markersRef.current.forEach((marker) => (marker.map = null))
       markersRef.current = []
       if (patientRef.current) patientRef.current.map = null
-      if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null)
       if (destinationRef.current) destinationRef.current.map = null
       polylineRef.current?.setMap(null)
       trafficLayerRef.current?.setMap(null)
@@ -348,8 +344,6 @@ export default function GoogleCarteMap({
     if (!position) {
       if (patientRef.current) patientRef.current.map = null
       patientRef.current = null
-      if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null)
-      accuracyCircleRef.current = null
       return
     }
     if (!patientRef.current) {
@@ -365,29 +359,7 @@ export default function GoogleCarteMap({
       patientRef.current.title = t('common.map.youAreHere')
       patientRef.current.zIndex = 9999
     }
-    if (accuracy != null && accuracy > 0) {
-      if (!accuracyCircleRef.current) {
-        accuracyCircleRef.current = new window.google.maps.Circle({
-          map,
-          center: position,
-          radius: accuracy,
-          clickable: false,
-          strokeColor: '#1a73e8',
-          strokeOpacity: 0.3,
-          strokeWeight: 1,
-          fillColor: '#1a73e8',
-          fillOpacity: 0.1,
-        })
-      } else {
-        accuracyCircleRef.current.setCenter(position)
-        accuracyCircleRef.current.setRadius(accuracy)
-        accuracyCircleRef.current.setMap(map)
-      }
-    } else if (accuracyCircleRef.current) {
-      accuracyCircleRef.current.setMap(null)
-      accuracyCircleRef.current = null
-    }
-  }, [position, accuracy, t])
+  }, [position, t])
 
   // ── Épingle destination (hors-establishment) ─────────────────────────────
   useEffect(() => {

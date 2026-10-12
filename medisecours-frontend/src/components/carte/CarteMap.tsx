@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { MapContainer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
 import { type CarteCentre } from '../../lib/carte'
@@ -430,21 +430,6 @@ export default function CarteMap({
             </div>
           </Popup>
         </Marker>
-      )}
-
-      {position && accuracy != null && accuracy > 0 && (
-        <Circle
-          center={[position.lat, position.lng]}
-          radius={accuracy}
-          pathOptions={{
-            color: '#1a73e8',
-            weight: 1,
-            opacity: 0.35,
-            fillColor: '#1a73e8',
-            fillOpacity: 0.1,
-            interactive: false,
-          }}
-        />
       )}
 
       {groupes.map((groupe) => {

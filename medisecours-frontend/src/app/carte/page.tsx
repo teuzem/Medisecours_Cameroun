@@ -757,7 +757,6 @@ export default function CartePage() {
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
-            accuracy={accuracy}
             picking={pickingPosition}
             onPickPosition={handlePickPosition}
             flyTo={flyTarget}
@@ -775,7 +774,6 @@ export default function CartePage() {
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
-            accuracy={accuracy}
             picking={pickingPosition}
             onPickPosition={handlePickPosition}
             flyTo={flyTarget}
@@ -815,7 +813,7 @@ export default function CartePage() {
           <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label={t('visitor.carte.menuOpen')} className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
           <input
             value={searchQuery}
-            onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setDrawerOpen(true); setSearchOpen(true) }}
+            onChange={(event) => { setSearchQuery(event.target.value); setSelectedId(null); setSearchOpen(true) }}
             onFocus={() => setSearchOpen(true)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' && suggestions[0]) {

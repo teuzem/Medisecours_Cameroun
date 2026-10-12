@@ -17,7 +17,6 @@ interface Props {
   centres: CarteCentre[]
   selectedId?: number | null
   position?: Position | null
-  accuracy?: number | null
   picking?: boolean
   onPickPosition?: (pos: { lat: number; lng: number }) => void
   onSelect?: (id: number) => void
@@ -61,7 +60,7 @@ function userMarkerElement(label: string) {
   return el
 }
 
-export default function MapboxCarteMap({ centres, selectedId, position, accuracy = null, picking = false, onPickPosition, onSelect, route, isFallback = false, destination, basemap = 'satellite', flyTo = null, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
+export default function MapboxCarteMap({ centres, selectedId, position, picking = false, onPickPosition, onSelect, route, isFallback = false, destination, basemap = 'satellite', flyTo = null, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
@@ -253,24 +252,14 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
     markersRef.current = [...marqueursEtablissements, ...marqueursGroupes]
   }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t, mapZoom])
 
-  // Position GPS de l'utilisateur (dot bleu + cercle de précision) — créée
-  // une fois, déplacée à chaque changement de position GPS.
+  // Position GPS de l'utilisateur (dot bleu) — créée une fois,
+  // déplacée à chaque changement de position GPS.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    const sourceId = 'medisecours-user-accuracy'
-    const removeAccuracy = () => {
-      try {
-        if (map.getLayer(sourceId)) map.removeLayer(sourceId)
-        if (map.getSource(sourceId)) map.removeSource(sourceId)
-      } catch {
-        // style pas encore prêt : rien à retirer
-      }
-    }
     if (!position) {
       patientMarkerRef.current?.remove()
       patientMarkerRef.current = null
-      removeAccuracy()
       return
     }
     if (!patientMarkerRef.current) {
@@ -282,42 +271,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
     } else {
       patientMarkerRef.current.setLngLat([position.lng, position.lat])
     }
-    const applyAccuracy = () => {
-      removeAccuracy()
-      if (accuracy == null || accuracy <= 0) return
-      map.addSource(sourceId, {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [position.lng, position.lat] },
-          properties: { radius: accuracy },
-        },
-      })
-      map.addLayer({
-        id: sourceId,
-        type: 'circle',
-        source: sourceId,
-        paint: {
-          'circle-color': '#1a73e8',
-          'circle-opacity': 0.12,
-          'circle-stroke-color': '#1a73e8',
-          'circle-stroke-opacity': 0.3,
-          'circle-stroke-width': 1,
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            4, ['*', ['get', 'radius'], 0.02],
-            10, ['*', ['get', 'radius'], 0.35],
-            15, ['*', ['get', 'radius'], 2.4],
-          ],
-        },
-      })
-    }
-    if (map.isStyleLoaded()) {
-      applyAccuracy()
-    } else {
-      map.once('styledata', applyAccuracy)
-    }
-  }, [position, accuracy, t])
+  }, [position, t])
 
   // ── Mode « préciser ma position » : un toucher place le point exact ───
   useEffect(() => {

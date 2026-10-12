@@ -26,6 +26,7 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
             <Link href="/centres" className="hover:text-mint-600 dark:hover:text-mint-400">{t('visitor.nav.centres')}</Link>
             <Link href="/medecins" className="hover:text-mint-600 dark:hover:text-mint-400">{t('visitor.nav.doctors')}</Link>
             <Link href="/guide-utilisation" className="hover:text-mint-600 dark:hover:text-mint-400">{t('visitor.footer.guide')}</Link>
+            <Link href="/sos" className="hover:text-mint-600 dark:hover:text-mint-400">{t('visitor.footer.sosItem')}</Link>
             <Link href="/login" className="hover:text-mint-600 dark:hover:text-mint-400">{t('visitor.nav.login')}</Link>
           </nav>
         </div>
@@ -119,7 +120,8 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
                <div>
                  <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.servicesTitle')}</h4>
                  <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
-                   <li><Link href="/carte" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.carteItem')}</Link></li>
+                    <li><Link href="/carte" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.carteItem')}</Link></li>
+                    <li><Link href="/sos" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.sosItem')}</Link></li>
                    <li><Link href="/premiers-soins" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.firstAidActs')}</Link></li>
                    <li><Link href="/maladies" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.maladiesItem')}</Link></li>
                    <li><Link href="/centres" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.healthCentres')}</Link></li>
