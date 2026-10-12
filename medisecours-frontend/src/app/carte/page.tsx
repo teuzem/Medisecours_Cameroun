@@ -174,10 +174,11 @@ function writeJson(key: string, value: unknown) {
  * Vignettes des fonds de carte : les trois fonds (satellite/plan/relief)
  * affichent une vraie tuile centrée sur Yaoundé (niveau ville, rues
  * visibles — cohérent avec les vignettes Google Maps), servie par les mêmes
- * fournisseurs que la carte elle-même (Esri World Imagery, CARTO Voyager,
- * OpenTopoMap) — qualité professionnelle, aucun asset tierce copié. Les
- * superpositions (trafic/transports/vélo) restent des pictogrammes SVG
- * car aucun fournisseur gratuit ne sert de tuiles d'overlay.
+ * fournisseurs que la carte elle-même (Esri World Imagery, Esri World Street
+ * Map, OpenTopoMap — tous sans clé API) — qualité professionnelle, aucun
+ * asset tierce copié. Les superpositions (trafic/transports/vélo) restent
+ * des pictogrammes SVG mini-cartes car aucun fournisseur gratuit ne sert
+ * de tuiles d'overlay.
  */
 const THUMB_TILE_PARAMS = { z: 11, x: 1089, y: 1001 } as const
 
@@ -202,7 +203,7 @@ function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'c
     return (
       // eslint-disable-next-line @next/next/no-img-element -- tuile carte externe dynamique (hors remotePatterns)
       <img
-        src={`https://a.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`}
+        src={`https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`}
         alt=""
         width={64}
         height={44}
@@ -241,21 +242,24 @@ function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'c
   if (mode === 'transit') {
     return (
       <svg {...common}>
-        <rect width="64" height="44" fill="#f8f9fa" />
-        <path d="M4 36 L28 8 L60 20" stroke="#1a73e8" strokeWidth="3" fill="none" />
-        <path d="M8 8 L36 36 L60 32" stroke="#ea4335" strokeWidth="3" fill="none" />
-        <circle cx="28" cy="8" r="3" fill="#1a73e8" />
-        <circle cx="36" cy="36" r="3" fill="#ea4335" />
+        <rect width="64" height="44" fill="#e8eaed" />
+        <path d="M0 12 H64 M0 32 H64 M14 0 V44 M46 0 V44" stroke="#fff" strokeWidth="4" />
+        <path d="M4 36 L22 22 L44 26 L60 10" stroke="#1a73e8" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="22" cy="22" r="3" fill="#1a73e8" stroke="#fff" strokeWidth="1.5" />
+        <circle cx="44" cy="26" r="3" fill="#1a73e8" stroke="#fff" strokeWidth="1.5" />
+        <circle cx="60" cy="10" r="3" fill="#1a73e8" stroke="#fff" strokeWidth="1.5" />
       </svg>
     )
   }
   if (mode === 'cycling') {
     return (
       <svg {...common}>
-        <rect width="64" height="44" fill="#f8f9fa" />
-        <path d="M4 30 Q20 10 36 24 T60 14" stroke="#34a853" strokeWidth="3" strokeDasharray="6 4" fill="none" />
-        <circle cx="18" cy="20" r="4" fill="none" stroke="#34a853" strokeWidth="2" />
-        <circle cx="44" cy="20" r="4" fill="none" stroke="#34a853" strokeWidth="2" />
+        <rect width="64" height="44" fill="#e6f4ea" />
+        <path d="M0 10 H64 M0 34 H64 M20 0 V44 M48 0 V44" stroke="#fff" strokeWidth="4" />
+        <path d="M4 32 Q18 12 34 22 T60 12" stroke="#34a853" strokeWidth="3" fill="none" strokeDasharray="7 4" strokeLinecap="round" />
+        <circle cx="26" cy="32" r="4.5" fill="#fff" stroke="#34a853" strokeWidth="2" />
+        <circle cx="42" cy="32" r="4.5" fill="#fff" stroke="#34a853" strokeWidth="2" />
+        <path d="M26 32 L32 21 L42 32 M32 21 L37 21" stroke="#34a853" strokeWidth="2" fill="none" strokeLinecap="round" />
       </svg>
     )
   }
@@ -266,7 +270,7 @@ export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
   const { user, isAuthenticated, isMedecin, isEtablissement } = useAuth()
-  const { position, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
+  const { position, accuracy, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
   const { provider, state: providerState } = useMapProvider()
 
   const [centres, setCentres] = useState<CarteCentre[]>([])
@@ -713,6 +717,7 @@ export default function CartePage() {
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
+            accuracy={accuracy}
             flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
@@ -728,6 +733,7 @@ export default function CartePage() {
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
+            accuracy={accuracy}
             flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
@@ -745,6 +751,7 @@ export default function CartePage() {
             centres={visibleCentres}
             selectedId={selectedId}
             position={position}
+            accuracy={accuracy}
             flyTo={flyTarget}
             onSelect={handleSelect}
             onRequestDirections={handleMarkerDirections}
@@ -1134,34 +1141,34 @@ export default function CartePage() {
         )}
       </AnimatePresence>
 
-      {/* ═══ FAB SOS (alerte globale) ═══ */}
-      <button
-        type="button"
-        onClick={() => {
-          const cible = selectedId != null ? centres.find((c) => c.id === selectedId) : null
-          setSosEtablissement(cible && drawerOpen ? { id: cible.id, nom: cible.nom } : null)
-          setSosOpen(true)
-        }}
-        aria-label={t('visitor.carte.sosFabAria')}
-        title={t('visitor.carte.sosFabAria')}
-        className="absolute bottom-52 right-3 z-[600] flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-red-600 text-white shadow-lg shadow-red-600/40 transition hover:scale-105 hover:bg-red-700 active:scale-95 xl:bottom-44 xl:right-3"
-      >
-        <Siren className="h-6 w-6" />
-      </button>
-
-      {/* ═══ FAB localisation ═══ */}
-      <button
-        type="button"
-        onClick={handleLocate}
-        disabled={locating && !position}
-        aria-busy={locating}
-        aria-label={isTracking ? t('visitor.carte.stopTracking') : t('visitor.carte.locateMe')}
-        className={`absolute bottom-40 right-3 z-[600] flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 transition xl:bottom-36 xl:right-3 ${
-          isTracking ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-primary-700 hover:bg-slate-100 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800'
-        }`}
-      >
-        {locating ? <Loader2 className="h-5 w-5 animate-spin" /> : <LocateFixed className={`h-5 w-5 ${isTracking ? 'animate-pulse' : ''}`} />}
-      </button>
+      {/* ═══ FAB SOS + localisation (colonne unique : superposition impossible) ═══ */}
+      <div className="absolute bottom-[13.5rem] right-3 z-[600] flex flex-col items-center gap-3 xl:bottom-[11.5rem]">
+        <button
+          type="button"
+          onClick={() => {
+            const cible = selectedId != null ? centres.find((c) => c.id === selectedId) : null
+            setSosEtablissement(cible && drawerOpen ? { id: cible.id, nom: cible.nom } : null)
+            setSosOpen(true)
+          }}
+          aria-label={t('visitor.carte.sosFabAria')}
+          title={t('visitor.carte.sosFabAria')}
+          className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-red-600 text-white shadow-lg shadow-red-600/40 transition hover:scale-105 hover:bg-red-700 active:scale-95"
+        >
+          <Siren className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleLocate}
+          disabled={locating && !position}
+          aria-busy={locating}
+          aria-label={isTracking ? t('visitor.carte.stopTracking') : t('visitor.carte.locateMe')}
+          className={`flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 shadow-lg transition ${
+            isTracking ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-primary-700 hover:bg-slate-100 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800'
+          }`}
+        >
+          {locating ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <LocateFixed className={`h-4.5 w-4.5 ${isTracking ? 'animate-pulse' : ''}`} />}
+        </button>
+      </div>
 
       {/* ═══ Panneau (liste / fiche) ═══ */}
       <MapsPanel

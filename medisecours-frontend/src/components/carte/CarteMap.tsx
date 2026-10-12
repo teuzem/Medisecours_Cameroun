@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef } from 'react'
-import { MapContainer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Popup, Polyline, Circle, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useTranslation } from 'react-i18next'
 import { FACILITY_COLORS, type CarteCentre } from '../../lib/carte'
@@ -27,14 +27,14 @@ const PULSE_STYLE = `
 }
 `
 
-/** Dot rouge « Vous êtes ici » avec double halo pulsant — repère temps réel du patient. */
-function makePatientIcon() {
+/** Dot bleu « Vous êtes ici » avec double halo pulsant — position GPS de l'utilisateur. */
+function makeUserIcon() {
   return L.divIcon({
     html: `
       <div style="position:relative;width:24px;height:24px;">
-        <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.55);animation:cartePatientPulse 1.6s ease-out infinite;"></div>
-        <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.4);animation:cartePatientPulse 1.6s ease-out 0.8s infinite;"></div>
-        <div style="position:absolute;inset:0;border-radius:50%;background:#D32F2F;border:3px solid #fff;box-shadow:0 1px 8px rgba(211,47,47,0.65);"></div>
+        <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(26,115,232,0.55);animation:cartePatientPulse 1.6s ease-out infinite;"></div>
+        <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(26,115,232,0.4);animation:cartePatientPulse 1.6s ease-out 0.8s infinite;"></div>
+        <div style="position:absolute;inset:0;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 1px 8px rgba(26,115,232,0.65);"></div>
       </div>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
@@ -42,7 +42,7 @@ function makePatientIcon() {
   })
 }
 
-const patientIcon = makePatientIcon()
+const userIcon = makeUserIcon()
 
 /** Épingle ronde colorée par type d'établissement */
 function makeFacilityIcon(color: string, selected: boolean) {
@@ -180,6 +180,7 @@ interface CarteMapProps {
   centres: CarteCentre[]
   selectedId?: number | null
   position?: Position | null
+  accuracy?: number | null
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
   isFallback?: boolean
@@ -193,8 +194,8 @@ interface CarteMapProps {
 
 const BASEMAP_TILES: Record<'plan' | 'satellite' | 'relief', { url: string; attribution: string; maxZoom: number }> = {
   plan: {
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri — Source: Esri, NAVTEQ, DeLorme',
     maxZoom: 19,
   },
   satellite: {
@@ -349,6 +350,7 @@ export default function CarteMap({
   centres,
   selectedId,
   position,
+  accuracy = null,
   onSelect,
   route,
   isFallback = false,
@@ -385,7 +387,7 @@ export default function CarteMap({
       {position && (
         <Marker
           position={[position.lat, position.lng]}
-          icon={patientIcon}
+          icon={userIcon}
           zIndexOffset={3000}
           title={t('visitor.components.centresMap.yourPosition')}
         >
@@ -395,6 +397,21 @@ export default function CarteMap({
             </div>
           </Popup>
         </Marker>
+      )}
+
+      {position && accuracy != null && accuracy > 0 && (
+        <Circle
+          center={[position.lat, position.lng]}
+          radius={accuracy}
+          pathOptions={{
+            color: '#1a73e8',
+            weight: 1,
+            opacity: 0.35,
+            fillColor: '#1a73e8',
+            fillOpacity: 0.1,
+            interactive: false,
+          }}
+        />
       )}
 
       {centres.map((c) => (

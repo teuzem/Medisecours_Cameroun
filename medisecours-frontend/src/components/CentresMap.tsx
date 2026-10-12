@@ -256,12 +256,12 @@ export default function CentresMap({
       keyboard={true}
     >
       {/* 
-        Fallback TileLayer strategy: Positron on bottom, OSM on top. 
-        If OSM fails to load (offline or slow), Positron shows through.
+        Fallback TileLayer strategy: Esri Street Map on bottom, OSM on top. 
+        If OSM fails to load (offline or slow), Esri shows through.
       */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+        attribution="Tiles &copy; Esri — Source: Esri, NAVTEQ, DeLorme"
       />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

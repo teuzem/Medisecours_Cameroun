@@ -2203,8 +2203,10 @@
       "directorSignedLabel": "Director’s signature registered",
       "directorSign": "Sign with my signature",
       "directorSignAgain": "Renew signature",
-      "directorSignHint": "Uses your registered digital signature (doctor settings)",
-      "directorSignNeedSignature": "Register your signature in your doctor settings first to certify documents.",
+      "directorSignHint": "Uses your registered digital signature (create it below if needed)",
+      "directorSignNeedSignature": "Create your signature below to certify documents.",
+      "directorPadTitle": "Create your director signature",
+      "directorPadDescription": "Draw your signature (or import an image) then save it. It will certify the establishment’s documents.",
       "directorSignatureConfirmed": "Director’s signature certified",
       "personnelValidation": {
         "titre": "Staff validation",

@@ -278,7 +278,7 @@
 .maps-search-menu-button:focus-visible { outline: 2px solid var(--maps-blue); outline-offset: -2px; }
 .maps-categories-wrap { position: absolute; top: 18px; left: 496px; right: 84px; z-index: 1100; isolation: isolate; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; max-width: calc(100% - 580px); overflow: visible; pointer-events: none; }
 .maps-categories-wrap > * { pointer-events: auto; }
-.maps-categories { display: flex; flex: 1 1 auto; min-width: 0; justify-content: center; gap: 8px; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: none; -ms-overflow-style: none; }
+.maps-categories { display: flex; flex: 1 1 auto; min-width: 0; justify-content: flex-start; gap: 8px; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: none; -ms-overflow-style: none; }
 .maps-categories::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .maps-categories button { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; border: 1px solid #dadce0; border-radius: 999px; padding: 8px 15px; background: #fff; font-size: 13px; font-weight: 700; color: #202124; box-shadow: 0 1px 4px rgba(32,33,36,0.28); transition: background 0.12s ease, box-shadow 0.12s ease; }
 .maps-categories button:hover { background: #f8f9fa; box-shadow: 0 2px 6px rgba(32,33,36,0.28); }
@@ -302,7 +302,7 @@
 .maps-menu-link:focus-visible { outline: 2px solid #6f94b8; outline-offset: -2px; }
 .maps-map-status { position: absolute; bottom: 64px; left: 84px; z-index: 650; background: #fff; border: 1px solid #dadce0; padding: 12px; max-width: 300px; font-size: 13px; }
 .maps-map-status button { display: inline-flex; align-items: center; gap: 8px; color: var(--maps-blue); margin-left: 10px; }
-.medisecours-map .leaflet-control-zoom { margin-bottom: 80px !important; }
+.medisecours-map .leaflet-control-zoom { margin-bottom: 116px !important; }
 .maps-layers { position: absolute; bottom: 28px; left: 84px; z-index: 750; display: flex; flex-direction: row; align-items: flex-end; gap: 8px; }
 .maps-layers-current { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px; background: #fff; border: 1px solid #dadce0; border-radius: 10px; font-size: 12px; font-weight: 600; color: #3c4043; box-shadow: 0 2px 8px rgba(32,33,36,0.28); cursor: pointer; }
 .maps-layers-current:hover { background: #f8f9fa; }

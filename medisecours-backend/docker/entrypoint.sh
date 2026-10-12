@@ -77,6 +77,18 @@ chmod -R 775 var/cache var/log var/uploads
 #      try to re-create tables that already exist.
 echo "==> Checking database provisioning..."
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
+    # Pre-migration repair (idempotent DDL replay, app:repair-schema) :
+    # rebuilds every object this release requires whatever state
+    # migration_versions is in (marked « migrated » without objects,
+    # partial restore, interrupted deploy — Oct 12 spiral). Runs BEFORE
+    # doctrine:migrations:migrate so a stuck migration chain can never
+    # leave the schema hollow again. A non-zero exit is only a WARNING:
+    # booting must never be blocked (the tolerant health check keeps
+    # instances routable while the database itself is reachable).
+    echo "==> Repairing schema (idempotent replay, never blocks boot)..."
+    if ! php bin/console app:repair-schema --no-interaction --env=prod; then
+        echo "WARNING: app:repair-schema reported errors; continuing with migrations."
+    fi
     echo "==> Running database migrations..."
     migration_attempt=1
     until php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod; do

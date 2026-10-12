@@ -52,6 +52,7 @@ import { imgUrl } from '../../lib/config'
 import { removeImageBackground } from '../../lib/imageBackground'
 import { useMySignature } from '../../lib/documentSeals'
 import GlassCard from '../../components/ui/GlassCard'
+import SignaturePad from '../../components/ui/SignaturePad'
 import StatCard from '../../components/ui/StatCard'
 import Toggle from '../../components/ui/Toggle'
 import SectionHeader from '../../components/ui/SectionHeader'
@@ -2569,6 +2570,8 @@ function PersonalizationPanel({
   const [dirigeantNomDraft, setDirigeantNomDraft] = useState(centre.dirigeantNom ?? '')
   const [dirigeantGradeDraft, setDirigeantGradeDraft] = useState(centre.dirigeantGrade ?? '')
   const [savingCachet, setSavingCachet] = useState(false)
+  const [dirSignatureDraft, setDirSignatureDraft] = useState<string | null>(null)
+  const [savingMySignature, setSavingMySignature] = useState(false)
   const [processingCachet, setProcessingCachet] = useState(false)
 
   const persistLogo = async (url: string | null) => {
@@ -2647,6 +2650,26 @@ function PersonalizationPanel({
       }
     } finally {
       setSavingCachet(false)
+    }
+  }
+
+  // Enregistrement de la signature personnelle du manager (dirigeant) :
+  // sans elle, le bouton « Signer avec ma signature » reste désactivé.
+  const saveMySignature = async () => {
+    if (!dirSignatureDraft || savingMySignature) return
+    setSavingMySignature(true)
+    try {
+      await api.post('/api/me/signature', {
+        imageData: dirSignatureDraft,
+        grade: dirigeantGradeDraft.trim() || null,
+      })
+      await mutateSignature()
+      setDirSignatureDraft(null)
+      toast.success(t('signature.saved'))
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('signature.saveError'))
+    } finally {
+      setSavingMySignature(false)
     }
   }
 
@@ -3138,7 +3161,23 @@ function PersonalizationPanel({
               </button>
             </div>
             {!mySignature && (
-              <p className="mt-2 text-[10px] text-slate-400">{t('etablissement.directorSignNeedSignature')}</p>
+              <div className="mt-3 rounded-lg border border-dashed border-slate-300 bg-white p-3 dark:border-slate-600 dark:bg-slate-900">
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{t('etablissement.directorPadTitle')}</p>
+                <p className="mt-1 text-[11px] leading-5 text-slate-500">{t('etablissement.directorPadDescription')}</p>
+                <div className="mt-2">
+                  <SignaturePad value={dirSignatureDraft} onChange={setDirSignatureDraft} />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void saveMySignature()}
+                  disabled={!dirSignatureDraft || savingMySignature}
+                  className="mt-2 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  style={{ backgroundColor: accent }}
+                >
+                  {savingMySignature ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  {savingMySignature ? t('signature.saving') : t('signature.save')}
+                </button>
+              </div>
             )}
           </div>
         </div>

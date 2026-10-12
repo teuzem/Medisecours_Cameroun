@@ -32,6 +32,7 @@ interface GoogleCarteMapProps {
   centres: CarteCentre[]
   selectedId?: number | null
   position?: Position | null
+  accuracy?: number | null
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
   isFallback?: boolean
@@ -90,14 +91,14 @@ function makePinContent(color: string, selected: boolean, name: string): HTMLDiv
   return element
 }
 
-/** Dot rouge « Vous êtes ici » avec double halo pulsant — repère temps réel du patient. */
-function makePatientContent(): HTMLDivElement {
+/** Dot bleu « Vous êtes ici » avec double halo pulsant — position GPS de l'utilisateur. */
+function makeUserContent(): HTMLDivElement {
   const element = document.createElement('div')
   element.style.cssText = 'position:relative;width:24px;height:24px;'
   element.innerHTML = `
-    <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.55);animation:cartePatientPulse 1.6s ease-out infinite;"></div>
-    <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(211,47,47,0.4);animation:cartePatientPulse 1.6s ease-out 0.8s infinite;"></div>
-    <div style="position:absolute;inset:0;border-radius:50%;background:#D32F2F;border:3px solid #fff;box-shadow:0 1px 8px rgba(211,47,47,0.65);"></div>`
+    <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(26,115,232,0.55);animation:cartePatientPulse 1.6s ease-out infinite;"></div>
+    <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(26,115,232,0.4);animation:cartePatientPulse 1.6s ease-out 0.8s infinite;"></div>
+    <div style="position:absolute;inset:0;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 1px 8px rgba(26,115,232,0.65);"></div>`
   const style = document.createElement('style')
   style.textContent = `
     @keyframes cartePatientPulse {
@@ -127,6 +128,7 @@ export default function GoogleCarteMap({
   centres,
   selectedId,
   position,
+  accuracy = null,
   onSelect,
   route,
   isFallback = false,
@@ -146,6 +148,7 @@ export default function GoogleCarteMap({
   const clustererRef = useRef<MarkerClusterer | null>(null)
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([])
   const patientRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
+  const accuracyCircleRef = useRef<google.maps.Circle | null>(null)
   const destinationRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
   const polylineRef = useRef<google.maps.Polyline | null>(null)
   const recenteredRef = useRef(false)
@@ -178,6 +181,7 @@ export default function GoogleCarteMap({
       markersRef.current.forEach((marker) => (marker.map = null))
       markersRef.current = []
       if (patientRef.current) patientRef.current.map = null
+      if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null)
       if (destinationRef.current) destinationRef.current.map = null
       polylineRef.current?.setMap(null)
       trafficLayerRef.current?.setMap(null)
@@ -366,13 +370,15 @@ export default function GoogleCarteMap({
     }
   }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t])
 
-  // ── Dot patient "Vous êtes ici" ─────────────────────────────────────────
+  // ── Dot bleu "Vous êtes ici" + cercle de précision GPS ────────────────────
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
     if (!position) {
       if (patientRef.current) patientRef.current.map = null
       patientRef.current = null
+      if (accuracyCircleRef.current) accuracyCircleRef.current.setMap(null)
+      accuracyCircleRef.current = null
       return
     }
     if (!patientRef.current) {
@@ -380,7 +386,7 @@ export default function GoogleCarteMap({
         map,
         position,
         title: t('common.map.youAreHere'),
-        content: makePatientContent(),
+        content: makeUserContent(),
         zIndex: 9999,
       })
     } else {
@@ -388,7 +394,29 @@ export default function GoogleCarteMap({
       patientRef.current.title = t('common.map.youAreHere')
       patientRef.current.zIndex = 9999
     }
-  }, [position, t])
+    if (accuracy != null && accuracy > 0) {
+      if (!accuracyCircleRef.current) {
+        accuracyCircleRef.current = new window.google.maps.Circle({
+          map,
+          center: position,
+          radius: accuracy,
+          clickable: false,
+          strokeColor: '#1a73e8',
+          strokeOpacity: 0.3,
+          strokeWeight: 1,
+          fillColor: '#1a73e8',
+          fillOpacity: 0.1,
+        })
+      } else {
+        accuracyCircleRef.current.setCenter(position)
+        accuracyCircleRef.current.setRadius(accuracy)
+        accuracyCircleRef.current.setMap(map)
+      }
+    } else if (accuracyCircleRef.current) {
+      accuracyCircleRef.current.setMap(null)
+      accuracyCircleRef.current = null
+    }
+  }, [position, accuracy, t])
 
   // ── Épingle destination (hors-establishment) ─────────────────────────────
   useEffect(() => {

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Activity, ClipboardList, LayoutDashboard, LogOut, Menu, Package, Users,
+  Activity, ClipboardList, LayoutDashboard, LogOut, Menu, Package, Settings, Users,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
@@ -20,6 +20,7 @@ const NAV = [
   { href: '/personnel/dossiers', key: 'dossiers', icon: ClipboardList, types: ['RECEPTIONNISTE', 'INFIRMIER', 'AIDE_SOIGNANT'] },
   { href: '/personnel/soins', key: 'soins', icon: Activity, types: ['INFIRMIER', 'AIDE_SOIGNANT'] },
   { href: '/personnel/pharmacie', key: 'pharmacie', icon: Package, types: ['PHARMACIEN'] },
+  { href: '/personnel/parametres', key: 'parametres', icon: Settings },
 ]
 
 function PersonnelShell({ children }: { children: React.ReactNode }) {

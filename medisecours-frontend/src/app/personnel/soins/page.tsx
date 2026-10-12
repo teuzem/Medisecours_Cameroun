@@ -9,6 +9,7 @@ import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import Modal from '../../../components/ui/Modal'
 import SignaturePad from '../../../components/ui/SignaturePad'
 import { useToast } from '../../../components/ui/Toast'
+import { useMySignature } from '../../../lib/documentSeals'
 
 type Soin = {
   id: number
@@ -35,6 +36,9 @@ const STATUT_BADGE: Record<string, { bg: string; text: string }> = {
 export default function PersonnelSoinsPage() {
   const { t } = useTranslation()
   const toast = useToast()
+  // Signature enregistrée du soignant (paramètres) : pré-remplit le pad de
+  // signature de l'acte pour une non-répudiation sans ressaisie.
+  const { signature: registeredSignature } = useMySignature()
 
   const [soins, setSoins] = useState<Soin[]>([])
   const [loading, setLoading] = useState(true)
@@ -174,7 +178,7 @@ export default function PersonnelSoinsPage() {
                     {soin.statut === 'PLANIFIE' && (
                       <button
                         type="button"
-                        onClick={() => { setRealiseFor(soin); setSignature(''); setObservations('') }}
+                        onClick={() => { setRealiseFor(soin); setSignature(registeredSignature?.imageData ?? ''); setObservations('') }}
                         className="rounded-lg bg-[#0F2C52] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#16395F] dark:bg-mint-600"
                       >
                         {t('personnel.soins.realiser')}

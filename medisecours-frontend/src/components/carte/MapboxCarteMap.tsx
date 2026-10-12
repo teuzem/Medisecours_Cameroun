@@ -17,6 +17,7 @@ interface Props {
   centres: CarteCentre[]
   selectedId?: number | null
   position?: Position | null
+  accuracy?: number | null
   onSelect?: (id: number) => void
   route?: RouteGeometry | null
   isFallback?: boolean
@@ -45,20 +46,20 @@ function markerElement(color: string, selected: boolean, name: string) {
   return el
 }
 
-function patientMarkerElement(label: string) {
+function userMarkerElement(label: string) {
   const el = document.createElement('div')
   el.setAttribute('role', 'img')
   el.setAttribute('aria-label', label)
   el.title = label
   el.style.cssText = 'position:relative;width:24px;height:24px;cursor:default'
   el.innerHTML = `
-    <span style="position:absolute;inset:-10px;border-radius:9999px;border:2px solid rgba(211,47,47,0.45);animation:medisecours-patient-pulse 1.8s ease-out infinite"></span>
-    <span style="position:absolute;inset:0;border-radius:9999px;border:3px solid #fff;background:#D32F2F;box-shadow:0 1px 6px rgba(0,0,0,0.45)"></span>
+    <span style="position:absolute;inset:-10px;border-radius:9999px;border:2px solid rgba(26,115,232,0.45);animation:medisecours-patient-pulse 1.8s ease-out infinite"></span>
+    <span style="position:absolute;inset:0;border-radius:9999px;border:3px solid #fff;background:#1a73e8;box-shadow:0 1px 6px rgba(0,0,0,0.45)"></span>
   `
   return el
 }
 
-export default function MapboxCarteMap({ centres, selectedId, position, onSelect, route, isFallback = false, destination, basemap = 'satellite', flyTo = null, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
+export default function MapboxCarteMap({ centres, selectedId, position, accuracy = null, onSelect, route, isFallback = false, destination, basemap = 'satellite', flyTo = null, onRequestDirections, onToggleFavorite, favoriteIds = [] }: Props) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
@@ -213,26 +214,71 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
       })
   }, [centres, favoriteIds, onRequestDirections, onSelect, onToggleFavorite, selectedId, t])
 
-  // Marqueur temps réel du patient connecté (rouge, pulsant) — créé une fois,
-  // déplacé à chaque changement de position GPS.
+  // Position GPS de l'utilisateur (dot bleu + cercle de précision) — créée
+  // une fois, déplacée à chaque changement de position GPS.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
+    const sourceId = 'medisecours-user-accuracy'
+    const removeAccuracy = () => {
+      try {
+        if (map.getLayer(sourceId)) map.removeLayer(sourceId)
+        if (map.getSource(sourceId)) map.removeSource(sourceId)
+      } catch {
+        // style pas encore prêt : rien à retirer
+      }
+    }
     if (!position) {
       patientMarkerRef.current?.remove()
       patientMarkerRef.current = null
+      removeAccuracy()
       return
     }
     if (!patientMarkerRef.current) {
       patientMarkerRef.current = new window.mapboxgl.Marker({
-        element: patientMarkerElement(t('common.map.youAreHere')),
+        element: userMarkerElement(t('common.map.youAreHere')),
       })
         .setLngLat([position.lng, position.lat])
         .addTo(map)
     } else {
       patientMarkerRef.current.setLngLat([position.lng, position.lat])
     }
-  }, [position, t])
+    const applyAccuracy = () => {
+      removeAccuracy()
+      if (accuracy == null || accuracy <= 0) return
+      map.addSource(sourceId, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [position.lng, position.lat] },
+          properties: { radius: accuracy },
+        },
+      })
+      map.addLayer({
+        id: sourceId,
+        type: 'circle',
+        source: sourceId,
+        paint: {
+          'circle-color': '#1a73e8',
+          'circle-opacity': 0.12,
+          'circle-stroke-color': '#1a73e8',
+          'circle-stroke-opacity': 0.3,
+          'circle-stroke-width': 1,
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            4, ['*', ['get', 'radius'], 0.02],
+            10, ['*', ['get', 'radius'], 0.35],
+            15, ['*', ['get', 'radius'], 2.4],
+          ],
+        },
+      })
+    }
+    if (map.isStyleLoaded()) {
+      applyAccuracy()
+    } else {
+      map.once('styledata', applyAccuracy)
+    }
+  }, [position, accuracy, t])
 
   useEffect(() => {
     const map = mapRef.current

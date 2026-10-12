@@ -75,6 +75,7 @@
       "dossiers": "Patient files",
       "soins": "Care",
       "pharmacie": "Pharmacy",
+      "parametres": "Settings",
       "deconnexion": "Sign out",
       "espace": "Staff space",
       "chargement": "Loading workspace…",
@@ -95,6 +96,10 @@
       "enAttentePaiement": "Awaiting payment",
       "aAdministrer": "To administer",
       "aucuneStat": "No activity yet."
+    },
+    "parametres": {
+      "titre": "Settings",
+      "description": "Your digital signature pre-fills the care signing pad and accompanies your documents."
     },
     "accueil": {
       "titre": "Patient admission",

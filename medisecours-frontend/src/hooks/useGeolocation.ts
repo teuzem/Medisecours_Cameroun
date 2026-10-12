@@ -10,10 +10,17 @@ const ERROR_MESSAGE_KEYS: Record<number, string> = {
 
 export function useGeolocation() {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null)
+  const [accuracy, setAccuracy] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [isWatching, setIsWatching] = useState(false)
   const watchIdRef = useRef<number | null>(null)
+
+  const applyPosition = useCallback((pos: GeolocationPosition) => {
+    setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+    setAccuracy(Number.isFinite(pos.coords.accuracy) && pos.coords.accuracy > 0 ? pos.coords.accuracy : null)
+    setLoading(false)
+  }, [])
 
   const handleError = useCallback((err: GeolocationPositionError) => {
     const key = ERROR_MESSAGE_KEYS[err.code]
@@ -30,14 +37,11 @@ export function useGeolocation() {
     setLoading(true)
     setError(null)
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setLoading(false)
-      },
+      applyPosition,
       handleError,
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     )
-  }, [handleError])
+  }, [applyPosition, handleError])
 
   /** Start continuous GPS tracking (essential for mobile users walking to a clinic). */
   const watch = useCallback(() => {
@@ -52,16 +56,13 @@ export function useGeolocation() {
     setLoading(true)
     setError(null)
     const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setLoading(false)
-      },
+      applyPosition,
       handleError,
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000, distanceFilter: 1 } as PositionOptions & { distanceFilter?: number }
     )
     watchIdRef.current = id
     setIsWatching(true)
-  }, [handleError])
+  }, [applyPosition, handleError])
 
   /** Stop continuous GPS tracking. */
   const stopWatch = useCallback(() => {
@@ -74,6 +75,7 @@ export function useGeolocation() {
 
   return {
     position,
+    accuracy,
     error,
     loading,
     locate,

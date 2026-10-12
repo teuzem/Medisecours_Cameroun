@@ -75,6 +75,7 @@
       "dossiers": "Dossiers patients",
       "soins": "Soins",
       "pharmacie": "Pharmacie",
+      "parametres": "Paramètres",
       "deconnexion": "Se déconnecter",
       "espace": "Espace personnel",
       "chargement": "Chargement de l'espace…",
@@ -95,6 +96,10 @@
       "enAttentePaiement": "En attente de paiement",
       "aAdministrer": "À administrer",
       "aucuneStat": "Aucune activité pour le moment."
+    },
+    "parametres": {
+      "titre": "Paramètres",
+      "description": "Votre signature numérique pré-remplit le pad de signature des soins et accompagne vos documents."
     },
     "accueil": {
       "titre": "Admission patient",

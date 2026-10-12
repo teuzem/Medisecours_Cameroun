@@ -2203,8 +2203,10 @@
       "directorSignedLabel": "Signature du dirigeant enregistrée",
       "directorSign": "Signer avec ma signature",
       "directorSignAgain": "Renouveler la signature",
-      "directorSignHint": "Utilise votre signature numérique enregistrée (paramètres médecin)",
-      "directorSignNeedSignature": "Enregistrez d’abord votre signature dans vos paramètres médecin pour certifier les documents.",
+      "directorSignHint": "Utilise votre signature numérique enregistrée (créez-la ci-dessous si besoin)",
+      "directorSignNeedSignature": "Créez votre signature ci-dessous pour certifier les documents.",
+      "directorPadTitle": "Créer votre signature de dirigeant",
+      "directorPadDescription": "Dessinez votre signature (ou importez une image) puis enregistrez-la. Elle servira à certifier les documents de l’établissement.",
       "directorSignatureConfirmed": "Signature du dirigeant certifiée",
       "personnelValidation": {
         "titre": "Validation du personnel",
