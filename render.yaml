@@ -51,11 +51,6 @@ services:
         value: "0"
       - key: REFERENCE_DATA_VERSION
         value: "2026-08-07.1"
-      # Seed de carte de test : 10 établissements camerounais réels
-      # (commande app:seed-carte-test, idempotente). Le seed massif
-      # LOAD_CENTRES (232 centres de démo) reste désactivé en production.
-      - key: SEED_CARTE_TEST
-        value: "1"
       - key: JWT_SECRET_KEY
         value: /app/config/jwt/private.pem
       - key: JWT_PUBLIC_KEY

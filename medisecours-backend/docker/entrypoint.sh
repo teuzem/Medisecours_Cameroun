@@ -18,7 +18,7 @@ sed -i "s/listen 10000;/listen ${APP_PORT};/" /etc/nginx/http.d/default.conf
 # mieux qu'un conteneur qui redémarre en boucle.
 echo "==> Boot configuration (non-secret):"
 echo "    PORT=${APP_PORT} SKIP_MIGRATIONS=${SKIP_MIGRATIONS:-0} STRICT_DATABASE_BOOTSTRAP=${STRICT_DATABASE_BOOTSTRAP:-0}(advisory)"
-echo "    BOOTSTRAP_REFERENCE_DATA=${BOOTSTRAP_REFERENCE_DATA:-1} STRICT_REFERENCE_DATA_BOOTSTRAP=${STRICT_REFERENCE_DATA_BOOTSTRAP:-0}(advisory) SEED_CARTE_TEST=${SEED_CARTE_TEST:-0} LOAD_CENTRES=${LOAD_CENTRES:-0} STRICT_JWT_BOOTSTRAP=${STRICT_JWT_BOOTSTRAP:-0}(advisory)"
+echo "    BOOTSTRAP_REFERENCE_DATA=${BOOTSTRAP_REFERENCE_DATA:-1} STRICT_REFERENCE_DATA_BOOTSTRAP=${STRICT_REFERENCE_DATA_BOOTSTRAP:-0}(advisory) STRICT_JWT_BOOTSTRAP=${STRICT_JWT_BOOTSTRAP:-0}(advisory)"
 db_host=$(printf '%s' "${DATABASE_URL:-}" | sed -E 's#^[a-z+]+://([^@/?#]+@)?([^/?#:]+).*#\2#')
 echo "    DATABASE_URL host: ${db_host:-<unset>} (mot de passe jamais journalisé)"
 
@@ -163,16 +163,12 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
     echo "==> Schema probe done."
 fi
 
-# Legacy option (off by default) : seed des 232 mock data de
-# data/centres_sante.json (idempotent — rows existantes ignorées). Deprecated :
-# privilégier les données réelles Google Places via SYNC_STRUCTURES_INTERVAL_MIN
-# ou app:carte:sync-structures.
-if [ "${LOAD_CENTRES:-0}" = "1" ]; then
-    echo "==> Loading baseline health centres (data/centres_sante.json)..."
-    if ! php bin/console app:load-centres --no-interaction; then
-        echo "WARNING: app:load-centres failed; keeping the API online."
-    fi
-fi
+# (Seeds d'établissements définitivement supprimés — octobre 2026 :
+# app:seed-carte-test contenait une expression constante invalide qui
+# faisait planter tout bin/console et chaque requête ; app:load-centres
+# injectait 232 centres fictifs. La carte ne sert que des données réelles :
+# référentiels versionnés + synchronisation Google Places via
+# SYNC_STRUCTURES_INTERVAL_MIN / app:carte:sync-structures.)
 
 # One-off admin bootstrap: if CREATE_ADMIN_EMAIL / CREATE_ADMIN_PASSWORD are
 # set, create or update the admin account (idempotent, CLI-created emails are
@@ -249,30 +245,6 @@ if [ "${BOOTSTRAP_REFERENCE_DATA:-1}" = "1" ]; then
     fi
 else
     echo "==> Reference data bootstrap disabled."
-fi
-
-# Seed de carte de test : 10 établissements camerounais réels (idempotent,
-# googlePlaceId seed-carte-test-*). Phase A bloquante : centres + couvertures
-# seulement (aucun réseau). Phase B en arrière-plan : téléchargement best-effort
-# de la galerie (6s par image, échecs ignorés). Les comptes de test sont créés
-# en premier (idempotent) pour que le seed puisse affilier medecin@test.com aux
-# fiches « Médecins » du PISAM et du CHU Yaoundé.
-if [ "${SEED_CARTE_TEST:-0}" = "1" ]; then
-    echo "==> Creating test accounts (patient/medecin/admin)..."
-    if ! php bin/console app:create-test-users --no-interaction; then
-        echo "WARNING: app:create-test-users failed."
-    fi
-    echo "==> Seeding 10 test establishments for the health map..."
-    if ! php bin/console app:seed-carte-test --no-interaction; then
-        echo "WARNING: app:seed-carte-test failed (map may be empty)."
-    else
-        echo "==> Seeding gallery images in the background..."
-        (
-            if ! php bin/console app:seed-carte-test --with-media --no-interaction; then
-                echo "WARNING: background gallery seed failed." >&2
-            fi
-        ) &
-    fi
 fi
 
 echo "==> Ready. Reference data is available."
