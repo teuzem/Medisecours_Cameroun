@@ -36,6 +36,9 @@ use Symfony\Component\Routing\Annotation\Route;
  *  - GET  /api/sos/{id}/suivi?token=    : suivi anonyme (jeton) pour sans-compte.
  *  - GET  /api/sos/etablissement?centre=: fil d'alertes d'un établissement
  *                                         (managers/admins) avec preuve photo.
+ *  - GET  /api/sos/stats?centre=        : analytique SOS temps réel d'un
+ *                                         établissement (volumes par statut,
+ *                                         délais moyens, taux preuves/fraudes).
  *  - GET  /api/medecin/sos              : alertes ouvertes + mes prises (médecin).
  *
  * Chaque transition laisse une trace `sos_trace` et publie un événement
@@ -351,6 +354,77 @@ class SosWorkflowController extends AbstractController
             'centreId' => $centre->getId(),
             'ouvertes' => $ouvertes,
             'alertes' => $items,
+        ]);
+    }
+
+    // ── Analytique SOS temps réel d'un établissement (managers) ─────────────
+
+    /**
+     * GET /api/sos/stats?centre=
+     *
+     * Lecture seule : agrège les alertes de l'établissement (volumes par
+     * statut, sirènes actives, taux de preuves photo et de frauduleuses,
+     * délais moyens vérification / prise en charge / résolution en secondes).
+     * Aucune migration : ne lit que les colonnes existantes de demande_sos.
+     */
+    #[Route('/api/sos/stats', name: 'api_sos_stats', methods: ['GET'])]
+    public function stats(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $centre = $this->resolveManagedCentre($user, $request);
+        $this->assertCanManage($user, $centre);
+
+        /** @var list<DemandeSos> $rows */
+        $rows = $this->em->createQueryBuilder()
+            ->select('d')
+            ->from(DemandeSos::class, 'd')
+            ->where('d.etablissement = :centre')
+            ->setParameter('centre', $centre->getId())
+            ->orderBy('d.createdAt', 'DESC')
+            ->setMaxResults(500)
+            ->getQuery()
+            ->getResult();
+
+        $parStatut = [];
+        $avecPreuve = 0;
+        $sirenesActives = 0;
+        $delaisVerification = [];
+        $delaisPriseEnCharge = [];
+        $delaisResolution = [];
+        foreach ($rows as $sos) {
+            $statut = $sos->getStatut();
+            $parStatut[$statut] = ($parStatut[$statut] ?? 0) + 1;
+            if ($sos->getPreuvePhoto()) {
+                $avecPreuve++;
+            }
+            if ($sos->isSireneActive()) {
+                $sirenesActives++;
+            }
+            if ($sos->getVerifieAt()) {
+                $delaisVerification[] = $sos->getVerifieAt()->getTimestamp() - $sos->getCreatedAt()->getTimestamp();
+            }
+            if ($sos->getPrisEnChargeAt() && $sos->getVerifieAt()) {
+                $delaisPriseEnCharge[] = $sos->getPrisEnChargeAt()->getTimestamp() - $sos->getVerifieAt()->getTimestamp();
+            }
+            if ($sos->getResoluAt()) {
+                $delaisResolution[] = $sos->getResoluAt()->getTimestamp() - $sos->getCreatedAt()->getTimestamp();
+            }
+        }
+        $moyenne = static fn (array $valeurs): ?int => $valeurs === [] ? null : (int) round(array_sum($valeurs) / count($valeurs));
+
+        $total = count($rows);
+
+        return new JsonResponse([
+            'centreId' => $centre->getId(),
+            'total' => $total,
+            'ouvertes' => ($parStatut['EN_COURS'] ?? 0) + ($parStatut['VERIFIEE'] ?? 0) + ($parStatut['EN_PRISE_EN_CHARGE'] ?? 0),
+            'parStatut' => $parStatut,
+            'sirenesActives' => $sirenesActives,
+            'tauxPreuvePhoto' => $total > 0 ? round($avecPreuve / $total, 3) : null,
+            'tauxFrauduleuses' => $total > 0 ? round(($parStatut['FRAUDULEUSE'] ?? 0) / $total, 3) : null,
+            'delaiMoyenVerificationSec' => $moyenne($delaisVerification),
+            'delaiMoyenPriseEnChargeSec' => $moyenne($delaisPriseEnCharge),
+            'delaiMoyenResolutionSec' => $moyenne($delaisResolution),
         ]);
     }
 

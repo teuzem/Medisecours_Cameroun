@@ -82,11 +82,13 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
       setCameraState('unsupported')
       return
     }
-    // Chaîne de contraintes : caméra arrière (scène de l'incident) puis
-    // n'importe quelle caméra (desktop/laptop sans capteur arrière).
+    // Chaîne de contraintes : caméra arrière HD (scène de l'incident bien
+    // visible) puis n'importe quelle caméra (desktop/laptop sans arrière).
+    // 1280×720 : netteté suffisante sur téléphone comme sur grand écran,
+    // tout en restant sous la limite preuve du backend (1,5 Mo).
     const attempts: MediaStreamConstraints[] = [
-      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false },
-      { video: { width: { ideal: 1280 } }, audio: false },
+      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+      { video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
       { video: true, audio: false },
     ]
     for (const constraints of attempts) {
@@ -166,14 +168,16 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   const capturePhoto = () => {
     const video = videoRef.current
     if (!video || video.videoWidth === 0) return
-    const scale = Math.min(1, 960 / video.videoWidth)
+    // Preuve HD : grand côté plafonné à 1280 px (lisible sur tout écran),
+    // qualité 0.78 — reste sous la limite backend de 1,5 Mo.
+    const scale = Math.min(1, 1280 / video.videoWidth)
     const canvas = document.createElement('canvas')
     canvas.width = Math.round(video.videoWidth * scale)
     canvas.height = Math.round(video.videoHeight * scale)
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    setPreuve(canvas.toDataURL('image/jpeg', 0.72))
+    setPreuve(canvas.toDataURL('image/jpeg', 0.78))
     setCameraState('captured')
     stopStream()
   }

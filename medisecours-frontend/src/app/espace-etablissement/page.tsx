@@ -44,6 +44,7 @@ import api from '../../api/axios'
 import FichePanel, { type FicheCentre } from '../../components/espace-etablissement/FichePanel'
 import AnalyticsPanel from '../../components/espace-etablissement/AnalyticsPanel'
 import SosAlertesPanel from '../../components/espace-etablissement/SosAlertesPanel'
+import SosStatsPanel from '../../components/espace-etablissement/SosStatsPanel'
 import AffiliationsPanel from '../../components/espace-etablissement/AffiliationsPanel'
 import PersonnelValidationPanel from '../../components/espace-etablissement/PersonnelValidationPanel'
 import { useAuth } from '../../hooks/useAuth'
@@ -1132,6 +1133,9 @@ function DashboardWorkspace({
             <StatsSosWidget dashboard={dashboard} prefs={prefs} />
             <StatsAvisWidget dashboard={dashboard} reviews={reviews} />
             <StatsEquipeWidget dashboard={dashboard} equipe={equipe} />
+          </div>
+          <div className="dashboard-section">
+            <SosStatsPanel centreId={mon.centre.id} />
           </div>
           <div className="dashboard-section">
             <SosAlertesPanel centreId={mon.centre.id} />
