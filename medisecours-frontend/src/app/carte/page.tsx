@@ -20,6 +20,7 @@ import {
   Database,
   Footprints,
   Home,
+  Layers,
   Loader2,
   LocateFixed,
   FlaskConical,
@@ -284,6 +285,9 @@ export default function CartePage() {
   const [layersOpen, setLayersOpen] = useState(false)
   const [railOpen, setRailOpen] = useState(true)
   const categoryRef = useRef<HTMLDivElement | null>(null)
+  // Positionné par le bouton « me localiser » : au prochain fix GPS frais,
+  // voler vers la position exacte en vue détaillée du quartier.
+  const pendingLocateZoomRef = useRef(false)
   const [panelView, setPanelView] = useState<'explore' | 'saved' | 'recent'>('explore')
   const [mode, setMode] = useState<WayfindingMode>('driving')
   const [destination, setDestination] = useState<Destination | null>(null)
@@ -507,8 +511,17 @@ export default function CartePage() {
       return
     }
     setIsTracking(true)
+    pendingLocateZoomRef.current = true
     locate()
   }, [isTracking, locate])
+
+  // ── Après une localisation manuelle : voler vers la position GPS exacte
+  // en vue détaillée du quartier (les trois moteurs suivent flyTarget).
+  useEffect(() => {
+    if (!pendingLocateZoomRef.current || !position) return
+    pendingLocateZoomRef.current = false
+    setFlyTarget({ lat: position.lat, lng: position.lng })
+  }, [position])
 
   // ── Sélection + itinéraire ────────────────────────────────────────────────
   const centreById = useMemo(() => {
@@ -982,8 +995,8 @@ export default function CartePage() {
           aria-label={t('visitor.carte.basemap.title')}
           onClick={() => setLayersOpen((current) => !current)}
         >
-          <span className="maps-layers-thumb"><BasemapThumb mode={basemap} /></span>
-          <span className="maps-layers-box-label">{t(`visitor.carte.basemap.${basemap}`)}</span>
+          <Layers className="h-5 w-5" aria-hidden />
+          <span>{t('visitor.carte.basemap.layers')}</span>
         </button>
         {layersOpen && (
           <div className="maps-layers-strip" role="group" aria-label={t('visitor.carte.basemap.title')}>

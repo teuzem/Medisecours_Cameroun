@@ -196,7 +196,7 @@ export default function GoogleCarteMap({
     const map = mapRef.current
     if (map && flyTo) {
       map.panTo({ lat: flyTo.lat, lng: flyTo.lng })
-      if (map.getZoom() != null && map.getZoom() < 13) map.setZoom(13)
+      if (map.getZoom() != null && map.getZoom() < 16) map.setZoom(16)
     }
   }, [flyTo])
 
@@ -484,7 +484,7 @@ export default function GoogleCarteMap({
 
     if (position && !recenteredRef.current) {
       map.panTo(position)
-      map.setZoom(13)
+      map.setZoom(16)
       recenteredRef.current = true
     }
   }, [position, destination])

@@ -160,7 +160,7 @@ function FitBounds({
         { animate: true, maxZoom: 16 },
       )
     } else {
-      map.flyTo([position.lat!, position.lng!], 13, { duration: 0.8 })
+      map.flyTo([position.lat!, position.lng!], Math.max(map.getZoom(), 16), { duration: 0.8 })
     }
     return () => {
       if (map && (map as any)._mapPane) map.stop()
@@ -229,7 +229,7 @@ function FlyToTarget({ target }: { target: { lat: number; lng: number } | null }
   const map = useMap()
   useEffect(() => {
     if (!target) return
-    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 13), { duration: 0.8 })
+    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 16), { duration: 0.8 })
   }, [map, target])
   return null
 }
@@ -392,8 +392,11 @@ export default function CarteMap({
           title={t('visitor.components.centresMap.yourPosition')}
         >
           <Popup>
-            <div className="text-center text-sm font-medium" role="dialog" aria-label={t('visitor.components.centresMap.yourPosition')}>
-              {t('visitor.components.centresMap.yourPosition')}
+            <div className="text-center" role="dialog" aria-label={t('visitor.components.centresMap.yourPosition')}>
+              <p className="text-sm font-medium">{t('visitor.components.centresMap.yourPosition')}</p>
+              {accuracy != null && accuracy > 0 && (
+                <p className="mt-1 text-xs text-slate-500">{t('visitor.components.centresMap.accuracyMeters', { meters: Math.round(accuracy) })}</p>
+              )}
             </div>
           </Popup>
         </Marker>

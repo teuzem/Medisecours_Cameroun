@@ -166,6 +166,7 @@
       "layersSatelliteUnavailable": "Satellite indisponible avec le fond de carte actuel.",
       "basemap": {
         "title": "Fond de carte",
+        "layers": "Calques",
         "plan": "Plan",
         "satellite": "Satellite",
         "relief": "Relief",
@@ -1613,6 +1614,7 @@
       },
       "centresMap": {
         "yourPosition": "Votre position actuelle",
+        "accuracyMeters": "Précision GPS : ±{{meters}} m",
         "detailsFor": "Détails pour {{name}}"
       }
     },

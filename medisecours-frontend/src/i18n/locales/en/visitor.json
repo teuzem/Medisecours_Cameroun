@@ -165,6 +165,7 @@
       "layersSatelliteUnavailable": "Satellite unavailable with the current map style.",
       "basemap": {
         "title": "Map style",
+        "layers": "Layers",
         "plan": "Map",
         "satellite": "Satellite",
         "relief": "Terrain",
@@ -1613,6 +1614,7 @@
       },
       "centresMap": {
         "yourPosition": "Your current position",
+        "accuracyMeters": "GPS accuracy: ±{{meters}} m",
         "detailsFor": "Details for {{name}}"
       }
     },

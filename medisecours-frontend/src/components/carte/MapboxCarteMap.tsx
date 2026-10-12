@@ -317,13 +317,13 @@ export default function MapboxCarteMap({ centres, selectedId, position, accuracy
   useEffect(() => {
     const map = mapRef.current
     const target = destination ?? (position ? { lat: position.lat, lng: position.lng } : null)
-    if (map && target) map.flyTo({ center: [target.lng, target.lat], zoom: 13, essential: true })
+    if (map && target) map.flyTo({ center: [target.lng, target.lat], zoom: 16, essential: true })
   }, [destination, position])
 
   useEffect(() => {
     const map = mapRef.current
     if (map && flyTo) {
-      map.flyTo({ center: [flyTo.lng, flyTo.lat], zoom: Math.max(map.getZoom() ?? 0, 13), essential: true })
+      map.flyTo({ center: [flyTo.lng, flyTo.lat], zoom: Math.max(map.getZoom() ?? 0, 16), essential: true })
     }
   }, [flyTo])
 

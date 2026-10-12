@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import i18n from '../i18n'
 
 const ERROR_MESSAGE_KEYS: Record<number, string> = {
@@ -11,20 +11,40 @@ const ERROR_MESSAGE_KEYS: Record<number, string> = {
 export function useGeolocation() {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
+  const [permission, setPermission] = useState<'granted' | 'prompt' | 'denied' | 'unknown'>('unknown')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [isWatching, setIsWatching] = useState(false)
   const watchIdRef = useRef<number | null>(null)
 
+  // Demande d'autorisation explicite : suit l'état de l'autorisation
+  // « position exacte » du navigateur pour déclencher son invite.
+  useEffect(() => {
+    let cancelled = false
+    const permissions = (navigator as Navigator & { permissions?: { query: (options: { name: string }) => Promise<{ state: string; onchange: (() => void) | null }> } }).permissions
+    if (typeof navigator === 'undefined' || !permissions?.query) return
+    permissions.query({ name: 'geolocation' }).then((status) => {
+      if (!cancelled) setPermission(status.state as 'granted' | 'prompt' | 'denied')
+      status.onchange = () => {
+        if (!cancelled) setPermission(status.state as 'granted' | 'prompt' | 'denied')
+      }
+    }).catch(() => {
+      // Permissions API indisponible : le navigateur invitera à la demande
+    })
+    return () => { cancelled = true }
+  }, [])
+
   const applyPosition = useCallback((pos: GeolocationPosition) => {
     setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
     setAccuracy(Number.isFinite(pos.coords.accuracy) && pos.coords.accuracy > 0 ? pos.coords.accuracy : null)
+    setPermission('granted')
     setLoading(false)
   }, [])
 
   const handleError = useCallback((err: GeolocationPositionError) => {
     const key = ERROR_MESSAGE_KEYS[err.code]
     setError(key ? i18n.t(key) : i18n.t('common.geo.unknown'))
+    if (err.code === 1) setPermission('denied')
     setLoading(false)
     setIsWatching(false)
   }, [])
@@ -36,10 +56,12 @@ export function useGeolocation() {
     }
     setLoading(true)
     setError(null)
+    // Fix frais et exact (maximumAge: 0) : aucune position en cache,
+    // la mesure la plus précise possible du capteur.
     navigator.geolocation.getCurrentPosition(
       applyPosition,
       handleError,
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     )
   }, [applyPosition, handleError])
 
@@ -76,6 +98,7 @@ export function useGeolocation() {
   return {
     position,
     accuracy,
+    permission,
     error,
     loading,
     locate,
