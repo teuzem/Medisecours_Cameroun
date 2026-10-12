@@ -1,0 +1,101 @@
+# Dockerfile.backend-java — API Java 21 (Spring Boot)
+#
+# MULTI-STAGE, pour la même raison que Dockerfile.frontend :
+#   Étape 1 « builder » : Maven + le JDK (environ 800 Mo) + les sources → compile.
+#   Étape 2 « runtime » : SEULEMENT la JRE (environ 250 Mo) + le .jar produit.
+# Si tu compilais et exécutais dans la même image, tu transporterais tout le
+# toolchain en production pour rien : image lente à télécharger, surface d'attaque
+# plus grande, correctifs de sécurité à poser sur davantage de couches.
+#
+# Versions pinnées :
+#   maven:3.9-eclipse-temurin-21 → Maven 3.9 + JDK 21 pour le build
+#   eclipse-temurin:21-jre      → JRE 21 seule pour l'exécution
+#   Java 21 = LTS (Long-Term Support) : les LTS sortent tous les 2 ans (17, 21, 25)
+#   et sont supportés plusieurs années → c'est LA version de production, jamais
+#   une version paire/impaire éphémère (20, 22…).
+
+# ÉTAPE 1/2 — compilation Maven
+FROM maven:3.9-eclipse-temurin-21 AS builder
+
+WORKDIR /build
+
+# Copie SEULEMENT pom.xml d'abord : `mvn dependency:go-offline` (téléchargement des
+# dépendances) devient une couche Docker cachée. Modifier du code Java ne
+# re-télécharge PLUS les milliers de fichiers Maven à chaque build.
+COPY pom.xml ./
+
+# Pré-télécharge les dépendances déclarées dans pom.xml.
+# `-B` = mode non interactif (pas de spinner, logs lisibles dans docker build),
+# `--quiet` n'est PAS mis volontairement : en cas d'erreur réseau, il faut voir
+# le paquet qui échoue.
+RUN mvn -B dependency:go-offline
+
+# Ensuite seulement, les sources → le cache précédent reste valide tant que
+# pom.xml ne change pas.
+COPY src ./src
+
+# Package complet, SANS exécuter les tests :
+#   -B            : batch, pas d'interaction
+#   -DskipTests   : les tests tournent déjà dans ta CI/à la maison ; en prod on
+#                   ne refait pas tourner la suite (gèle le build de 5 à 15 min)
+# `-DskipTests` compile les tests mais ne les exécute pas (contrairement à
+# `-Dmaven.test.skip=true` qui ignore même la compilation).
+RUN mvn -B package -DskipTests
+
+# Repère le jar produit (target/*.jar) : Spring Boot le nomme
+# <artifactId>-<version>.jar. On le copie sous un nom FIXE pour ne pas avoir à
+# deviner le nom à l'exécution.
+RUN cp target/*.jar /build/app.jar
+
+# ÉTAPE 2/2 — exécution : JRE seule, utilisateur non-root
+FROM eclipse-temurin:21-jre
+
+# curl = healthcheck uniquement (voir Dockerfile.backend-python : même raison).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Utilisateur NON-root : une faille dans l'API (déserialisation, RCE…) donne les
+# droits de `app` dans le conteneur, pas ceux de root.
+RUN useradd --system --uid 10001 --shell /usr/sbin/nologin app \
+    && mkdir -p /app \
+    && chown app:app /app
+
+WORKDIR /app
+
+# Le .jar compilé (l'artefact FINAL uniquement — pas les sources, pas le cache Maven).
+COPY --chown=app:app --from=builder /build/app.jar ./app.jar
+
+USER app
+
+# Port écouté par Spring Boot dans le conteneur.
+# Spring lit aussi la variable `PORT` (cf. docker-compose.yml) : si ton application.yml
+# utilise `server.port: ${PORT:8000}`, les deux restent cohérents.
+EXPOSE 8000
+
+# JVM en conteneur
+# -XX:+UseContainerSupport (défaut depuis Java 10, remis explicitement ici) :
+#   la JVM détecte la limite de mémoire du CONTENEUR (pas celle de l'hôte).
+#   Sans ça, la JVM croit voir les 32 Go du VPS, calcule sa heap sur cette base
+#   → le conteneur est tué par le kernel (OOM killer) dès qu'il dépasse sa limite.
+# -XX:MaxRAMPercentage=75 : la heap occupe au plus 75 % de la RAM du conteneur.
+#   Les 25 % restants servent aux métaspace, à la mémoire native (JDBC, Netty) :
+#   mettre 100 % garantit un OOM. C'est LE réglage de prod pour Docker.
+# -Djava.security.egd=file:/dev/./urandom : accélère le premier générateur de
+#   nombres aléatoires (sinon Java attend les entropies du dispositif → démarrage
+#   qui semble bloqué à 20 s sans aucun log).
+# -jar app.jar : le fat jar Spring Boot, auto-exécutable.
+ENTRYPOINT ["java", \
+            "-XX:+UseContainerSupport", \
+            "-XX:MaxRAMPercentage=75.0", \
+            "-Djava.security.egd=file:/dev/./urandom", \
+            "-jar", "app.jar"]
+
+# Santé du projet
+# Spring Boot expose /actuator/health par défaut (à ajouter dans application.yml :
+# management.endpoints.web.exposure.include=health).
+# Sans actuator, crée une route /api/health équivalente et change l'URL ci-dessous.
+# start_period=60s : le démarrage Spring (contexte, migrations Flyway) dépasse
+# souvent 20 s ; trop court = unhealthy faux positif à chaque redémarrage.
+HEALTHCHECK --interval=15s --timeout=5s --start_period=60s --retries=3 \
+  CMD curl -f http://127.0.0.1:8000/api/health || exit 1

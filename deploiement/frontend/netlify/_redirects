@@ -1,0 +1,83 @@
+# =============================================================================
+# _redirects — règles de réécriture et de redirection de Netlify
+# -----------------------------------------------------------------------------
+# OÙ LE POSER : dans le dossier "public/" du projet Next.js
+#   (public/_redirects) — Next copie public/ à la racine du build, donc le
+#   fichier arrive au bon endroit à CHAQUE build. Le poser ailleurs = il est
+#   IGNORÉ EN SILENCE (le site fonctionne mais les règles ne s'appliquent pas).
+#
+# FORMAT :  <source>  <destination>  <code>
+#   - la source supporte les jokers (*) et les :param
+#   - le code est OBLIGATOIRE sauf pour les règles "200 = réécriture"
+#
+# ⚠️  REMPLACE {{DOMAINE_API}} à la main : Netlify lit ce fichier tel quel,
+#   il n'y a AUCUN moteur de template.
+#
+# ORDRE IMPORTANT : Netlify applique la PREMIÈRE règle qui correspond.
+#   → garde les règles spécifiques (ex. /api/*) AVANT les règles générales.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# RÈGLE 1 — API externe : /api/* → {{DOMAINE_API}}  (réécriture, code 200)
+# -----------------------------------------------------------------------------
+# À QUOI ÇA SERT : le navigateur affiche https://{{DOMAINE}}/api/... et la
+# requête est TRANSMISE au backend, SANS changer l'URL visible. C'est le
+# "same-origin" qui évite le mixed content (piège 3) : une page HTTPS qui
+# appellerait http://{{DOMAINE_API}} serait BLOQUÉE par le navigateur.
+#
+# code 200 = "rewrite" (invisible). Un 301/302 serait une vraie redirection :
+# le navigateur verrait l'URL du backend, et en HTTP ça casserait en mixed content.
+#
+# ⚠️ UTILISE CETTE RÈGLE UNIQUEMENT EN EXPORT STATIQUE (output: 'export') :
+#    avec un serveur Next (standalone), c'est next.config.mjs qui fait déjà le
+#    travail via API_BASE_URL. Les deux en même temps = la première règle
+#    gagne, et tu ne sauras plus qui routage quoi.
+#
+# /api/*            https://{{DOMAINE_API}}/:splat        200
+
+
+# -----------------------------------------------------------------------------
+# RÈGLE 2 — SPA fallback : toute route inconnue → index.html (réécriture)
+# -----------------------------------------------------------------------------
+# ⚠️  NE DÉCOMMENTE QUE SI TON SITE EST UNE SPA (un seul index.html, le
+#    routeur React gère /login, /carte, /compte...).
+#
+# Pour Next.js en EXPORT STATIQUE, c'est INUTILE (voire nuisible) : chaque
+# route a son propre fichier (/carte/index.html), Netlify le sert déjà.
+# Activer ce fallback masquerait les vrais 404 → Google indexerait n'importe quoi.
+#
+# /*    /index.html   200
+
+
+# -----------------------------------------------------------------------------
+# RÈGLE 3 — redirections 301 « permanentes » utiles
+# -----------------------------------------------------------------------------
+# Un 301 (permanent) est TRANSFÉRÉ par les moteurs de recherche : le
+# référencement de l'ancienne URL passe à la nouvelle. Un 302 (temporaire)
+# ne transfère RIEN. D'où : presque toujours du 301 sur du site web.
+
+# --- www → domaine racine (version canonique) -------------------------------
+# Une seule URL = un seul contenu aux yeux de Google. Sans ça, www et non-www
+# font doublon et se canibalisent dans les résultats de recherche.
+# ⚠️ DÉCOMMENTE si tu utilises le domaine SANS www (et inverse sinon).
+# https://www.{{DOMAINE}}/*    https://{{DOMAINE}}/:splat    301
+
+# --- HTTP → HTTPS ----------------------------------------------------------
+# Netlify a déjà l'option "Force HTTPS" (Domain management → HTTPS) qui fait
+# ça pour tout le domaine. Cette règle est donc en général REDONDANTE :
+# elle sert si tu as besoin de cibler un sous-domaine précis.
+# http://{{DOMAINE}}/*    https://{{DOMAINE}}/:splat    301
+
+# --- Anciennes URLs du site précédent ---------------------------------------
+# Si le projet remplace un ancien site, redirige ses pages qui ont du
+# référencement vers les nouvelles. Chaque ligne = un lien conservé.
+# /ancienne-page    /nouvelle-page    301
+# /blog/ancien-article    /blog/nouvel-article    301
+
+# --- Fichiers classiques à protéger (sécurité) ------------------------------
+# On renvoie en 404 plutôt que de laisser penser que la ressource existe.
+# (Netlify ne sert déjà pas .env/.git s'ils ne sont pas publiés : cette règle
+#  couvre le cas où un fichier aurait été publié par erreur.)
+/.env    /404    404
+/.git/*  /404    404

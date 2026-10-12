@@ -1,0 +1,262 @@
+# =============================================================================
+# .htaccess — configuration Apache / LiteSpeed pour le frontend {{NOM_PROJET}}
+# -----------------------------------------------------------------------------
+# OÙ LE POSER : dans le dossier "public/" de ton PROJET (le dossier que Next.js
+#   recopie à la racine du build), OU directement à la racine du site
+#   (public_html/.htaccess). Voir hostinger/README.md, étape 3-4.
+#
+# ⚠️  AVANT DE COMMITTER : remplace {{DOMAINE}} par ton domaine ({{DOMAINE}} →
+#   exemple.fr). Ce fichier est lu PAR Apache, qui ne comprend PAS la syntaxe
+#   {{...}} : une valeur non remplacée rend la règle simplement inactive (ou
+#   provoque une 500 dans le cas des en-têtes).
+#
+# ⚠️  RELIS tout le fichier après modification : UNE accolade mal placée dans un
+#   .htaccess = "500 Internal Server Error" sur TOUT le site.
+#
+# ⚠️  SI LE SITE N'EST PAS UNE SPA (Single Page Application), SUPPRIME LA RÈGLE
+#   DE FALLBACK (« CAS 2 » plus bas). Next.js génère un fichier index.html par
+#   route (ex. /contact/index.html) : Apache sert déjà la bonne page. Le fallback
+#   ne sert que pour les routes gérées côté JavaScript par le routeur React.
+# =============================================================================
+
+# "Options -Indexes" : si un dossier n'a PAS de index.html, Apache affiche la
+# LISTE DE SES FICHIERS (ex. /_next/static/chunks/). C'est une fuite
+# d'information gratuite (structure du projet, noms de fichiers internes).
+# On interdit l'indexation des répertoires.
+Options -Indexes
+
+# "DirectoryIndex index.html" : quand quelqu'un tape https://{{DOMAINE}}/ (sans
+# fichier), Apache cherche index.html avant toute autre chose. C'est la page
+# générée par Next.js à la racine.
+DirectoryIndex index.html
+
+# "MultiViews" : si activé, Apache essaierait de "deviner" les extensions
+# (contact → contact.html, contact.php…). Ça casse les routes propres de
+# Next.js. On le désactive explicitement.
+Options -MultiViews
+
+
+# =============================================================================
+# CAS 1 — REDIRECTION HTTP → HTTPS (obligatoire)
+# =============================================================================
+# Sans ça, les visiteurs arrivent sur http://{{DOMAINE}} et voient "Not Secure".
+# Let's Encrypt a déjà posé le certificat (hPanel → SSL), on ne fait que
+# DIRIGER tout le trafic vers la version chiffrée.
+#
+# mod_rewrite est le module Apache qui réécrit les URLs. On le charge s'il est
+# présent (sinon, le fichier entier serait ignoré sans erreur).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # --- Règle 1 : force HTTPS --------------------------------------------------
+  # %{HTTPS}  = variable d'environnement Apache : "off" si la requête arrive en
+  #             HTTP clair, "on" si elle arrive déjà en HTTPS.
+  # %{HTTP_HOST} = le domaine demandé par le visiteur ({{DOMAINE}} ou www.{{DOMAINE}}).
+  #             On UTILISE cette variable plutôt que d'écrire {{DOMAINE}} en dur :
+  #             la règle fonctionne alors pour le domaine apex ET pour www,
+  #             et tu peux changer de domaine sans retoucher ce fichier.
+  # [R=301]   = redirection PERMANENTE (le navigateur et Google la mémorisent :
+  #             c'est le bon code, contrairement à 302 qui est temporaire).
+  #             Un 301 est aussi CE QUI TRANSFÈRE le référencement.
+  # [L]       = "Last" : on arrête d'appliquer les règles ensuite.
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # --- Règle 1bis : version EXPLICITE avec ton domaine (optionnel) -----------
+  # Si tu veux une redirection "canonique" qui fusionne www.{{DOMAINE}} et
+  # {{DOMAINE}} sur UNE seule URL (bon pour le SEO : une seule adresse = un
+  # seul contenu aux yeux de Google), décommente ces 3 lignes :
+  #
+  # RewriteCond %{HTTP_HOST} ^www\.{{DOMAINE}}$ [NC]
+  # RewriteRule ^(.*)$ https://{{DOMAINE}}/$1 [R=301,L]
+  # (si tu préfères www, inverse : fais pointer {{DOMAINE}} vers www.)
+</IfModule>
+
+
+# =============================================================================
+# CAS 2 — FALLBACK : servir index.html pour toute route inconnue (SPA)
+# =============================================================================
+# CAS A — TON SITE EST UNE SPA (un seul index.html, le routeur React gère /, /login, /carte...)
+#         → garde FallbackResource.
+# CAS B — TON SITE EST NEXT.JS AVEC EXPORT STATIQUE (un index.html par route :
+#         /contact/index.html, /carte/index.html...) → TU DOIS SUPPRIMER cette
+#         règle (ou la commenter). Elle ne sert à rien et elle masque les vrais
+#         404 : une page réellement absente renverrait index.html en 200 au lieu
+#         d'un 404, et Google indexerait n'importe quoi.
+#
+# FallbackResource = directive native Apache : toute URL qui ne correspond à AUCUN
+# fichier réel renvoie vers /index.html (avec le code 200).
+<IfModule mod_alias.c>
+  FallbackResource /index.html
+</IfModule>
+
+# ALTERNATIVE si ton serveur ne reconnaît pas FallbackResource (liteSpeed ancien,
+# ou "500" au chargement) : utilise ce rewrite équivalent, À LA PLACE de la
+# règle ci-dessus (jamais les deux en même temps). La condition [OR] + -f/-d
+# empêche de rediriger les fichiers et dossiers RÉELS vers index.html.
+#
+# <IfModule mod_rewrite.c>
+#   RewriteCond %{REQUEST_FILENAME} !-f
+#   RewriteCond %{REQUEST_FILENAME} !-d
+#   RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ [NC]
+#   RewriteRule . /index.html [L]
+# </IfModule>
+
+# ⚠️ RÈGLE À SUPPRIMER SI CE N'EST PAS UNE SPA — cf. commentaire "CAS B" ci-dessus.
+
+
+# =============================================================================
+# CAS 3 — SÉCURITÉ : interdire l'accès aux fichiers qui ne doivent jamais être vus
+# =============================================================================
+# Ces fichiers peuvent contenir des SECRETS. Un .env traînant dans public_html
+# avec une clé Google Maps = clé à révoquer en 10 minutes. On bloque TOUTE
+# tentative de les télécharger.
+<IfModule mod_rewrite.c>
+  # .env, .env.local, .env.production... : variables d'environnement (clés API).
+  RewriteRule (^|/)\.env - [F,L]
+  #  [F] = Forbidden (403).  [L] = Last.
+  #  "-" = ne réécrit rien : on interdit simplement l'accès.
+
+  # .git/ : l'INTÉGRALITÉ de l'historique du code, y compris les secrets déjà
+  # committés par erreur. Les robots scannent /git/config en continu.
+  RewriteRule (^|/)\.git - [F,L]
+
+  # .htaccess lui-même, .htpasswd, et tout fichier "dotfile" (commence par .).
+  RewriteRule (^|/)\.(htaccess|htpasswd) - [F,L]
+  RewriteRule (^|/)\.(?!well-known) - [F,L]
+  #  (?!\.well-known) : on EXCEPTE .well-known/ car Let's Encrypt y dépose ses
+  #  preuves de propriété (/.well-known/acme-challenge/...) ; le bloquer couperait
+  #  le renouvellement automatique du certificat.
+
+  # Fichiers de source map : ils contiennent ton code SOURCE complet et l'arborescence
+  # du projet. Utiles pour déboguer, dangereux en prod (on divise le travail de
+  # l'attaquant par 10). Next.js ne les génère pas par défaut en production.
+  RewriteRule \.(map)$ - [F,L]
+</IfModule>
+
+# Version "order/deny" (plus ancienne, utile si mod_rewrite est désactivé).
+<IfModule !mod_rewrite.c>
+  <FilesMatch "^(\.env|\.htaccess|\.htpasswd|\.git|\.map)">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+
+# =============================================================================
+# CAS 4 — CACHE : le cas où on gagne 80 % de la vitesse perçue
+# =============================================================================
+# Deux politiques OPPOSÉES, et c'est tout l'intérêt :
+#
+#   /_next/static/...  → fichiers AVANT-CACHEMENT : Next.js ajoute un hash dans
+#                        le NOM du fichier (/_next/static/chunks/abc123.js).
+#                        Le nom change à chaque build ⇒ on peut mettre 1 AN de
+#                        cache "immutable" sans jamais servir un fichier périmé.
+#   *.html             → les PAGES : elles changent à chaque déploiement ⇒
+#                        cache ZÉRO, sinon le visiteur voit l'ancien site.
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # --- JS/CSS de Next.js : 1 an, immutable -------------------------------
+  # "public" : le cache intermédiaire (proxy d'Hostinger) PEUT le mettre en cache.
+  # "immutable" : le navigateur ne DOIT même pas re-vérifier le fichier au
+  # chargement (économie un aller-retour par ressource, soit ~20 par page).
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/css              "access plus 1 year"
+
+  # Images, polices, SVG : même logique (les images de Next sont dans
+  # /_next/static/media/ avec un hash dans le nom).
+  ExpiresByType image/jpeg     "access plus 1 year"
+  ExpiresByType image/png      "access plus 1 year"
+  ExpiresByType image/webp     "access plus 1 year"
+  ExpiresByType image/svg+xml  "access plus 1 year"
+  ExpiresByType image/x-icon   "access plus 1 day"
+  ExpiresByType font/woff2     "access plus 1 year"
+  ExpiresByType font/woff      "access plus 1 year"
+
+  # Le HTML : 0 seconde de cache. C'est ce qui garantit qu'après un déploiement,
+  # le visiteeur voit LE NOUVEAU site dès le rechargement suivant.
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# En complément (certains reverse proxy lisent Cache-Control et pas Expires).
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2?|ttf|eot|png|jpe?g|webp|svg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+    #  no-cache       : le navigateur PEUT stocker, mais DOIT re-vérifier à chaque
+    #                  fois (ETag/If-Modified-Since) → quasi-sans coût, toujours à jour.
+    #  must-revalidate: après expiration, il faut revalider (pas de servir un vieux
+    #                  contenu "hors-ligne" sans prévenir).
+  </FilesMatch>
+</IfModule>
+
+
+# =============================================================================
+# CAS 5 — COMPRESSION : diviser le poids des pages par 3 à 5
+# =============================================================================
+# gzip est universel ; brotli (Google) est 15-20 % plus efficace quand il est
+# disponible. On n'active RIEN de force : les balises IfModule font que le
+# fichier fonctionne même si le module manque (au lieu de planter en 500).
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/xml application/rss+xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+  # Pas de compression pour les formats déjà compressés : JPEG, PNG, ZIP, MP4,
+  # WOFF2... → ça gaspillerait du CPU pour 0 gain.
+</IfModule>
+
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css
+  AddOutputFilterByType BROTLI_COMPRESS application/javascript application/json
+</IfModule>
+
+
+# =============================================================================
+# CAS 6 — EN-TÊTES DE SÉCURITÉ (basiques mais réels)
+# =============================================================================
+# Chaque en-tête ferme une classe d'attaque précise. On les pose ICI plutôt que
+# dans la config d'Apache : ils s'appliquent aussi si le site est déplacé.
+<IfModule mod_headers.c>
+
+  # X-Content-Type-Options: nosniff
+  #   Empêche le navigateur de "deviner" le type d'un fichier. Sans lui, un
+  #   upload (.png) contenant du JavaScript peut être exécuté comme script.
+  #   Attaque : "content sniffing" / XSS par upload.
+  Header set X-Content-Type-Options "nosniff"
+
+  # X-Frame-Options: DENY
+  #   Interdit d'afficher ton site dans une <iframe> d'un autre domaine.
+  #   Sans ça, un site malveillant peut recadrer ta page et piéger les clics
+  #   de tes utilisateurs. Attaque : "clickjacking".
+  #   (Si tu dois intégrer TON site dans TON propre espace membre sur un autre
+  #    sous-domaine, remplace DENY par SAMEORIGIN.)
+  Header set X-Frame-Options "DENY"
+
+  # Referrer-Policy: strict-origin-when-cross-origin
+  #   À une page tierce, n'envoie que le DOMAINE d'origine (https://{{DOMAINE}}),
+  #   jamais l'URL complète avec ses paramètres (/recherche?q=mot+de+passe).
+  #   Protège la vie privée de tes utilisateurs et évite de fuiter des données
+  #   d'URL dans les logs d'un site tiers.
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Permissions-Policy: on COUPE les capacités navigateur dont tu n'as pas besoin.
+  #   Chaque entrée désactive une API matérielle/sensible : sans ça, un script
+  #   tiers pourrait demander la caméra, le micro ou la géolocalisation.
+  #   On garde la géolocalisation ({{DOMAINE}} en a besoin pour la carte).
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()"
+
+  # Strict-Transport-Security (HSTS) : au moins une fois en HTTPS, le navigateur
+  # doit UTILISER HTTPS pendant 180 jours, même si on lui demande explicitement
+  # du http:// (attaques réseau/public wifi qui réécrivent les requêtes).
+  # ⚠️ Ne l'active qu'une fois https://{{DOMAINE}} prouvé fonctionnel : sinon tu
+  #    bloques ton propre domaine en HTTPS pour 60 secondes à 180 jours selon
+  #    les navigateurs, et il faudra vider le cache HSTS de chaque visiteur.
+  #    (includeSubDomains : s'applique aussi à www.{{DOMAINE}} et api.{{DOMAINE}}.)
+  # Header set Strict-Transport-Security "max-age=15552000; includeSubDomains"
+
+  # (Décommente la ligne ci-dessus APRÈS avoir vérifié que le padlock fonctionne.)
+</IfModule>

@@ -1,0 +1,120 @@
+# =============================================================================
+# .dockerignore — ce qu'on EXCLUT de l'image Docker du frontend {{NOM_PROJET}}
+# -----------------------------------------------------------------------------
+# Un "dockerignore", c'est exactement un ".gitignore" mais pour la commande
+# "COPY ." du Dockerfile. Chaque ligne ci-dessous est un fichier QUI N'ENTRE
+# PAS dans l'image.
+#
+# POURQUOI c'est important (3 raisons, dans l'ordre d'importance) :
+#
+#   1. SÉCURITÉ — un .env contient des clés. S'il entre dans l'image, il part
+#      sur le serveur, visible par "docker cp" ou par n'importe qui avec accès
+#      au registre. Une clé API qui traîne dans une image = clé à révoquer.
+#
+#   2. CORRECTUÉ — si tu as des node_modules LOCAUX (Windows/macOS), "COPY ."
+#      les recopie PAR DESSUS ceux que "npm ci" vient d'installer dans l'étape
+#      deps. Résultat : des binaires pour la mauvaise plateforme → build qui
+#      plante sur "sharp" ou "esbuild", de façon totalement aléatoire.
+#
+#   3. TAILLE/VITESSE — chaque fichier exclu, c'est un contexte de build plus
+#      petit à téléverser vers le démon Docker, donc un build plus rapide.
+# =============================================================================
+
+
+# --- 1. Secrets ---------------------------------------------------------------
+# LE PLUS IMPORTANT. Jamais dans une image.
+# Note : en prod, on ne passe pas de .env du tout — les valeurs viennent des
+# ARG/ENV du build (Coolify/Netlify/Vercel). Ce fichier sert de filet de
+# sécurité au cas où tu aurais laissé un .env traîner.
+.env
+.env.*
+*.local
+
+# Clés SSH : au cas où un dossier ~/.ssh aurait été copié dans le dépôt.
+# id_rsa, id_ed25519, config ssh... = accès à tes serveurs pour qui ouvre l'image.
+**/*id_rsa*
+**/*id_ed25519*
+**/.ssh/
+
+
+# --- 2. Résultats de build locaux --------------------------------------------
+# .next/ = le résultat d'un "npm run build" fait SUR TON ORDINATEUR.
+# Si on le copiait, l'étape build écraserait... en fait non : Docker ferait
+# une copie inutile de centaines de Mo, puis npm run build la régénérerait.
+# Pire : sur Windows, les chemins/permissions diffèrent et le résultat est
+# inutilisable. On repart TOUJOURS de zéro dans le conteneur.
+.next/
+out/
+
+# node_modules locaux (voir raison 2 ci-dessus).
+# C'est le fichier qui te sauve : sans lui, "COPY ." détruit le node_modules
+# propre créé par "npm ci".
+node_modules/
+
+# Le build du backend ou d'autres packages si le dépôt est un monorepo.
+# (à garder tel quel : c'est le dépôt medisecours-main qui est monorepo)
+**/vendor/
+**/var/cache/
+
+
+# --- 3. Historique Git --------------------------------------------------------
+# .git/ contient TOUT l'historique, parfois des secrets déjà committés par le
+# passé, et fait grossir le contexte de build de plusieurs Mo pour rien :
+# server.js n'a jamais besoin de l'historique des commits.
+.git/
+.gitignore
+
+# --- 4. Fichiers de déploiement (inutiles dans l'image) ----------------------
+# Ces fichiers servent à la PLATEFORME (Apache, Netlify), pas au conteneur.
+# Apache ne lit pas un Dockerfile ; Docker ne lit pas un .htaccess.
+.htaccess
+netlify.toml
+_vercel/
+
+# --- 5. Le kit de déploiement lui-même ---------------------------------------
+# On n'embarque pas la documentation de déploiement dans l'image de prod.
+# (chemin relatif à la racine du dépôt frontend)
+deploiement/
+docs/
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+
+# --- 6. Fichiers de configuration et de dev ----------------------------------
+# CI/CD, linters, configs d'éditeur : server.js n'en a aucun besoin.
+.github/
+.vscode/
+.idea/
+*.sln
+*.csproj
+
+# Tests et couverture : utiles en CI, inutiles (et lourds) en production.
+# ⚠️ Si tes tests sont NECESSAIRES au build (rare), commente ces deux lignes.
+coverage/
+test/
+tests/
+**/__tests__/
+**/*.test.*
+**/*.spec.*
+
+# --- 7. Binaire de Cache de Next.js ------------------------------------------
+# .next/cache/ = cache de compilation de Next.js (images, SWC).
+# Inutile dans l'image finale : on le recrée à chaque build proprement.
+.next/cache/
+
+# --- 8. Divers ----------------------------------------------------------------
+# OS : DS_Store (macOS), Thumbs.db (Windows) — ajouts parasites de 10 Ko partout.
+.DS_Store
+Thumbs.db
+
+# Logs : des dizaines de Mo après un build local, et zéro intérêt pour le serveur.
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Sauvegardes et fichiers temporaires.
+*.bak
+*.tmp
+*.swp

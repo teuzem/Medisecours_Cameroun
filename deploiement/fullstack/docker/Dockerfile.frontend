@@ -1,0 +1,110 @@
+# Dockerfile.frontend — build MULTI-STAGE d'une application Node (Next.js, Vite…)
+#
+# Pourquoi multi-stage (2 étapes, "builder" puis "runtime") ?
+#   Étape 1 (builder) : on installe TOUT (compilateurs, devDependencies) et on
+#                       produit les fichiers finaux.
+#   Étape 2 (runtime) : on repart d'une image propre et on ne copie QUE les
+#                       fichiers nécessaires → image finale ~4 fois plus légère,
+#                       moins de failles à patcher, démarrage plus rapide.
+#
+# Version Node : 22 (LTS). Les branches paires (18, 20, 22) sont celles maintenues
+# en production ; une version impaire (21, 23) n'est supportée que ~6 mois.
+
+# ÉTAPE 1/2 — "builder" : dépendances + compilation
+FROM node:22-alpine AS builder
+
+# Répertoire de travail DANS le conteneur. Toutes les commandes suivantes
+# s'exécutent ici (équivalent d'un `cd`, mais persistant pour la couche).
+WORKDIR /app
+
+# ARG = valeur transmise pendant le BUILD uniquement (pas au moment de l'exécution).
+# On l'utilise pour ne pas reconstruire tout le cache à chaque changement de secret
+# de build (ex : clé API d'un service tiers embarquée dans le bundle).
+ARG BUILD_TIME_SECRET=CHANGE_ME
+ENV BUILD_TIME_SECRET=$BUILD_TIME_SECRET
+# En production réelle, si ce secret n'est pas nécessaire au build, supprime ces 2 lignes.
+
+# Couche 1 : les dépendances
+# On copie UNIQUEMENT les fichiers qui listent les dépendances AVANT le reste du
+# source. Docker met en cache chaque "couche" : tant que package.json et
+# package-lock.json ne changent pas, la commande `npm ci` n'est PAS relancée au
+# prochain build (gain de plusieurs minutes).
+COPY package*.json ./
+
+# `npm ci` = installation REPRODUCTIBLE à partir du lockfile exact
+# (contrairement à `npm install` qui peut remonter de nouvelles versions).
+# --omit=dev n'est PAS mis ici : un framework comme Next a besoin des
+# devDependencies pour compiler (next build).
+RUN npm ci
+
+# Couche 2 : le code source puis la compilation
+COPY . .
+
+# Génération du dossier de production. Adapte la commande à ton framework :
+#   Next.js  → npm run build      Vite → npm run build
+#   CRA      → npm run build
+# Une erreur ici = erreur de TypeScript/compilation : elle DOIT apparaître pendant
+# le build, pas au démarrage du conteneur (c'est tout l'intérêt du multi-stage).
+RUN npm run build
+
+# Si ton framework a besoin de variables au build (NEXT_PUBLIC_*), ajoute-les ici :
+# ARG NEXT_PUBLIC_API_URL
+# ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# et passe-les depuis docker-compose.yml → build.args
+
+# ÉTAPE 2/2 — "runtime" : exécution en production, utilisateur NON-root
+FROM node:22-alpine AS runtime
+
+WORKDIR /app
+
+# Installe curl : NON pas pour l'application, mais pour que la commande de
+# healthcheck de docker-compose (`curl -f http://localhost:3000/`) fonctionne
+# DANS ce conteneur. Alpine n'a pas curl par défaut → sans cette ligne, le
+# conteneur serait marqué "unhealthy" alors même qu'il fonctionne.
+RUN apk add --no-cache curl
+
+# Copie des artefacts de build SEULEMENT (les sources et node_modules du builder
+# ne franchissent pas cette frontière — c'est le but du multi-stage).
+COPY --chown=node:node --from=builder /app/public ./public
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/package*.json ./
+
+# Utilisateur NON-root : par défaut Node tourne en root dans le conteneur.
+# Si un attaquant exploite une faille de l'app, il hérite des droits root du
+# conteneur. "node" est un utilisateur déjà présent dans l'image node:*-alpine.
+# (La syntaxe --chown rend le propriétaire du dossier = utilisateur node.)
+# Copie le cache/framework de production en tant que node pour que l'utilisateur
+# non-root puisse y écrire (Next y range son cache de rendu).
+COPY --chown=node:node --from=builder /app/.next ./.next
+
+USER node
+
+# Port ÉCOUTÉ par le processus dans le conteneur.
+# À ne pas confondre avec le port de l'HÔTE dans docker-compose.yml (127.0.0.1:3000:3000).
+EXPOSE 3000
+
+# Santé du conteneur, vue de l'intérieur. nginx sur l'hôte n'a pas accès à ce
+# port : lui, ne voit que 127.0.0.1:3000 publié par docker.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+# CMD ["..."] = tableau JSON → exécuté SANS shell, donc pas d'interpolation `$`,
+# mais aussi pas de signal shell : c'est ce qu'on veut, node reçoit directement
+# SIGTERM de Docker à l'arrêt (arrêts propres, pas de conteneur tué brutalement).
+# `node_modules/.bin/next start` : Next en mode serveur (SSR).
+# Adapter si ton app n'est pas Next :
+CMD ["node_modules/.bin/next", "start"]
+
+# NOTE — si ton framework N'EST PAS Next.js
+#   Remplace les étapes du builder par :
+#       COPY package*.json ./
+#       RUN npm ci
+#       COPY . .
+#       RUN npm run build          # produit un dossier dist/ (Vite, Angular, …)
+#   Et dans l'étape runtime, remplace la copie et la CMD par :
+#       COPY --from=builder /app/dist ./dist
+#       # sers le dossier statique avec un vrai serveur HTTP (nginx dans le conteneur)
+#       # → voir "Dockerfile.backend-node" (variante statique : npm ci --omit=dev
+#       #   + un serveur de fichiers statiques), et le bloc `location /` de nginx/site.conf.
+#   Un `npm run dev` ne convient JAMAIS en production : pas de cache, pas de minification,
+#   serveur de développement ouvert à tous.

@@ -1,0 +1,65 @@
+# =============================================================================
+# VARIABLES DE BUILD du frontend {{NOM_PROJET}} — FICHIER D'EXEMPLE UNIQUEMENT
+# =============================================================================
+#
+# Ce fichier n'est PAS lu par le projet. C'est ta feuille de route : tu recopies
+# chaque ligne dans l'interface de ton hébergeur (Coolify, Netlify, Vercel),
+# en remplaçant {{...}} par ta vraie valeur.
+#
+# ⚠️ RÈGLE D'OR — ces variables sont injectées À LA CONSTRUCTION (« build-time »).
+#    `next build` les recopie DANS LE CODE JavaScript livré au navigateur.
+#    Conséquence : changer une valeur APRÈS le build ne change RIEN.
+#    Il faut RE-BUILDER (Coolify : bouton « Rebuild », pas « Restart »).
+#
+# ⚠️ Ne mets JAMAIS de vraie clé dans un dépôt Git. Utilise les champs « Secrets »
+#    de la plateforme. Ici, tout est volontairement un faux exemplaire.
+# =============================================================================
+
+
+# --- 1. URL du backend, lue par next.config.mjs pour le rewrite /api/:path* ----
+# SERT À : le navigateur appelle https://{{DOMAINE}}/api/... (same-origin),
+#          c'est le serveur Next qui renvoie vers le backend. Évite le mixed content.
+# EN PROD : doit être en HTTPS, SINON toutes les requêtes /api/* échouent en 404.
+API_BASE_URL=https://{{DOMAINE_API}}
+
+
+# --- 2. URL de base vue par le NAVIGATEUR — DOIT RESTER VIDE EN PROD ----------
+# SERT À : en développement local uniquement, pour que le navigateur sache où
+#          trouver l'API (http://localhost:8000/api par ex.).
+# EN PROD : laisser VIDE. Si tu mets une URL ici, la page HTTPS appelle une URL
+#          non-HTTPS → le navigateur bloque la requête : erreur « Mixed Content ».
+#          En prod, on utilise le rewrite (variable 1), pas une URL côté client.
+NEXT_PUBLIC_API_BASE_URL=
+
+
+# --- 3. URL ABSOLUE du service WebSocket --------------------------------------
+# SERT À : le frontend sait où ouvrir la connexion temps réel (port 8081, /ws).
+# EN PROD : URL ABSOLUE en wss:// (le « s » est obligatoire sur une page HTTPS).
+#          SANS ELLE, le code retombe sur ws://127.0.0.1:8081/ws = le serveur lui-même.
+#          Résultat : plus de temps réel, SANS message d'erreur (silencieux).
+# VALEUR EXEMPLE : wss://{{DOMAINE_WS}}/ws
+NEXT_PUBLIC_WS_URL=wss://{{DOMAINE_WS}}/ws
+
+
+# --- 4. Clé Google Maps (géolocalisation / carte) -----------------------------
+# SERT À : charger la carte Google dans le frontend.
+# OÙ LA TROUVER : https://console.cloud.google.com/ → APIs & Services → Credentials
+#                 → Create credentials → API key. Restreins-la aux refus HTTP
+#                 autorisés (https://{{DOMAINE}}) pour éviter qu'on la réutilise.
+# VRAI SECRÈT : NON. Mets-la dans le champ « Secret » de la plateforme, jamais en clair.
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyExempleDeCleGoogleMaps000000000000000
+
+
+# --- 5. Client ID OAuth Google (bouton « Se connecter avec Google ») ----------
+# SERT À : l'identification via Google. Format : 123456789-abc.apps.googleusercontent.com
+# OÙ LA TROUVER : Google Cloud Console → APIs & Services → Credentials →
+#                 OAuth 2.0 Client IDs. L'origine autorisée doit inclure https://{{DOMAINE}}.
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=123456789-exemple.apps.googleusercontent.com
+
+
+# --- 6. Token Mapbox (tuile de carte alternative / fallback) ------------------
+# SERT À : le repli carte si Google Maps est indisponible.
+# OÙ LA TROUVER : https://account.mapbox.com/access-tokens/ (token public par défaut OK ;
+#                 il est conçu pour être exposé dans le navigateur, mais reste un secret
+#                 à ne pas committer : on le met en « Secret » sur la plateforme).
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoibG91aXMtZXhlbXBsZSIsImEiOiJjbGV4In0.exemple

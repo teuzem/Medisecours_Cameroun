@@ -1,0 +1,207 @@
+# =============================================================================
+# netlify.toml — configuration de déploiement du frontend {{NOM_PROJET}}
+# -----------------------------------------------------------------------------
+# OÙ LE POSER : à la RACINE du dépôt (le dossier contenant package.json et
+#   next.config.mjs). Netlify le lit automatiquement, sans rien déclarer.
+#
+# ⚠️  REMPLACE {{DOMAINE}} et {{DOMAINE_API}} à la main avant de commiter :
+#   Netlify lit ce fichier TEL QUEL, il n'y a AUCUN moteur de template.
+#   Un {{DOMAINE}} non remplacé = un en-tête littéral "https://{{DOMAINE}}"
+#   qui ne protège rien.
+#
+# Format : TOML. Commentaires avec #. Une section = [section], un tableau de
+# sections = [[section]] (il peut y en avoir plusieurs, comme les [[headers]]).
+# =============================================================================
+
+
+# =============================================================================
+# [build] — COMMENT NETLIFY CONSTRUIT LE SITE
+# =============================================================================
+[build]
+  # Commande exécutée sur une machine éphémère Netlify, à CHAQUE push.
+  # "npm run build" = celle du projet (next build).
+  #
+  # ⚠️ SI LE BUILD ÉCHOUE avec "Error occurred prerendering page" ou une
+  #    erreur "turbopack" : c'est le bug de prerender connu du projet
+  #    (Turbopack, bundleur par défaut de Next.js 16). Remplace par :
+  #      command = "npm run build -- --webpack"
+  #    Le "--" est indispensable : il indique à npm de passer la suite à
+  #    NEXT.JS et non à npm lui-même (sans lui, npm mange l'argument).
+  command = "npm run build"
+
+  # Dossier publié = celui servi aux visiteurs.
+  # - App Next.js classique (SSR / output standalone) : Next + le runtime
+  #   Netlify utilisent .next → laisse ".next".
+  # - App exportée en statique (output: 'export') : Next génère "out/" →
+  #   mets "out" ICI, sinon Netlify publie un dossier vide et le site rend 404.
+  publish = ".next"
+
+  # ⚠️ NE PAS METTRE "command = npm ci && npm run build" : Netlify exécute
+  # "npm install" (ou npm ci) AUTOMATIQUEMENT avant cette commande si un
+  # package-lock.json est présent. Double install = build 2× plus lent.
+
+
+# =============================================================================
+# [build.environment] — VARIABLES LUES PAR LA MACHINE DE BUILD
+# =============================================================================
+# Ce bloc concerne l'ENVIRONNEMENT de build (version de Node, options npm),
+# PAS les variables de ton application (celles-là vont dans
+# Site configuration → Environment variables, étape 4 du README).
+[build.environment]
+  # Node 22 = version LTS (support actif, jusqu'en avril 2027). C'est la
+  # version que supporte officiellement Next.js 16 : Node 18 n'est plus
+  # supporté (build cassé sur les dépendances récentes), Node 24 est encore
+  # trop frais pour certains plugins. On fige la version pour que le build
+  # d'aujourd'hui soit IDENTIQUE à celui de dans 6 mois.
+  NODE_VERSION = "22"
+
+  # Next.js n'a pas besoin d'être averti qu'il est en production (Netlify le
+  # fait déjà), mais on coupe la télémétrie : 0 requête sortante inutile,
+  # logs de build plus lisibles.
+  NEXT_TELEMETRY_DISABLED = "1"
+
+  # Si le build est lent la 1re fois, c'est normal : la 2e utilise le cache
+  # npm de Netlify. NE PAS mettre NODE_ENV ici : Next.js le gère lui-même.
+
+
+# =============================================================================
+# [context.*] — VARIABLES DIFFÉRENTES PAR ENVIRONNEMENT
+# =============================================================================
+# Un "contexte" = pour quelles cibles s'appliquent les règles.
+#   production      : le push sur la branche principale (mise en ligne)
+#   deploy-preview  : chaque PULL REQUEST (aperçu, URL dédiée)
+#   branch-deploy   : push sur une branche non principale
+#
+# ⚠️ Les variables NEXT_PUBLIC_* sont injectées AU BUILD : changer ici change
+#    le JS généré POUR CE CONTEXTE UNIQUEMENT. Un aperçu de PR peut donc avoir
+#    une API de test pendant que la prod garde la vraie — c'est exactement
+#    l'intérêt de ce bloc.
+[context.deploy-preview.environment]
+  # Exemple : les previews parlent à une API de recette.
+  # API_BASE_URL = "https://recette.{{DOMAINE_API}}"
+
+[context.branch-deploy.environment]
+  # Sur une branche de dev, même logique.
+  # API_BASE_URL = "https://dev.{{DOMAINE_API}}"
+
+# NOTE : si tu utilises ces blocs, la variable API_BASE_URL doit AUSSI être
+# définie pour le contexte production (dans l'UI Netlify), sinon la prod n'a
+# pas de valeur de rewrite → /api/* en 404 (piège 4).
+
+
+# =============================================================================
+# [functions] — fonctions serverless (OPTIONNEL, non utilisé par ce projet)
+# =============================================================================
+# Si un jour tu ajoutes des fonctions Netlify (dossier netlify/functions/),
+# ce bloc règle leur comportement. Il est laissé COMMENTÉ pour ne rien changer
+# à un projet qui n'en a pas.
+#
+# [functions]
+#   node_bundler = "esbuild"   # bundle plus rapide que le bundler par défaut
+#
+# ⚠️ Les fonctions Netlify ont une durée de vie MAXIMALE (quelques secondes
+#    à 26 secondes selon le plan). Un service WebSocket qui doit rester ouvert
+#    des heures N'EST PAS une fonction : héberge-le sur un VPS
+#    (../coolify/README.md) et donne son URL à NEXT_PUBLIC_WS_URL.
+
+
+# =============================================================================
+# [[headers]] — EN-TÊTES DE SÉCURITÉ, appliqués à TOUTES les réponses
+# =============================================================================
+# Pourquoi les poser ici plutôt que dans le HTML ? Un en-tête est lu par le
+# navigateur AVANT de rendre la page : il protège même une page servie en
+# cache, et il est impossible à oublier dans un composant React.
+#
+# ⚠️ Ces mêmes en-têtes existent aussi dans _headers (fichier fourni à côté).
+#    Netlify FUSIONNE les deux : ne DÉFINIS PAS deux fois le MÊME en-tête sur
+#    la MÊME route, sinon le navigateur reçoit la valeur deux fois et certains
+#    navigateurs ignorent la règle (ou prennent la première au hasard).
+#    Convention retenue ICI : les en-têtes GLOBAUX de sécurité.
+#                 Dans _headers : le cache par TYPE de fichier + la CSP.
+# -----------------------------------------------------------------------------
+
+# Tous ces en-têtes sont dans UN SEUL bloc [[headers]] : c'est la forme la
+# plus sûre (Netlify fusionnerait plusieurs blocs "/*", mais un seul bloc
+# évite tout risque d'écrasement d'une valeur par une autre).
+# -----------------------------------------------------------------------------
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+
+    # --- X-Frame-Options : DENY ------------------------------------------------
+    # Interdit l'affichage de ce site dans une <iframe> d'un autre domaine.
+    # Sans ça, un site tiers peut cadrer ta page et piéger les clics de tes
+    # utilisateurs (attaques de type clickjacking : "clique sur Supprimer mon
+    # compte" caché derrière ton propre bouton).
+    X-Frame-Options = "DENY"
+
+    # --- X-Content-Type-Options : nosniff --------------------------------------
+    # Interdit au navigateur de "deviner" le type d'un fichier. Sans cet
+    # en-tête, un fichier envoyé comme image peut être ré-exécuté comme script
+    # (attaques par upload / sniffing de type).
+    X-Content-Type-Options = "nosniff"
+
+    # --- Referrer-Policy -------------------------------------------------------
+    # Quand un visiteur passe de TA page vers un site tiers, on n'envoie que le
+    # domaine d'origine (https://{{DOMAINE}}) et jamais l'URL complète avec ses
+    # paramètres (/recherche?q=...). Protège la vie privée et évite de fuiter
+    # des données d'URL dans les logs d'un tiers.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # --- Permissions-Policy ----------------------------------------------------
+    # Désactive, pour TON site, les capacités navigateur dont tu n'as pas
+    # besoin : caméra, micro, paiement, USB... Sans ça, n'importe quel script
+    # tiers intégré à la page peut DEMANDER l'accès à ces périphériques.
+    # On garde geolocation=(self) : la carte du projet a besoin de la position.
+    # interest-cohort=() : refuse le suivi publicitaire de Google.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()"
+
+    # --- Strict-Transport-Security (HSTS) --------------------------------------
+    # Au moins une fois en HTTPS, le navigateur UTILISERA HTTPS pendant 180
+    # jours, même si on lui demande explicitement du http:// (attaque
+    # "HTTPS-stripping" sur un wifi public qui réécrit les requêtes).
+    # max-age=15552000 = 180 jours.
+    # includeSubDomains = valable aussi pour www.{{DOMAINE}} et api.{{DOMAINE}}
+    #   → à RETIRER si l'un de tes sous-domaines n'est PAS en HTTPS, sinon il
+    #     devient injouable pour les visiteurs déjà venus sur ton domaine.
+    # ⚠️ Cet en-tête n'est délivré que sur une réponse HTTPS : s'il n'y a pas
+    #    encore de certificat, il ne s'applique tout simplement pas (donc pas
+    #    de risque de blocage pendant la mise en place).
+    Strict-Transport-Security = "max-age=15552000; includeSubDomains"
+
+
+# =============================================================================
+# [[redirects]] — redirections serveur (résumé ; le détail est dans _redirects)
+# =============================================================================
+# Netlify lit _redirects ET ce bloc, et les cumule. On ne garde ici que la
+# règle la plus délicate ; le reste est dans le fichier _redirects (plus lisible).
+[[redirects]]
+  # Cas "API externe" : quand le projet n'utilise PAS le rewrite de next.config
+  # (par ex. en export statique, où il n'existe pas), on délègue /api/* au
+  # backend. Le code 200 = "réécriture" (pas de redirection visible dans le
+  # navigateur : l'URL reste https://{{DOMAINE}}/api/... → pas de mixed content).
+  # ⚠️ COMMENTE par défaut : avec le rewrite de next.config.mjs (piège 4), cette
+  #    règle se BATTRAIT avec lui. Décommente-la UNIQUEMENT si tu es en
+  #    output: 'export' (site statique).
+  #
+  # from = "/api/*"
+  # to   = "https://{{DOMAINE_API}}/:splat"
+  # status = 200
+
+
+# =============================================================================
+# [[plugins]] — plugin Next.js (optionnel)
+# =============================================================================
+# Netlify détecte Next.js et applique automatiquement son runtime "Next.js"
+# (anciennement installable via le plugin). Sur les projets Next.js récents,
+# on N'AJOUTE PAS le plugin à la main : c'est la plateforme qui le fournit,
+# et un doublon provoque justement les erreurs "build déjà exécuté" ou un
+# double rendu des pages.
+#
+# ⚠️ Si le build échoue avec un message du type "This project is using the
+#    deprecated plugin" ou "next runtime", REGARDE le build log : la solution
+#    est alors de RETIRER ce plugin du package.json, pas de l'ajouter.
+#
+# [[plugins]]
+#   package = "@netlify/plugin-nextjs"

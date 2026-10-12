@@ -1,0 +1,297 @@
+# docker-compose.yml — orchestration complète de l'application
+# Moteur : Docker Engine 27+ avec le plugin compose v2 → commande `docker compose`
+#          (et JAMAIS `docker-compose` : l'ancien binaire v1 est abandonné,
+#           il n'est plus installé et ses versions sont incompatibles.)
+#
+# Syntaxe des deux types de variables dans ce fichier :
+#   {{NOM_PROJET}}, {{DOMAINE}}...  → remplacés PAR TOI à la main (recherche/remplacement)
+#   ${PORT_DB:-5432}                → lus AUTOMATIQUEMENT par docker compose dans .env
+#
+# Lancement (depuis le dossier docker/, où se trouve .env) :
+#   docker compose up -d --build
+#   COMPOSE_PROFILES=mysql docker compose up -d --build   (base MySQL)
+#   docker compose --profile ws up -d                     (+ WebSockets)
+# Depuis la racine du projet : ajoute -f docker/docker-compose.yml
+
+# Nom du projet compose. Sert de préfixe aux conteneurs, aux réseaux et aux volumes
+# (ex : monapp_db_data). Doit être en minuscules, sans accent ni majuscule — sinon
+# Docker refuse de démarrer. → remplace {{NOM_PROJET}} par le nom de ton application.
+# (guillemets OBLIGATOIRES : une valeur commençant par `{` serait autrement
+#  interprétée par YAML comme un dictionnaire en « flux » et compose refuserait
+#  de démarrer avec une erreur du type "cannot unmarshal !!str into ...)
+name: "{{NOM_PROJET}}"
+
+services:
+  # BASE DE DONNÉES — un seul service `db` actif à la fois (choix via COMPOSE_PROFILES)
+  db:
+    # Image par défaut : PostgreSQL 16 en Alpine (~90 Mo au lieu de ~430 Mo pour la
+    # variante "bookworm" complète). Pin de version : postgres:16 → jamais :latest,
+    # sinon une mise à jour majeure pourrait casser ton schéma au prochain build.
+    # Si tu utilises MySQL ou Oracle, ce service n'est PAS démarré : voir `profiles` plus bas.
+    image: postgres:16-alpine
+    # Profil "postgres" : activé par défaut par COMPOSE_PROFILES=postgres (dans .env).
+    # Un service sans profil démarre toujours ; un service AVEC profil ne démarre QUE
+    # si son profil est activé. Ici, ça permet de basculer d'une base à l'autre
+    # sans éditer ce fichier : on change juste COMPOSE_PROFILES dans .env.
+    profiles: ["postgres"]
+    restart: unless-stopped
+    # -- La base ne doit être joignable QUE depuis nginx/le backend sur ce même hôte.
+    #    Bind sur 127.0.0.1 et pas 0.0.0.0 : sinon un scan internet peut attaquer
+    #    PostgreSQL directement (brute force de mot de passe) sans passer par nginx.
+    #    Le port 5432 à gauche = port sur l'HÔTE ; à droite = port dans le conteneur.
+    #    Si PostgreSQL est installé sur l'hôte, ce port est déjà pris → passe à 5433.
+    ports:
+      - "127.0.0.1:${PORT_DB:-5432}:5432"
+    environment:
+      # Créées au PREMIER démarrage uniquement (ensuite, elles sont ignorées :
+      # les données vivent dans le volume ci-dessous).
+      POSTGRES_DB: ${DB_NAME:-app}
+      POSTGRES_USER: ${DB_USER:-app}
+      # Mot de passe : ${MOT_DE_PASSE_DB} est lu dans .env. Génère-le avec
+      # `openssl rand -hex 32`. Ne JAMAIS écrire un vrai mot de passe ici.
+      POSTGRES_PASSWORD: ${MOT_DE_PASSE_DB:?MOT_DE_PASSE_DB manquant dans .env}
+      # `:?message` = docker compose s'ARRÊTE avec une erreur claire si la variable
+      # est absente. Mieux qu'un démarrage silencieux avec un mot de passe vide.
+      # Fichier de démarrage personnalisé : pas nécessaire ici, PostgreSQL gère son init.
+    volumes:
+      # Volume NOMMÉ (pas un chemin local) : les données survivent à `docker compose down`.
+      # Seul `docker compose down -v` le supprime → interdit en production.
+      - db_data:/var/lib/postgresql/data
+      # Raison du bind sur 127.0.0.1 pour l'entrée client (commentaire important) :
+      # le backend accède à la base via le RÉSEAU docker (`db:5432`), pas via ce port ;
+      # ce port sert uniquement au débogage depuis l'hôte (psql, sauvegardes pg_dump).
+    healthcheck:
+      # `pg_isready` renvoie 0 si le serveur accepte les connexions.
+      # $$ = un $ réel (le $ seul serait interprété par compose comme ${...}).
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s       # teste toutes les 10 s
+      timeout: 5s         # au-delà de 5 s sans réponse → échec de ce test
+      retries: 5          # 5 échecs d'affilée → unhealthy
+      start_period: 30s   # grâce au démarrage : PostgreSQL met ~10 s à initialiser
+    networks:
+      - reseau-interne
+
+  # Basculer sur MySQL 8.4
+  # Active avec : COMPOSE_PROFILES=mysql docker compose up -d --build
+  # ⚠ Ne jamais l'activer EN MÊME TEMPS que `db` : les deux publieraient ${PORT_DB}
+  # sur l'hôte → compose échouerait avec "port is already allocated".
+  db-mysql:
+    image: mysql:8.4          # LTS MySQL — pin explicite, jamais :latest
+    profiles: ["mysql"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT_DB:-3306}:3306"   # 3306 = port standard MySQL
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-app}
+      MYSQL_USER: ${DB_USER:-app}
+      MYSQL_PASSWORD: ${MOT_DE_PASSE_DB:?MOT_DE_PASSE_DB manquant dans .env}
+      # Root = compte administrateur. Il ne sert QUE sur le réseau docker interne,
+      # mais on lui donne quand même un mot de passe fort (règle : pas de défaut connu).
+      MYSQL_ROOT_PASSWORD: ${MOT_DE_PASSE_DB:?MOT_DE_PASSE_DB manquant dans .env}
+      # mysql_native_password : compatibilité avec les vieux pilotes PHP/PDO.
+    volumes:
+      - db_data:/var/lib/mysql      # même logique que Postgres : persistance hors conteneur
+    healthcheck:
+      # mysqladmin ping -p... : teste la disponibilité ; attention, la sortie contient
+      # "mysqld is alive" et un WARNING inoffensif sur le mot de passe en clair dans argv.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10          # MySQL est plus lent à ouvrir son socket au boot
+      start_period: 40s
+    networks:
+      - reseau-interne
+
+  #  Basculer sur Oracle Free 21 
+  # Active avec : COMPOSE_PROFILES=oracle docker compose up -d --build
+  # Image communautaire gvenzl/oracle-free : l'image officielle Oracle est énorme
+  # et demande une licence/des acceptations ; gvenzl expose aussi /healthcheck.sh.
+  db-oracle:
+    image: gvenzl/oracle-free:21
+    profiles: ["oracle"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT_DB:-1521}:1521"   # 1521 = port standard Oracle (TNS)
+    environment:
+      ORACLE_PASSWORD: ${MOT_DE_PASSE_DB:?MOT_DE_PASSE_DB manquant dans .env}  # mot de passe SYSTEM/SYS
+      APP_USER: ${DB_USER:-app}
+      APP_USER_PASSWORD: ${MOT_DE_PASSE_DB:?MOT_DE_PASSE_DB manquant dans .env}
+    volumes:
+      - db_data:/opt/oracle/oradata   # données Oracle persistées hors conteneur
+    healthcheck:
+      # gvenzl fournit /healthcheck.sh (tente une connexion SQL) : à défaut, ce script
+      # n'existerait pas dans l'image officielle et le conteneur resterait "starting".
+      test: ["CMD-SHELL", "/healthcheck.sh || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 120s   # Oracle démarre LENTEMENT : 2 min de grâce, sinon unhealthy faux positif
+    networks:
+      - reseau-interne
+
+  # BACKEND — API REST (Python, PHP, Java ou Node : voir DOCKERFILE_BACKEND)
+  backend:
+    build:
+      # LAYOUT ATTENDU DU PROJET (à lire une seule fois, il explique les "..") :
+      #   monapp/                     ← racine du projet = les SOURCES
+      #     ├── backend/  frontend/   ← ton code applicatif
+      #     ├── docker/               ← CE DOSSIER : compose, .env, Dockerfiles
+      #     └── nginx/  vps/  langages/
+      # Tous les chemins relatifs de ce fichier sont calculés depuis docker/ :
+      #   ".." = la racine du projet, "Dockerfile" = docker/Dockerfile.
+      context: ..
+      # Choix du Dockerfile selon ton langage, défini dans .env (voir langages/README.md).
+      # ⚠ Le chemin est relatif au `context` (la racine du projet), donc il
+      #   COMMENCE PAR "docker/" — c'est là que sont les Dockerfiles.
+      dockerfile: ${DOCKERFILE_BACKEND:-docker/Dockerfile.backend-python}
+      args:
+        # Transmises au Dockerfile (ARG) pendant le build, jamais aux processus en prod.
+        NODE_ENV: production
+    image: ${NOM_PROJET:-monapp}-backend   # nom local de l'image, évite les collisions
+    restart: unless-stopped                 # redémarrage auto après crash ou reboot du VPS
+    # ports : bind 127.0.0.1 OBLIGATOIRE. Sans le 127.0.0.1, l'API serait exposée
+    # directement sur Internet et un attaquant contournerait nginx (et son TLS,
+    # son rate-limiting, ses headers de sécurité).
+    ports:
+      - "127.0.0.1:${PORT_BACKEND:-8000}:8000"
+    env_file:
+      # Injecte tout le fichier .env dans le conteneur (mots de passe, secrets…).
+      # Alternative plus stricte : lister variable par variable en `environment:`.
+      - .env
+    environment:
+      # HÔTE de la base = nom du service sur le réseau docker, PAS 127.0.0.1.
+      # Depuis dans le conteneur, 127.0.0.1 = le conteneur lui-même (où il n'y a
+      # aucune base) → erreur classique du débutant.
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-app}
+      DB_USER: ${DB_USER:-app}
+      DB_PASSWORD: ${MOT_DE_PASSE_DB:?MOT_DE_PASSE_DB manquant dans .env}
+      # Rend l'URL publique de l'API disponible au code applicatif (liens absolus,
+      # CORS, redirections). nginx terminera le TLS : le conteneur, lui, reste en HTTP.
+      APP_URL: ${API_PUBLIC:?API_PUBLIC manquant dans docker/.env}
+      SECRET_APP: ${SECRET_APP:?SECRET_APP manquant dans .env}   # sessions/JWT, généré par openssl rand -base64 48
+      # Port ÉCOUTÉ par le processus dans le conteneur : doit correspondre à la
+      # partie droite du mapping ci-dessus ("...:8000").
+      PORT: "8000"
+      # Active/désactive les migrations automatiques au démarrage (Dockerfile.backend-php
+      # et langages/python.md) : "1" = oui, "0" = non (à faire manuellement).
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-1}
+    volumes:
+      # Dossier partagé avec le frontend pour les fichiers envoyés (images, PDF…).
+      # Volume nommé → les uploads ne disparaissent pas à `docker compose down`.
+      # Même volume monté sur `frontend` si ton frontend sert les médias.
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        # NE PAS démarrer l'API tant que la base n'a pas répondu OK à son healthcheck.
+        # Sans ça : "Connection refused" au premier boot, conteneur qui redémarre en boucle.
+        condition: service_healthy
+    healthcheck:
+      # Une route de santé RÉELLE de ton app. Si elle n'existe pas, crée-la :
+      # elle doit juste répondre 200 sans toucher à la base lourde.
+      # curl est installé par les Dockerfiles de ce template UNIQUEMENT pour ça.
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s    # laisser le temps aux migrations de s'exécuter au boot
+    networks:
+      - reseau-interne
+
+  # FRONTEND — SPA ou SSR (Next.js, Vite, ou serveur statique nginx)
+  frontend:
+    build:
+      # Chemin relatif au dossier docker/ : ../frontend = le dossier frontend de
+      # la racine du projet. Adapte si ton frontend vit ailleurs (ex : ../web).
+      context: ../frontend
+      # Relatif au `context` (donc ../frontend/docker/Dockerfile.frontend) — d'où
+      # le pointeur explicite vers le template :
+      dockerfile: ../docker/Dockerfile.frontend
+    image: ${NOM_PROJET:-monapp}-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT_FRONTEND:-3000}:3000"   # 127.0.0.1 : seul nginx peut l'atteindre
+    environment:
+      API_PUBLIC: ${API_PUBLIC:?API_PUBLIC manquant dans docker/.env}   # URL que le NAVIGATEUR utilisera (pas celle docker)
+      NEXT_TELEMETRY_DISABLED: "1"           # coupe la télémétrie de Next au démarrage
+    healthcheck:
+      # "/" doit répondre en < 5 s. Si ton app a une route /health plus légère, préfère-la.
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - reseau-interne
+
+  # WEBSOCKETS — OPTIONNEL (profil "ws"). Sert uniquement si tu as du temps réel.
+  ws:
+    build:
+      # Racine du projet comme contexte (même règle que le backend).
+      context: ..
+      # Relatif au `context` → chemin depuis la racine du projet.
+      dockerfile: ${DOCKERFILE_WS:-docker/Dockerfile.backend-node}   # souvent le même langage que l'API
+    profiles: ["ws"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT_WS:-8081}:8081"   # nginx forwardera /ws vers ce port
+    environment:
+      WS_PORT: "8081"
+      # Secret PARTAGÉ backend ↔ service ws : les deux doivent avoir la MÊME valeur,
+      # sinon le service ws refuse de valider les tokens émis par l'API (min 32 car.).
+      WS_SECRET: ${WS_SECRET:?WS_SECRET manquant dans docker/.env}
+      # Origines acceptées : sans cette liste, n'importe quel site pourrait ouvrir
+      # un WebSocket vers ton serveur en utilisant la session de tes utilisateurs.
+      WS_ORIGINS: ${WS_ORIGINS:?WS_ORIGINS manquant dans docker/.env}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # Adapte à ta route de santé réelle (souvent /health ou /healthz).
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - reseau-interne
+
+  # REDIS — OPTIONNEL (profil "redis") : pub/sub pour scaler les WebSockets
+  redis:
+    # Alpine = image minimale. Le pin `7` évite une surprise en 8.x au prochain build.
+    image: redis:7-alpine
+    profiles: ["redis"]
+    restart: unless-stopped
+    ports:
+      # Redis n'a PAS de authentification par défaut : le bind sur 127.0.0.1 est
+      # la seule barrière. Ne publie JAMAIS 6379 sur 0.0.0.0 (botnets scannent ça
+      # en continu et vident les bases non protégées).
+      - "127.0.0.1:6379:6379"
+    # `--save` = snapshots RDB sur disque, pour que les files d'attente survivent
+    # à un redémarrage. Sans volume, ces snapshots meurent avec le conteneur.
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]   # sortie attendue : PONG
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - reseau-interne
+
+# VOLUMES — données persistantes (survivent à `docker compose down`)
+volumes:
+  db_data:      # Postgres / MySQL / Oracle (selon le profil actif)
+  uploads:      # fichiers envoyés par les utilisateurs (images, PDF…)
+  redis_data:   # files d'attente et cache Redis
+
+# RÉSEAU — conteneurs interconnectés entre eux uniquement
+networks:
+  reseau-interne:
+    # driver bridge = réseau local isolé créé par Docker.
+    # On ne met PAS `internal: true` : les conteneurs doivent pouvoir télécharger
+    # (mises à jour système, appels API tiers). La sécurité ne repose pas là-dessus
+    # mais sur les ports publiés en 127.0.0.1 : nginx seul est exposé.
+    driver: bridge

@@ -1,0 +1,279 @@
+# =============================================================================
+# Dockerfile.backend-php — API PHP 8.3 (Symfony ou Laravel) derrière nginx
+#
+# DEUX APPROCHES POUR SERVIR DU PHP EN PRODUCTION — celle-ci en implémente une :
+#
+# APPROCHE A (CELLE DE CE FICHIER) — « 1 conteneur, 2 processus supervisés »
+#   php-fpm (qui exécute le PHP) + nginx (qui parle HTTP) DANS LE MÊME conteneur,
+#   orchestrés par supervisor. Le conteneur expose un vrai HTTP sur :8000.
+#   → Pourquoi : nginx sur l'hôte fait un `proxy_pass` HTTP simple, EXACTEMENT
+#     comme pour Python, Java ou Node. Un seul modèle à comprendre, un seul
+#     fichier site.conf à maintenir. Inconvénient : le conteneur gère 2 processus.
+#
+# APPROCHE B — « php-fpm seul, nginx sur l'hôte parle FastCGI »
+#   Le conteneur ne contient que php-fpm, qui écoute sur :9000 en protocole
+#   FastCGI (PAS du HTTP). nginx sur l'hôte doit alors utiliser
+#   `fastcgi_pass 127.0.0.1:9000;` au lieu de `proxy_pass`, plus des directives
+#   spécifiques (SCRIPT_FILENAME, PATH_INFO…). Plus efficient, mais tu sors du
+#   template nginx/site.conf uniforme.
+#
+# APPROCHE C — « un seul processus HTTP applicatif » (façon gunicorn)
+#   Un serveur HTTP intégré au framework : FrankenPHP, Symfony Runtime/RoadRunner,
+#   Laravel Octane. Un seul process, comme gunicorn côté Python, aucune
+#   subtilité FastCGI. Solution moderne si ton framework la supporte.
+#
+# PHP 8.3 = LTS de la branche 8.x (correctifs de sécurité jusqu'en fin de vie
+# annoncée de la 8.3) ; c'est la version à pin en production plutôt qu'une 8.4
+# encore jeune sur certains hébergeurs.
+
+FROM php:8.3-fpm-alpine
+
+# Paquets système
+# $PHPIZE_DEPS = en-têtes de compilation (docker-php-ext-install en a besoin).
+# `--virtual .build-deps` regroupe ces paquets pour pouvoir les SUPPRIMER ensuite
+# (image plus légère, moins de failles à corriger). nginx/supervisor/curl/unzip,
+# eux, sont nécessaires en production et restent installés.
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS icu-dev libzip-dev postgresql-dev \
+    && apk add --no-cache nginx supervisor curl unzip git icu-libs libzip postgresql-client
+
+# Extensions PHP indispensables en production
+# pdo_pgsql : connexion PostgreSQL (le template part sur Postgres)
+# pdo_mysql : connexion MySQL      (utile si tu passes au profil mysql)
+# opcache   : met le PHP compilé en cache → 5 à 10x plus rapide ; sans lui, chaque
+#             requête RECOMPILLE tous les fichiers du framework
+# intl      : règles de locale/dates, requis par Symfony et Laravel
+# zip       : gestion des archives (uploads, exporters, composer)
+# -j"$(nproc)" = compile avec autant de processus que de cœurs → build 2x plus rapide.
+# apk del .build-deps : on jette la toolchain de compilation (couche Docker allégée).
+RUN docker-php-ext-install -j"$(nproc)" opcache intl zip pdo_pgsql pdo_mysql \
+    && apk del .build-deps
+
+# opcache : réglages de production
+# validate_timestamps=0 → PHP ne RE-vérifie pas les dates des fichiers à chaque
+# requête (gain énorme). Conséquence : après un `git pull`, il faut redémarrer le
+# conteneur pour que le nouveau code soit pris en compte (cf. vps/README.md étape 7).
+RUN printf '%s\n' \
+      'opcache.enable=1' \
+      'opcache.memory_consumption=256' \
+      'opcache.max_accelerated_files=20000' \
+      'opcache.validate_timestamps=0' \
+    > /usr/local/etc/php/conf.d/opcache-prod.ini
+
+# Uploads : 3 endroits doivent donner le MÊME résultat
+# Taille max d'un fichier envoyé. Choisis entre 10 et 50M selon ton usage
+# (photo d'avatar ≈ 5M, PDF ≈ 20M, export CSV volumineux ≈ 50M).
+#   1) ICI       : php_admin_value upload_max_filesize / post_max_size
+#   2) ICI       : nginx in-container (client_max_body_size dans http.d/site.conf)
+#   3) SUR L'HÔTE: client_max_body_size dans nginx/site.conf (sinon nginx REJETTE
+#                  la requête AVANT qu'elle n'atteigne PHP → erreur 413).
+RUN printf '%s\n' \
+      'upload_max_filesize=20M' \
+      'post_max_size=25M'      \
+      'max_file_uploads=20'    \
+    > /usr/local/etc/php/conf.d/uploads.ini
+
+# Composer, directement depuis l'image officielle 
+# Copier le binaire depuis `composer:2` évite de télécharger un script d'install
+# (plus sûr, reproductible). Composer 2 = version majeure courante.
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Utilisateur NON-root
+# Alpine crée l'utilisateur `app` (uid 10001), sans shell de connexion (-s /usr/sbin/nologin)
+# et sans répertoire home (-H) : un compte d'exécution, pas un compte de login.
+# Tout ce qui suit s'exécute avec ses droits → si une faille PHP est exploitée,
+# l'attaquant n'a PAS les droits root dans le conteneur.
+# chown : nginx (lancé plus bas en non-root) doit pouvoir écrire son fichier pid,
+# ses sockets temporaires et son dossier de configuration.
+RUN adduser -D -H -s /usr/sbin/nologin -u 10001 app \
+    && mkdir -p /var/www/html /run/nginx \
+    && chown -R app:app /var/www/html /run/nginx /var/cache/nginx /etc/nginx/conf.d
+
+WORKDIR /var/www/html
+
+#  Dépendances PHP
+# On copie d'abord SEULEMENT composer.json + composer.lock : la couche Docker
+# correspondante n'est reconstruite que si ces fichiers changent. Si tu ne fais
+# que modifier du code PHP, `composer install` ne S'EXÉCUTE PAS au prochain build
+# (gain de 1 à 3 minutes).
+COPY --chown=app:app composer.json composer.lock ./
+
+# --no-dev           : pas de bundle de dev (phpunit, symfony/monolog debug) en prod
+# --optimize-autoloader : pré-compile le mappeur de classes → autoload 2x plus rapide
+# --no-interaction --no-progress : sorties propres dans les logs de build
+# `|| true` : si composer.json n'est pas encore présent (tout premier build avant
+# d'avoir copié ton projet), on continue quand même ; le RUN suivant échouera
+# clairement si les sources manquent vraiment.
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress || true
+
+# Code applicatif
+# `.` = la racine du build (contexte docker-compose : `build.context`).
+# Adapte ce chemin si ton backend n'est pas à la racine (ex : `./backend`).
+COPY --chown=app:app . /var/www/html
+
+# Rend app propriétaire du dossier : les écritures de sessions/cache en
+# var/ (Symfony) ou storage/ (Laravel) fonctionnent sans droits root.
+RUN chown -R app:app /var/www/html
+
+# Configuration php-fpm : un seul pool, écoute locale
+# 1) On force `listen = 127.0.0.1:9000` (et PAS 0.0.0.0:9000) : dans ce conteneur,
+#    seuls les process locaux (nginx ci-dessous) doivent pouvoir parler FastCGI à
+#    PHP. En 0.0.0.0, un autre conteneur du réseau docker pourrait envoyer des
+#    requêtes PHP directement, en contournant nginx et son rate-limiting.
+# 2) On retire `user =`/`group =` : php-fpm est lancé en NON-root, il ignorerait
+#    de toute façon ces directives et afficherait un avertissement à chaque boot.
+RUN sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i '/^user = /d; /^group = /d' /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i 's|^;clear_env = no|clear_env = no|' /usr/local/etc/php-fpm.d/www.conf
+    # clear_env = no : les variables de docker-compose.yml (DB_PASSWORD, APP_URL…)
+    # restent visibles dans les process PHP. Sans ça, PHP les LAVE au démarrage du
+    # pool et ton app verrait des variables d'environnement vides.
+
+# Configuration nginx INTERNE (écoute :8000, sert PHP via FastCGI)
+RUN printf '%s\n' \
+      'worker_processes auto;' \
+      'pid /tmp/nginx.pid;' \
+      'events { worker_connections 1024; }' \
+      'http {' \
+      '  include       /etc/nginx/mime.types;' \
+      '  default_type  application/octet-stream;' \
+      '  access_log    /dev/stdout;' \
+      '  error_log     /dev/stderr warn;' \
+      '  sendfile      on;' \
+      '  keepalive_timeout 65;' \
+      '  client_max_body_size 20m;' \
+      '  client_body_temp_path /tmp/nginx_client_body;' \
+      '  proxy_temp_path       /tmp/nginx_proxy;' \
+      '  fastcgi_temp_path     /tmp/nginx_fastcgi;' \
+      '  uwsgi_temp_path       /tmp/nginx_uwsgi;' \
+      '  scgi_temp_path        /tmp/nginx_scgi;' \
+      '  include /etc/nginx/conf.d/*.conf;' \
+      '}' \
+    > /etc/nginx/nginx.conf
+# Pas de directive `user` ici : nginx est lancé en non-root (USER app plus bas),
+# cette directive ne sert alors qu'à afficher un avertissement à chaque démarrage.
+# `pid /tmp/nginx.pid` et les `*_temp_path /tmp/...` : nginx doit pouvoir écrire
+# quelque part, et /tmp est le seul répertoire garanti inscriptible en non-root
+# (les chemins par défaut, /var/run ou /var/cache, appartiennent à root).
+
+# Bloc serveur : écoute sur 0.0.0.0:8000 DANS LE CONTENEUR — obligatoire, car le
+# mapping de port Docker (127.0.0.1:8000:8000 côté hôte) envoie le trafic vers
+# l'IP du conteneur, pas vers sa boucle de retour. La protection 127.0.0.1 est
+# assurée PLUS HAUT, sur le host, dans docker-compose.yml.
+# try_files = les fichiers statiques sont servis directement par nginx, seul le
+# reste est confié à PHP (beaucoup plus rapide que de passer TOUT par php-fpm).
+RUN printf '%b\n' \
+      'server {' \
+      '  listen 8000;' \
+      '  server_name _;' \
+      '  root /var/www/html/public;' \
+      '  index index.php;' \
+      '  client_max_body_size 20m;' \
+      '  location / {' \
+      '    try_files \044uri \044uri/ /index.php?\044query_string;' \
+      '  }' \
+      '  location ~ \\.php\044 {' \
+      '    include fastcgi_params;' \
+      '    fastcgi_pass 127.0.0.1:9000;' \
+      '    fastcgi_index index.php;' \
+      '    fastcgi_param SCRIPT_FILENAME \044document_root\044fastcgi_script_name;' \
+      '    fastcgi_read_timeout 60s;' \
+      '  }' \
+      '  location ~ /\\. { deny all; }' \
+      '}' \
+    > /etc/nginx/conf.d/app.conf
+# ⚠ Pourquoi tout cet escapage ? Deux couches de substitution se superposent :
+#   1) printf %b : `\\` → `\` et `\044` (36 en octal) → le caractère `$`.
+#      Sans ça, on ne pourrait pas produire un `$` qui survit à l'étape 2.
+#   2) Le parser du Dockerfile remplace les `$nom` par des valeurs d'environnement
+#      PENDANT le build. `$uri`, `$document_root`… sont des variables NGINX, pas du
+#      Dockerfile : sans protection, ils seraient mangés et la config serait invalide.
+# On préfère une config laide mais correcte à une config jolie et cassée.
+# `location ~ /\. ` = on refuse de servir les fichiers cachés (.env, .git, .htaccess) :
+# sinon ton .env (avec les mots de passe) serait téléchargeable par n'importe qui.
+
+# --- Supervisor : lance nginx + php-fpm, un seul "chef" dans le conteneur -----
+# nodaemon=true : supervisord reste au premier plan (PID 1 du conteneur) — sinon
+# il se détacherait et Docker croirait que le conteneur est mort.
+RUN printf '%s\n' \
+      '[supervisord]' \
+      'nodaemon=true' \
+      'logfile=/dev/null' \
+      'pidfile=/tmp/supervisord.pid' \
+      '' \
+      '[program:php-fpm]' \
+      'command=/usr/local/sbin/php-fpm --nodaemonize' \
+      'autostart=true' \
+      'autorestart=true' \
+      'stdout_logfile=/dev/stdout' \
+      'stdout_logfile_maxbytes=0' \
+      'stderr_logfile=/dev/stderr' \
+      'stderr_logfile_maxbytes=0' \
+      '' \
+      '[program:nginx]' \
+      'command=nginx -g "daemon off;"' \
+      'autostart=true' \
+      'autorestart=true' \
+      'stdout_logfile=/dev/stdout' \
+      'stdout_logfile_maxbytes=0' \
+      'stderr_logfile=/dev/stderr' \
+      'stderr_logfile_maxbytes=0' \
+    > /etc/supervisord.conf
+# `--nodaemonize` et `-g "daemon off;"` = les deux process doivent rester AU PREMIER
+# PLAN. S'ils se détachaient, supervisord croirait qu'ils sont morts et les
+# relancerait en boucle — et Docker croirait que le conteneur est vide.
+# Pas de directive `user=` : supervisord est déjà lancé en `USER app` (voir plus bas) ;
+# demander un changement d'utilisateur en non-root ferait échouer son démarrage.
+
+# --- Entrypoint : migrations AVANT le lancement des serveurs ------------------
+# Écrit dans l'image (pas de fichier supplémentaire dans ton dépôt).
+# RUN_MIGRATIONS=1 (défaut, cf. docker/.env.example) → les migrations partent tout
+# seules au démarrage : idéal en CI/Docker, une seule commande à retenir.
+# RUN_MIGRATIONS=0 → elles sont IGNORÉES : tu les lances alors toi-même à chaque
+# mise à jour (`docker compose exec backend php bin/console doctrine:migrations:migrate`).
+# C'est le réglage à préférer si tu veux contrôler l'instant exact du changement
+# de schéma en production.
+#
+# printf %b + \044 = on écrit un vrai `$` dans le script SANS que le parser du
+# Dockerfile le remplace au build (il croirait à une variable d'environnement et
+# le script lirait une valeur figée à jamais). C'est le seul `$` du fichier.
+RUN printf '%b\n' \
+      '#!/bin/sh' \
+      'set -eu' \
+      'if [ "\044{RUN_MIGRATIONS:-1}" = "1" ]; then' \
+      '  if [ -f bin/console ]; then' \
+      '    echo "[entrypoint] Migrations Symfony (doctrine)..."' \
+      '    php bin/console doctrine:migrations:migrate --no-interaction' \
+      '  elif [ -f artisan ]; then' \
+      '    echo "[entrypoint] Migrations Laravel..."' \
+      '    php artisan migrate --force' \
+      '  else' \
+      '    echo "[entrypoint] Aucun gestionnaire de migrations detecte (bin/console ni artisan) : rien a faire."' \
+      '  fi' \
+      'else' \
+      '    echo "[entrypoint] RUN_MIGRATIONS=0 : migrations ignorees, lance-les a la main."' \
+      'fi' \
+      '# Les serveurs ne demarrent qu APRES les migrations : sinon php-fpm repondrait' \
+      '# a des requetes PENDANT que le schema change, et les utilisateurs verraient des 500.' \
+      'exec supervisord -c /etc/supervisord.conf' \
+    > /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
+
+# Repasse l'appartenance après toutes les écritures ci-dessus.
+RUN chown -R app:app /var/www/html /run/nginx
+
+# Port HTTP interne — doit correspondre à la partie droite du mapping de ports
+# dans docker-compose.yml (`127.0.0.1:${PORT_BACKEND:-8000}:8000`).
+EXPOSE 8000
+
+# Santé du conteneur vue de l'intérieur (docker compose healthcheck fera le même
+# test depuis l'extérieur du conteneur mais depuis le réseau docker).
+# /api/health : route légère, sans accès base de données lourde. Si ton app n'en a
+# pas, crée-la — elle sert à distinguer « le conteneur tourne » de « l'app répond ».
+HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl -f http://127.0.0.1:8000/api/health || exit 1
+
+# `exec` dans l'entrypoint : supervisord devient PID 1 et reçoit directement
+# SIGTERM à l'arrêt du conteneur → php-fpm et nginx se terminent proprement
+# (sinon Docker tue le conteneur après 10 s et les requêtes en cours sont coupées).
+USER app
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

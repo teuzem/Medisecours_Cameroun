@@ -1,0 +1,115 @@
+# Dockerfile.backend-python — API Python 3.12 (FastAPI, Django, Flask)
+#
+# Python 3.12 = version stable recommandée : la 3.13 est récente et certains
+# wheels natives (psycopg, numpy…) tardent à suivre ; la 3.12 est supportée
+# longtemps et adoptée par Django/FastAPI aujourd'hui. On pinne `3.12` (et non
+# `:latest` ni `:3`) : une montée de version mineure ne doit jamais changer toute
+# seule au prochain build de production.
+#
+# Approche « gunicorn-like » : UN SEUL type de processus dans le conteneur,
+# le serveur HTTP applicatif (gunicorn ou uvicorn). nginx reste sur l'hôte.
+# C'est le modèle le plus simple à déboguer : 1 conteneur = 1 rôle.
+
+FROM python:3.12-slim
+
+# Les messages des outils en français + heure UTC (les logs de production doivent
+# être horodatés de la même façon partout, quel que soit l'hôte).
+# Trois réglages d'exécution expliqués avant le bloc (jamais de `#` entre les
+# lignes terminées par `\` : un commentaire dans une continuation casse certains
+# builders Docker) :
+#   PYTHONDONTWRITEBYTECODE=1 → désactive l'écriture de __pycache__ à
+#     l'exécution : en prod on sert du code déjà compilé, et le conteneur tourne
+#     en non-root (droits d'écriture limités).
+#   PYTHONUNBUFFERED=1 (`python -u`) → stdout non tamponné, les logs apparaissent
+#     IMMÉDIATEMENT dans `docker compose logs` au lieu d'être stockés en mémoire
+#     (indispensable pour voir une erreur de démarrage plutôt qu'un écran vide).
+#   PIP_NO_CACHE_DIR / PIP_DISABLE_PIP_VERSION_CHECK → pas de cache de paquets
+#     dans l'image (couche plus légère) et pas de contrôle de version réseau.
+ENV LANG=fr_FR.UTF-8 \
+    LANGUAGE=fr_FR:fr \
+    LC_ALL=fr_FR.UTF-8 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# curl sert UNIQUEMENT aux healthchecks (celui du Dockerfile ci-dessous et celui de
+# docker-compose.yml). python:3.12-slim ne l'inclut pas → sans lui, chaque
+# conteneur passerait en unhealthy alors même que l'API fonctionne.
+#   --no-install-recommends : ne pas tirer 200 Mo de paquets optionnels inutiles.
+#   rm -rf /var/lib/apt/lists/* : nettoyage obligatoire, sinon les listes de
+#     paquets restent dans la couche et gonflent l'image de ~30 Mo pour rien.
+# (Les explications sont ici, au-dessus : un `#` au milieu d'un RUN avec `\`
+#  casserait le build sur certains builders.)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Utilisateur NON-root : si une faille de l'API est exploitée, l'attaquant hérite
+# des droits de `app` (uid 10001), pas de root dans le conteneur.
+RUN useradd --system --uid 10001 --create-home --shell /usr/sbin/nologin app
+
+# Dépendances 
+# `requirements.txt` est copié AVANT le reste du code : la couche Docker du
+# `pip install` n'est reconstruite que si requirements.txt change. Tu modifies du
+# code Python tous les jours, le fichier de dépendances presque jamais → des builds
+# de 20 secondes au lieu de 3 minutes.
+WORKDIR /app
+COPY requirements.txt ./
+
+# --no-cache-dir : ne pas garder les tarballs téléchargés dans l'image
+#   (PIP_NO_CACHE_DIR=1 le fait déjà ; c'est redondant mais explicite ici).
+# --requirement : installe tout ce qui est listé, à des versions épinglées par le
+#   fichier lui-même (pense à `pip freeze > requirements.txt` après un test local).
+# Le venv (voir ci-dessous) évite les conflits avec les paquets système de Debian.
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
+    && /opt/venv/bin/pip install --no-cache-dir --requirement requirements.txt
+
+# /opt/venv/bin en tête de PATH : gunicorn, uvicorn, django-admin… sont appelés
+# SANS préfixe, et le bon interpréteur est utilisé.
+ENV PATH="/opt/venv/bin:${PATH}"
+
+# Code applicatif Backend
+# Copie en tant que `app` : l'utilisateur non-root doit pouvoir lire (et écrire
+# dans les dossiers de cache/média que tu monteras en volume).
+COPY --chown=app:app . /app
+
+USER app
+
+# Port ÉCOUTÉ par gunicorn/uvicorn DANS le conteneur.
+# Attention : on écoute en 0.0.0.0:8000 (toutes les interfaces du conteneur) —
+# c'est obligatoire, le mapping docker (127.0.0.1:8000 côté hôte) envoie le trafic
+# vers l'IP du conteneur. La barrière de sécurité est ailleurs : dans
+# docker-compose.yml, le port n'est publié QUE sur 127.0.0.1 de l'hôte.
+EXPOSE 8000
+
+# Commande de démarrage
+# gunicorn = serveur HTTP de production pour Python (l'équivalent de php-fpm pour
+# PHP, d'Apache pour du statique). `--workers` = nombre de processus qui traitent
+# les requêtes en parallèle : règle empirique = (2 x cœurs) + 1. Sur un petit VPS
+# (1-2 cœurs), 4 workers est un bon compromis mémoire/parallélisme.
+# `--bind 0.0.0.0:8000` = ip du conteneur + port (cf. EXPOSE plus haut).
+# `--access-logfile -` / `--error-logfile -` = logs vers stdout/stderr, donc
+# visibles avec `docker compose logs backend` (sinon ils sont perdus).
+# --timeout 60 : une requête lourde (export PDF) est coupée au-delà de 60 s.
+#
+# À ADAPTER à ton framework :
+#   FastAPI    : "app.main:app"          (objet ASGI exposé par le module)
+#   Django     : "monprojet.wsgi:application"  (ou `manage.py runserver` INTERDIT en prod)
+#   Flask      : "app:app"
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "app.main:app"]
+
+# Santé 
+# /api/health doit répondre 200 sans base de données lourde (un simple
+# `return {"statut": "ok"}`) : elle sert à distinguer « le process tourne » de
+# « l'API répond réellement ».
+# Si tu utilises uvicorn en dev : remplace la CMD ci-dessus par
+# ["uvicorn", "--host", "0.0.0.0", "--port", "8000", "app.main:app"]
+# mais garde gunicorn en production (uvicorn seul ne gère pas le multi-process).
+HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl -f http://127.0.0.1:8000/api/health || exit 1
+
+# Le conteneur se termine proprement : Docker envoie SIGTERM, gunicorn coupe les
+# requêtes en cours puis s'arrête. Pas de `sh -c` ici → pas de shell qui masque
+# le signal (cf. la règle "un processus par conteneur").

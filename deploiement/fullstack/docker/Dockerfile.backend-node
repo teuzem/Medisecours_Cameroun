@@ -1,0 +1,80 @@
+# Dockerfile.backend-node — API Node.js 22 (Express, NestJS, Fastify)
+#
+# Node 22 = version LTS (les versions paires : 18, 20, 22 sont maintenues 30 mois
+# et recommandées en production ; les versions impaires sortent pour 6 mois à peine).
+# Image `node:22-alpine` : Alpine = base ~130 Mo contre ~1 Go pour la variante
+# Debian, et le C runtime musl suffit largement pour une API HTTP.
+#
+# Variante « statique » (voir tout en bas) : même image, mais pour servir un
+# dossier dist/ de fichiers compilés plutôt qu'un serveur applicatif.
+
+FROM node:22-alpine
+
+WORKDIR /app
+
+# curl = healthcheck uniquement (Dockerfile et docker-compose.yml testent
+# http://localhost:8000/api/health). Alpine n'a pas curl → sans cette ligne,
+# conteneur "unhealthy" alors que l'API tourne parfaitement.
+RUN apk add --no-cache curl
+
+# Utilisateur non-root (déjà présent dans l'image : `node`, uid 1000) — cf. les
+# autres Dockerfiles : une faille de l'API ne doit pas donner les droits root.
+RUN chown node:node /app
+
+# Dépendances
+# Copie du lockfile AVANT le code : tant que package.json/package-lock.json ne
+# changent pas, `npm ci` n'est pas relancé → build de quelques secondes.
+COPY package*.json ./
+
+# `npm ci` = installation EXACTE du lockfile (versions épinglées à la lettre),
+# à la différence de `npm install` qui peut remonter une nouvelle version mineure.
+# --omit=dev = pas de dépendances de développement (jest, eslint…) en prod.
+# --ignore-scripts = ne PAS exécuter les scripts d'installation des paquets
+# (un paquet compromis exécuterait son code au build ; rarement nécessaire pour
+# les deps de prod, et supprime toute la chaîne d'exécution en build).
+RUN npm ci --omit=dev --ignore-scripts
+
+# Code 
+COPY --chown=node:node . .
+
+# Si ton app a une étape de build (TypeScript, bundle) : ajoute ici
+#   RUN npm run build
+# AVANT USER, sinon le process n'a pas les droits d'écriture sur dist/.
+
+USER node
+
+# Port écouté par le serveur Node dans le conteneur. Node doit écouter
+# 0.0.0.0 (et PAS 127.0.0.1, qui le rendrait injoignable depuis docker) — la
+# protection se fait sur l'hôte, via le bind 127.0.0.1 de docker-compose.yml.
+EXPOSE 8000
+
+# --- Lancement -----------------------------------------------------------------
+# `node dist/server.js` = fichier d'entrée PRODUCTION compilé (TypeScript → JS).
+# ⚠ À ADAPTER à ton projet : vérifie le chemin réel de ton point d'entrée :
+#     Express/Nest classique : dist/server.js  ou  dist/main.js
+#     Sans build (JS pur)     : src/server.js
+#     NestJS                  : dist/main.js   (généré par `nest build`)
+#   Un `npm run dev` (nodemon/ts-node) ne convient JAMAIS en prod : pas de cache,
+#   redémarrage à chaque fichier, et le débogueur exposé.
+#
+# `node` reçoit SIGTERM directement (pas de shell intermédiaire) → l'arrêt du
+# conteneur est propre, les requêtes en cours se terminent avant la coupure.
+CMD ["node", "dist/server.js"]
+
+# Santé 
+# /api/health : route légère, sans accès base. Si ton app en a une autre, change
+# l'URL ici ET dans docker-compose.yml (les deux doivent tester la même route,
+# sinon le healthcheck du Dockerfile et celui de compose se contredisent).
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -f http://127.0.0.1:8000/api/health || exit 1
+
+# VARIANTE STATIQUE — si ton projet ne fait que produire des fichiers statiques
+# (bundle Vite/React/Angular dans dist/, sans serveur applicatif) :
+#   - remplace la dernière CMD par un serveur HTTP minimal, par exemple :
+#       RUN npm install -g serve        # ou installe nginx dans l'image
+#       CMD ["serve", "-s", "dist", "-l", "8000"]
+#   - et garde le même EXPOSE 8000 + healthcheck : docker-compose.yml et
+#     nginx/site.conf n'ont alors rien à changer.
+# Dans ce cas, c'est le FRONTEND qui utilise ce Dockerfile (DOCKERFILE_BACKEND
+# doit rester sur un backend « vrai », s'il y en a un) : cf. Dockerfile.frontend
+# et sa note « si ton framework n'est pas Next ».

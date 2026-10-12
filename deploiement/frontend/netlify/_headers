@@ -1,0 +1,165 @@
+# =============================================================================
+# _headers — en-têtes SPÉCIFIQUES par chemin, pour le frontend {{NOM_PROJET}}
+# -----------------------------------------------------------------------------
+# OÙ LE POSER : dans le dossier "public/" du projet (public/_headers).
+#   Next.js copie public/ à la racine du build → le fichier arrive au bon
+#   endroit à chaque déploiement. Le poser ailleurs = IGNORÉ EN SILENCE.
+#
+# FORMAT :
+#   <chemin>              ← un chemin (jokers * et :acceptus)
+#     En-tête: valeur     ← indenté de 2 espaces, juste SOUS le chemin
+#
+# Toutes les explications sont placées AVANT chaque bloc, jamais entre le
+# chemin et ses en-têtes : le fichier reste strictement valide même si le
+# commentaire n'était pas lu.
+#
+# ⚠️  Netlify lit à la fois netlify.toml ET ce fichier, et les FUSIONNE.
+#   Découpe appliquée ici :
+#      netlify.toml → en-têtes de sécurité GLOBAUX (X-Frame-Options, nosniff,
+#                     Referrer-Policy, Permissions-Policy, HSTS)
+#      _headers     → CSP + CACHE par type de fichier
+#   Ne redéfinit JAMAIS le même en-tête sur le même chemin dans les deux : il
+#   serait envoyé deux fois et certains navigateurs ignorent alors la règle.
+#
+# ⚠️  REMPLACE {{DOMAINE}}, {{DOMAINE_WS}} et {{DOMAINE_API}} à la main :
+#   ce fichier est lu TEL QUEL par Netlify, il n'y a AUCUN moteur de template.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1. CACHE — la règle qui fait gagner ~80 % de la vitesse perçue
+# -----------------------------------------------------------------------------
+# Deux politiques VOLONTAIREMENT opposées :
+#
+#   /_next/static/... → fichiers AVANT-CACHEMENT : Next.js met un hash dans le
+#                       NOM (/_next/static/chunks/7f3a9c.js). Le nom change à
+#                       chaque build ⇒ on peut mettre 1 AN de cache sans
+#                       jamais servir un fichier périmé.
+#   *.html / racine    → les PAGES : elles changent à chaque déploiement ⇒
+#                       cache ZÉRO, sinon le visiteur reste bloqué sur
+#                       l'ancien site jusqu'à expiration du cache.
+#
+# Le chemin le plus SPÉCIFIQUE gagne : /* sert de plancher, /.next/static/*
+# et /*.html passent devant.
+# -----------------------------------------------------------------------------
+
+# -- Tout ce qui n'a pas de règle plus précise (donc le HTML) -----------------
+# public          = le cache intermédiaire de Netlify PEUT stocker la ressource
+# max-age=0       = ne pas la garder sans revalider
+# must-revalidate = après expiration, il faut OBLIGATOIREMENT re-vérifier
+# → résultat : le visiteur voit TOUJOURS la version la plus fraîchement publiée.
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# -- Les JS/CSS/images polices AVANT-CACHEMENTS de Next.js ---------------------
+# 31536000 secondes = 1 an.
+# immutable = le navigateur ne DOIT PAS même re-vérifier le fichier à chaque
+# rechargement : on économise un aller-retour par ressource, soit ~20 requêtes
+# évitées par page. C'est sûr UNIQUEMENT parce que le nom contient un hash et
+# qu'il change donc à chaque build.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# -- Les fichiers statiques de public/ qui portent un hash dans le nom --------
+# ⚠️ NE PAS appliquer immutable à /favicon.ico ni à des images SANS hash :
+# le navigateur conserverait l'ancienne version pendant 1 an.
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# -- Le HTML, règle explicite (plus forte que /*) ------------------------------
+# no-store = aucun stockage autorisé : chaque visite relit le fichier
+# fraîchement déployé. C'est ce qui garantit qu'un déploiement est VISIBLE
+# immédiatement, sans « mais ça marchait encore il y a 10 minutes ! ».
+/*.html
+  Cache-Control: no-store
+
+
+# =============================================================================
+# 2. CSP — Content Security Policy : la barrière anti-injection de script
+# =============================================================================
+# La CSP dit au navigateur : « n'exécute / n'affiche QUE ceci ». Même si un
+# attaquant parvient à injecter un <script> dans une page (faille de saisie,
+# commentaire, URL, etc.), le navigateur REFUSE de l'exécuter s'il ne vient pas
+# d'une source listée ci-dessous. C'est la défense la plus efficace contre le
+# XSS (Cross-Site Scripting), de très loin la faille la plus répandue.
+#
+# ⚠️ UNE CSP TROP STRICTE CASSE LE SITE silencieusement (images grises, carte
+#    qui ne charge pas, bouton Google muet). PROCÉDURE OBLIGATOIRE :
+#      1. déploie, ouvre le site, F12 → onglet Console ;
+#      2. cherche « Refused to ... » — il indique la SOURCE et la DIRECTIVE ;
+#      3. ajoute cette source à la directive concernée ;
+#      4. recommite, redéploie, re-teste.
+#    Ne recopie jamais une CSP sans faire ce test : celle-ci est un EXEMPLE
+#    adapté à CE projet (Google Maps, Google Sign-In, Mapbox).
+#
+# Lecture du format : chaque directive se termine par « ; ». Une barre \ en
+# fin de ligne signifie « la directive continue à la ligne suivante ».
+# =============================================================================
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://maps.googleapis.com https://maps.gstatic.com https://*.mapbox.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.mapbox.com; font-src 'self' data: https://fonts.gstatic.com https://*.mapbox.com; img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://*.mapbox.com https://*.tile.openstreetmap.com; connect-src 'self' https://{{DOMAINE_API}} wss://{{DOMAINE_WS}} https://*.mapbox.com https://maps.googleapis.com; frame-src 'self' https://accounts.google.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
+
+# ---- Ce que chaque directive interdit réellement / pourquoi elle est là -------
+#
+#  default-src 'self'
+#     Règle par défaut : tout ce qui n'est PAS listé plus bas est refusé.
+#     On autorise par EXCEPTION, c'est la posture la plus sûre.
+#
+#  script-src ...  (les SCRIPTS)
+#     'self'         = les chunks JS servis par ton domaine.
+#     'unsafe-inline'= obligatoire : Next.js injecte des <script> inline dans
+#                      le HTML rendu (et React aussi).
+#     'unsafe-eval'  = pour les libs qui compilent du code à l'exécution.
+#                      À RETIRER un jour : teste en le commentant, si la
+#                      console reste propre, tu peux le supprimer.
+#     apis.google.com / accounts.google.com = le bouton « Se connecter avec Google ».
+#     maps.googleapis.com / maps.gstatic.com = Google Maps.
+#     *.mapbox.com   = Mapbox GL (tuiles + workers).
+#
+#  style-src ...    (les CSS)
+#     'unsafe-inline' = Next.js écrit ses styles inline.
+#     fonts.googleapis.com = la feuille de style Google Fonts.
+#
+#  font-src ...     (les POLICES)
+#     data: = polices encodées en base64 dans le CSS (fréquent).
+#
+#  img-src ...      (les IMAGES)
+#     blob: = aperçus d'images générés côté JS.
+#     *.googleapis.com / *.gstatic.com = marqueurs et tuiles Google.
+#     *.tile.openstreetmap.com = le repli OpenStreetMap.
+#
+#  connect-src ...  (XHR / FETCH / WEBSOCKETS)
+#     ⚠️ C'EST ICI QUE SE JOUE LE PIÈGE 5 : si wss://{{DOMAINE_WS}} n'est pas
+#     listé, le navigateur refuse la connexion WebSocket et le temps réel MEURT
+#     EN SILENCE (seul un message CSP en console le révèle).
+#     https://{{DOMAINE_API}} = les appels API directs (export statique).
+#     wss: = nécessaire en développement (HMR de Next.js).
+#
+#  frame-src ...    (les IFRAMES que CE site peut ouvrir)
+#     Seul le compte Google (fenêtre de connexion OAuth).
+#
+#  frame-ancestors 'none' = personne ne peut encadrer ce site → version
+#     moderne de X-Frame-Options DENY (défini dans netlify.toml).
+#  object-src 'none'      = pas d'« object » / « embed » (vieux vecteurs d'attaque).
+#  base-uri 'self'        = un « base » injecté ne peut pas réécrire tes liens.
+#  form-action 'self'     = un formulaire volé ne peut pas envoyer les
+#                           identifiants vers un autre domaine.
+#  upgrade-insecure-requests = toute URL http:// est réécrite en https://.
+
+
+# =============================================================================
+# 3. PERMISSIONS — quelles fonctions du NAVIGATEUR ce site peut demander
+# =============================================================================
+# Permissions-Policy est définie dans netlify.toml pour TOUT le site.
+# NE LA RE-DÉFINIS PAS ICI : elle serait envoyée deux fois, et certains
+# navigateurs n'appliqueraient alors aucune des deux valeurs.
+#
+# Exemple (à décommenter UNIQUEMENT si tu veux la restreindre à CE chemin) :
+#
+# /*
+#   Permissions-Policy: camera=(), microphone=(), geolocation=(self), payment=()
+#
+# Lecture : « () » = fonctionnalité REFUSÉE à ce site et à tout script tiers
+# qu'il chargerait ; « (self) » = autorisée pour ton propre domaine.
+# Choix retenus : caméra/micro/paiement refusés (inutiles ici),
+# géolocalisation autorisée (la carte a besoin de la position).
+# =============================================================================
