@@ -291,6 +291,7 @@
         "cameraEnable": "Activer la caméra",
         "cameraCapture": "Prendre la photo",
         "cameraRetake": "Reprendre",
+        "cameraRetry": "Réessayer la caméra",
         "cameraCaptured": "Photo prête",
         "cameraDenied": "Caméra refusée",
         "cameraDeniedDesc": "Autorisez la caméra dans les réglages du navigateur, ou cochez « sans caméra ».",

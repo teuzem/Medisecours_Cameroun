@@ -54,12 +54,24 @@ interface UseWayfindingResult {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const OSRM_BASE = 'https://router.project-osrm.org/route/v1'
 const OSRM_TIMEOUT_MS = 8000
 
-// OSRM demo server only supports the "driving" profile.
-// For "walking" / "bicycling", we reuse the driving geometry but recalculate
-// the duration from the average speed of the mode.
+/**
+ * Routeur par mode de déplacement : le serveur démo OSRM ne sert que le
+ * profil voiture ; les profils vélo et marche sont servis par les instances
+ * publiques FOSSGIS (même API OSRM v1). Chaque mode obtient donc une vraie
+ * géométrie et une vraie durée — indispensable pour guider ambulances,
+ * vélos et marcheurs vers le patient (SOS). En cas d'échec réseau ou de
+ * profil indisponible : repli ligne droite signalé (isFallback).
+ */
+const OSRM_ROUTERS: Record<WayfindingMode, { base: string; profile: string }> = {
+  driving: { base: 'https://router.project-osrm.org/route/v1', profile: 'driving' },
+  walking: { base: 'https://routing.openstreetmap.de/routed-foot/route/v1', profile: 'driving' },
+  bicycling: { base: 'https://routing.openstreetmap.de/routed-bike/route/v1', profile: 'driving' },
+}
+
+// Vitesses moyennes — utilisées UNIQUEMENT pour le repli ligne droite
+// (durée estimée quand aucun routeur ne répond).
 const WALKING_SPEED_KMH = 5
 const BICYCLING_SPEED_KMH = 15
 const DRIVING_SPEED_KMH = 40
@@ -193,10 +205,12 @@ export function useWayfinding({
       setIsFallback(false)
 
       try {
-        // OSRM expects: /route/v1/{profile}/{lng1},{lat1};{lng2},{lat2}
-        const profile = 'driving'
+        // OSRM : /route/v1/{profile}/{lng1},{lat1};{lng2},{lat2}. Sur les
+        // instances FOSSGIS le segment profile vaut « driving », l'instance
+        // (routed-bike / routed-foot) définit le vrai profil de routage.
+        const router = OSRM_ROUTERS[mode]
         const coords = `${patientPosition.lng},${patientPosition.lat};${destination.lng},${destination.lat}`
-        const url = `${OSRM_BASE}/${profile}/${coords}?overview=full&geometries=geojson&steps=true&annotations=false`
+        const url = `${router.base}/${router.profile}/${coords}?overview=full&geometries=geojson&steps=true&annotations=false`
 
         const response = await fetch(url, { signal: controller.signal })
 
@@ -214,12 +228,8 @@ export function useWayfinding({
         const geometry: RouteGeometry = osrmRoute.geometry
         const routeDistance: number = osrmRoute.legs[0].distance
 
-        // Driving uses the real OSRM duration ; walking/bicycling are
-        // recalculated from the average speed of the mode.
-        let routeDuration: number = osrmRoute.legs[0].duration
-        if (mode !== 'driving') {
-          routeDuration = (routeDistance / 1000 / MODE_SPEED_KMH[mode]) * 3600
-        }
+        // Durée réelle du profil routé (voiture, vélo ou marche).
+        const routeDuration: number = osrmRoute.legs[0].duration
 
         const osrmSteps: {
           maneuver?: { instruction?: string; type?: string; modifier?: string }

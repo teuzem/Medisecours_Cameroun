@@ -82,17 +82,43 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
       setCameraState('unsupported')
       return
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 } },
-        audio: false,
-      })
-      streamRef.current = stream
-      setCameraState('live')
-    } catch {
-      setCameraState('denied')
+    // Chaîne de contraintes : caméra arrière (scène de l'incident) puis
+    // n'importe quelle caméra (desktop/laptop sans capteur arrière).
+    const attempts: MediaStreamConstraints[] = [
+      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false },
+      { video: { width: { ideal: 1280 } }, audio: false },
+      { video: true, audio: false },
+    ]
+    for (const constraints of attempts) {
+      try {
+        const stream = await Promise.race([
+          navigator.mediaDevices.getUserMedia(constraints),
+          new Promise<never>((_, reject) => {
+            window.setTimeout(() => reject(new DOMException('Camera timeout', 'AbortError')), 12000)
+          }),
+        ])
+        streamRef.current = stream
+        setCameraState('live')
+        return
+      } catch (error) {
+        const name = error instanceof DOMException ? error.name : ''
+        // Refus explicite : inutile de retenter d'autres capteurs.
+        if (name === 'NotAllowedError' || name === 'SecurityError') {
+          setCameraState('denied')
+          return
+        }
+        // Pas de caméra / contrainte impossible : essayer la suivante.
+      }
     }
+    setCameraState('unsupported')
   }, [])
+
+  const retryCamera = useCallback(() => {
+    stopStream()
+    setCameraState('idle')
+    cameraAttemptedRef.current = true
+    void startCamera()
+  }, [startCamera, stopStream])
 
   const reset = useCallback(() => {
     stopStream()
@@ -179,6 +205,8 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
         preuveIndisponible: preuve ? undefined : true,
       })
       const brut = data as SosResult & { suiviToken?: string }
+      // Preuve envoyée : couper la caméra (vie privée, batterie).
+      stopStream()
       if (brut?.id && brut?.suiviToken) {
         setSos({ id: brut.id, token: brut.suiviToken })
       } else {
@@ -543,23 +571,35 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
                     </button>
                   </div>
                 ) : cameraBloquee || sansCamera ? (
-                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-dashed border-slate-300 bg-white p-3 dark:border-white/15 dark:bg-slate-900">
-                    <input
-                      type="checkbox"
-                      checked={sansCamera}
-                      onChange={(event) => setSansCamera(event.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
-                    />
-                    <span className="text-xs leading-5 text-slate-600 dark:text-slate-300">
-                      <span className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100">
-                        <VideoOff className="h-3.5 w-3.5" />
-                        {cameraBloquee ? t('visitor.carte.sos.cameraDenied') : t('visitor.carte.sos.noCameraLabel')}
+                  <div className="space-y-2">
+                    <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-dashed border-slate-300 bg-white p-3 dark:border-white/15 dark:bg-slate-900">
+                      <input
+                        type="checkbox"
+                        checked={sansCamera}
+                        onChange={(event) => setSansCamera(event.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-xs leading-5 text-slate-600 dark:text-slate-300">
+                        <span className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100">
+                          <VideoOff className="h-3.5 w-3.5" />
+                          {cameraBloquee ? t('visitor.carte.sos.cameraDenied') : t('visitor.carte.sos.noCameraLabel')}
+                        </span>
+                        {cameraState === 'denied' && <>{t('visitor.carte.sos.cameraDeniedDesc')}</>}
+                        {cameraState === 'unsupported' && <>{t('visitor.carte.sos.cameraUnsupported')}</>}
+                        {!cameraBloquee && <>{t('visitor.carte.sos.noCameraHint')}</>}
                       </span>
-                      {cameraState === 'denied' && <>{t('visitor.carte.sos.cameraDeniedDesc')}</>}
-                      {cameraState === 'unsupported' && <>{t('visitor.carte.sos.cameraUnsupported')}</>}
-                      {!cameraBloquee && <>{t('visitor.carte.sos.noCameraHint')}</>}
-                    </span>
-                  </label>
+                    </label>
+                    {cameraState === 'denied' && (
+                      <button
+                        type="button"
+                        onClick={retryCamera}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-white/15 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        {t('visitor.carte.sos.cameraRetry')}
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <button
                     type="button"

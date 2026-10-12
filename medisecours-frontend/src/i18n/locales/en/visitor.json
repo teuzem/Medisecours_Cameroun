@@ -290,6 +290,7 @@
         "cameraEnable": "Enable camera",
         "cameraCapture": "Take photo",
         "cameraRetake": "Retake",
+        "cameraRetry": "Retry camera",
         "cameraCaptured": "Photo ready",
         "cameraDenied": "Camera denied",
         "cameraDeniedDesc": "Allow camera access in your browser settings, or tick “no camera”.",

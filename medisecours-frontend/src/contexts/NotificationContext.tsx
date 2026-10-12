@@ -259,6 +259,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       lfo.start()
       sirenNodesRef.current = { osc, lfo, gain }
       setSireneActivee(true)
+      // Vibration d'alerte (téléphones/tablettes en poche) : motif sirène,
+      // annulé à l'arrêt (prise en charge par le premier répondant, clôture).
+      try {
+        navigator.vibrate?.([400, 200, 400, 200, 800])
+      } catch { /* vibration indisponible */ }
     } catch { /* audio indisponible */ }
   }, [getAudioCtx])
 
@@ -281,6 +286,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     } catch { /* déjà arrêté */ }
     sirenNodesRef.current = null
     setSireneActivee(false)
+    try {
+      navigator.vibrate?.(0)
+    } catch { /* vibration indisponible */ }
   }, [])
 
   const couperSirene = useCallback(() => {
