@@ -426,7 +426,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
           <Action icon={<MapPin size={20} />} onClick={() => setSuggestionOpen(true)}>{t('visitor.carte.actionSuggest')}</Action>
           <Action icon={<FolderPlus size={20} />} onClick={() => setCollectionOpen(true)}>{t('visitor.carte.actionCollection')}</Action>
           <Action icon={<Phone size={20} />} onClick={() => { if (facility.telephone) { trackInteraction(facility.id, 'telephone'); window.location.href = `tel:${facility.telephone}` } }} disabled={!facility.telephone}>{t('visitor.carte.actions.call')}</Action>
-          <Action icon={<Phone size={20} />} tone="danger" onClick={() => { trackInteraction(facility.id, 'sos'); props.onSosClick() }}>SOS</Action>
+          <Action icon={<span aria-hidden="true" className="maps-sos-chip">SOS</span>} tone="danger" onClick={() => { trackInteraction(facility.id, 'sos'); props.onSosClick() }}>SOS</Action>
           <Action icon={<ExternalLink size={20} />} onClick={() => { if (facility.siteWeb) { trackInteraction(facility.id, 'site_web'); window.open(facility.siteWeb, '_blank', 'noopener,noreferrer') } }} disabled={!facility.siteWeb}>{t('visitor.carte.actionWebsite')}</Action>
         </div>}
         {detailError && <p role="status" className="maps-inline-status">{t('visitor.carte.detailUnavailable')}</p>}

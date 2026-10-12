@@ -41,7 +41,6 @@ import {
   RefreshCw,
   Route,
   Search,
-  Siren,
   UserCircle,
   X,
 } from 'lucide-react'
@@ -803,7 +802,7 @@ export default function CartePage() {
       </div>
 
       <div className="maps-search-shell" ref={searchShellRef}>
-        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 rounded-lg border border-slate-200 bg-white p-1.5 shadow-md dark:border-white/10 dark:bg-slate-950/95">
+        <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2 bg-transparent px-1 py-1">
           <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="maps-navigation-menu" aria-label={t('visitor.carte.menuOpen')} className="maps-search-menu-button grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
           <input
             value={searchQuery}
@@ -848,17 +847,20 @@ export default function CartePage() {
                       if (editingPlace === key) {
                         return (
                           <div key={key} className="maps-search-place-edit">
-                            <Icon className="h-4 w-4 shrink-0 text-primary-600" />
-                            <input
-                              value={placeDraft}
-                              onChange={(event) => setPlaceDraft(event.target.value)}
-                              placeholder={t('visitor.carte.searchPanel.addressPlaceholder')}
-                              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-                              autoFocus
-                            />
-                            <button type="button" onClick={() => { if (position) { savePlace(key) } else { locate(); toast.info(t('visitor.carte.searchPanel.useMyPosition')) } }} className="maps-search-link">{t('visitor.carte.searchPanel.useMyPosition')}</button>
-                            <button type="button" onClick={() => savePlace(key)} className="maps-search-link">{t('visitor.carte.searchPanel.save')}</button>
-                            <button type="button" onClick={() => { setEditingPlace(null); setPlaceDraft('') }} className="maps-search-muted">{t('visitor.carte.searchPanel.cancel')}</button>
+                            <div className="maps-search-place-edit-field">
+                              <Icon className="h-4 w-4 shrink-0 text-primary-600" />
+                              <input
+                                value={placeDraft}
+                                onChange={(event) => setPlaceDraft(event.target.value)}
+                                placeholder={t('visitor.carte.searchPanel.addressPlaceholder')}
+                                autoFocus
+                              />
+                            </div>
+                            <div className="maps-search-place-edit-actions">
+                              <button type="button" onClick={() => { if (position) { savePlace(key) } else { locate(); toast.info(t('visitor.carte.searchPanel.useMyPosition')) } }} className="maps-search-link">{t('visitor.carte.searchPanel.useMyPosition')}</button>
+                              <button type="button" onClick={() => savePlace(key)} className="maps-search-link">{t('visitor.carte.searchPanel.save')}</button>
+                              <button type="button" onClick={() => { setEditingPlace(null); setPlaceDraft('') }} className="maps-search-muted">{t('visitor.carte.searchPanel.cancel')}</button>
+                            </div>
                           </div>
                         )
                       }
@@ -1192,7 +1194,7 @@ export default function CartePage() {
           title={t('visitor.carte.sosFabAria')}
           className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-red-600 text-white shadow-lg shadow-red-600/40 transition hover:scale-105 hover:bg-red-700 active:scale-95"
         >
-          <Siren className="h-5 w-5" />
+          <span aria-hidden="true" className="text-[13px] font-black tracking-widest">SOS</span>
         </button>
         <button
           type="button"
