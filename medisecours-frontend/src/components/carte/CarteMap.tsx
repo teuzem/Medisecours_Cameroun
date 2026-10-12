@@ -334,6 +334,7 @@ const FacilityMarker = React.memo(function FacilityMarker({
               galleryNext: t('visitor.carte.markerGalleryNext'),
               holiday: t('visitor.carte.markerHoliday'),
               emergency: t('visitor.carte.markerEmergency'),
+              reviews: t('common.map.reviews'),
             }),
           }}
           role="dialog"

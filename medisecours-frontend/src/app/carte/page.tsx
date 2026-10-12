@@ -2,7 +2,6 @@
 
 import './maps.css'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -171,29 +170,59 @@ function writeJson(key: string, value: unknown) {
   }
 }
 
-/** Vignettes abstraites originales des fonds de carte (aucune capture tierce). */
+/**
+ * Vignettes des fonds de carte : les trois fonds (satellite/plan/relief)
+ * affichent une vraie tuile centrée sur le Cameroun, servie par les mêmes
+ * fournisseurs que la carte elle-même (Esri World Imagery, CARTO Voyager,
+ * OpenTopoMap) — qualité professionnelle, aucun asset tierce copié. Les
+ * superpositions (trafic/transports/vélo) restent des pictogrammes SVG
+ * car aucun fournisseur gratuit ne sert de tuiles d'overlay.
+ */
+const THUMB_TILE_PARAMS = { z: 6, x: 33, y: 31 } as const
+
 function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'cycling' }) {
   const common = { width: 64, height: 44, viewBox: '0 0 64 44', 'aria-hidden': true as const }
+  const { z, x, y } = THUMB_TILE_PARAMS
   if (mode === 'satellite') {
     return (
-      <svg {...common}>
-        <rect width="64" height="44" fill="#2f3b2c" />
-        <path d="M0 28 L18 12 L36 24 L52 8 L64 18 V44 H0Z" fill="#3d5238" />
-        <rect x="6" y="6" width="16" height="12" fill="#4a6342" opacity="0.9" />
-        <rect x="38" y="26" width="14" height="10" fill="#556b4d" opacity="0.85" />
-        <path d="M0 36 Q20 30 40 38 T64 34" stroke="#7d8f6a" strokeWidth="2" fill="none" opacity="0.7" />
-      </svg>
+      // eslint-disable-next-line @next/next/no-img-element -- tuile carte externe dynamique (hors remotePatterns)
+      <img
+        src={`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`}
+        alt=""
+        width={64}
+        height={44}
+        loading="lazy"
+        decoding="async"
+        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+    )
+  }
+  if (mode === 'plan') {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- tuile carte externe dynamique (hors remotePatterns)
+      <img
+        src={`https://a.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`}
+        alt=""
+        width={64}
+        height={44}
+        loading="lazy"
+        decoding="async"
+        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+      />
     )
   }
   if (mode === 'relief') {
     return (
-      <svg {...common}>
-        <rect width="64" height="44" fill="#e8e0cf" />
-        <path d="M4 34 Q16 18 32 24 T60 14" stroke="#b7a67e" strokeWidth="1.5" fill="none" />
-        <path d="M2 30 Q18 12 34 20 T62 10" stroke="#c9ba92" strokeWidth="1.5" fill="none" />
-        <path d="M6 38 Q20 22 36 28 T60 20" stroke="#a89468" strokeWidth="1.5" fill="none" />
-        <ellipse cx="32" cy="20" rx="12" ry="7" fill="#d6c9a4" stroke="#a89468" strokeWidth="1" />
-      </svg>
+      // eslint-disable-next-line @next/next/no-img-element -- tuile carte externe dynamique (hors remotePatterns)
+      <img
+        src={`https://a.tile.opentopomap.org/${z}/${x}/${y}.png`}
+        alt=""
+        width={64}
+        height={44}
+        loading="lazy"
+        decoding="async"
+        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+      />
     )
   }
   if (mode === 'traffic') {
@@ -229,15 +258,7 @@ function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'c
       </svg>
     )
   }
-  return (
-    <svg {...common}>
-      <rect width="64" height="44" fill="#e8eaed" />
-      <path d="M0 30 H64 M0 14 H64 M20 0 V44 M46 0 V44" stroke="#fff" strokeWidth="3" />
-      <path d="M0 22 Q16 18 32 24 T64 20" stroke="#c6dafc" strokeWidth="5" fill="none" />
-      <rect x="6" y="4" width="10" height="8" fill="#d7e3fc" />
-      <rect x="50" y="28" width="10" height="10" fill="#d7e3fc" />
-    </svg>
-  )
+  return null
 }
 
 export default function CartePage() {
@@ -267,9 +288,9 @@ export default function CartePage() {
   const [favorites, setFavorites] = useState<number[]>(() => readFavorites())
   const [recentIds, setRecentIds] = useState<number[]>(() => readRecentCentres())
   const [basemap, setBasemap] = useState<BasemapMode>(() => {
-    if (typeof window === 'undefined') return 'satellite'
+    if (typeof window === 'undefined') return 'plan'
     const stored = window.localStorage.getItem(BASEMAP_STORAGE_KEY)
-    return stored === 'plan' || stored === 'satellite' || stored === 'relief' ? stored : 'satellite'
+    return stored === 'plan' || stored === 'satellite' || stored === 'relief' ? stored : 'plan'
   })
   const [trafficOn, setTrafficOn] = useState(false)
   const [transitOn, setTransitOn] = useState(false)
@@ -936,12 +957,11 @@ export default function CartePage() {
       </div>
 
       <div className="maps-brand">
-        <Image src="/brand/medisecours-logo.png" alt="" aria-hidden="true" width={28} height={28} />
         <span>MediSecours <b>Maps</b></span>
       </div>
       {railOpen && <button type="button" className="maps-rail-close" onClick={() => setRailOpen(false)} aria-label={t('visitor.carte.menuClose')}><Menu size={18} /></button>}
       {!railOpen && <button type="button" className="maps-rail-open" onClick={() => setRailOpen(true)} aria-label={t('visitor.carte.menuPanel')}><ChevronRight size={18} /></button>}
-      {/* ═══ Contrôle de calques façon Google Maps (fond + superpositions) ═══ */}
+      {/* ═══ Contrôle de calques façon Google Maps : fond courant + rangée de vignettes ═══ */}
       <div
         className={`maps-layers ${layersOpen ? 'maps-layers-open' : ''}`}
         onMouseEnter={() => setLayersOpen(true)}
@@ -958,19 +978,20 @@ export default function CartePage() {
           <span>{t(`visitor.carte.basemap.${basemap}`)}</span>
         </button>
         {layersOpen && (
-          <div className="maps-layers-flyout" role="group" aria-label={t('visitor.carte.basemap.title')}>
+          <div className="maps-layers-strip" role="group" aria-label={t('visitor.carte.basemap.title')}>
             {(['satellite', 'plan', 'relief'] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"
+                className="maps-layers-box"
                 aria-pressed={basemap === mode}
                 onClick={() => setBasemap(mode)}
               >
                 <span className="maps-layers-thumb"><BasemapThumb mode={mode} /></span>
-                <span>{t(`visitor.carte.basemap.${mode}`)}</span>
+                <span className="maps-layers-box-label">{t(`visitor.carte.basemap.${mode}`)}</span>
               </button>
             ))}
-            <hr />
+            <span className="maps-layers-sep" aria-hidden="true" />
             {([
               ['traffic', trafficOn, setTrafficOn, 'traffic'],
               ['transit', transitOn, setTransitOn, 'transit'],
@@ -981,13 +1002,14 @@ export default function CartePage() {
                 <button
                   key={key}
                   type="button"
+                  className="maps-layers-box"
                   aria-pressed={active}
                   disabled={!supported}
                   title={supported ? undefined : t('visitor.carte.basemap.unavailable')}
                   onClick={() => supported && setActive(!active)}
                 >
                   <span className="maps-layers-thumb"><BasemapThumb mode={thumb} /></span>
-                  <span>{t(`visitor.carte.basemap.${key}`)}</span>
+                  <span className="maps-layers-box-label">{t(`visitor.carte.basemap.${key}`)}</span>
                 </button>
               )
             })}

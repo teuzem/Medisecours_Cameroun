@@ -117,7 +117,8 @@
       "wayfindingApproximate": "Itinéraire approximatif (hors ligne)",
       "osrmNotFound": "Aucun itinéraire trouvé par OSRM.",
       "googleNotCalculated": "Aucun itinéraire calculé par Google.",
-      "googleNotFound": "Aucun itinéraire trouvé par Google."
+      "googleNotFound": "Aucun itinéraire trouvé par Google.",
+      "reviews": "avis"
     },
     "notifications": {
       "fallbackTitle": "Notification",

@@ -117,7 +117,8 @@
       "wayfindingApproximate": "Approximate route (offline)",
       "osrmNotFound": "No route found by OSRM.",
       "googleNotCalculated": "No route calculated by Google.",
-      "googleNotFound": "No route found by Google."
+      "googleNotFound": "No route found by Google.",
+      "reviews": "reviews"
     },
     "notifications": {
       "fallbackTitle": "Notification",

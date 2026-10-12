@@ -282,6 +282,7 @@ export default function GoogleCarteMap({
         galleryNext: t('visitor.carte.markerGalleryNext'),
         holiday: t('visitor.carte.markerHoliday'),
         emergency: t('visitor.carte.markerEmergency'),
+        reviews: t('common.map.reviews'),
       })
       const popup = new window.google.maps.InfoWindow({
         content: popupElement,

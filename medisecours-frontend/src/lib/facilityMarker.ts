@@ -16,6 +16,7 @@ type MarkerLabels = {
   galleryNext?: string
   holiday?: string
   emergency?: string
+  reviews?: string
 }
 
 type PopupInteractionOptions = {
@@ -146,6 +147,7 @@ export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: MarkerLabe
     galleryNext: labels?.galleryNext ?? 'Média suivant',
     holiday: labels?.holiday ?? 'Fermetures exceptionnelles',
     emergency: labels?.emergency ?? 'Urgences 24 h',
+    reviews: labels?.reviews ?? 'avis',
   }
 
   const gallery = markerMedia(centre).slice(0, 5)
@@ -181,11 +183,16 @@ export function facilityMarkerPopupHtml(centre: CarteCentre, labels?: MarkerLabe
   const typeLabel = String(centre.type).replaceAll('_', ' ')
 
   const isSaved = Boolean(labels?.isSaved)
+  const hasRating = typeof centre.noteMoyenne === 'number' && centre.noteMoyenne > 0
+  const ratingHtml = hasRating
+    ? `<p class="maps-marker-rating"><span class="maps-marker-rating-star" aria-hidden="true">&#9733;</span><strong>${centre.noteMoyenne!.toFixed(1)}</strong>${typeof centre.totalAvis === 'number' && centre.totalAvis > 0 ? `<span class="maps-marker-rating-count">(${centre.totalAvis} ${escapeMarkerHtml(text.reviews)})</span>` : ''}</p>`
+    : ''
   return `<article class="maps-marker-popup" data-centre-id="${centre.id}" role="button" tabindex="0" aria-label="${escapeMarkerHtml(centre.nom)}">
     ${mediaHtml}
     <div class="maps-marker-popup-body">
       <h3>${escapeMarkerHtml(centre.nom)}</h3>
       <p class="maps-marker-popup-type">${escapeMarkerHtml(typeLabel)}</p>
+      ${ratingHtml}
       <p class="maps-marker-popup-address">${escapeMarkerHtml(centre.adresse || '')}${centre.ville ? ` &middot; ${escapeMarkerHtml(centre.ville)}` : ''}</p>
       <div class="maps-marker-status-row">
         <span class="maps-marker-hours ${statusClass}"><i></i>${escapeMarkerHtml(statusText)}</span>

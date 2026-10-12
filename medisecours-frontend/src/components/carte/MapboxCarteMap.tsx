@@ -131,6 +131,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, onSelect
           galleryNext: t('visitor.carte.markerGalleryNext'),
           holiday: t('visitor.carte.markerHoliday'),
           emergency: t('visitor.carte.markerEmergency'),
+          reviews: t('common.map.reviews'),
         })
         const popup = new window.mapboxgl.Popup({ offset: 18, closeButton: false, closeOnClick: false }).setDOMContent(popupElement)
         let closeTimer: number | null = null
