@@ -172,13 +172,14 @@ function writeJson(key: string, value: unknown) {
 
 /**
  * Vignettes des fonds de carte : les trois fonds (satellite/plan/relief)
- * affichent une vraie tuile centrée sur le Cameroun, servie par les mêmes
+ * affichent une vraie tuile centrée sur Yaoundé (niveau ville, rues
+ * visibles — cohérent avec les vignettes Google Maps), servie par les mêmes
  * fournisseurs que la carte elle-même (Esri World Imagery, CARTO Voyager,
  * OpenTopoMap) — qualité professionnelle, aucun asset tierce copié. Les
  * superpositions (trafic/transports/vélo) restent des pictogrammes SVG
  * car aucun fournisseur gratuit ne sert de tuiles d'overlay.
  */
-const THUMB_TILE_PARAMS = { z: 6, x: 33, y: 31 } as const
+const THUMB_TILE_PARAMS = { z: 11, x: 1089, y: 1001 } as const
 
 function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'cycling' }) {
   const common = { width: 64, height: 44, viewBox: '0 0 64 44', 'aria-hidden': true as const }
@@ -945,7 +946,7 @@ export default function CartePage() {
         </div>
       )}
 
-      <div className="absolute right-4 top-4 z-[710]">
+      <div className="absolute right-4 top-4 z-[1400]">
         <a
           href={isAuthenticated ? '/profil' : '/login'}
           className="maps-profile-btn flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
@@ -975,7 +976,7 @@ export default function CartePage() {
           onClick={() => setLayersOpen((current) => !current)}
         >
           <span className="maps-layers-thumb"><BasemapThumb mode={basemap} /></span>
-          <span>{t(`visitor.carte.basemap.${basemap}`)}</span>
+          <span className="maps-layers-box-label">{t(`visitor.carte.basemap.${basemap}`)}</span>
         </button>
         {layersOpen && (
           <div className="maps-layers-strip" role="group" aria-label={t('visitor.carte.basemap.title')}>

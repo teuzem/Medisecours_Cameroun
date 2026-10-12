@@ -37,11 +37,14 @@ services:
         sync: false
       - key: SKIP_MIGRATIONS
         value: "0"
-      # A failed migration must FAIL the deploy: Render then keeps serving the
-      # previous healthy release (zero downtime) instead of booting new code
-      # against a stale schema (which 500s every auth-couched query).
+      # Boot dégradé volontaire (spirale du 12 octobre) : aucune release
+      # saine n'existe plus en pool, donc faire échouer le deploy ne garde
+      # « aucun serveur » — c'est exactement ce qui s'est produit. Les
+      # migrations réparatrices idempotentes reconstruisent le schéma au
+      # boot, et le health check reste 200 « degraded » tant que la base
+      # est joignable (503 uniquement si la base est injoignable).
       - key: STRICT_DATABASE_BOOTSTRAP
-        value: "1"
+        value: "0"
       - key: BOOTSTRAP_REFERENCE_DATA
         value: "1"
       - key: STRICT_REFERENCE_DATA_BOOTSTRAP
