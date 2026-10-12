@@ -8,6 +8,20 @@ echo "==> MediSecours backend starting..."
 APP_PORT="${PORT:-10000}"
 sed -i "s/listen 10000;/listen ${APP_PORT};/" /etc/nginx/http.d/default.conf
 
+# Boot configuration (non-secret) : visible dans `docker logs` pour trancher
+# immédiatement entre « variable manquante » et « base injoignable ».
+# NOTE : les variables STRICT_* sont désormais purement informatives — aucun
+# `exit 1` ne bloque plus le boot. Sur Coolify il n'y a pas de release
+# précédente à préserver (« rolling update is not supported ») : faire échouer
+# le boot impose une boucle de restart qui ne sert RIEN (ni API, ni health,
+# ni logs HTTP). Un boot dégradé + /api/health « degraded » vaut toujours
+# mieux qu'un conteneur qui redémarre en boucle.
+echo "==> Boot configuration (non-secret):"
+echo "    PORT=${APP_PORT} SKIP_MIGRATIONS=${SKIP_MIGRATIONS:-0} STRICT_DATABASE_BOOTSTRAP=${STRICT_DATABASE_BOOTSTRAP:-0}(advisory)"
+echo "    BOOTSTRAP_REFERENCE_DATA=${BOOTSTRAP_REFERENCE_DATA:-1} STRICT_REFERENCE_DATA_BOOTSTRAP=${STRICT_REFERENCE_DATA_BOOTSTRAP:-0}(advisory) SEED_CARTE_TEST=${SEED_CARTE_TEST:-0} LOAD_CENTRES=${LOAD_CENTRES:-0} STRICT_JWT_BOOTSTRAP=${STRICT_JWT_BOOTSTRAP:-0}(advisory)"
+db_host=$(printf '%s' "${DATABASE_URL:-}" | sed -E 's#^[a-z+]+://([^@/?#]+@)?([^/?#:]+).*#\2#')
+echo "    DATABASE_URL host: ${db_host:-<unset>} (mot de passe jamais journalisé)"
+
 # Production JWT keys must remain stable across deployments and be shared
 # with the WebSocket service.
 mkdir -p config/jwt
@@ -42,10 +56,9 @@ if [ "$JWT_READY" = "1" ]; then
 fi
 if [ "$JWT_READY" = "1" ]; then
     echo "==> JWT keys validated (private + public match, passphrase OK)."
-elif [ "${STRICT_JWT_BOOTSTRAP:-0}" = "1" ]; then
-    echo "ERROR: JWT validation failed and STRICT_JWT_BOOTSTRAP=1."
-    exit 1
 else
+    # STRICT_JWT_BOOTSTRAP est consultatif : sans clés, seul le login 500 ;
+    # tuer le conteneur (restart loop) casserait aussi tout le reste.
     echo "WARNING: JWT validation failed; keeping the HTTP process alive for diagnostics."
 fi
 
@@ -61,8 +74,13 @@ fi
 mkdir -p var/cache var/log var/uploads/media
 chown -R www-data:www-data var/
 
-php bin/console cache:clear --env=prod --no-debug
-php bin/console cache:warmup --env=prod --no-debug
+echo "==> Building Symfony cache..."
+if ! php bin/console cache:clear --env=prod --no-debug; then
+    echo "ERROR: cache:clear failed (see above); continuing — Symfony prod rebuilds a cold cache on demand."
+fi
+if ! php bin/console cache:warmup --env=prod --no-debug; then
+    echo "ERROR: cache:warmup failed (see above); continuing — Symfony prod rebuilds a cold cache on demand."
+fi
 
 # Cache generation runs as root in the container. Restore runtime ownership
 # before PHP-FPM starts so VichUploader can update its metadata cache.
@@ -93,11 +111,7 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
     migration_attempt=1
     until php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod; do
         if [ "$migration_attempt" -ge 5 ]; then
-            if [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "1" ]; then
-                echo "ERROR: Database migrations failed after ${migration_attempt} attempts and STRICT_DATABASE_BOOTSTRAP=1."
-                exit 1
-            fi
-            echo "WARNING: Database migrations failed after ${migration_attempt} attempts; starting the API anyway."
+            echo "ERROR: Database migrations failed after ${migration_attempt} attempts; starting the API anyway (never restart-loop on migrations)."
             echo "         Run doctrine:migrations:migrate manually after fixing the database connection/schema."
             break
         fi
@@ -110,15 +124,15 @@ else
     echo "==> SKIP_MIGRATIONS=1 => schema assumed to already exist (imported via database/schema.sql)."
 fi
 
-# Post-migration schema probe: booting new code against a stale schema turns
-# every auth-couched query (login, carte, equipe) into a 500. If the objects
-# this release requires are missing, fail the deploy so the platform keeps
-# serving the previous healthy release instead.
+# Post-migration schema probe (diagnostic uniquement, jamais bloquant) :
+# chaque objet manquant est journalisé en ERROR pour cibler la réparation,
+# mais le boot continue dans tous les cas — voir la note STRICT_* en tête
+# de fichier. /api/health expose les manques comme « degraded » (200) tant
+# que la base répond, 503 uniquement si elle est injoignable.
 #
 # The probe MUST cover the same objects as HealthController::REQUIRED_SCHEMA
-# (7 objects). A thinner probe lets a hollow schema pass the deploy gate and
-# then take every instance out of rotation at runtime (Oct 12 outage).
-if [ "${SKIP_MIGRATIONS:-0}" != "1" ] && [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "1" ]; then
+# (7 objects) so the health body and the boot log describe the same gaps.
+if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
     echo "==> Verifying required schema objects..."
     schema_probe_failed=0
     probe_schema() {
@@ -144,10 +158,9 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ] && [ "${STRICT_DATABASE_BOOTSTRAP:-0}" = "
     probe_schema 'ordonnance_pharmacie' \
         "SELECT 1 FROM ordonnance_pharmacie LIMIT 0"
     if [ "$schema_probe_failed" = "1" ]; then
-        echo "       Refusing to boot: failing the deploy to keep the previous release online."
-        exit 1
+        echo "       WARNING: required schema objects are missing (see ERROR lines above) — booting anyway, /api/health reports them as degraded."
     fi
-    echo "==> Schema probe OK (7/7 objects)."
+    echo "==> Schema probe done."
 fi
 
 # Legacy option (off by default) : seed des 232 mock data de
@@ -157,8 +170,7 @@ fi
 if [ "${LOAD_CENTRES:-0}" = "1" ]; then
     echo "==> Loading baseline health centres (data/centres_sante.json)..."
     if ! php bin/console app:load-centres --no-interaction; then
-        echo "ERROR: app:load-centres failed."
-        exit 1
+        echo "WARNING: app:load-centres failed; keeping the API online."
     fi
 fi
 
@@ -168,8 +180,7 @@ fi
 if [ -n "${CREATE_ADMIN_EMAIL:-}" ] && [ -n "${CREATE_ADMIN_PASSWORD:-}" ]; then
     echo "==> Creating/updating admin account..."
     php bin/console app:create-admin "${CREATE_ADMIN_EMAIL}" "${CREATE_ADMIN_PASSWORD}" --no-interaction || {
-        echo "ERROR: app:create-admin failed."
-        exit 1
+        echo "WARNING: app:create-admin failed; keeping the API online."
     }
 fi
 
@@ -214,12 +225,16 @@ stop_server() {
 
 trap stop_server INT TERM
 
-# Make the HTTP port available to Render before the potentially long initial
-# catalogue import. The import remains blocking for this entrypoint: if it
-# fails, the web server is stopped and the deployment fails.
-sleep 1
+# Make the HTTP port available to Coolify/Render before the potentially long
+# initial catalogue import. The import remains blocking for this entrypoint
+# but never kills the server (see STRICT_* note at the top of this file).
+ready_tries=0
+while [ "$ready_tries" -lt 3 ] && ! kill -0 "$server_pid" 2>/dev/null; do
+    ready_tries=$((ready_tries + 1))
+    sleep 3
+done
 if ! kill -0 "$server_pid" 2>/dev/null; then
-    echo "ERROR: Web services stopped before becoming ready."
+    echo "ERROR: Web services stopped before becoming ready (supervisord itself is dead — nothing can serve)."
     wait "$server_pid"
     exit 1
 fi
@@ -229,11 +244,6 @@ if [ "${BOOTSTRAP_REFERENCE_DATA:-1}" = "1" ]; then
     if ! php bin/console app:bootstrap-reference-data \
         --no-interaction \
         --catalog-version="${REFERENCE_DATA_VERSION:-2026-08-07.1}"; then
-        if [ "${STRICT_REFERENCE_DATA_BOOTSTRAP:-0}" = "1" ]; then
-            echo "ERROR: Reference data bootstrap failed and STRICT_REFERENCE_DATA_BOOTSTRAP=1."
-            stop_server
-            exit 1
-        fi
         echo "WARNING: Reference data bootstrap failed; keeping the API online."
         echo "         Run app:bootstrap-reference-data manually after fixing the catalogue/database issue."
     fi
