@@ -63,6 +63,8 @@
     },
     "overview": {
       "loading": "Loading dashboard…",
+      "sosToggleTitle": "Notify me of SOS incidents",
+      "sosToggleDesc": "Receive verified urgent and critical cases from your facilities.",
       "dataUnavailable": "Data unavailable —",
       "retry": "try again",
       "eyebrow": "Activity overview",

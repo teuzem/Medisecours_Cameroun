@@ -91,6 +91,35 @@ class DemandeSos
     private string $statut = 'EN_COURS';
 
     /**
+     * Gravité issue du triage : LEGERE (défaut, transport sans risque →
+     * ambulanciers), URGENTE (médecins disponibles), CRITIQUE (confirmée par
+     * le manager uniquement). Calculée à la création (âge, grossesse) puis
+     * confirmée/forcée par le manager à la vérification.
+     */
+    public const GRAVITE_LEGERE = 'LEGERE';
+    public const GRAVITE_URGENTE = 'URGENTE';
+    public const GRAVITE_CRITIQUE = 'CRITIQUE';
+    public const GRAVITES = [self::GRAVITE_LEGERE, self::GRAVITE_URGENTE, self::GRAVITE_CRITIQUE];
+
+    #[ORM\Column(length: 20, options: ['default' => 'LEGERE'])]
+    #[Groups(['demande_sos:read'])]
+    private string $gravite = self::GRAVITE_LEGERE;
+
+    /**
+     * Âge du patient déclaré dans le modal SOS (triage : <6 ou ≥65 ans).
+     */
+    #[ORM\Column(nullable: true)]
+    #[Groups(['demande_sos:read', 'demande_sos:write'])]
+    private ?int $agePatient = null;
+
+    /**
+     * Grossesse déclarée dans le modal SOS (triage prioritaire).
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['demande_sos:read', 'demande_sos:write'])]
+    private bool $enceinte = false;
+
+    /**
      * Établissements les plus proches calculés au moment de l'alerte.
      * Format : [{"id": 12, "nom": "...", "distance": 1.2, "telephone": "...", "type": "...", "ville": "...", "adresse": "...", "urgences24h": true}]
      */
@@ -265,6 +294,42 @@ class DemandeSos
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getGravite(): string
+    {
+        return $this->gravite;
+    }
+
+    public function setGravite(string $gravite): static
+    {
+        $this->gravite = $gravite;
+
+        return $this;
+    }
+
+    public function getAgePatient(): ?int
+    {
+        return $this->agePatient;
+    }
+
+    public function setAgePatient(?int $agePatient): static
+    {
+        $this->agePatient = $agePatient;
+
+        return $this;
+    }
+
+    public function isEnceinte(): bool
+    {
+        return $this->enceinte;
+    }
+
+    public function setEnceinte(bool $enceinte): static
+    {
+        $this->enceinte = $enceinte;
 
         return $this;
     }

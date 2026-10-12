@@ -63,6 +63,8 @@
     },
     "overview": {
       "loading": "Chargement du tableau de bord…",
+      "sosToggleTitle": "Me signaler les incidents SOS",
+      "sosToggleDesc": "Recevoir les cas urgents et critiques vérifiés de vos établissements.",
       "dataUnavailable": "Données indisponibles —",
       "retry": "réessayer",
       "eyebrow": "Synthèse de votre activité",

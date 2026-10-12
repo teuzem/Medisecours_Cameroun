@@ -34,6 +34,7 @@
       "typeInfirmier": "Infirmier(IDE)",
       "typeAideSoignant": "Aide-soignant(AS)",
       "typePharmacien": "Pharmacien",
+      "typeAmbulancier": "Ambulancier",
       "rechercherEtablissement": "Rechercher un établissement…",
       "aucunEtablissement": "Aucun établissement trouvé.",
       "selectionnerEtablissement": "Sélectionnez un établissement.",
@@ -75,6 +76,7 @@
       "dossiers": "Dossiers patients",
       "soins": "Soins",
       "pharmacie": "Pharmacie",
+      "ambulance": "Ambulance",
       "parametres": "Paramètres",
       "deconnexion": "Se déconnecter",
       "espace": "Espace personnel",
@@ -83,7 +85,8 @@
         "RECEPTIONNISTE": "Accueil & réception",
         "INFIRMIER": "Soins infirmiers",
         "AIDE_SOIGNANT": "Soins — aide-soignant",
-        "PHARMACIEN": "Pharmacie"
+        "PHARMACIEN": "Pharmacie",
+        "AMBULANCIER": "Ambulancier"
       }
     },
     "dashboard": {
@@ -100,6 +103,26 @@
     "parametres": {
       "titre": "Paramètres",
       "description": "Votre signature numérique pré-remplit le pad de signature des soins et accompagne vos documents."
+    },
+    "ambulance": {
+      "titre": "Interventions ambulance",
+      "description": "Cas légers vérifiés de votre établissement et vos prises en charge.",
+      "chargement": "Chargement des interventions…",
+      "actionErreur": "L'action a échoué.",
+      "pasDescription": "Aucune description fournie",
+      "anonyme": "Demandeur anonyme",
+      "preuve": "Preuve",
+      "itineraire": "Itinéraire",
+      "prendre": "Prendre en charge",
+      "cloturer": "Clôturer",
+      "priseOk": "Intervention prise en charge.",
+      "clotureOk": "Intervention clôturée.",
+      "ouvertesTitre": "Cas légers à prendre",
+      "mesPrisesTitre": "Mes interventions",
+      "aucunOuvert": "Aucun cas léger en attente.",
+      "aucunePrise": "Aucune intervention en cours.",
+      "enServiceLabel": "Équipage disponible",
+      "enServiceDesc": "Recevoir les cas légers à transporter en priorité."
     },
     "accueil": {
       "titre": "Admission patient",

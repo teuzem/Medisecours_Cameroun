@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type 
+ReactNode } from 'react'
 import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clock, ExternalLink, FolderPlus, History, Image as ImageIcon, Images, Info, MapPin, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
 import useSWR, { mutate } from 'swr'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +16,7 @@ import { trackInteraction } from '../../lib/track'
 type View = 'explore' | 'saved' | 'recent'
 type Collection = { id: string; name: string; places: number[]; note: string }
 const COLLECTION_KEY = 'medisecours_map_named_collections'
+const LIKES_KEY = 'medisecours_carte_avis_likes'
 
 function ResultPhoto({ centre }: { centre: FicheCentre | EtablissementDrawerProps['visibleCentres'][number] }) {
   const { t } = useTranslation()
@@ -214,6 +216,19 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [dragActive, setDragActive] = useState(false)
   const [sending, setSending] = useState(false)
   const [likes, setLikes] = useState<number[]>([])
+
+  const toggleLike = useCallback((reviewId: number) => {
+    setLikes((current) => {
+      const next = current.includes(reviewId) ? current.filter((id) => id !== reviewId) : [...current, reviewId]
+      try {
+        const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
+        const table = typeof stored === 'object' && stored !== null ? stored : {}
+        table[String(props.selectedId ?? 0)] = next
+        localStorage.setItem(LIKES_KEY, JSON.stringify(table))
+      } catch { /* stockage indisponible : le like reste en mémoire */ }
+      return next
+    })
+  }, [props.selectedId])
   const [joining, setJoining] = useState(false)
   const [joined, setJoined] = useState(false)
   const [collections, setCollections] = useState<Collection[]>([])
@@ -236,7 +251,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const reviews = useMemo(() => {
     const raw = reviewResponse as { member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
     const values = Array.isArray(raw) ? raw : raw?.member ?? raw?.['hydra:member'] ?? []
-    return values.filter(review => review.statut === 'PUBLIE').filter(review => !reviewSearch || `${review.auteurNom} ${review.commentaire}`.toLocaleLowerCase().includes(reviewSearch.toLocaleLowerCase())).sort((a, b) => {
+    return values.filter(review => review.statut === 'PUBLIE').filter(review => !reviewSearch || `${review.auteurNom ?? ''} ${review.commentaire ?? ''}`.toLocaleLowerCase().includes(reviewSearch.toLocaleLowerCase())).sort((a, b) => {
       if (sort === 'positive') return b.note - a.note
       if (sort === 'critical') return a.note - b.note
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -247,6 +262,13 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     // Reset the drawer workflow when a different establishment is selected.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images')
+    try {
+      const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
+      const saved = typeof stored === 'object' && stored !== null ? stored[String(props.selectedId ?? 0)] : null
+      setLikes(Array.isArray(saved) ? saved.filter((id) => typeof id === 'number') : [])
+    } catch {
+      setLikes([])
+    }
   }, [props.selectedId])
   useEffect(() => {
     // Review notice state is scoped to the selected establishment and tab.
@@ -448,7 +470,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             {isLoading && <p role="status">{t('visitor.carte.reviewsLoading')}</p>}
             {reviewError && <p role="alert">{t('visitor.carte.reviewsLoadError')}</p>}
             {!isLoading && !reviewError && !reviews.length && <p>{t('visitor.carte.reviewsEmpty')}</p>}
-            {reviews.map(review => <article className="maps-review" key={review.id}><div className="maps-review-author"><span className="maps-avatar">{(review.auteurNom || 'U')[0]}</span><div><strong>{review.auteurNom || t('visitor.carte.userFallback')}</strong><div><Rating value={review.note} /><small>{formatMediaDate(review.createdAt, i18n.language)}</small></div></div></div><p>{review.commentaire}</p>{review.images?.length ? <div className="maps-review-images">{review.images.map(image => <a key={image.id} href={imgUrl(image.contentUrl) ?? image.contentUrl} target="_blank" rel="noopener noreferrer"><img src={imgUrl(image.contentUrl) ?? image.contentUrl} alt={t('visitor.carte.reviewPhotoAlt')} loading="lazy" /></a>)}</div> : null}<div className="maps-review-actions"><button type="button" aria-pressed={likes.includes(review.id)} onClick={() => setLikes(current => current.includes(review.id) ? current.filter(id => id !== review.id) : [...current, review.id])}><ThumbsUp size={17} fill={likes.includes(review.id) ? 'currentColor' : 'none'} />{t('visitor.carte.likeButton')}</button><button type="button" onClick={() => void share(review.commentaire)}><Share2 size={17} />{t('visitor.carte.actionShare')}</button></div></article>)}
+            {reviews.map(review => <article className="maps-review" key={review.id}><div className="maps-review-author"><span className="maps-avatar">{(review.auteurNom || 'U')[0]}</span><div><strong>{review.auteurNom || t('visitor.carte.userFallback')}</strong><div><Rating value={review.note} /><small>{formatMediaDate(review.createdAt, i18n.language)}</small></div></div></div><p>{review.commentaire}</p>{review.images?.length ? <div className="maps-review-images">{review.images.map(image => <a key={image.id} href={imgUrl(image.contentUrl) ?? image.contentUrl} target="_blank" rel="noopener noreferrer"><img src={imgUrl(image.contentUrl) ?? image.contentUrl} alt={t('visitor.carte.reviewPhotoAlt')} loading="lazy" /></a>)}</div> : null}<div className="maps-review-actions"><button type="button" aria-pressed={likes.includes(review.id)} onClick={() => toggleLike(review.id)}><ThumbsUp size={17} fill={likes.includes(review.id) ? 'currentColor' : 'none'} />{t('visitor.carte.likeButton')}</button><button type="button" onClick={() => void share(review.commentaire)}><Share2 size={17} />{t('visitor.carte.actionShare')}</button></div></article>)}
           </div>}
         </section>
       </> : <>

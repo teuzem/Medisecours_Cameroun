@@ -23,6 +23,9 @@ import { useNotification } from '../../../contexts/NotificationContext'
 interface AlerteSos {
   id: number
   statut: string
+  gravite: string
+  agePatient: number | null
+  enceinte: boolean
   nom: string | null
   telephone: string | null
   description: string | null
@@ -199,6 +202,19 @@ export default function MedecinAlertesPage() {
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
                   {lat.toFixed(4)}, {lng.toFixed(4)}
+                </span>
+              )}
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${sos.gravite === 'CRITIQUE' ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' : sos.gravite === 'URGENTE' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'}`}>
+                {t(`sos.gravite.${sos.gravite || 'LEGERE'}`)}
+              </span>
+              {sos.agePatient != null && (
+                <span className="inline-flex items-center gap-1 font-semibold">
+                  {t('sos.agePatient', { age: sos.agePatient })}
+                </span>
+              )}
+              {sos.enceinte && (
+                <span className="inline-flex items-center gap-1 font-semibold text-pink-600 dark:text-pink-400">
+                  {t('sos.enceinteBadge')}
                 </span>
               )}
             </div>

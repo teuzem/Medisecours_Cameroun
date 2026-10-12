@@ -43,6 +43,18 @@
     "attenteMedecin": "En attente d'un médecin",
     "enTraitement": "Intervention en cours",
     "cloturer": "Clôturer",
+    "gravite": {
+      "LEGERE": "Légère",
+      "URGENTE": "Urgente",
+      "CRITIQUE": "Critique"
+    },
+    "graviteLabel": "Niveau de gravité (triage)",
+    "graviteHint": "Confirmé par le manager : CRITIQUE envoie les médecins les plus proches.",
+    "agePatient": "{{age}} ans",
+    "enceinteBadge": "Enceinte",
+    "relayer": "Relayer",
+    "relayerHint": "Rebasculer vers l'établissement le plus proche (aucun médecin disponible)",
+    "relayOk": "Alerte relayée vers l'établissement le plus proche.",
     "journal": "Journal",
     "statsTitre": "Pilotage SOS temps réel",
     "statsDesc": "Volumes, délais et qualité des alertes, actualisés à chaque événement.",

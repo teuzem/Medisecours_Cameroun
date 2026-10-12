@@ -68,6 +68,7 @@ export function useWebSocket(userId: string, token: string, handlers: {
   onSosVerifiee?: (data: any) => void
   onSosPriseEnCharge?: (data: any) => void
   onSosCloturee?: (data: any) => void
+  onSosRelayee?: (data: any) => void
   onSosSuivi?: (data: any) => void
 }, role?: string) {
   const wsRef = useRef<WebSocket | null>(null)
@@ -165,6 +166,7 @@ export function useWebSocket(userId: string, token: string, handlers: {
           if (evt === 'sos_verifiee' && h.onSosVerifiee) h.onSosVerifiee(payload)
           if (evt === 'sos_prise_en_charge' && h.onSosPriseEnCharge) h.onSosPriseEnCharge(payload)
           if (evt === 'sos_cloturee' && h.onSosCloturee) h.onSosCloturee(payload)
+          if (evt === 'sos_relayee' && h.onSosRelayee) h.onSosRelayee(payload)
           if (evt === 'sos_suivi' && h.onSosSuivi) h.onSosSuivi(payload)
           if (evt === 'language_changed') {
             const locale = payload?.locale

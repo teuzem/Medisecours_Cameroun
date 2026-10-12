@@ -8,6 +8,7 @@ import {
   CircleSlash,
   Clock,
   Eye,
+  Forward,
   History,
   Loader2,
   MapPin,
@@ -24,10 +25,14 @@ import {
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import { useNotification } from '../../contexts/NotificationContext'
+import { useToast } from '../ui/Toast'
 
 interface SosItem {
   id: number
   statut: string
+  gravite: string
+  agePatient: number | null
+  enceinte: boolean
   nom: string | null
   telephone: string | null
   description: string | null
@@ -112,6 +117,7 @@ const STATUT_ICONE: Record<string, typeof Clock> = {
  * ────────────────────────────────────────────────────────────────────────── */
 export default function SosAlertesPanel({ centreId }: { centreId: number }) {
   const { t, i18n } = useTranslation()
+  const toast = useToast()
   const { subscribeToSos, sosAlerte } = useNotification()
   const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
 
@@ -122,6 +128,7 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
   const [expandId, setExpandId] = useState<number | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
   const [decision, setDecision] = useState<'REEL' | 'FAUX'>('REEL')
+  const [gravite, setGravite] = useState('URGENTE')
   const [commentaire, setCommentaire] = useState('')
   const [actionError, setActionError] = useState<string | null>(null)
   const [photoOuverte, setPhotoOuverte] = useState<string | null>(null)
@@ -185,10 +192,25 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
     const ok = await executer(sos.id, `/api/sos/${sos.id}/verifier`, {
       decision,
       commentaire: commentaire.trim() || undefined,
+      gravite: decision === 'REEL' ? gravite : undefined,
     })
     if (ok) {
       setCommentaire('')
       setExpandId(null)
+    }
+  }
+
+  const relayer = async (sos: SosItem) => {
+    setBusyId(sos.id)
+    setActionError(null)
+    try {
+      await api.post(`/api/sos/${sos.id}/relayer`, {})
+      await charger()
+      toast.success(t('sos.relayOk'))
+    } catch (err) {
+      setActionError(msgErreur(err))
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -211,6 +233,7 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
     try {
       const { data } = await api.get(`/api/sos/${sos.id}/traces`)
       setTraces((prev) => ({ ...prev, [sos.id]: Array.isArray(data?.traces) ? data.traces : [] }))
+      setGravite(sos.gravite || 'URGENTE')
       setExpandId(sos.id)
     } catch {
       setActionError(t('sos.journalErreur'))
@@ -231,6 +254,20 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
     return (
       <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${map[statut] ?? map.CLOTUREE}`}>
         {t(`sos.statut.${statut}`)}
+      </span>
+    )
+  }
+
+  const chipGravite = (graviteValue: string | null | undefined) => {
+    const map: Record<string, string> = {
+      LEGERE: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
+      URGENTE: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
+      CRITIQUE: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/30',
+    }
+    const code = graviteValue && map[graviteValue] ? graviteValue : 'LEGERE'
+    return (
+      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wide ${map[code]}`}>
+        {t(`sos.gravite.${code}`)}
       </span>
     )
   }
@@ -360,6 +397,7 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {chipStatut(sos.statut)}
+                      {chipGravite(sos.gravite)}
                       {sos.sireneActive && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wide text-white">
                           <BellRing className="h-3 w-3" />
@@ -385,6 +423,16 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                         <span className="inline-flex items-center gap-1">
                           <MapPin className="h-3.5 w-3.5" />
                           {lat.toFixed(4)}, {lng.toFixed(4)}
+                        </span>
+                      )}
+                      {sos.agePatient != null && (
+                        <span className="inline-flex items-center gap-1 font-semibold">
+                          {t('sos.agePatient', { age: sos.agePatient })}
+                        </span>
+                      )}
+                      {sos.enceinte && (
+                        <span className="inline-flex items-center gap-1 font-semibold text-pink-600 dark:text-pink-400">
+                          {t('sos.enceinteBadge')}
                         </span>
                       )}
                       {sos.verifiePar && (
@@ -444,11 +492,23 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                       {enPrise && !detail && (
                         <button
                           type="button"
-                          onClick={() => setExpandId(sos.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                          onClick={() => { setGravite(sos.gravite || 'URGENTE'); setExpandId(sos.id) }}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
                         >
                           <ScrollText className="h-3.5 w-3.5" />
                           {t('sos.options')}
+                        </button>
+                      )}
+                      {(sos.statut === 'EN_COURS' || sos.statut === 'VERIFIEE') && !sos.prisEnChargePar && (
+                        <button
+                          type="button"
+                          onClick={() => void relayer(sos)}
+                          disabled={busyId === sos.id}
+                          title={t('sos.relayerHint')}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-amber-500/30 dark:text-amber-400 dark:hover:bg-amber-500/10"
+                        >
+                          {busyId === sos.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Forward className="h-3.5 w-3.5" />}
+                          {t('sos.relayer')}
                         </button>
                       )}
                     </div>
@@ -494,6 +554,30 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                                 <span className="font-medium opacity-70">{t('sos.decisionFauxHint')}</span>
                               </button>
                             </div>
+                            <label className="block">
+                              <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
+                                {t('sos.graviteLabel')}
+                              </span>
+                              <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-white/10" role="radiogroup" aria-label={t('sos.graviteLabel')}>
+                                {(['LEGERE', 'URGENTE', 'CRITIQUE'] as const).map((code) => (
+                                  <button
+                                    key={code}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={gravite === code}
+                                    onClick={() => setGravite(code)}
+                                    className={`rounded-lg py-1.5 text-[11px] font-black uppercase tracking-wide transition ${
+                                      gravite === code
+                                        ? 'bg-white text-slate-900 shadow dark:bg-slate-900 dark:text-white'
+                                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                    }`}
+                                  >
+                                    {t(`sos.gravite.${code}`)}
+                                  </button>
+                                ))}
+                              </div>
+                              <span className="mt-1 block text-[11px] text-slate-400">{t('sos.graviteHint')}</span>
+                            </label>
                             <label className="block">
                               <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
                                 {t('sos.commentaireLabel')}

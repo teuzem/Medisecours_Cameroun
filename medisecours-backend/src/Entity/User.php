@@ -95,6 +95,21 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $emailVerified = false;
 
     /**
+     * Éligibilité aux alertes SOS : un médecin (ou personnel) qui coupe ce
+     * commutateur ne reçoit plus les incidents (toggle « Me signaler »).
+     * Vrai par défaut — appliqué au triage à la lecture, jamais bloquant.
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $sosAlertesActive = true;
+
+    /**
+     * Disponibilité opérationnelle (équipages ambulanciers, astreintes) :
+     * hors service = exclu des relais et des listes d'intervenants.
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $enService = true;
+
+    /**
      * Token de vérification d'email (UUID généré à l'inscription).
      * Effacé après vérification réussie.
      */
@@ -466,6 +481,30 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmailVerified(bool $emailVerified): static
     {
         $this->emailVerified = $emailVerified;
+
+        return $this;
+    }
+
+    public function isSosAlertesActive(): bool
+    {
+        return $this->sosAlertesActive;
+    }
+
+    public function setSosAlertesActive(bool $sosAlertesActive): static
+    {
+        $this->sosAlertesActive = $sosAlertesActive;
+
+        return $this;
+    }
+
+    public function isEnService(): bool
+    {
+        return $this->enService;
+    }
+
+    public function setEnService(bool $enService): static
+    {
+        $this->enService = $enService;
 
         return $this;
     }

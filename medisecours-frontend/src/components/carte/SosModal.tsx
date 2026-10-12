@@ -142,6 +142,10 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   const toast = useToast()
   const [telephone, setTelephone] = useState('')
   const [description, setDescription] = useState('')
+  // Triage : âge du patient + grossesse déclarée (priorité <6 ans, ≥65 ans,
+  // femmes enceintes). Optionnels : le manager confirme la gravité.
+  const [agePatient, setAgePatient] = useState('')
+  const [enceinte, setEnceinte] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -158,6 +162,11 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   const [recordSecs, setRecordSecs] = useState(0)
   const [compressing, setCompressing] = useState(false)
   const [videoMeta, setVideoMeta] = useState<{ secs: number; mo: string } | null>(null)
+  // URL objet du blob vidéo pour la prévisualisation : les data-URL vidéo
+  // ne sont pas lisibles partout (iOS), le blob, si. La dataURL reste
+  // utilisée pour l'envoi JSON.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const previewUrlRef = useRef<string | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const recordSecsRef = useRef(0)
@@ -270,6 +279,13 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
       }
       const duree = recordSecsRef.current
       const finaliser = (final: Blob) => {
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current)
+          previewUrlRef.current = null
+        }
+        const url = URL.createObjectURL(final)
+        previewUrlRef.current = url
+        setPreviewUrl(url)
         const lecteur = new FileReader()
         lecteur.onload = () => {
           if (typeof lecteur.result === 'string') {
@@ -332,6 +348,11 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
   const reset = useCallback(() => {
     stopRecording(true)
     stopStream()
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current)
+      previewUrlRef.current = null
+    }
+    setPreviewUrl(null)
     setPreuve(null)
     setVideoMeta(null)
     setCompressing(false)
@@ -347,6 +368,8 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
     setError(null)
     setSending(false)
     setDescription('')
+    setAgePatient('')
+    setEnceinte(false)
     cameraAttemptedRef.current = false
   }, [stopRecording, stopStream])
 
@@ -424,6 +447,11 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
 
   const retakePhoto = () => {
     stopRecording(true)
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current)
+      previewUrlRef.current = null
+    }
+    setPreviewUrl(null)
     setPreuve(null)
     setVideoMeta(null)
     setCompressing(false)
@@ -450,6 +478,8 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
         nom: user ? `${user.prenom ?? ''} ${user.nom ?? ''}`.trim() || null : null,
         telephone: telephone.trim() || null,
         description: description.trim() || null,
+        agePatient: agePatient.trim() === '' ? undefined : Math.max(0, Math.min(120, Number(agePatient))),
+        enceinte: enceinte || undefined,
         etablissementId: etablissementId ?? undefined,
         preuvePhoto: preuve ?? undefined,
         preuveIndisponible: preuve ? undefined : true,
@@ -803,7 +833,7 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
                   preuveIsVideo ? (
                     <>
                       <div className="relative overflow-hidden rounded-xl border border-emerald-300 dark:border-emerald-500/40">
-                        <video src={preuve} controls playsInline preload="metadata" className="max-h-48 w-full bg-black object-contain" />
+                        <video src={previewUrl ?? preuve ?? undefined} controls playsInline preload="metadata" className="max-h-48 w-full bg-black object-contain" />
                         <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold uppercase text-white">
                           <CheckCircle2 className="h-3 w-3" />
                           {t('visitor.carte.sos.cameraVideoReady')}
@@ -963,6 +993,34 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
                 />
               </label>
+
+              {/* Triage : âge + grossesse (priorité enfants, seniors, femmes enceintes) */}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    {t('visitor.carte.sos.ageLabel')}
+                  </span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={120}
+                    value={agePatient}
+                    onChange={(event) => setAgePatient(event.target.value)}
+                    placeholder={t('visitor.carte.sos.agePlaceholder')}
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
+                  />
+                </label>
+                <label className="flex cursor-pointer items-end gap-2 pb-2.5">
+                  <input
+                    type="checkbox"
+                    checked={enceinte}
+                    onChange={(event) => setEnceinte(event.target.checked)}
+                    className="h-5 w-5 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                  />
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t('visitor.carte.sos.enceinteLabel')}</span>
+                </label>
+              </div>
 
               {error && <p className="text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>}
 

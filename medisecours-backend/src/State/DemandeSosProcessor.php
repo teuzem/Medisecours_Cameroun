@@ -100,6 +100,19 @@ class DemandeSosProcessor implements ProcessorInterface
             $data->setSireneActive(false);
             $data->setSuiviToken(bin2hex(random_bytes(24)));
 
+            // ── Triage automatique : âge extrême (<6 ou ≥65 ans) ou
+            // grossesse déclarée → URGENTE (médecins) ; sinon LEGERE
+            // (ambulanciers). Le manager confirme/force à la vérification.
+            $age = $data->getAgePatient();
+            if ($age !== null && ($age < 0 || $age > 120)) {
+                throw new BadRequestHttpException('Âge du patient invalide (0-120).');
+            }
+            $data->setGravite(
+                ($data->isEnceinte() || ($age !== null && ($age < 6 || $age >= 65)))
+                    ? DemandeSos::GRAVITE_URGENTE
+                    : DemandeSos::GRAVITE_LEGERE
+            );
+
             $proches = array_map(
                 static function (CentreDeSante $centre): array {
                     return [

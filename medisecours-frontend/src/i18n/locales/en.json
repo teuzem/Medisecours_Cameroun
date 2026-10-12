@@ -43,6 +43,18 @@
     "attenteMedecin": "Waiting for a doctor",
     "enTraitement": "Intervention in progress",
     "cloturer": "Close",
+    "gravite": {
+      "LEGERE": "Light",
+      "URGENTE": "Urgent",
+      "CRITIQUE": "Critical"
+    },
+    "graviteLabel": "Severity level (triage)",
+    "graviteHint": "Confirmed by the manager: CRITIQUE dispatches the nearest doctors.",
+    "agePatient": "Age {{age}}",
+    "enceinteBadge": "Pregnant",
+    "relayer": "Relay",
+    "relayerHint": "Re-route to the nearest facility (no doctor available)",
+    "relayOk": "Alert relayed to the nearest facility.",
     "journal": "Audit log",
     "statsTitre": "Real-time SOS control",
     "statsDesc": "Alert volumes, delays and quality, refreshed on every event.",

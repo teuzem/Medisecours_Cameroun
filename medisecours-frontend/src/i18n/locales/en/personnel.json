@@ -34,6 +34,7 @@
       "typeInfirmier": "Nurse (IDE)",
       "typeAideSoignant": "Nursing assistant (AS)",
       "typePharmacien": "Pharmacist",
+      "typeAmbulancier": "Ambulance crew",
       "rechercherEtablissement": "Search for a facility…",
       "aucunEtablissement": "No facility found.",
       "selectionnerEtablissement": "Select a facility.",
@@ -75,6 +76,7 @@
       "dossiers": "Patient files",
       "soins": "Care",
       "pharmacie": "Pharmacy",
+      "ambulance": "Ambulance",
       "parametres": "Settings",
       "deconnexion": "Sign out",
       "espace": "Staff space",
@@ -83,7 +85,8 @@
         "RECEPTIONNISTE": "Reception",
         "INFIRMIER": "Nursing care",
         "AIDE_SOIGNANT": "Care — assistant",
-        "PHARMACIEN": "Pharmacy"
+        "PHARMACIEN": "Pharmacy",
+        "AMBULANCIER": "Ambulance crew"
       }
     },
     "dashboard": {
@@ -100,6 +103,26 @@
     "parametres": {
       "titre": "Settings",
       "description": "Your digital signature pre-fills the care signing pad and accompanies your documents."
+    },
+    "ambulance": {
+      "titre": "Ambulance interventions",
+      "description": "Verified light cases from your facility and your take-overs.",
+      "chargement": "Loading interventions…",
+      "actionErreur": "The action failed.",
+      "pasDescription": "No description provided",
+      "anonyme": "Anonymous reporter",
+      "preuve": "Evidence",
+      "itineraire": "Directions",
+      "prendre": "Take in charge",
+      "cloturer": "Close",
+      "priseOk": "Intervention taken in charge.",
+      "clotureOk": "Intervention closed.",
+      "ouvertesTitre": "Light cases to take",
+      "mesPrisesTitre": "My interventions",
+      "aucunOuvert": "No light cases pending.",
+      "aucunePrise": "No ongoing intervention.",
+      "enServiceLabel": "Crew available",
+      "enServiceDesc": "Receive priority light cases to transport."
     },
     "accueil": {
       "titre": "Patient admission",

@@ -534,6 +534,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setSosAlerte(null)
       dispatchSos('sos_cloturee', payload)
     },
+    // Relais vers un autre établissement : la nouvelle équipe le reçoit
+    // comme une alerte (carillon, sans sirène — le statut ne change pas).
+    onSosRelayee: (payload: any) => {
+      setSosAlerte({ ...payload, type: 'relayee' })
+      playChime()
+      dispatchSos('sos_relayee', payload)
+    },
     // ── Suivi demandeur/répondant (jamais de sirène ici) ──
     onSosSuivi: (payload: any) => {
       dispatchSos('sos_suivi', payload)

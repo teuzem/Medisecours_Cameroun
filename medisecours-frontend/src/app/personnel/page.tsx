@@ -345,6 +345,7 @@ function PersonnelLandingInner() {
                       <option value="INFIRMIER">{t('personnel.inscription.typeInfirmier')}</option>
                       <option value="AIDE_SOIGNANT">{t('personnel.inscription.typeAideSoignant')}</option>
                       <option value="PHARMACIEN">{t('personnel.inscription.typePharmacien')}</option>
+                      <option value="AMBULANCIER">{t('personnel.inscription.typeAmbulancier')}</option>
                     </select>
                   </div>
                   <div>

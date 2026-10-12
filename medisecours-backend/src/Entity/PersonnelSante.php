@@ -9,11 +9,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Personnel d'établissement de santé (hors médecins) : réceptionniste,
- * infirmier(IDE), aide-soignant(AS), pharmacien. Filière STI sur `user`.
+ * infirmier(IDE), aide-soignant(AS), pharmacien, ambulancier. Filière STI
+ * sur `user`.
  *
  * L'accès opérationnel exige statutValidation = VALIDE (pièces validées
  * par le manager de l'établissement) ET une adhésion ACTIF dans
  * etablissement_equipe — double verrou pour éviter tout accès fantôme.
+ *
+ * Les ambulanciers prennent en charge les cas LÉGERS vérifiés de leur
+ * établissement (transport sans risque) ; les cas URGENTS/CRITIQUES
+ * restent réservés aux médecins disponibles les plus proches.
  */
 #[ORM\Entity]
 class PersonnelSante extends User
@@ -22,8 +27,9 @@ class PersonnelSante extends User
     public const TYPE_INFIRMIER = 'INFIRMIER';
     public const TYPE_AIDE_SOIGNANT = 'AIDE_SOIGNANT';
     public const TYPE_PHARMACIEN = 'PHARMACIEN';
+    public const TYPE_AMBULANCIER = 'AMBULANCIER';
 
-    public const TYPES = [self::TYPE_RECEPTIONNISTE, self::TYPE_INFIRMIER, self::TYPE_AIDE_SOIGNANT, self::TYPE_PHARMACIEN];
+    public const TYPES = [self::TYPE_RECEPTIONNISTE, self::TYPE_INFIRMIER, self::TYPE_AIDE_SOIGNANT, self::TYPE_PHARMACIEN, self::TYPE_AMBULANCIER];
 
     public const VALIDATION_EN_ATTENTE = 'EN_ATTENTE';
     public const VALIDATION_VALIDE = 'VALIDE';
@@ -35,6 +41,7 @@ class PersonnelSante extends User
         self::TYPE_INFIRMIER => 'INFIRMIER',
         self::TYPE_AIDE_SOIGNANT => 'AIDE_SOIGNANT',
         self::TYPE_PHARMACIEN => 'PHARMACIEN',
+        self::TYPE_AMBULANCIER => 'AMBULANCIER',
     ];
 
     #[ORM\Column(length: 30)]

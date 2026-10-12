@@ -235,19 +235,27 @@ class CarteController extends AbstractController
         if (array_key_exists('regionCode', $data)
             || array_key_exists('departementCode', $data)
             || array_key_exists('arrondissementCode', $data)) {
-            $geography = $this->validateCameroonGeography($data);
-            if ($geography === null) {
-                throw new BadRequestHttpException('La région, le département et l’arrondissement doivent être cohérents.');
+            // Le front envoie toujours les trois codes (null si non renseignés) :
+            // ne valider que si au moins un code est fourni, sinon conserver
+            // la géographie existante au lieu d'échouer systématiquement.
+            $codesFournis = trim((string) ($data['regionCode'] ?? '')) !== ''
+                || trim((string) ($data['departementCode'] ?? '')) !== ''
+                || trim((string) ($data['arrondissementCode'] ?? '')) !== '';
+            if ($codesFournis) {
+                $geography = $this->validateCameroonGeography($data);
+                if ($geography === null) {
+                    throw new BadRequestHttpException('La région, le département et l’arrondissement doivent être cohérents.');
+                }
+                $centre
+                    ->setRegion($geography['region'])
+                    ->setRegionCode($geography['regionCode'])
+                    ->setDepartement($geography['departement'])
+                    ->setDepartementCode($geography['departementCode'])
+                    ->setArrondissement($geography['arrondissement'])
+                    ->setArrondissementCode($geography['arrondissementCode'])
+                    ->setLatitude($geography['latitude'])
+                    ->setLongitude($geography['longitude']);
             }
-            $centre
-                ->setRegion($geography['region'])
-                ->setRegionCode($geography['regionCode'])
-                ->setDepartement($geography['departement'])
-                ->setDepartementCode($geography['departementCode'])
-                ->setArrondissement($geography['arrondissement'])
-                ->setArrondissementCode($geography['arrondissementCode'])
-                ->setLatitude($geography['latitude'])
-                ->setLongitude($geography['longitude']);
         }
 
         if (isset($data['quartier'])) {

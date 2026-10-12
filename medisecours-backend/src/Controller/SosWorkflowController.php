@@ -9,6 +9,7 @@ use App\Entity\CentreDeSante;
 use App\Entity\DemandeSos;
 use App\Entity\EtablissementEquipe;
 use App\Entity\Medecin;
+use App\Entity\PersonnelSante;
 use App\Entity\SosTrace;
 use App\Entity\User;
 use App\Message\WebSocketNotification;
@@ -40,6 +41,8 @@ use Symfony\Component\Routing\Annotation\Route;
  *                                         établissement (volumes par statut,
  *                                         délais moyens, taux preuves/fraudes).
  *  - GET  /api/medecin/sos              : alertes ouvertes + mes prises (médecin).
+ *  - GET  /api/ambulancier/sos          : cas LÉGERS vérifiés du centre + mes
+ *                                         prises (ambulanciers en service).
  *
  * Chaque transition laisse une trace `sos_trace` et publie un événement
  * WebSocket ciblé (équipe + demandeur + répondant).
@@ -57,7 +60,10 @@ class SosWorkflowController extends AbstractController
     // ── Vérification : réelle (sirène) ou fausse (fraude) ──────────────────
 
     /**
-     * POST /api/sos/{id}/verifier   body: {"decision": "REEL"|"FAUX", "commentaire"?: string}
+     * POST /api/sos/{id}/verifier   body: {"decision": "REEL"|"FAUX", "commentaire"?: string, "gravite"?: "LEGERE"|"URGENTE"|"CRITIQUE"}
+     *
+     * Le manager confirme le niveau de gravité du triage (défaut : gravité
+     * calculée à la création). CRITIQUE n'est attribuable qu'ici.
      */
     #[Route('/api/sos/{id}/verifier', name: 'api_sos_verifier', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function verifier(int $id, Request $request): JsonResponse
@@ -77,6 +83,10 @@ class SosWorkflowController extends AbstractController
         }
         $commentaire = trim((string) ($data['commentaire'] ?? ''));
         $commentaire = $commentaire !== '' ? mb_substr($commentaire, 0, 1000) : null;
+        $gravite = strtoupper(trim((string) ($data['gravite'] ?? '')));
+        if ($gravite !== '' && !in_array($gravite, DemandeSos::GRAVITES, true)) {
+            throw new BadRequestHttpException('Gravité invalide (LEGERE, URGENTE ou CRITIQUE).');
+        }
 
         $sos->setVerifiePar($user)
             ->setVerifieAt(new \DateTimeImmutable())
@@ -85,6 +95,9 @@ class SosWorkflowController extends AbstractController
         if ($decision === 'REEL') {
             $sos->setStatut('VERIFIEE')
                 ->setSireneActive(true);
+            if ($gravite !== '') {
+                $sos->setGravite($gravite);
+            }
             $action = SosTrace::ACTION_CONFIRMEE;
         } else {
             $sos->setStatut('FRAUDULEUSE')
@@ -98,7 +111,7 @@ class SosWorkflowController extends AbstractController
                 ->setSos($sos)
                 ->setAction($action)
                 ->setAuteur($user)
-                ->setDetails(['decision' => $decision, 'commentaire' => $commentaire])
+                ->setDetails(['decision' => $decision, 'commentaire' => $commentaire, 'gravite' => $sos->getGravite()])
         );
         if ($decision === 'REEL') {
             $this->em->persist(
@@ -114,6 +127,7 @@ class SosWorkflowController extends AbstractController
             'id' => $sos->getId(),
             'statut' => $sos->getStatut(),
             'sireneActive' => $sos->isSireneActive(),
+            'gravite' => $sos->getGravite(),
             'verifiePar' => $this->displayName($user),
             'verifieAt' => $sos->getVerifieAt()?->format('c'),
         ]);
@@ -125,16 +139,31 @@ class SosWorkflowController extends AbstractController
 
     /**
      * POST /api/sos/{id}/prise-en-charge
+     *
+     * Médecins (cas URGENTS/CRITIQUES) et ambulanciers en service (cas
+     * LÉGERS de leur établissement, transport sans risque). Le premier
+     * répondant éteint la sirène partout (anti-chevauchement).
      */
     #[Route('/api/sos/{id}/prise-en-charge', name: 'api_sos_prise_en_charge', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function priseEnCharge(int $id): JsonResponse
     {
         $user = $this->requireUser();
-        if (!in_array('ROLE_MEDECIN', $user->getRoles(), true) && !$this->isAdmin($user)) {
-            throw new AccessDeniedHttpException('Seul un médecin peut prendre une alerte SOS en charge.');
-        }
-        if ($user instanceof Medecin && !$user->isEstValide()) {
-            throw new AccessDeniedHttpException('Votre compte médecin n\'est pas encore validé.');
+        $estAmbulancier = $user instanceof PersonnelSante
+            && $user->getTypePersonnel() === PersonnelSante::TYPE_AMBULANCIER;
+        if ($estAmbulancier) {
+            if (!$user->estValide()) {
+                throw new AccessDeniedHttpException('Votre compte ambulancier n\'est pas encore validé.');
+            }
+            if (!$user->isEnService()) {
+                throw new AccessDeniedHttpException('Passez en service pour prendre une alerte.');
+            }
+        } else {
+            if (!in_array('ROLE_MEDECIN', $user->getRoles(), true) && !$this->isAdmin($user)) {
+                throw new AccessDeniedHttpException('Seuls un médecin ou un ambulancier (cas légers) peuvent prendre une alerte SOS en charge.');
+            }
+            if ($user instanceof Medecin && !$user->isEstValide()) {
+                throw new AccessDeniedHttpException('Votre compte médecin n\'est pas encore validé.');
+            }
         }
 
         $sos = $this->findSos($id);
@@ -148,9 +177,21 @@ class SosWorkflowController extends AbstractController
         if ($sos->getPrisEnChargePar()) {
             throw new BadRequestHttpException('Cette alerte est déjà prise en charge.');
         }
+        if ($estAmbulancier) {
+            if ($sos->getGravite() !== DemandeSos::GRAVITE_LEGERE) {
+                throw new AccessDeniedHttpException('Les ambulanciers ne prennent que les cas légers ; un médecin doit se déplacer.');
+            }
+            $centrePersonnel = $user->getEtablissement();
+            $centreSos = $sos->getEtablissement();
+            if (!$centrePersonnel || !$centreSos || $centrePersonnel->getId() !== $centreSos->getId()) {
+                throw new AccessDeniedHttpException('Cette alerte ne relève pas de votre établissement.');
+            }
+        }
 
         // ── Habilitation temps réel (affiliation / équipe / ouverte) ────────
-        $habilitation = $this->evaluerHabilitation($user, $sos->getEtablissement());
+        $habilitation = $estAmbulancier
+            ? ['autorise' => true, 'type' => 'ambulancier', 'motif' => null]
+            : $this->evaluerHabilitation($user, $sos->getEtablissement());
         if ($habilitation['autorise'] === false) {
             throw new AccessDeniedHttpException($habilitation['motif']);
         }
@@ -432,6 +473,11 @@ class SosWorkflowController extends AbstractController
 
     /**
      * GET /api/medecin/sos
+     *
+     * Triage à la lecture : seuls les cas URGENTS/CRITIQUES vérifiés et non
+     * pris sont proposés — et uniquement si le médecin a activé le
+     * commutateur « Me signaler les incidents SOS ». Les cas LÉGERS sont
+     * routés vers les ambulanciers (GET /api/ambulancier/sos).
      */
     #[Route('/api/medecin/sos', name: 'api_medecin_sos', methods: ['GET'])]
     public function filMedecin(): JsonResponse
@@ -441,16 +487,21 @@ class SosWorkflowController extends AbstractController
             throw new AccessDeniedHttpException('Accès réservé aux médecins.');
         }
 
-        $ouvertes = $this->em->createQueryBuilder()
-            ->select('d')
-            ->from(DemandeSos::class, 'd')
-            ->where('d.statut = :statut')
-            ->setParameter('statut', 'VERIFIEE')
-            ->andWhere('d.prisEnChargePar IS NULL')
-            ->orderBy('d.createdAt', 'ASC')
-            ->setMaxResults(30)
-            ->getQuery()
-            ->getResult();
+        $ouvertes = [];
+        if ($user->isSosAlertesActive()) {
+            $ouvertes = $this->em->createQueryBuilder()
+                ->select('d')
+                ->from(DemandeSos::class, 'd')
+                ->where('d.statut = :statut')
+                ->setParameter('statut', 'VERIFIEE')
+                ->andWhere('d.prisEnChargePar IS NULL')
+                ->andWhere('d.gravite IN (:gravites)')
+                ->setParameter('gravites', [DemandeSos::GRAVITE_URGENTE, DemandeSos::GRAVITE_CRITIQUE])
+                ->orderBy('d.createdAt', 'ASC')
+                ->setMaxResults(30)
+                ->getQuery()
+                ->getResult();
+        }
 
         $mesPrises = $this->em->createQueryBuilder()
             ->select('d')
@@ -475,6 +526,145 @@ class SosWorkflowController extends AbstractController
             'ouvertes' => array_map($serializer, $ouvertes),
             'mesPrises' => array_map($serializer, $mesPrises),
         ]);
+    }
+
+    // ── Vue ambulancier : cas LÉGERS du centre + mes prises ────────────────
+
+    /**
+     * GET /api/ambulancier/sos
+     *
+     * Les ambulanciers (en service, validés) prennent les cas LÉGERS vérifiés
+     * de leur établissement — transport sans risque. Les cas URGENTS et
+     * CRITIQUES restent réservés aux médecins (GET /api/medecin/sos).
+     */
+    #[Route('/api/ambulancier/sos', name: 'api_ambulancier_sos', methods: ['GET'])]
+    public function filAmbulancier(): JsonResponse
+    {
+        $user = $this->requireUser();
+        if (!$user instanceof PersonnelSante || $user->getTypePersonnel() !== PersonnelSante::TYPE_AMBULANCIER) {
+            throw new AccessDeniedHttpException('Accès réservé aux ambulanciers.');
+        }
+        if (!$user->estValide()) {
+            throw new AccessDeniedHttpException('Votre compte ambulancier n\'est pas encore validé.');
+        }
+        $centre = $user->getEtablissement();
+        if (!$centre) {
+            throw new AccessDeniedHttpException('Aucun établissement de rattachement.');
+        }
+
+        $ouvertes = [];
+        if ($user->isEnService()) {
+            $ouvertes = $this->em->createQueryBuilder()
+                ->select('d')
+                ->from(DemandeSos::class, 'd')
+                ->where('d.statut = :statut')
+                ->setParameter('statut', 'VERIFIEE')
+                ->andWhere('d.prisEnChargePar IS NULL')
+                ->andWhere('d.gravite = :gravite')
+                ->setParameter('gravite', DemandeSos::GRAVITE_LEGERE)
+                ->andWhere('d.etablissement = :centre')
+                ->setParameter('centre', $centre->getId())
+                ->orderBy('d.createdAt', 'ASC')
+                ->setMaxResults(30)
+                ->getQuery()
+                ->getResult();
+        }
+
+        $mesPrises = $this->em->createQueryBuilder()
+            ->select('d')
+            ->from(DemandeSos::class, 'd')
+            ->where('d.prisEnChargePar = :user')
+            ->setParameter('user', $user->getId())
+            ->andWhere('d.statut = :statut')
+            ->setParameter('statut', 'EN_PRISE_EN_CHARGE')
+            ->orderBy('d.createdAt', 'DESC')
+            ->setMaxResults(30)
+            ->getQuery()
+            ->getResult();
+
+        $serializer = function (DemandeSos $item): array {
+            return $this->serializeSos($item, false);
+        };
+
+        return new JsonResponse([
+            'ouvertes' => array_map($serializer, $ouvertes),
+            'mesPrises' => array_map($serializer, $mesPrises),
+        ]);
+    }
+
+    // ── Relais vers l'établissement le plus proche ─────────────────────────
+
+    /**
+     * POST /api/sos/{id}/relayer   body: {"etablissementId"?: int}
+     *
+     * Le manager rebascule une alerte non prise vers l'établissement le plus
+     * proche suivant (aucun médecin disponible sur place) ou vers un centre
+     * explicitement choisi. L'ancienne équipe est notifiée du départ, la
+     * nouvelle reçoit l'alerte comme une création.
+     */
+    #[Route('/api/sos/{id}/relayer', name: 'api_sos_relayer', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function relayer(int $id, Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $sos = $this->findSos($id);
+        if (!in_array($sos->getStatut(), ['EN_COURS', 'VERIFIEE'], true) || $sos->getPrisEnChargePar()) {
+            throw new BadRequestHttpException('Seule une alerte en attente et non prise peut être relayée.');
+        }
+
+        $ancienCentre = $sos->getEtablissement();
+        if ($ancienCentre) {
+            $this->assertCanManage($user, $ancienCentre);
+        } elseif (!$this->isAdmin($user)) {
+            throw new AccessDeniedHttpException('Accès réservé aux managers de l\'établissement ciblé.');
+        }
+
+        $data = $request->toArray();
+        $cible = null;
+        $cibleId = (int) ($data['etablissementId'] ?? 0);
+        if ($cibleId > 0) {
+            $cible = $this->em->getRepository(CentreDeSante::class)->find($cibleId);
+            if (!$cible) {
+                throw new BadRequestHttpException('Établissement cible introuvable.');
+            }
+        } else {
+            foreach ($sos->getProches() ?? [] as $proche) {
+                if ((int) ($proche['id'] ?? 0) > 0 && (!$ancienCentre || (int) $proche['id'] !== $ancienCentre->getId())) {
+                    $cible = $this->em->getRepository(CentreDeSante::class)->find((int) $proche['id']);
+                    if ($cible) {
+                        break;
+                    }
+                }
+            }
+            if (!$cible) {
+                throw new BadRequestHttpException('Aucun établissement proche disponible pour le relais.');
+            }
+        }
+        if ($ancienCentre && $cible->getId() === $ancienCentre->getId()) {
+            throw new BadRequestHttpException('L\'alerte est déjà ciblée sur cet établissement.');
+        }
+
+        $sos->setEtablissement($cible);
+        $this->em->persist(
+            (new SosTrace())
+                ->setSos($sos)
+                ->setAction(SosTrace::ACTION_RELAYE)
+                ->setAuteur($user)
+                ->setDetails([
+                    'ancienEtablissementId' => $ancienCentre?->getId(),
+                    'nouvelEtablissementId' => $cible->getId(),
+                ])
+        );
+        $this->em->flush();
+
+        $this->publish($sos, 'sos_relayee', [
+            'id' => $sos->getId(),
+            'statut' => $sos->getStatut(),
+            'gravite' => $sos->getGravite(),
+            'ancienEtablissementId' => $ancienCentre?->getId(),
+            'etablissement' => ['id' => $cible->getId(), 'nom' => $cible->getNom()],
+        ]);
+
+        return new JsonResponse(['sos' => $this->serializeSos($sos, true)]);
     }
 
     // ── Habilitation temps réel ─────────────────────────────────────────────
@@ -681,6 +871,9 @@ class SosWorkflowController extends AbstractController
         return [
             'id' => $sos->getId(),
             'statut' => $sos->getStatut(),
+            'gravite' => $sos->getGravite(),
+            'agePatient' => $sos->getAgePatient(),
+            'enceinte' => $sos->isEnceinte(),
             'nom' => $sos->getNom(),
             'telephone' => $sos->getTelephone(),
             'description' => $sos->getDescription(),

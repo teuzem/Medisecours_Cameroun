@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -12,7 +12,7 @@ import {
   ChevronRight, Star, Calendar, Clock,
   Stethoscope, MessageSquare, Phone,
   ShieldCheck, ArrowRight, Activity,
-  RefreshCw, ChevronLeft,
+  RefreshCw, ChevronLeft, Siren,
 } from 'lucide-react'
 import api from '../../api/axios'
 import { useAuth } from '../../hooks/useAuth'
@@ -23,6 +23,7 @@ import Avatar from '../../components/ui/Avatar'
 import CertifiedBadge from '../../components/ui/CertifiedBadge'
 import DashboardAnalytics from '../../components/medecin/dashboard/DashboardAnalytics'
 import AffiliationsCard from '../../components/medecin/AffiliationsCard'
+import Toggle from '../../components/ui/Toggle'
 import { DASHBOARD_KEY } from '../../lib/keys'
 import type { DashboardData, Consultation, Patient } from '../../types/api'
 
@@ -88,6 +89,63 @@ const PRIORITE_BADGE: Record<string, { bg: string; text: string }> = {
 }
 
 /* ── Main Dashboard ──────────────────────────────────────────────── */
+
+/**
+ * Commutateur « Me signaler les incidents SOS » : éligibilité du médecin
+ * aux alertes urgentes/critiques de ses établissements (triage à la
+ * lecture côté API). Coupé = seules ses prises en charge restent visibles.
+ */
+function SosDisponibiliteCard({ t }: { t: (key: string) => string }) {
+  const [actif, setActif] = useState(true)
+  const [charge, setCharge] = useState(true)
+  const [bascule, setBascule] = useState(false)
+
+  useEffect(() => {
+    let annule = false
+    api.get('/api/me/disponibilite')
+      .then(({ data }) => {
+        if (!annule && typeof data?.sosAlertesActive === 'boolean') setActif(data.sosAlertesActive)
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!annule) setCharge(false)
+      })
+    return () => {
+      annule = true
+    }
+  }, [])
+
+  const toggle = async (next: boolean) => {
+    if (bascule) return
+    setBascule(true)
+    try {
+      await api.patch('/api/me/disponibilite', { sosAlertesActive: next })
+      setActif(next)
+    } catch {
+      // échec silencieux : l'interrupteur garde l'état serveur
+    } finally {
+      setBascule(false)
+    }
+  }
+
+  if (charge) return null
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-900">
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${actif ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400' : 'bg-slate-100 text-slate-400 dark:bg-white/5'}`}>
+        <Siren className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <Toggle
+          checked={actif}
+          onChange={(next) => void toggle(next)}
+          label={t('medecin.overview.sosToggleTitle')}
+          description={t('medecin.overview.sosToggleDesc')}
+        />
+      </div>
+    </div>
+  )
+}
 
 export default function MedecinDashboard() {
   const { user, token } = useAuth()
@@ -168,6 +226,9 @@ export default function MedecinDashboard() {
           </div>
           <div className="medecin-overview-intro-rule absolute bottom-0 left-0 right-0 h-1" />
         </div>
+
+        {/* ── Disponibilité SOS (triage) ────────────────── */}
+        <SosDisponibiliteCard t={t} />
 
         {/* ── Category Cards (like "You Need to hire" section) ─── */}
         <div>
