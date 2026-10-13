@@ -101,6 +101,14 @@ export interface EtablissementMedia {
   mimeType?: string | null
   size?: number | null
   kind?: 'image' | 'video'
+  /** Fournisseur vidéo externe : youtube, tiktok, instagram, facebook, vimeo, dailymotion. */
+  provider?: string | null
+  /** URL d'origine de la vidéo externe (absente pour les fichiers téléversés). */
+  externalUrl?: string | null
+  /** URL d'intégration iframe calculée par l'API. */
+  embedUrl?: string | null
+  /** Vignette distante (ex. YouTube hqdefault). */
+  thumbnailUrl?: string | null
   createdAt?: string
   uploadedBy?: {
     id?: number | string | null

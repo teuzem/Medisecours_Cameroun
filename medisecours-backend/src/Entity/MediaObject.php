@@ -73,6 +73,37 @@ class MediaObject
     private ?int $size = null;
 
     /**
+     * URL d'origine d'une vidéo externe (YouTube, TikTok, Instagram,
+     * Facebook, Vimeo, Dailymotion). Null pour les fichiers téléversés.
+     */
+    #[ORM\Column(length: 1000, nullable: true)]
+    #[Groups(['media:read', 'centre_sante:read', 'avis_etablissement:read'])]
+    private ?string $externalUrl = null;
+
+    /**
+     * Fournisseur de la vidéo externe : youtube, tiktok, instagram,
+     * facebook, vimeo ou dailymotion. Null pour les fichiers téléversés.
+     */
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['media:read', 'centre_sante:read', 'avis_etablissement:read'])]
+    private ?string $provider = null;
+
+    /**
+     * URL d'intégration iframe (embed) calculée côté API. Null pour les
+     * fichiers téléversés.
+     */
+    #[ORM\Column(length: 1000, nullable: true)]
+    #[Groups(['media:read', 'centre_sante:read', 'avis_etablissement:read'])]
+    private ?string $embedUrl = null;
+
+    /**
+     * Vignette distante (ex. YouTube hqdefault). Null si indisponible.
+     */
+    #[ORM\Column(length: 1000, nullable: true)]
+    #[Groups(['media:read', 'centre_sante:read', 'avis_etablissement:read'])]
+    private ?string $thumbnailUrl = null;
+
+    /**
      * Contenu binaire du fichier, encodé en base64. Le stockage en base évite
      * la perte des fichiers lors des redéploiements (disque éphémère Render).
      * Jamais exposé via l'API (aucun groupe de sérialisation).
@@ -183,6 +214,59 @@ class MediaObject
     public function getSize(): ?int
     {
         return $this->size;
+    }
+
+    public function getExternalUrl(): ?string
+    {
+        return $this->externalUrl;
+    }
+
+    public function setExternalUrl(?string $externalUrl): static
+    {
+        $this->externalUrl = $externalUrl;
+
+        return $this;
+    }
+
+    public function getProvider(): ?string
+    {
+        return $this->provider;
+    }
+
+    public function setProvider(?string $provider): static
+    {
+        $this->provider = $provider;
+
+        return $this;
+    }
+
+    public function getEmbedUrl(): ?string
+    {
+        return $this->embedUrl;
+    }
+
+    public function setEmbedUrl(?string $embedUrl): static
+    {
+        $this->embedUrl = $embedUrl;
+
+        return $this;
+    }
+
+    public function getThumbnailUrl(): ?string
+    {
+        return $this->thumbnailUrl;
+    }
+
+    public function setThumbnailUrl(?string $thumbnailUrl): static
+    {
+        $this->thumbnailUrl = $thumbnailUrl;
+
+        return $this;
+    }
+
+    public function isExternalVideo(): bool
+    {
+        return $this->externalUrl !== null && $this->provider !== null;
     }
 
     public function getData(): ?string

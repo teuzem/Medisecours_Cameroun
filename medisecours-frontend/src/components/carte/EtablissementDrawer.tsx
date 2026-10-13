@@ -147,7 +147,15 @@ const MODE_ICONS: Record<WayfindingMode, typeof Car> = {
 }
 
 function mediaUrl(media: EtablissementMedia): string {
-  return imgUrl(media.contentUrl) || media.contentUrl
+  return media.externalUrl ?? imgUrl(media.contentUrl) ?? media.contentUrl
+}
+
+function isExternalMedia(media: EtablissementMedia): boolean {
+  return Boolean(media.provider || media.externalUrl || media.embedUrl)
+}
+
+function mediaThumb(media: EtablissementMedia, fallback: string): string {
+  return media.thumbnailUrl ?? mediaUrl(media) ?? fallback
 }
 
 function normalizedMediaUrl(value?: string | null): string {
@@ -205,7 +213,8 @@ export function MediaGallery({
     <>
       <div className={`grid ${compact || preview.length === 1 ? 'grid-cols-1' : 'grid-cols-[2fr_1fr]'} gap-1 overflow-hidden bg-slate-200 dark:bg-slate-800`}>
         {preview.map((media, index) => {
-          const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/')
+          const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/') || isExternalMedia(media)
+          const external = isExternalMedia(media)
           return (
             <button
               key={media.id}
@@ -226,12 +235,30 @@ export function MediaGallery({
               }`}
             >
               {isVideo ? (
-                <>
-                  <video src={mediaUrl(media)} muted preload="metadata" className="h-full w-full object-cover" />
-                  <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white">
-                    <PlayCircle className="h-10 w-10 drop-shadow" />
-                  </span>
-                </>
+                external ? (
+                  <>
+                    <img
+                      src={mediaThumb(media, '/images/home-doctor-visit.jpg')}
+                      alt={`${centre.nom} - video ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white">
+                      <PlayCircle className="h-10 w-10 drop-shadow" />
+                    </span>
+                    {media.provider && (
+                      <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                        {media.provider}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <video src={mediaUrl(media)} muted preload="metadata" className="h-full w-full object-cover" />
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white">
+                      <PlayCircle className="h-10 w-10 drop-shadow" />
+                    </span>
+                  </>
+                )
               ) : (
                 <img
                   src={mediaUrl(media)}
@@ -268,13 +295,23 @@ export function MediaGallery({
             >
               <X className="h-5 w-5" />
             </button>
-            {medias[activeIndex].kind === 'video' || medias[activeIndex].mimeType?.startsWith('video/') ? (
-              <video
-                src={mediaUrl(medias[activeIndex])}
-                controls
-                autoPlay
-                className="max-h-[86dvh] max-w-[92vw]"
-              />
+            {medias[activeIndex].kind === 'video' || medias[activeIndex].mimeType?.startsWith('video/') || isExternalMedia(medias[activeIndex]) ? (
+              medias[activeIndex].embedUrl ? (
+                <iframe
+                  src={medias[activeIndex].embedUrl ?? ''}
+                  title={`${centre.nom} - video`}
+                  className="max-h-[86dvh] w-[92vw] max-w-4xl aspect-video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={mediaUrl(medias[activeIndex])}
+                  controls
+                  autoPlay
+                  className="max-h-[86dvh] max-w-[92vw]"
+                />
+              )
             ) : (
               <img
                 src={mediaUrl(medias[activeIndex])}

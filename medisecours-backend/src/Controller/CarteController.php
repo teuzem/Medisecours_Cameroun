@@ -11,6 +11,7 @@ use App\Entity\EtablissementPreference;
 use App\Entity\AvisEtablissement;
 use App\Entity\MediaObject;
 use App\Entity\Medecin;
+use App\Entity\PersonnelSante;
 use App\Entity\User;
 use App\Repository\AffiliationMedecinRepository;
 use App\Repository\AvisEtablissementRepository;
@@ -928,20 +929,64 @@ class CarteController extends AbstractController
     }
 
     /**
-     * Ajout d'une image ou video a la galerie de l'etablissement.
+     * Ajout d'une image, d'une video ou d'un lien video externe a la
+     * galerie de l'etablissement.
      *
-     * POST /api/carte/medias (multipart: file, centre?)
+     * POST /api/carte/medias (multipart: file, centre? | JSON/form: videoUrl, centre?)
+     * Le lien video accepte YouTube, TikTok, Instagram, Facebook, Vimeo et
+     * Dailymotion. L'URL est normalisee en embed iframe cote API afin que
+     * l'apercu instantane fonctionne sans televersement.
      */
     #[Route('/api/carte/medias', name: 'api_carte_medias_add', methods: ['POST'])]
     public function ajouterMedia(Request $request): JsonResponse
     {
         $user = $this->requireUser();
-        $centre = $this->resolveManagedCentre($user, $request);
-        $this->assertCanManage($user, $centre);
+        try {
+            $centre = $this->resolveManagedCentre($user, $request);
+            $this->assertCanManage($user, $centre);
+        } catch (AccessDeniedHttpException) {
+            // Personnel validé (dont ambulanciers) : dépôt limité à son
+            // établissement de rattachement, jamais ailleurs.
+            if (!$user instanceof PersonnelSante || !$user->estValide() || !$user->getEtablissement()) {
+                throw new AccessDeniedHttpException('Dépôt réservé aux responsables et personnels de l\'établissement.');
+            }
+            $centre = $user->getEtablissement();
+        }
+
+        $videoUrl = trim((string) ($request->request->get('videoUrl') ?? ''));
+        if ($videoUrl === '' && str_contains((string) $request->headers->get('Content-Type'), 'application/json')) {
+            $payload = $request->getContent() ? ($request->toArray(false) ?? []) : [];
+            $videoUrl = trim((string) ($payload['videoUrl'] ?? ''));
+        }
+
+        if ($videoUrl !== '') {
+            $parsed = self::parseExternalVideoUrl($videoUrl);
+            if ($parsed === null) {
+                throw new BadRequestHttpException('Lien vidéo non pris en charge. Collez un lien YouTube, TikTok, Instagram, Facebook, Vimeo ou Dailymotion complet (pas un lien raccourci).');
+            }
+            $media = new MediaObject();
+            $media
+                ->setExternalUrl($parsed['watchUrl'])
+                ->setProvider($parsed['provider'])
+                ->setEmbedUrl($parsed['embedUrl'])
+                ->setThumbnailUrl($parsed['thumbnailUrl'])
+                ->setOriginalName($parsed['watchUrl'])
+                ->setMimeType('video/' . $parsed['provider'])
+                ->setSize(null)
+                ->setIsPublic(true)
+                ->setPurpose(MediaObject::PURPOSE_GENERAL)
+                ->setUploadedBy($user)
+                ->setCentre($centre);
+
+            $this->em->persist($media);
+            $this->em->flush();
+
+            return new JsonResponse(['media' => $this->serializeMedia($media)], Response::HTTP_CREATED);
+        }
 
         $file = $request->files->get('file');
         if (!$file instanceof UploadedFile || !$file->isValid()) {
-            throw new BadRequestHttpException('Un fichier image ou video valide est obligatoire.');
+            throw new BadRequestHttpException('Un fichier image ou video valide, ou un lien video (videoUrl), est obligatoire.');
         }
 
         $mimeType = strtolower((string) ($file->getMimeType() ?: $file->getClientMimeType()));
@@ -958,11 +1003,11 @@ class CarteController extends AbstractController
             throw new BadRequestHttpException('Format refuse. Utilisez JPEG, PNG, WebP, GIF, MP4, WebM ou MOV.');
         }
 
-        $maxBytes = str_starts_with($mimeType, 'video/') ? 30 * 1024 * 1024 : 10 * 1024 * 1024;
+        $maxBytes = 10 * 1024 * 1024;
         if (($file->getSize() ?? 0) > $maxBytes) {
             throw new BadRequestHttpException(
                 str_starts_with($mimeType, 'video/')
-                    ? 'La video ne doit pas depasser 30 Mo.'
+                    ? 'La video ne doit pas depasser 10 Mo.'
                     : "L'image ne doit pas depasser 10 Mo."
             );
         }
@@ -989,6 +1034,65 @@ class CarteController extends AbstractController
         $this->em->flush();
 
         return new JsonResponse(['media' => $this->serializeMedia($media)], Response::HTTP_CREATED);
+    }
+
+    /**
+     * Source web officielle d'un établissement (scraping léger) : titre,
+     * description et image OpenGraph du site officiel renseigné sur la
+     * fiche. Lecture seule, sans stockage : relie la fiche à la présence
+     * web réelle de l'établissement pour la crédibilité.
+     *
+     * GET /api/carte/etablissements/{id}/source-web
+     */
+    #[Route('/api/carte/etablissements/{id}/source-web', name: 'api_carte_etablissement_source_web', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function sourceWeb(int $id): JsonResponse
+    {
+        $centre = $this->em->getRepository(CentreDeSante::class)->find($id);
+        if (!$centre) {
+            throw new NotFoundHttpException('Établissement introuvable.');
+        }
+        $url = trim((string) ($centre->getSiteWeb() ?? ''));
+        if ($url === '' || filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return new JsonResponse(['url' => null, 'titre' => null, 'description' => null, 'image' => null]);
+        }
+        try {
+            $contexte = stream_context_create(['http' => [
+                'timeout' => 6,
+                'max_redirects' => 3,
+                'header' => "User-Agent: MediSecoursBot/1.0\r\n",
+            ]]);
+            $html = @file_get_contents($url, false, $contexte, 0, 524288);
+            if (!is_string($html) || $html === '') {
+                return new JsonResponse(['url' => $url, 'titre' => null, 'description' => null, 'image' => null]);
+            }
+            $dom = new \DOMDocument();
+            @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+            $xpath = new \DOMXPath($dom);
+            $meta = static function (string $cle) use ($xpath): ?string {
+                foreach (["//meta[@property='{$cle}']/@content", "//meta[@name='{$cle}']/@content"] as $expression) {
+                    $noeud = $xpath->query($expression)->item(0);
+                    if ($noeud) {
+                        $valeur = trim($noeud->nodeValue);
+                        if ($valeur !== '') {
+                            return mb_substr($valeur, 0, 500);
+                        }
+                    }
+                }
+
+                return null;
+            };
+            $titre = $meta('og:title');
+            if ($titre === null) {
+                $titres = $xpath->query('//title');
+                $titre = $titres->length > 0 ? mb_substr(trim($titres->item(0)->textContent), 0, 200) : null;
+            }
+            $description = $meta('og:description') ?? $meta('description');
+            $image = $meta('og:image');
+
+            return new JsonResponse(['url' => $url, 'titre' => $titre, 'description' => $description, 'image' => $image]);
+        } catch (\Throwable) {
+            return new JsonResponse(['url' => $url, 'titre' => null, 'description' => null, 'image' => null]);
+        }
     }
 
     /**
@@ -1349,20 +1453,176 @@ class CarteController extends AbstractController
         ];
     }
 
+    /**
+     * Normalise un lien video externe vers un embed iframe jouable.
+     * Retourne null si le fournisseur n'est pas pris en charge ou si
+     * l'identifiant est introuvable (liens raccourcis type vm.tiktok.com,
+     * fb.watch sans identifiant exploitable).
+     *
+     * @return array{provider: string, id: string|null, watchUrl: string, embedUrl: string, thumbnailUrl: string|null}|null
+     */
+    private static function parseExternalVideoUrl(string $url): ?array
+    {
+        $url = trim($url);
+        if ($url === '' || mb_strlen($url) > 1000) {
+            return null;
+        }
+        if (!preg_match('#^https?://#i', $url)) {
+            $url = 'https://' . $url;
+        }
+        $parts = parse_url($url);
+        if (!is_array($parts) || !isset($parts['host'])) {
+            return null;
+        }
+        $host = strtolower(preg_replace('/^www\./', '', (string) $parts['host']));
+        $path = (string) ($parts['path'] ?? '');
+        $query = [];
+        if (isset($parts['query'])) {
+            parse_str((string) $parts['query'], $query);
+        }
+
+        // ── YouTube ──────────────────────────────────────────────────────
+        if (in_array($host, ['youtube.com', 'm.youtube.com', 'youtu.be', 'youtube-nocookie.com'], true)) {
+            $id = null;
+            if ($host === 'youtu.be' && preg_match('#^/([A-Za-z0-9_-]{6,20})#', $path, $m)) {
+                $id = $m[1];
+            } elseif (preg_match('#/(shorts|embed|live)/([A-Za-z0-9_-]{6,20})#', $path, $m)) {
+                $id = $m[2];
+            } elseif (isset($query['v']) && preg_match('/^[A-Za-z0-9_-]{6,20}$/', (string) $query['v'])) {
+                $id = (string) $query['v'];
+            }
+            if ($id === null) {
+                return null;
+            }
+
+            return [
+                'provider' => 'youtube',
+                'id' => $id,
+                'watchUrl' => 'https://www.youtube.com/watch?v=' . $id,
+                'embedUrl' => 'https://www.youtube.com/embed/' . $id,
+                'thumbnailUrl' => 'https://i.ytimg.com/vi/' . $id . '/hqdefault.jpg',
+            ];
+        }
+
+        // ── TikTok (identifiant numerique obligatoire pour l'embed) ──────
+        if (str_ends_with($host, 'tiktok.com')) {
+            if (preg_match('#/video/(\d{5,30})#', $path, $m)) {
+                $id = $m[1];
+
+                return [
+                    'provider' => 'tiktok',
+                    'id' => $id,
+                    'watchUrl' => 'https://www.tiktok.com/@/video/' . $id,
+                    'embedUrl' => 'https://www.tiktok.com/embed/v2/' . $id,
+                    'thumbnailUrl' => null,
+                ];
+            }
+
+            return null;
+        }
+
+        // ── Instagram (publication / reel) ───────────────────────────────
+        if (in_array($host, ['instagram.com', 'instagr.am'], true)) {
+            if (preg_match('#/(p|reel|reels|tv)/([A-Za-z0-9_-]{5,60})#', $path, $m)) {
+                $shortcode = $m[2];
+
+                return [
+                    'provider' => 'instagram',
+                    'id' => $shortcode,
+                    'watchUrl' => 'https://www.instagram.com/p/' . $shortcode . '/',
+                    'embedUrl' => 'https://www.instagram.com/p/' . $shortcode . '/embed',
+                    'thumbnailUrl' => null,
+                ];
+            }
+
+            return null;
+        }
+
+        // ── Facebook (video / watch / reel) ──────────────────────────────
+        if (in_array($host, ['facebook.com', 'fb.com'], true)) {
+            $id = null;
+            if (preg_match('#/reel/(\d{5,30}|[A-Za-z0-9_-]{5,60})#', $path, $m)) {
+                $id = $m[1];
+            } elseif (preg_match('#/videos?/(\d{5,30})#', $path, $m)) {
+                $id = $m[1];
+            } elseif (isset($query['v']) && preg_match('/^\d{5,30}$/', (string) $query['v'])) {
+                $id = (string) $query['v'];
+            }
+            if ($id === null) {
+                return null;
+            }
+            $watchUrl = str_contains($path, '/reel/') ? 'https://www.facebook.com/reel/' . $id . '/' : 'https://www.facebook.com/watch/?v=' . $id;
+
+            return [
+                'provider' => 'facebook',
+                'id' => $id,
+                'watchUrl' => $watchUrl,
+                'embedUrl' => 'https://www.facebook.com/plugins/video.php?href=' . rawurlencode($watchUrl) . '&show_text=false',
+                'thumbnailUrl' => null,
+            ];
+        }
+
+        // ── Vimeo ────────────────────────────────────────────────────────
+        if (str_ends_with($host, 'vimeo.com')) {
+            if (preg_match('#/(\d{5,20})(?:/|$)#', $path, $m)) {
+                $id = $m[1];
+
+                return [
+                    'provider' => 'vimeo',
+                    'id' => $id,
+                    'watchUrl' => 'https://vimeo.com/' . $id,
+                    'embedUrl' => 'https://player.vimeo.com/video/' . $id,
+                    'thumbnailUrl' => null,
+                ];
+            }
+
+            return null;
+        }
+
+        // ── Dailymotion ──────────────────────────────────────────────────
+        if (in_array($host, ['dailymotion.com', 'dai.ly'], true)) {
+            $id = null;
+            if (preg_match('#/video/([A-Za-z0-9]{5,20})#', $path, $m)) {
+                $id = $m[1];
+            } elseif ($host === 'dai.ly' && preg_match('#^/([A-Za-z0-9]{5,20})#', $path, $m)) {
+                $id = $m[1];
+            }
+            if ($id === null) {
+                return null;
+            }
+
+            return [
+                'provider' => 'dailymotion',
+                'id' => $id,
+                'watchUrl' => 'https://www.dailymotion.com/video/' . $id,
+                'embedUrl' => 'https://www.dailymotion.com/embed/video/' . $id,
+                'thumbnailUrl' => null,
+            ];
+        }
+
+        return null;
+    }
+
     private function serializeMedia(MediaObject $media): array
     {
         $uploadedBy = $media->getUploadedBy();
         $uploadedByName = $uploadedBy
             ? trim(sprintf('%s %s', (string) $uploadedBy->getPrenom(), (string) $uploadedBy->getNom()))
             : '';
+        $externalUrl = $media->getExternalUrl();
+        $provider = $media->getProvider();
 
         return [
             'id' => $media->getId(),
-            'contentUrl' => $media->getContentUrl(),
+            'contentUrl' => $externalUrl ?? $media->getContentUrl(),
             'originalName' => $media->getOriginalName(),
             'mimeType' => $media->getMimeType(),
             'size' => $media->getSize(),
-            'kind' => str_starts_with((string) $media->getMimeType(), 'video/') ? 'video' : 'image',
+            'kind' => ($provider !== null || str_starts_with((string) $media->getMimeType(), 'video/')) ? 'video' : 'image',
+            'provider' => $provider,
+            'externalUrl' => $externalUrl,
+            'embedUrl' => $media->getEmbedUrl(),
+            'thumbnailUrl' => $media->getThumbnailUrl(),
             'createdAt' => $media->getCreatedAt()->format('c'),
             'uploadedByName' => $uploadedByName !== '' ? $uploadedByName : null,
             'uploadedBy' => $uploadedBy ? [
