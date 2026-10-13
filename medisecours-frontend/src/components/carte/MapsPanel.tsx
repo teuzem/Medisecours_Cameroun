@@ -42,14 +42,19 @@ type GalleryFilter = 'images' | 'recent' | 'videos'
 
 function orderedFacilityMedia(facility: FicheCentre): NonNullable<FicheCentre['images']> {
   const media = (facility.images ?? []).filter((item) => item.contentUrl)
-  const coverKey = facility.imageUrl ? (imgUrl(facility.imageUrl) || facility.imageUrl).replace(/\/+$/, '').toLowerCase() : ''
-  return [...media].sort((left, right) => {
-    const leftKey = (imgUrl(left.contentUrl) || left.contentUrl).replace(/\/+$/, '').toLowerCase()
-    const rightKey = (imgUrl(right.contentUrl) || right.contentUrl).replace(/\/+$/, '').toLowerCase()
-    if (coverKey && leftKey === coverKey) return -1
-    if (coverKey && rightKey === coverKey) return 1
-    return new Date(right.createdAt ?? 0).getTime() - new Date(left.createdAt ?? 0).getTime()
-  })
+  // Exclusion native du logo et de la bannière de couverture : ils ne sont
+  // jamais des photos de la galerie (ni tuiles, ni visionneuse).
+  const excluded = new Set(
+    [facility.imageUrl, facility.logoUrl]
+      .filter((url): url is string => typeof url === 'string' && url.trim() !== '')
+      .map((url) => (imgUrl(url) || url).replace(/\/+$/, '').toLowerCase()),
+  )
+  return media
+    .filter((item) => {
+      const key = (imgUrl(item.contentUrl) || item.contentUrl).replace(/\/+$/, '').toLowerCase()
+      return !excluded.has(key)
+    })
+    .sort((left, right) => new Date(right.createdAt ?? 0).getTime() - new Date(left.createdAt ?? 0).getTime())
 }
 
 function formatMediaDate(value?: string, language = 'fr'): string {
@@ -606,11 +611,9 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [galleryFilter, setGalleryFilter] = useState<GalleryFilter>('images')
   const [galleryIndex, setGalleryIndex] = useState(0)
-  // Galerie « Photos et vidéos » : filtre des tuiles, pagination du carrousel,
-  // popup d'import réservé au personnel de l'établissement.
+  // Galerie « Photos et vidéos » : filtre des tuiles (la visionneuse
+  // gère sa propre pagination) et popup d'import réservé au personnel.
   const [mediaFilter, setMediaFilter] = useState<'tout' | 'recent' | 'videos'>('tout')
-  const [carouselIndex, setCarouselIndex] = useState(0)
-  const carouselRef = useRef<HTMLDivElement | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [uploadFiles, setUploadFiles] = useState<File[]>([])
   const [uploadPreviews, setUploadPreviews] = useState<string[]>([])
@@ -659,9 +662,6 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     () => [...mediasEtablissement].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()),
     [mediasEtablissement],
   )
-  const mediasAffiches = mediaFilter === 'videos' ? videosEtablissement : mediaFilter === 'recent' ? mediasRecents : mediasEtablissement
-  const pagesCarousel = Math.max(mediasAffiches.length, 1)
-
   // Import réservé aux responsables/personnels de CET établissement connecté uniquement.
   // Responsable = manager via /api/carte/mon-etablissement, personnel validé via /api/personnel/moi,
   // compte établissement (ROLE_ETABLISSEMENT) ou admin rattaché à cette fiche.
@@ -712,19 +712,6 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     { revalidateOnFocus: false },
   )
 
-  const surDefilementCarrousel = () => {
-    const piste = carouselRef.current
-    if (!piste) return
-    const gauche = piste.scrollLeft + 8
-    const enfants = Array.from(piste.children) as HTMLElement[]
-    const index = enfants.findIndex((enfant) => enfant.offsetLeft + enfant.clientWidth > gauche)
-    if (index >= 0) setCarouselIndex(index)
-  }
-  const defilerVersMedia = (index: number) => {
-    const piste = carouselRef.current
-    const cible = piste ? (Array.from(piste.children)[index] as HTMLElement | undefined) : undefined
-    cible?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
-  }
   const accepterFichiersMedia = (entrants: File[]) => {
     const valides: File[] = []
     for (const fichier of entrants) {
@@ -794,7 +781,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   useEffect(() => {
     // Reset the drawer workflow when a different establishment is selected.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setCarouselIndex(0); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
+    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
     try {
       const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
       const saved = typeof stored === 'object' && stored !== null ? stored[String(props.selectedId ?? 0)] : null
@@ -1075,7 +1062,6 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
                     aria-label={`${label}${sousLabel ? ` — ${sousLabel}` : ''}`}
                     onClick={() => {
                       setMediaFilter(mode)
-                      setCarouselIndex(0)
                       setGalleryFilter(filtreViewer)
                       setGalleryIndex(0)
                       setGalleryOpen(true)
@@ -1119,72 +1105,6 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
               })}
             </div>
           </div>
-
-          {/* Carrousel moderne paginé — filtre courant */}
-          {mediasAffiches.length > 0 && (
-            <div className="maps-media-carousel maps-carousel-luxe">
-              <div ref={carouselRef} onScroll={surDefilementCarrousel} className="maps-media-strip" role="tablist" aria-label={t('visitor.carte.photosVideosTitle')}>
-                {mediasAffiches.map((item, index) => {
-                  const estVideo = isVideoItem(item)
-                  const estExterne = isExternalVideoMedia(item)
-                  const thumb = mediaThumbSrc(item)
-                  const srcFichier = !estExterne ? mediaFileSrc(item) : null
-                  const providerLabel = getMediaProviderLabel(item)
-                  return (
-                    <button
-                      key={item.id ?? `${item.contentUrl}-${index}`}
-                      type="button"
-                      role="tab"
-                      aria-selected={carouselIndex === index}
-                      className={`maps-media-slide maps-slide-luxe${carouselIndex === index ? ' is-current' : ''}`}
-                      aria-label={estVideo ? t('visitor.carte.videoLire') : `${facility.nom} — photo ${index + 1}`}
-                      onClick={() => {
-                        const filtre: GalleryFilter = mediaFilter === 'videos' ? 'videos' : 'recent'
-                        const liste = filtre === 'videos' ? videosEtablissement : mediasRecents
-                        const position = liste.findIndex((m) => m === item)
-                        setGalleryFilter(filtre)
-                        setGalleryIndex(position >= 0 ? position : 0)
-                        setGalleryOpen(true)
-                      }}
-                    >
-                      {estVideo ? (
-                        <span className="maps-media-slide-video">
-                          {estExterne && thumb ? (
-                            // eslint-disable-next-line @next/next/no-img-element -- vignette distante du fournisseur
-                            <img src={thumb} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none' }} />
-                          ) : estExterne ? (
-                            <span className="maps-media-tile-provider" aria-hidden="true">
-                              <Clapperboard size={24} />
-                              <strong>{providerLabel}</strong>
-                            </span>
-                          ) : (
-                            srcFichier && <video src={srcFichier} muted playsInline preload="metadata" aria-hidden="true" />
-                          )}
-                          <span className="maps-media-play maps-play-luxe"><Play size={20} fill="currentColor" /></span>
-                          <span className="maps-slide-duration" aria-hidden="true"><Video size={12} /> {providerLabel ?? 'vidéo'}</span>
-                        </span>
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element -- vignette carrousel externe
-                        <img src={(thumb ?? srcFichier) || ''} alt="" loading="lazy" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = '/images/home-doctor-visit.jpg' }} />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-              {mediasAffiches.length > 1 && (
-                <div className="maps-media-pagination maps-pagination-luxe">
-                  <button type="button" className="maps-page-btn" aria-label={t('visitor.carte.galleryPrevious')} onClick={() => defilerVersMedia(Math.max(0, carouselIndex - 1))}><ChevronLeft size={18} /></button>
-                  <div className="maps-media-dots" role="tablist" aria-label="Pagination">
-                    {mediasAffiches.slice(0, 12).map((_, index) => (
-                      <button key={index} type="button" role="tab" aria-selected={carouselIndex === index} aria-label={`${index + 1} / ${mediasAffiches.length}`} onClick={() => defilerVersMedia(index)} className={carouselIndex === index ? 'is-active' : ''} />
-                    ))}
-                  </div>
-                  <span className="maps-media-counter">{carouselIndex + 1} / {mediasAffiches.length}</span>
-                  <button type="button" className="maps-page-btn" aria-label={t('visitor.carte.galleryNext')} onClick={() => defilerVersMedia(Math.min(mediasAffiches.length - 1, carouselIndex + 1))}><ChevronRight size={18} /></button>
-                </div>
-              )}
-            </div>
-          )}
 
           {mediasEtablissement.length === 0 && (
             <p className="maps-media-empty">{t('visitor.carte.galleryEmpty')}</p>

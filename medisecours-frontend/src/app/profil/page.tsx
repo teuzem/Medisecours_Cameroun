@@ -454,7 +454,7 @@ const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
 
 function AccountSecurityCard() {
   const { t } = useTranslation()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const toast = useToast()
   const router = useRouter()
   const [currentPassword, setCurrentPassword] = useState('')
@@ -524,6 +524,30 @@ function AccountSecurityCard() {
   }
 
   const inputClass = 'w-full mt-1 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow'
+
+  // Comptes connectés via Google : pas de mot de passe local — la sécurité
+  // (mot de passe, e-mail, 2FA) se gère dans le compte Google lui-même.
+  if ((user as any)?.authProvider === 'google') {
+    return (
+      <Card className="rounded-lg p-5 sm:p-6">
+        <CardHeading icon={<Lock className="w-4 h-4" />} title={t('visitor.profil.securityTitle')} />
+        <div className="flex gap-3">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
+          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {t('visitor.profil.securityOauthNotice')}
+          </p>
+        </div>
+        <a
+          href="https://myaccount.google.com/security"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:text-sable dark:hover:bg-white/5"
+        >
+          {t('visitor.profil.securityOauthManage')}
+        </a>
+      </Card>
+    )
+  }
 
   return (
     <Card className="rounded-lg p-5 sm:p-6">

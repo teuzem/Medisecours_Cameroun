@@ -105,6 +105,7 @@ class GoogleAuthController extends AbstractController
         $nom    = $payload['family_name'] ?? 'Inconnu';
         $prenom = $payload['given_name'] ?? 'Inconnu';
         $photo  = $payload['picture'] ?? null;
+        $googleId = isset($payload['sub']) && is_string($payload['sub']) ? $payload['sub'] : null;
 
         $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
 
@@ -117,6 +118,9 @@ class GoogleAuthController extends AbstractController
             $user->setRoles(['ROLE_PATIENT']);
             // Email Google déjà vérifié par Google — on marque emailVerified = true
             $user->setEmailVerified(true);
+            if ($googleId !== null) {
+                $user->setGoogleId($googleId);
+            }
 
             if (is_string($photo)) {
                 $user->setPhotoProfil($photo);
@@ -147,6 +151,10 @@ class GoogleAuthController extends AbstractController
             // Marquer l'email comme vérifié si ce n'est pas déjà le cas (connexion Google = email vérifié)
             if (!$user->isEmailVerified()) {
                 $user->setEmailVerified(true);
+                $needsFlush = true;
+            }
+            if ($googleId !== null && $user->getGoogleId() !== $googleId) {
+                $user->setGoogleId($googleId);
                 $needsFlush = true;
             }
 

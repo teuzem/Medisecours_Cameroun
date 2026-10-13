@@ -110,6 +110,13 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $enService = true;
 
     /**
+     * Identifiant Google (`sub` du token) pour les comptes créés ou liés via
+     * OAuth. Null pour les comptes à mot de passe uniquement.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $googleId = null;
+
+    /**
      * Token de vérification d'email (UUID généré à l'inscription).
      * Effacé après vérification réussie.
      */
@@ -290,6 +297,18 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getGoogleId(): ?string
+    {
+        return $this->googleId;
+    }
+
+    public function setGoogleId(?string $googleId): static
+    {
+        $this->googleId = $googleId;
 
         return $this;
     }

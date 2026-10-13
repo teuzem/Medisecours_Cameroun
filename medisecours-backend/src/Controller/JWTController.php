@@ -507,7 +507,8 @@ class JWTController extends AbstractController
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
-        // Envoyer l'email de vérification (non bloquant si le mailer est indisponible)
+        // Envoyer l'email de vérification (non bloquant si le mailer est indisponible ;
+        // bypass automatique — compte marqué vérifié — si le service email est désactivé)
         try {
             $emailVerificationService->sendVerificationEmail($user);
         } catch (\Throwable) {
@@ -515,10 +516,14 @@ class JWTController extends AbstractController
         }
         $entityManager->flush();
 
+        $verified = $user->isEmailVerified();
+
         return new JsonResponse([
-            'message'       => 'Compte créé avec succès. Un email de confirmation vous a été envoyé.',
+            'message'       => $verified
+                ? 'Compte créé avec succès. Vous pouvez vous connecter.'
+                : 'Compte créé avec succès. Un email de confirmation vous a été envoyé.',
             'user'          => $this->userSerializer->serialize($user),
-            'emailVerified' => false,
+            'emailVerified' => $verified,
         ], Response::HTTP_CREATED);
     }
 

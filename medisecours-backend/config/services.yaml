@@ -14,6 +14,8 @@ parameters:
   app.forge_api_url: '%env(default:app.forge_api_url_default:FORGE_API_URL)%'
   app.forge_api_key: '%env(default:app.forge_api_key_default:FORGE_API_KEY)%'
   app.google_maps_api_key: '%env(default:app.google_maps_api_key_default:GOOGLE_MAPS_API_KEY)%'
+  app.mail_enabled_flag: '%env(default::MAIL_ENABLED)%'
+  app.mailer_dsn_for_check: '%env(default::MAILER_DSN)%'
 services:
   _defaults:
     autowire: true
@@ -27,6 +29,8 @@ services:
       string $forgeApiUrl: '%app.forge_api_url%'
       string $forgeApiKey: '%app.forge_api_key%'
       string $googleMapsApiKey: '%app.google_maps_api_key%'
+      string $mailEnabledFlag: '%app.mail_enabled_flag%'
+      string $mailerDsn: '%app.mailer_dsn_for_check%'
     # makes classes in src/ available to be used as services
   App\:
     resource: '../src/'

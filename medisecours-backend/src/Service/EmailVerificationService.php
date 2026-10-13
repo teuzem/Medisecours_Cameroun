@@ -25,14 +25,62 @@ class EmailVerificationService
         private readonly string $appUrl,
         private readonly string $senderEmail,
         private readonly string $senderName,
+        private readonly string $mailEnabledFlag = '',
+        private readonly string $mailerDsn = '',
     ) {
     }
 
     /**
+     * Le service email est-il actif ?
+     *
+     * - MAIL_ENABLED=1 (true/yes/on) → forcé actif.
+     * - MAIL_ENABLED=0 (false/no/off) → forcé inactif.
+     * - Non défini → auto-détection : inactif si le DSN est absent ou
+     *   manifestement factice (placeholders d'exemple, transport null).
+     *   Un DSN Mailpit local (smtp://localhost:1025) reste actif.
+     */
+    public function isEnabled(): bool
+    {
+        $flag = strtolower(trim($this->mailEnabledFlag));
+        if (in_array($flag, ['1', 'true', 'yes', 'on'], true)) {
+            return true;
+        }
+        if (in_array($flag, ['0', 'false', 'no', 'off'], true)) {
+            return false;
+        }
+
+        $dsn = trim($this->mailerDsn);
+        if ($dsn === '' || str_starts_with(strtolower($dsn), 'null://')) {
+            return false;
+        }
+        $lower = strtolower($dsn);
+        foreach (['<', '>', 'example', 'smtp_login', 'url_encoded_smtp_key', 'changeme'] as $needle) {
+            if (str_contains($lower, $needle)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Génère un token de vérification d'email et envoie l'email de confirmation.
+     *
+     * Si le service email est désactivé (MAIL_ENABLED=0 ou DSN factice), le
+     * compte est marqué vérifié immédiatement (bypass) afin que l'inscription
+     * et la connexion ne soient jamais bloquées par le mail.
      */
     public function sendVerificationEmail(User $user): void
     {
+        if (!$this->isEnabled()) {
+            $user->setEmailVerified(true);
+            $user->setEmailVerificationToken(null);
+            $user->setEmailVerificationTokenExpiresAt(null);
+            $this->logger->info('Service email désactivé : compte marqué vérifié (bypass).', ['email' => $user->getEmail()]);
+
+            return;
+        }
+
         $token = bin2hex(random_bytes(32));
         $user->setEmailVerificationToken(hash('sha256', $token));
         $user->setEmailVerificationTokenExpiresAt(new \DateTimeImmutable('+24 hours'));
@@ -68,6 +116,12 @@ class EmailVerificationService
      */
     public function sendMedecinValidatedEmail(User $user): void
     {
+        if (!$this->isEnabled()) {
+            $this->logger->info('Service email désactivé : notification de validation médecin ignorée.', ['email' => $user->getEmail()]);
+
+            return;
+        }
+
         $prenom = htmlspecialchars($user->getPrenom() ?? 'Docteur', ENT_QUOTES);
         $nom    = htmlspecialchars($user->getNom() ?? '', ENT_QUOTES);
         $appUrl = rtrim($this->appUrl, '/');
@@ -129,6 +183,12 @@ class EmailVerificationService
      */
     public function sendMedecinRejectedEmail(User $user, string $motif): void
     {
+        if (!$this->isEnabled()) {
+            $this->logger->info('Service email désactivé : notification de refus médecin ignorée.', ['email' => $user->getEmail()]);
+
+            return;
+        }
+
         $prenom = htmlspecialchars($user->getPrenom() ?? 'Docteur', ENT_QUOTES);
         $nom    = htmlspecialchars($user->getNom() ?? '', ENT_QUOTES);
         $motifHtml = nl2br(htmlspecialchars($motif, ENT_QUOTES));
@@ -188,6 +248,11 @@ class EmailVerificationService
      */
     public function sendPasswordResetEmail(User $user): void
     {
+        if (!$this->isEnabled()) {
+            $this->logger->warning('Service email désactivé : réinitialisation de mot de passe impossible.', ['email' => $user->getEmail()]);
+            throw new \RuntimeException('Service email désactivé : réinitialisation impossible pour le moment.');
+        }
+
         $token = bin2hex(random_bytes(32));
         $user->setPasswordResetToken(hash('sha256', $token));
         $user->setPasswordResetTokenExpiresAt(new \DateTimeImmutable('+1 hour'));

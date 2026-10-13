@@ -1,11 +1,9 @@
 const isProduction = process.env.NODE_ENV === 'production'
 
-// URL du backend — Railway en prod, localhost en dev
-const BACKEND_URL = (
-  process.env.API_BASE_URL
-  || process.env.NEXT_PUBLIC_API_BASE_URL
-  || 'http://127.0.0.1:8000'
-).replace(/\/$/, '')
+// NOTE : les appels `/api/*` ne passent plus par un rewrite figé au build.
+// Ils sont relayés à l'exécution par `src/app/api/[...path]/route.ts`, qui lit
+// `API_BASE_URL` (ou `NEXT_PUBLIC_API_BASE_URL`) à chaque requête — un build
+// sans la variable fonctionne dès qu'elle est fournie au runtime.
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -73,14 +71,6 @@ const nextConfig = {
   },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${BACKEND_URL}/api/:path*`,
-      },
-    ]
   },
 }
 

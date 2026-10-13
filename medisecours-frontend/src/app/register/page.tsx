@@ -35,6 +35,7 @@ import EstablishmentSelector, {
   type EstablishmentChoice,
 } from '../../components/auth/EstablishmentSelector'
 import CameroonGeographyFields, { type GeographyValue } from '../../components/auth/CameroonGeographyFields'
+import QuartierAutocomplete from '../../components/auth/QuartierAutocomplete'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { destinationForUser } from '../../lib/auth-routing'
@@ -184,8 +185,16 @@ export default function RegisterPage() {
   }
 
   const setField = (key: keyof RegisterForm) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((current) => ({ ...current, [key]: event.target.value }))
+    const nextValue = event.target.value
+    setForm((current) => ({ ...current, [key]: nextValue }))
     if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }))
+    // Revalide la confirmation en temps réel pendant la frappe du mot de passe.
+    if (key === 'password' && form.confirmPassword) {
+      setErrors((current) => ({
+        ...current,
+        confirmPassword: nextValue === form.confirmPassword ? undefined : t('visitor.register.errPasswordMatch'),
+      }))
+    }
   }
 
   const validateField = (key: keyof RegisterForm) => {
@@ -804,11 +813,16 @@ export default function RegisterPage() {
                 <CameroonGeographyFields value={geography} onChange={setGeography} inputClass={inputClass} error={errors.geography} />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={t('visitor.register.quartierLabel')} hint={t('visitor.register.quartierHint')}>
-                    <input
+                    <QuartierAutocomplete
                       value={form.quartier}
-                      onChange={setField('quartier')}
-                      autoComplete="address-level3"
-                      className={inputClass}
+                      onChange={(quartier) => {
+                        setForm((current) => ({ ...current, quartier }))
+                        if (errors.quartier) setErrors((current) => ({ ...current, quartier: undefined }))
+                      }}
+                      onGeoSelect={(geo) => {
+                        setForm((current) => ({ ...current, latitude: geo.latitude, longitude: geo.longitude }))
+                      }}
+                      inputClass={inputClass}
                       placeholder={t('visitor.register.quartierPlaceholder')}
                     />
                   </Field>

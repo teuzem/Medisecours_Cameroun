@@ -2,8 +2,10 @@
 # MediSecours+ frontend — production Dockerfile (Next.js 16 standalone)
 # ============================================================================
 # Multi-stage build produces a small self-contained image (~120 MB).
-# Build arg  NODE_ENV defaults to production; API_BASE_URL is baked in at
-# build time so the Next.js rewrite proxy is resolved server-side.
+# L'API est relayée à l'EXÉCUTION par src/app/api/[...path]/route.ts qui lit
+# API_BASE_URL (ou NEXT_PUBLIC_API_BASE_URL) à chaque requête : fournissez-la
+# en variable d'environnement du conteneur (Coolify / compose / VPS).
+# L'ARG ci-dessous n'est qu'un repli de build, jamais une obligation.
 # ============================================================================
 
 # ── Stage 1: build ────────────────────────────────────────────────────────

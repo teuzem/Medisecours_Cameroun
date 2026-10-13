@@ -39,6 +39,7 @@ final class UserSerializer
             'emailVerified' => $user->isEmailVerified(),
             'actif'         => $user->isActif(),
             'banni'         => $user->isBanni(),
+            'authProvider'  => $user->getGoogleId() !== null ? 'google' : 'local',
             'type'          => $user instanceof EtablissementManager
                 ? 'etablissement'
                 : ($user instanceof Medecin ? 'medecin' : ($user instanceof Admin ? 'admin' : 'patient')),
