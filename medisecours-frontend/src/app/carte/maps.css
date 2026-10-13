@@ -979,9 +979,33 @@
 @media (max-width: 760px) {
   .maps-media-viewer-gmaps { grid-template-columns: 1fr; grid-template-rows: minmax(38dvh, 320px) minmax(0, 1fr); }
   .maps-media-listing { border-right: 0; border-bottom: 1px solid #dadce0; }
+  .maps-media-listing-query { font-size: 11px; }
+  .maps-media-filters-gmaps { gap: 18px; padding: 0 12px; }
+  .maps-media-filters-gmaps button { font-size: 12px; }
   .maps-media-grid { grid-template-columns: minmax(0, 1fr); padding: 8px; }
-  .maps-media-stage-canvas-wrap { padding: 112px 10px 128px; }
-  .maps-media-stage-locate { width: 104px; left: 10px; bottom: 64px; }
+  .maps-media-stage-top { padding: 10px 12px; gap: 8px; }
+  .maps-media-stage-title-row h2 { font-size: 12px; }
+  .maps-media-stage-identity p { font-size: 11px; margin-top: 6px; }
+  .maps-media-stage-date { font-size: 10px; }
+  .maps-media-stage-share { font-size: 12px; padding: 7px 8px; }
+  .maps-media-stage-canvas-wrap { padding: 116px 10px 132px; }
+  .maps-media-stage-nav { bottom: 34px; }
+  .maps-media-stage-locate { width: 104px; left: 10px; bottom: 72px; }
   .maps-media-stage-minimap { width: 104px; height: 104px; }
   .maps-media-stage-brand { display: none; }
+  /* Widget avis : aucune superposition, tout s'empile proprement. */
+  .maps-review-summary-g { gap: 12px; }
+  .maps-review-score { min-width: 84px; }
+  .maps-review-score strong { font-size: 32px; }
+  .maps-write-review-btn { width: 100%; justify-content: center; }
+  .maps-review-toolbar { flex-wrap: wrap; }
+  .maps-review-search-open { flex: 1 1 auto; }
+  .maps-review-search-open input { flex: 1 1 auto; width: auto; min-width: 0; }
+  .maps-review-foot { flex-wrap: wrap; gap: 14px 24px; }
+  .maps-review-sort-menu { min-width: 180px; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .maps-media-viewer-gmaps { grid-template-columns: minmax(300px, 340px) minmax(0, 1fr); }
+  .maps-media-stage-canvas-wrap { padding: 120px 32px 132px; }
+  .maps-media-listing-query { font-size: 11px; }
 }

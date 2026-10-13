@@ -1005,6 +1005,9 @@
       "accessDenied": "Access denied. Check your account status or contact support.",
       "tooManyAttempts": "Too many attempts. Try again in a minute.",
       "serviceUnavailable": "The login service is temporarily unavailable.",
+      "backendDownTitle": "Server unavailable",
+      "backendDownDesc": "The sign-in service is not responding right now. Please try again shortly.",
+      "backendDownRetry": "Retry",
       "emailFirst": "First enter a valid email address.",
       "resendRequested": "A new confirmation email has been requested.",
       "resendFailed": "Unable to resend the email for now.",
@@ -1163,7 +1166,7 @@
       "quartierLabel": "Neighbourhood (optional)",
       "quartierHint": "Enter your neighbourhood or usual residential area.",
       "quartierPlaceholder": "E.g. Bonamoussadi",
-      "quartierUseAsIs": "Use \"{query}\" as is",
+      "quartierUseAsIs": "Use \"{{query}}\" as is",
       "bloodGroupLabel": "Blood group (optional)",
       "bloodGroupHint": "Examples: O+, A-, AB+.",
       "bloodGroupPlaceholder": "E.g. O+",
@@ -1756,9 +1759,13 @@
       "backToSite": "Back to website",
       "headline": "Your health, supported with rigor.",
       "subtitle": "Access first aid steps, health centres and a secure medical messaging service.",
-      "assuranceData": "Protected health data",
-      "assuranceDoctors": "Vetted doctors",
-      "assuranceAssistance": "Responsible medical assistance"
+      "assuranceData": "Encrypted sign-in with protected sessions",
+      "assuranceDoctors": "Doctors verified before going live",
+      "assuranceAssistance": "Geolocated SOS to nearby facilities",
+      "photoLoginCaption": "Nurse, Laquintinie Hospital (Douala)",
+      "photoLoginCredit": "Photo: Destiny Deffo (CC BY-SA 4.0)",
+      "photoRegisterCaption": "Yaoundé General Hospital",
+      "photoRegisterCredit": "Photo: Kondah (CC BY-SA 4.0)"
     },
     "components": {
       "emptyState": {

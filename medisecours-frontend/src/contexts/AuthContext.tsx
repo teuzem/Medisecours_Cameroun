@@ -18,14 +18,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
+    let timer: number | undefined
+    // Une seule relance en cas d'échec (micro-coupure réseau au chargement) :
+    // sans cookie valable, le second appel échoue aussi et l'état reste déconnecté.
     refreshSession()
       .then((session) => {
-        if (active && session) persist(session.token, session.user)
+        if (!active) return
+        if (session) {
+          persist(session.token, session.user)
+          return
+        }
+        timer = window.setTimeout(() => {
+          if (!active) return
+          refreshSession().then((retried) => {
+            if (active && retried) persist(retried.token, retried.user)
+          })
+        }, 1500)
       })
       .finally(() => {
         if (active) setMounted(true)
       })
-    return () => { active = false }
+    return () => {
+      active = false
+      if (timer !== undefined) window.clearTimeout(timer)
+    }
   }, [persist])
 
   const login = useCallback(async (email: string, password: string) => {

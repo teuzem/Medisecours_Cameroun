@@ -4,12 +4,13 @@ import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { GoogleLogin } from '@react-oauth/google'
-import { AlertCircle, CheckCircle2, Eye, EyeOff, LoaderCircle, Lock, Mail, ShieldCheck } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Eye, EyeOff, LoaderCircle, Lock, Mail, RefreshCw, ShieldCheck, WifiOff } from 'lucide-react'
 import AuthLayout from '../../components/auth/AuthLayout'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import api from '../../api/axios'
 import { destinationForUser } from '../../lib/auth-routing'
+import { useBackendStatus } from '../../hooks/useBackendStatus'
 import { useTranslation } from 'react-i18next'
 
 type FieldErrors = {
@@ -41,6 +42,7 @@ function LoginForm() {
   const requestedPath = searchParams.get('from')
   const from = requestedPath?.startsWith('/') && !requestedPath.startsWith('//') ? requestedPath : '/'
   const registered = searchParams.get('registered') === '1'
+  const { backendStatus, checkBackend } = useBackendStatus()
 
   useEffect(() => {
     if (mounted && isAuthenticated && user) {
@@ -66,6 +68,10 @@ function LoginForm() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!validate()) return
+    if (backendStatus === 'down') {
+      toast.error(t('visitor.login.serviceUnavailable'))
+      return
+    }
 
     setLoading(true)
     setNeedsVerification(false)
@@ -146,7 +152,29 @@ function LoginForm() {
     <AuthLayout
       title={t('visitor.login.title')}
       description={t('visitor.login.description')}
+      variant="login"
     >
+      {backendStatus === 'down' && (
+        <div
+          role="alert"
+          className="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/25 dark:bg-red-500/10"
+        >
+          <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-300" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-red-900 dark:text-red-100">{t('visitor.login.backendDownTitle')}</p>
+            <p className="mt-1 text-xs leading-5 text-red-700 dark:text-red-300">{t('visitor.login.backendDownDesc')}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void checkBackend()}
+            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-xs font-bold text-white transition hover:bg-red-700"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('visitor.login.backendDownRetry')}
+          </button>
+        </div>
+      )}
+
       {registered && (
         <div
           role="status"

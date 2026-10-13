@@ -1005,6 +1005,9 @@
       "accessDenied": "Accès refusé. Vérifiez l'état de votre compte ou contactez le support.",
       "tooManyAttempts": "Trop de tentatives. Réessayez dans une minute.",
       "serviceUnavailable": "Le service de connexion est temporairement indisponible.",
+      "backendDownTitle": "Serveur indisponible",
+      "backendDownDesc": "Le service de connexion ne répond pas pour le moment. Réessayez dans un instant.",
+      "backendDownRetry": "Réessayer",
       "emailFirst": "Saisissez d'abord une adresse e-mail valide.",
       "resendRequested": "Un nouvel email de confirmation a été demandé.",
       "resendFailed": "Impossible de renvoyer l'email pour le moment.",
@@ -1163,7 +1166,7 @@
       "quartierLabel": "Quartier (facultatif)",
       "quartierHint": "Indiquez votre quartier ou votre zone de résidence habituelle.",
       "quartierPlaceholder": "Ex. Bonamoussadi",
-      "quartierUseAsIs": "Utiliser « {query} » tel quel",
+      "quartierUseAsIs": "Utiliser « {{query}} » tel quel",
       "bloodGroupLabel": "Groupe sanguin (facultatif)",
       "bloodGroupHint": "Exemples : O+, A-, AB+.",
       "bloodGroupPlaceholder": "Ex. O+",
@@ -1756,9 +1759,13 @@
       "backToSite": "Retour au site",
       "headline": "Votre santé, accompagnée avec rigueur.",
       "subtitle": "Accédez aux gestes de premiers secours, aux centres de santé et à une messagerie médicale sécurisée.",
-      "assuranceData": "Données de santé protégées",
-      "assuranceDoctors": "Médecins soumis à validation",
-      "assuranceAssistance": "Assistance médicale responsable"
+      "assuranceData": "Connexion chiffrée et sessions protégées",
+      "assuranceDoctors": "Médecins vérifiés avant mise en ligne",
+      "assuranceAssistance": "SOS géolocalisé vers les centres proches",
+      "photoLoginCaption": "Infirmière, Hôpital Laquintinie (Douala)",
+      "photoLoginCredit": "Photo : Destiny Deffo (CC BY-SA 4.0)",
+      "photoRegisterCaption": "Hôpital Général de Yaoundé",
+      "photoRegisterCredit": "Photo : Kondah (CC BY-SA 4.0)"
     },
     "components": {
       "emptyState": {

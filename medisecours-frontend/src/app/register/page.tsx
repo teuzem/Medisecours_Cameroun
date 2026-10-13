@@ -30,12 +30,13 @@ import {
   WifiOff,
 } from 'lucide-react'
 import AuthLayout from '../../components/auth/AuthLayout'
-import api from '../../api/axios'
 import EstablishmentSelector, {
   type EstablishmentChoice,
 } from '../../components/auth/EstablishmentSelector'
 import CameroonGeographyFields, { type GeographyValue } from '../../components/auth/CameroonGeographyFields'
 import QuartierAutocomplete from '../../components/auth/QuartierAutocomplete'
+import { useBackendStatus } from '../../hooks/useBackendStatus'
+
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { destinationForUser } from '../../lib/auth-routing'
@@ -138,21 +139,7 @@ export default function RegisterPage() {
   // Sonde de disponibilité du backend : un backend injoignable est la cause
   // n°1 du toast « service indisponible ». On l'affiche comme une bannière
   // explicite avec nouvel essai au lieu d'un échec muet à l'envoi.
-  const [backendStatus, setBackendStatus] = useState<'checking' | 'up' | 'down'>('checking')
-
-  const checkBackend = useCallback(async () => {
-    setBackendStatus('checking')
-    try {
-      await api.get('/api/health', { timeout: 8000 })
-      setBackendStatus('up')
-    } catch {
-      setBackendStatus('down')
-    }
-  }, [])
-
-  useEffect(() => {
-    void checkBackend()
-  }, [checkBackend])
+  const { backendStatus, setBackendStatus, checkBackend } = useBackendStatus()
   const geography: GeographyValue = {
     region: form.region,
     regionCode: form.regionCode,
@@ -513,6 +500,7 @@ export default function RegisterPage() {
     <AuthLayout
       title={t('visitor.register.title')}
       description={t('visitor.register.description')}
+      variant="register"
     >
       <div className="mb-7 flex items-start">
         {steps.map((label, index) => {
