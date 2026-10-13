@@ -69,7 +69,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
     normalizationContext: ['groups' => ['avis_etablissement:read']],
     denormalizationContext: ['groups' => ['avis_etablissement:write']],
-    cacheHeaders: ['max_age' => 60, 'shared_max_age' => 120]
+    // Pas de cache HTTP : la liste doit refléter chaque publication
+    // immédiatement (sinon un avis publié reste invisible plusieurs minutes).
+    cacheHeaders: ['max_age' => 0, 'shared_max_age' => 0]
 )]
 class AvisEtablissement
 {

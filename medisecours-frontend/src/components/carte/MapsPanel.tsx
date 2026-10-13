@@ -996,6 +996,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       return
     }
     setSending(true)
+    let createdId: number | null = null
     try {
       if (files.length || reviewVideo || link !== '') {
         const form = new FormData()
@@ -1003,15 +1004,33 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         files.forEach(file => form.append('images[]', file))
         if (reviewVideo) form.append('videos[]', reviewVideo)
         if (link !== '') form.set('videoUrl', link)
-        await api.post('/api/avis_etablissements/avec-images', form)
+        const { data } = await api.post('/api/avis_etablissements/avec-images', form)
+        createdId = typeof data?.id === 'number' ? data.id : null
       } else {
-        await api.post('/api/avis_etablissements', { etablissement: `/api/centre_de_santes/${selected.id}`, note, commentaire: trimmedComment || null })
+        const { data } = await api.post('/api/avis_etablissements', { etablissement: `/api/centre_de_santes/${selected.id}`, note, commentaire: trimmedComment || null })
+        createdId = typeof data?.id === 'number' ? data.id : null
       }
       resetComposer()
-      await refreshReviews()
+      // La publication (201) est confirmée : on s'assure que l'avis figure
+      // bien dans la liste rechargée, avec relances en cas de lecture stale.
+      const containsCreated = (list: unknown): boolean => {
+        if (createdId == null) return true
+        const raw = list as { member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
+        const values = Array.isArray(raw) ? raw : raw?.member ?? raw?.['hydra:member'] ?? []
+        return values.some((item) => item?.id === createdId)
+      }
+      let updated = await refreshReviews()
+      for (let attempt = 0; attempt < 2 && !containsCreated(updated); attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 1200))
+        updated = await refreshReviews()
+      }
       void mutate(`/api/centre_de_santes/${selected.id}/fiche`)
       trackInteraction(selected.id, 'avis')
-      toast.success(t('visitor.carte.toastReviewPublished'))
+      if (createdId != null && !containsCreated(updated)) {
+        toast.info(t('visitor.carte.toastReviewPending'))
+      } else {
+        toast.success(t('visitor.carte.toastReviewPublished'))
+      }
     } catch (cause: any) { toast.error(reviewErrorMessage(cause, 'visitor.carte.toastReviewPublishFailed')) }
     finally { setSending(false) }
   }

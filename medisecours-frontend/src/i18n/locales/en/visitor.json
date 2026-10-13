@@ -502,7 +502,8 @@
       "reviewVideoTooLarge": "The video must not exceed 30 MB.",
       "reviewLinkLabel": "Or add a video link (YouTube, TikTok, Instagram…)",
       "reviewLinkPlaceholder": "https://www.youtube.com/watch?v=…",
-      "reviewLinkInvalid": "Unsupported video link."
+      "reviewLinkInvalid": "Unsupported video link.",
+      "toastReviewPending": "Review published. Refreshing the list…"
     },
     "notFound": {
       "title": "Diagnosis: page not found",
