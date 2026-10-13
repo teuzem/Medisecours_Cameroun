@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -21,13 +21,16 @@ import {
   Lock,
   Mail,
   Phone,
+  RefreshCw,
   ShieldCheck,
   Stethoscope,
   Building2,
   UploadCloud,
   User,
+  WifiOff,
 } from 'lucide-react'
 import AuthLayout from '../../components/auth/AuthLayout'
+import api from '../../api/axios'
 import EstablishmentSelector, {
   type EstablishmentChoice,
 } from '../../components/auth/EstablishmentSelector'
@@ -131,6 +134,24 @@ export default function RegisterPage() {
   const { t } = useTranslation()
   const toast = useToast()
   const router = useRouter()
+  // Sonde de disponibilité du backend : un backend injoignable est la cause
+  // n°1 du toast « service indisponible ». On l'affiche comme une bannière
+  // explicite avec nouvel essai au lieu d'un échec muet à l'envoi.
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'up' | 'down'>('checking')
+
+  const checkBackend = useCallback(async () => {
+    setBackendStatus('checking')
+    try {
+      await api.get('/api/health', { timeout: 8000 })
+      setBackendStatus('up')
+    } catch {
+      setBackendStatus('down')
+    }
+  }, [])
+
+  useEffect(() => {
+    void checkBackend()
+  }, [checkBackend])
   const geography: GeographyValue = {
     region: form.region,
     regionCode: form.regionCode,
@@ -325,6 +346,10 @@ export default function RegisterPage() {
 
   const handleSubmit = async () => {
     if (!type || !validateDetails()) return
+    if (backendStatus === 'down') {
+      toast.error(t('visitor.register.toastServiceDown'))
+      return
+    }
 
     setLoading(true)
     try {
@@ -418,7 +443,8 @@ export default function RegisterPage() {
               return data
             })()
 
-      await register(payload)
+      await register(payload, { timeout: 30000 })
+      setBackendStatus('up')
       toast.success(
         type === 'medecin'
           ? medecinEtablissement?.mode === 'existing'
@@ -430,15 +456,23 @@ export default function RegisterPage() {
       )
       router.push('/login?registered=1')
     } catch (error: any) {
-      const status = error.response?.status
+      const status = error.response?.status as number | undefined
       const serverMessage = error.response?.data?.error || error.response?.data?.message
 
-      if (status === 409) {
+      if (!error.response || error.code === 'ECONNABORTED') {
+        // Aucune réponse HTTP (backend injoignable, CORS, timeout) : ce n'est
+        // pas une erreur de saisie, le backend est hors de portée.
+        setBackendStatus('down')
+        toast.error(t('visitor.register.toastNetworkDown'))
+      } else if (status === 409) {
         toast.error(serverMessage || t('visitor.register.toastEmailTaken'))
       } else if (status === 422) {
         toast.error(serverMessage || t('visitor.register.toastInvalidInfo'))
       } else if (status === 429) {
         toast.error(serverMessage || t('visitor.register.toastTooMany'))
+      } else if (status !== undefined && status >= 500) {
+        setBackendStatus('down')
+        toast.error(typeof serverMessage === 'string' && serverMessage ? serverMessage : t('visitor.register.toastServiceDown'))
       } else {
         toast.error(serverMessage || t('visitor.register.toastServiceDown'))
       }
@@ -503,6 +537,27 @@ export default function RegisterPage() {
           )
         })}
       </div>
+
+      {backendStatus === 'down' && (
+        <div
+          role="alert"
+          className="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-500/25 dark:bg-red-500/10"
+        >
+          <WifiOff className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-300" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-red-900 dark:text-red-100">{t('visitor.register.backendDownTitle')}</p>
+            <p className="mt-1 text-xs leading-5 text-red-700 dark:text-red-300">{t('visitor.register.backendDownDesc')}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void checkBackend()}
+            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-xs font-bold text-white transition hover:bg-red-700"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('visitor.register.backendDownRetry')}
+          </button>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {step === 0 && (

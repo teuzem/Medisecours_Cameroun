@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ConsultationRepository::class)]
-#[ApiFilter(SearchFilter::class, properties: ['statut' => 'exact', 'etablissement' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['statut' => 'exact', 'etablissement' => 'exact', 'mode' => 'exact'])]
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'id'])]
 #[ApiResource(
     operations: [
@@ -46,6 +46,9 @@ class Consultation
     public const PRIORITE_NORMALE = 'NORMALE';
     public const PRIORITE_URGENTE = 'URGENTE';
     public const PRIORITE_CRITIQUE = 'CRITIQUE';
+
+    public const MODE_PRESENTIEL = 'PRESENTIEL';
+    public const MODE_TELECONSULTATION = 'TELECONSULTATION';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -107,6 +110,18 @@ class Consultation
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['consultation:read', 'consultation:write'])]
     private ?string $compteRendu = null;
+
+    /**
+     * Canal de la consultation : PRESENTIEL (en établissement) ou
+     * TELECONSULTATION (télémédecine à distance).
+     */
+    #[ORM\Column(length: 20, options: ['default' => self::MODE_PRESENTIEL])]
+    #[Assert\Choice(choices: [
+        self::MODE_PRESENTIEL,
+        self::MODE_TELECONSULTATION,
+    ])]
+    #[Groups(['consultation:read', 'consultation:write', 'message:read'])]
+    private string $mode = self::MODE_PRESENTIEL;
 
     /**
      * Messages liés à cette consultation.
@@ -255,6 +270,18 @@ class Consultation
     public function setCompteRendu(?string $compteRendu): static
     {
         $this->compteRendu = $compteRendu;
+
+        return $this;
+    }
+
+    public function getMode(): string
+    {
+        return $this->mode;
+    }
+
+    public function setMode(string $mode): static
+    {
+        $this->mode = $mode;
 
         return $this;
     }

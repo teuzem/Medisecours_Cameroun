@@ -31,7 +31,9 @@
       "startConsultation": "Get started",
       "sosBanner": "Need immediate help?",
       "sosBannerDesc": "Trigger an alert to notify nearby facilities.",
-      "sosTrigger": "Trigger SOS"
+      "sosTrigger": "Trigger SOS",
+      "actionDossier": "Medical record",
+      "actionDossierDesc": "Care history per facility"
     },
     "etablissements": {
       "title": "Health facilities",
@@ -205,7 +207,14 @@
       "loadEstablishmentsError": "Unable to load the facility list.",
       "establishmentSearching": "Searching…",
       "establishmentNoResult": "No facility found",
-      "establishmentClear": "Remove selection"
+      "establishmentClear": "Remove selection",
+      "modeLabel": "Consultation channel",
+      "modePresentiel": "In person",
+      "modePresentielHint": "At a health facility",
+      "modeTeleconsultation": "Teleconsultation",
+      "modeTeleconsultationHint": "Remote telemedicine",
+      "modeFilterLabel": "Filter by channel",
+      "modeAll": "All channels"
     },
     "messages": {
       "searchConversation": "Search a conversation...",
@@ -223,6 +232,8 @@
       "noDoctorFound": "No doctor found.",
       "doctorsLoadError": "Unable to load the doctor list.",
       "createConversationError": "Unable to create the conversation.",
+      "noDoctorForConsultation": "No doctor is assigned to this consultation yet.",
+      "consultationChatError": "Unable to open this consultation discussion.",
       "loadError": "Unable to load messaging.",
       "fileTooLarge": "{{name}} exceeds the 25 MB limit.",
       "voiceNotSupported": "Voice recording not supported.",
@@ -286,7 +297,31 @@
         "4": "Thu",
         "5": "Fri",
         "6": "Sat"
-      }
+      },
+      "modeTitle": "In-person vs teleconsultation",
+      "modePresentiel": "In person",
+      "modeTele": "Teleconsultation"
+    },
+    "dossier": {
+      "title": "My medical record",
+      "subtitle": "Your per-facility records and care history.",
+      "backToList": "Back to records",
+      "newConsultation": "New request",
+      "open": "Open",
+      "closed": "Closed",
+      "emptyTitle": "No record yet",
+      "emptyDesc": "Your record opens automatically at your first admission to a facility.",
+      "emptyEvents": "No recorded events yet.",
+      "signed": "Signed",
+      "eventsCount_one": "{{count}} event",
+      "eventsCount_other": "{{count}} events",
+      "event_accueil": "Reception",
+      "event_signe_vitaux": "Vital signs",
+      "event_consultation": "Consultation",
+      "event_soin": "Care",
+      "event_ordonnance": "Prescription",
+      "event_pharmacie": "Pharmacy",
+      "event_note": "Note"
     }
   }
 }

@@ -31,7 +31,9 @@
       "startConsultation": "Commencer",
       "sosBanner": "Besoin d'aide immédiat ?",
       "sosBannerDesc": "Déclenchez une alerte pour alerter les établissements proches.",
-      "sosTrigger": "Déclencher le SOS"
+      "sosTrigger": "Déclencher le SOS",
+      "actionDossier": "Dossier médical",
+      "actionDossierDesc": "Carnet de soins par établissement"
     },
     "etablissements": {
       "title": "Établissements de santé",
@@ -205,7 +207,14 @@
       "loadEstablishmentsError": "Impossible de charger la liste des établissements.",
       "establishmentSearching": "Recherche…",
       "establishmentNoResult": "Aucun établissement trouvé",
-      "establishmentClear": "Retirer la sélection"
+      "establishmentClear": "Retirer la sélection",
+      "modeLabel": "Canal de consultation",
+      "modePresentiel": "Présentiel",
+      "modePresentielHint": "En établissement de santé",
+      "modeTeleconsultation": "Téléconsultation",
+      "modeTeleconsultationHint": "Télémédecine à distance",
+      "modeFilterLabel": "Filtrer par canal",
+      "modeAll": "Tous canaux"
     },
     "messages": {
       "searchConversation": "Rechercher une conversation...",
@@ -223,6 +232,8 @@
       "noDoctorFound": "Aucun médecin trouvé.",
       "doctorsLoadError": "Impossible de charger la liste des médecins.",
       "createConversationError": "Impossible de créer la conversation.",
+      "noDoctorForConsultation": "Aucun médecin n'est encore assigné à cette consultation.",
+      "consultationChatError": "Impossible d'ouvrir la discussion de cette consultation.",
       "loadError": "Impossible de charger la messagerie.",
       "fileTooLarge": "{{name}} dépasse la limite de 25 Mo.",
       "voiceNotSupported": "Enregistrement vocal non supporté.",
@@ -286,7 +297,31 @@
         "4": "Jeu",
         "5": "Ven",
         "6": "Sam"
-      }
+      },
+      "modeTitle": "Présentiel vs téléconsultation",
+      "modePresentiel": "Présentiel",
+      "modeTele": "Téléconsultation"
+    },
+    "dossier": {
+      "title": "Mon dossier médical",
+      "subtitle": "Vos dossiers par établissement et leur historique de soins.",
+      "backToList": "Retour aux dossiers",
+      "newConsultation": "Nouvelle demande",
+      "open": "Ouvert",
+      "closed": "Clos",
+      "emptyTitle": "Aucun dossier pour le moment",
+      "emptyDesc": "Votre dossier s’ouvre automatiquement lors de votre première admission dans un établissement.",
+      "emptyEvents": "Aucun événement enregistré pour le moment.",
+      "signed": "Signé",
+      "eventsCount_one": "{{count}} événement",
+      "eventsCount_other": "{{count}} événements",
+      "event_accueil": "Accueil",
+      "event_signe_vitaux": "Signes vitaux",
+      "event_consultation": "Consultation",
+      "event_soin": "Soin",
+      "event_ordonnance": "Ordonnance",
+      "event_pharmacie": "Pharmacie",
+      "event_note": "Note"
     }
   }
 }

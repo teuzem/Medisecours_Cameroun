@@ -339,8 +339,11 @@ export interface PatientDashboardData {
     favoris: number
     prescriptionsActives: number
     prescriptionsTotal: number
+    teleconsultations?: number
+    consultationsPresentiel?: number
   }
   statusCounts: Record<string, number>
+  modeCounts?: Record<string, number>
   timeline: DashboardTimelinePoint[]
   weekdayDistribution: number[]
   hourlyDistribution: number[]

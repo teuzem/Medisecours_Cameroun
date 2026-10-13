@@ -87,7 +87,7 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
             <div className="text-center py-16 text-gray-500 dark:text-primary-300 text-sm">{t('consultations.detail.loadError')}</div>
           ) : (
             <div className="p-5 space-y-6">
-              {/* Statut + Priorité */}
+              {/* Statut + Priorité + Canal */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUT_COLOR[c.statut] || STATUT_COLOR.OUVERTE}`}>
                   {STATUT_KEY[c.statut] ? t(`consultations.detail.${STATUT_KEY[c.statut]}`) : c.statut}
@@ -97,6 +97,13 @@ export default function ConsultationDetailModal({ consultationId, onClose }) {
                     {t(`consultations.detail.${PRIORITE_CONFIG[c.priorite].key}`)}
                   </span>
                 )}
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-200">
+                  {t(
+                    (c.mode ?? 'PRESENTIEL') === 'TELECONSULTATION'
+                      ? 'patient.consultations.modeTeleconsultation'
+                      : 'patient.consultations.modePresentiel',
+                  )}
+                </span>
               </div>
 
               {/* Motif */}

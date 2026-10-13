@@ -57,8 +57,17 @@ class PatientDashboardService
                     'SELECT COUNT(*) FROM prescription WHERE patient_id = :uid',
                     ['uid' => $uid]
                 ),
+                'teleconsultations' => (int) $conn->fetchOne(
+                    "SELECT COUNT(*) FROM consultation WHERE patient_id = :uid AND mode = 'TELECONSULTATION'",
+                    ['uid' => $uid]
+                ),
+                'consultationsPresentiel' => (int) $conn->fetchOne(
+                    "SELECT COUNT(*) FROM consultation WHERE patient_id = :uid AND mode = 'PRESENTIEL'",
+                    ['uid' => $uid]
+                ),
             ],
             'statusCounts' => $this->buildStatusCounts($conn, $uid),
+            'modeCounts' => $this->buildModeCounts($conn, $uid, $period),
             'timeline' => $this->buildTimeline($conn, $uid, $period),
             'weekdayDistribution' => $this->buildWeekdayDistribution($conn, $uid, $period),
             'hourlyDistribution' => $this->buildHourlyDistribution($conn, $uid, $period),
@@ -83,6 +92,30 @@ class PatientDashboardService
             $statut = (string) $row['statut'];
             if (isset($counts[$statut])) {
                 $counts[$statut] = (int) $row['n'];
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function buildModeCounts(\Doctrine\DBAL\Connection $conn, string $uid, int $period): array
+    {
+        $rows = $conn->fetchAllAssociative(
+            'SELECT mode, COUNT(*) AS n
+             FROM consultation
+             WHERE patient_id = :uid AND created_at >= (CURRENT_DATE - INTERVAL \'' . $period . ' days\')
+             GROUP BY mode',
+            ['uid' => $uid]
+        );
+
+        $counts = ['PRESENTIEL' => 0, 'TELECONSULTATION' => 0];
+        foreach ($rows as $row) {
+            $mode = (string) $row['mode'];
+            if (isset($counts[$mode])) {
+                $counts[$mode] = (int) $row['n'];
             }
         }
 

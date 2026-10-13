@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Building2,
   ClipboardList,
+  FolderOpen,
   Heart,
   MessageSquare,
   MapPin,
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react'
 import useSWR from 'swr'
 import { useAuth } from '../../hooks/useAuth'
-import { fetcher } from '../../lib/fetcher'
+import { fetcher, fetcherIds } from '../../lib/fetcher'
 import {
   AVIS_ETABLISSEMENTS_KEY,
   CONSULTATIONS_KEY,
@@ -42,7 +43,7 @@ export default function PatientHomePage() {
   const { t } = useTranslation()
 
   const { data: stats } = useSWR<ConsultationStats>(PATIENT_CONSULTATIONS_STATS_KEY, fetcher)
-  const { data: favoris } = useSWR<number[]>(FAVORIS_KEY, fetcher)
+  const { data: favoris } = useSWR<number[]>(FAVORIS_KEY, fetcherIds)
   const { data: unreadMessages } = useSWR<{ count: number }>(UNREAD_MESSAGES_KEY, fetcher)
   const { data: unreadNotifs } = useSWR<{ count: number }>(UNREAD_NOTIFICATIONS_KEY, fetcher)
   const { data: recentConsultations } = useSWR(`${CONSULTATIONS_KEY}?itemsPerPage=3&order[createdAt]=desc`, fetcher)
@@ -66,6 +67,7 @@ export default function PatientHomePage() {
   const quickActions = [
     { href: '/patient/etablissements', icon: Building2, title: t('patient.home.actionFindEstablishment'), desc: t('patient.home.actionFindEstablishmentDesc') },
     { href: '/patient/consultations?new=1', icon: ClipboardList, title: t('patient.home.actionNewConsultation'), desc: t('patient.home.actionNewConsultationDesc') },
+    { href: '/patient/dossier', icon: FolderOpen, title: t('patient.home.actionDossier'), desc: t('patient.home.actionDossierDesc') },
     { href: '/carte#sos', icon: Siren, title: t('patient.home.actionSos'), desc: t('patient.home.actionSosDesc'), urgent: true },
     { href: '/patient/avis', icon: Star, title: t('patient.home.actionMyReviews'), desc: t('patient.home.actionMyReviewsDesc') },
     { href: '/patient/favoris', icon: Heart, title: t('patient.home.actionFavorites'), desc: t('patient.home.actionFavoritesDesc') },

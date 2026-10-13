@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Camera, Edit3, Save, ShieldCheck, X, Phone, MapPin, Droplet,
   HeartPulse, Siren, Plus, Stethoscope, BadgeCheck, CalendarClock, Lock, AlertTriangle,
@@ -446,6 +447,135 @@ function PatientReportRow({
         <Eye className="h-4 w-4" />
       </span>
     </button>
+  )
+}
+
+const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
+
+function AccountSecurityCard() {
+  const { t } = useTranslation()
+  const { logout } = useAuth()
+  const toast = useToast()
+  const router = useRouter()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [savingEmail, setSavingEmail] = useState(false)
+
+  const afterSensitiveChange = async (message: string) => {
+    toast.success(message)
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setNewEmail('')
+    try {
+      await logout()
+    } finally {
+      router.push('/login?security=1')
+    }
+  }
+
+  const submitPassword = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (newPassword !== confirmPassword) {
+      toast.error(t('visitor.profil.securityPasswordMismatch'))
+      return
+    }
+    if (!PASSWORD_RE.test(newPassword)) {
+      toast.error(t('visitor.profil.securityPasswordWeak'))
+      return
+    }
+    setSavingPassword(true)
+    try {
+      await api.post('/api/auth/change-password', { currentPassword, newPassword })
+      await afterSensitiveChange(t('visitor.profil.securityPasswordChanged'))
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.error
+        || error?.response?.data?.detail
+        || t('visitor.profil.securityFailed'),
+      )
+    } finally {
+      setSavingPassword(false)
+    }
+  }
+
+  const submitEmail = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())) {
+      toast.error(t('visitor.profil.securityEmailInvalid'))
+      return
+    }
+    setSavingEmail(true)
+    try {
+      await api.post('/api/auth/change-email', { currentPassword, email: newEmail.trim().toLowerCase() })
+      await afterSensitiveChange(t('visitor.profil.securityEmailChanged'))
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.error
+        || error?.response?.data?.detail
+        || t('visitor.profil.securityFailed'),
+      )
+    } finally {
+      setSavingEmail(false)
+    }
+  }
+
+  const inputClass = 'w-full mt-1 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-primary-900/40 text-sm text-slate-800 dark:text-sable focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow'
+
+  return (
+    <Card className="rounded-lg p-5 sm:p-6">
+      <CardHeading icon={<Lock className="w-4 h-4" />} title={t('visitor.profil.securityTitle')} />
+      <p className="mb-4 text-xs leading-5 text-slate-500 dark:text-slate-300">
+        {t('visitor.profil.securityDesc')}
+      </p>
+      <form onSubmit={submitPassword} className="space-y-3">
+        <div>
+          <label htmlFor="sec-current" className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            {t('visitor.profil.securityCurrentPassword')}
+          </label>
+          <input id="sec-current" type="password" autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required className={inputClass} />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="sec-new" className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              {t('visitor.profil.securityNewPassword')}
+            </label>
+            <input id="sec-new" type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="sec-confirm" className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              {t('visitor.profil.securityConfirmPassword')}
+            </label>
+            <input id="sec-confirm" type="password" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className={inputClass} />
+          </div>
+        </div>
+        <button
+          type="submit"
+          disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
+          className="inline-flex min-h-10 items-center justify-center rounded-xl bg-primary-500 px-4 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {savingPassword ? t('visitor.profil.securityChanging') : t('visitor.profil.securityChangePassword')}
+        </button>
+      </form>
+      <form onSubmit={submitEmail} className="mt-5 space-y-3 border-t border-slate-100 pt-5 dark:border-white/10">
+        <div>
+          <label htmlFor="sec-email" className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            {t('visitor.profil.securityNewEmail')}
+          </label>
+          <input id="sec-email" type="email" autoComplete="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required className={inputClass} />
+        </div>
+        <button
+          type="submit"
+          disabled={savingEmail || !currentPassword || !newEmail.trim()}
+          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-sable dark:hover:bg-white/5"
+        >
+          {savingEmail ? t('visitor.profil.securityChanging') : t('visitor.profil.securityChangeEmail')}
+        </button>
+      </form>
+    </Card>
   )
 }
 
@@ -949,6 +1079,8 @@ export default function ProfilPage() {
                 </div>
               </div>
             </Card>
+
+            <AccountSecurityCard />
 
             <Card className="rounded-lg p-5 sm:p-6">
               <CardHeading icon={<Info className="w-4 h-4" />} title={t('visitor.profil.tip')} badgeClass="bg-amber-50 dark:bg-amber-500/10 text-amber-600" />

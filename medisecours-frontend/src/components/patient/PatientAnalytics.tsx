@@ -90,6 +90,10 @@ export default function PatientAnalytics() {
 
   const croissance = data?.comparaison?.croissancePourcent ?? null
   const kpis = data?.kpis
+  const modePresentiel = data?.modeCounts?.PRESENTIEL ?? kpis?.consultationsPresentiel ?? 0
+  const modeTele = data?.modeCounts?.TELECONSULTATION ?? kpis?.teleconsultations ?? 0
+  const modeTotal = modePresentiel + modeTele
+  const modeTelePct = modeTotal > 0 ? Math.round((modeTele / modeTotal) * 100) : 0
 
   return (
     <section aria-label={t('patient.analytics.title')} className="space-y-4">
@@ -143,6 +147,33 @@ export default function PatientAnalytics() {
           {croissance >= 0
             ? t('patient.analytics.growthUp', { value: Math.abs(croissance) })
             : t('patient.analytics.growthDown', { value: Math.abs(croissance) })}
+        </div>
+      )}
+
+      {data && modeTotal > 0 && (
+        <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-bold text-primary-900 dark:text-white">{t('patient.analytics.modeTitle')}</p>
+            <p className="text-[11px] font-bold text-slate-400">{modeTelePct}% {t('patient.analytics.modeTele')}</p>
+          </div>
+          <div
+            className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/10"
+            role="img"
+            aria-label={`${t('patient.analytics.modePresentiel')}: ${modePresentiel}, ${t('patient.analytics.modeTele')}: ${modeTele}`}
+          >
+            <span className="h-full bg-primary-900 dark:bg-white" style={{ width: `${100 - modeTelePct}%` }} />
+            <span className="h-full bg-sky-500" style={{ width: `${modeTelePct}%` }} />
+          </div>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-primary-900 dark:bg-white" aria-hidden="true" />
+              {t('patient.analytics.modePresentiel')} · {modePresentiel}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-sky-500" aria-hidden="true" />
+              {t('patient.analytics.modeTele')} · {modeTele}
+            </span>
+          </div>
         </div>
       )}
 

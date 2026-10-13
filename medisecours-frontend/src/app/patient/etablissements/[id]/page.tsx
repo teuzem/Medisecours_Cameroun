@@ -26,7 +26,7 @@ import useSWR from 'swr'
 import { mutate as globalMutate } from 'swr'
 import api from '../../../../api/axios'
 import { useAuth } from '../../../../hooks/useAuth'
-import { fetcher } from '../../../../lib/fetcher'
+import { fetcher, fetcherIds } from '../../../../lib/fetcher'
 import { FAVORIS_KEY } from '../../../../lib/keys'
 import {
   FACILITY_COLORS,
@@ -75,7 +75,7 @@ export default function PatientEtablissementDetailPage() {
     return Array.isArray(raw) ? raw : []
   }, [avisData])
 
-  const { data: favoris, mutate: mutateFavoris } = useSWR<number[]>(isAuthenticated ? FAVORIS_KEY : null, fetcher)
+  const { data: favoris, mutate: mutateFavoris } = useSWR<number[]>(isAuthenticated ? FAVORIS_KEY : null, fetcherIds)
   const favoriteIds = Array.isArray(favoris) ? favoris : []
   const isFavorite = favoriteIds.includes(centreId)
 

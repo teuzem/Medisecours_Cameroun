@@ -157,6 +157,7 @@ class ConsultationProcessor implements ProcessorInterface
             'statut' => $c->getStatut(),
             'motif' => $c->getMotif(),
             'priorite' => $c->getPriorite(),
+            'mode' => $c->getMode(),
             'createdAt' => $c->getCreatedAt()?->format('c'),
             'patient' => $c->getPatient() ? [
                 'id' => $c->getPatient()->getId(),

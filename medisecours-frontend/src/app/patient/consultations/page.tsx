@@ -20,6 +20,7 @@ import {
   Search,
   Stethoscope,
   Trash2,
+  Video,
   X,
 } from 'lucide-react'
 import useSWR from 'swr'
@@ -51,7 +52,11 @@ type ConsultationStats = {
   inProgress: number
   finished: number
   cancelled: number
+  presentiel?: number
+  teleconsultation?: number
 }
+
+type ModeFilter = 'TOUS' | 'PRESENTIEL' | 'TELECONSULTATION'
 
 const STATUT_STYLES = {
   OUVERTE: {
@@ -118,9 +123,11 @@ export default function PatientConsultationsPage() {
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
   const [motif, setMotif] = useState('')
   const [priorite, setPriorite] = useState('NORMALE')
+  const [mode, setMode] = useState('PRESENTIEL')
   const [etablissementId, setEtablissementId] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [filter, setFilter] = useState<FilterTab>('TOUTES')
+  const [modeFilter, setModeFilter] = useState<ModeFilter>('TOUS')
   const [searchQuery, setSearchQuery] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [showPrescriptions, setShowPrescriptions] = useState(false)
@@ -236,7 +243,10 @@ export default function PatientConsultationsPage() {
 
     return consultations.filter((consultation) => {
       const matchesStatus = filter === 'TOUTES' || consultation.statut === filter
-      if (!matchesStatus || !query) return matchesStatus
+      const consultationMode = consultation.mode ?? 'PRESENTIEL'
+      const matchesMode = modeFilter === 'TOUS' || consultationMode === modeFilter
+      if (!matchesStatus || !matchesMode) return false
+      if (!query) return true
 
       const doctorName = consultation.medecin
         ? `${consultation.medecin.prenom ?? ''} ${consultation.medecin.nom ?? ''}`
@@ -246,6 +256,7 @@ export default function PatientConsultationsPage() {
         doctorName,
         consultation.statut,
         consultation.priorite,
+        consultationMode,
       ]
         .filter(Boolean)
         .join(' ')
@@ -253,7 +264,7 @@ export default function PatientConsultationsPage() {
 
       return searchable.includes(query)
     })
-  }, [consultations, filter, locale, searchQuery])
+  }, [consultations, filter, modeFilter, locale, searchQuery])
 
   const recentIds = useMemo(
     () => new Set(recentConsultations.map((consultation) => consultation.id)),
@@ -327,12 +338,13 @@ export default function PatientConsultationsPage() {
 
     setSubmitting(true)
     try {
-      const body: Record<string, unknown> = { motif: motif.trim(), priorite }
+      const body: Record<string, unknown> = { motif: motif.trim(), priorite, mode }
       if (etablissementId) body.etablissement = `/api/centre_de_santes/${etablissementId}`
       await api.post('/api/consultations', body)
       setShowForm(false)
       setMotif('')
       setPriorite('NORMALE')
+      setMode('PRESENTIEL')
       setEtablissementId(null)
       await Promise.all([mutate(), mutateConsultationStats()])
       toast.success(t('patient.consultations.sentToast'))
@@ -363,7 +375,7 @@ export default function PatientConsultationsPage() {
 
   const openChat = (consultation: any) => {
     if (consultation.statut !== 'EN_COURS') return
-    router.push(`/messages?consultation=${consultation.id}`)
+    router.push(`/patient/messages?consultation=${consultation.id}`)
   }
 
   if (!user) return <LoadingSpinner label={t('common.loading')} />
@@ -529,6 +541,42 @@ export default function PatientConsultationsPage() {
               </fieldset>
             </div>
 
+            <fieldset className="mt-5 border-t border-slate-100 pt-5 dark:border-white/10">
+              <legend className="flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500">
+                <Video className="h-3.5 w-3.5" aria-hidden="true" />
+                {t('patient.consultations.modeLabel')}
+              </legend>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                {(
+                  [
+                    { value: 'PRESENTIEL', labelKey: 'patient.consultations.modePresentiel', hintKey: 'patient.consultations.modePresentielHint', Icon: Building2 },
+                    { value: 'TELECONSULTATION', labelKey: 'patient.consultations.modeTeleconsultation', hintKey: 'patient.consultations.modeTeleconsultationHint', Icon: Video },
+                  ] as const
+                ).map(({ value, labelKey, hintKey, Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={mode === value}
+                    onClick={() => setMode(value)}
+                    className={`flex items-center gap-3 border px-4 py-3 text-left transition ${
+                      mode === value
+                        ? 'border-emerald-700 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-500/10'
+                        : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-white/10 dark:bg-slate-950 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <Icon
+                      className={`h-5 w-5 shrink-0 ${mode === value ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-400'}`}
+                      aria-hidden="true"
+                    />
+                    <span>
+                      <span className="block text-sm font-bold text-slate-900 dark:text-white">{t(labelKey)}</span>
+                      <span className="block text-xs text-slate-500 dark:text-slate-400">{t(hintKey)}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
             <div className="mt-5 border-t border-slate-100 pt-5 dark:border-white/10">
               <label className="block">
                 <span className="flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500">
@@ -631,6 +679,20 @@ export default function PatientConsultationsPage() {
                 </button>
               )
             })}
+            <label className="flex h-12 shrink-0 items-center gap-2 border border-slate-200 bg-white px-3 dark:border-white/10 dark:bg-slate-900">
+              <span className="sr-only">{t('patient.consultations.modeFilterLabel')}</span>
+              <Video className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <select
+                value={modeFilter}
+                onChange={(event) => setModeFilter(event.target.value as ModeFilter)}
+                className="h-full bg-transparent text-xs font-bold text-slate-600 outline-none dark:text-slate-300"
+                aria-label={t('patient.consultations.modeFilterLabel')}
+              >
+                <option value="TOUS">{t('patient.consultations.modeAll')}</option>
+                <option value="PRESENTIEL">{t('patient.consultations.modePresentiel')}</option>
+                <option value="TELECONSULTATION">{t('patient.consultations.modeTeleconsultation')}</option>
+              </select>
+            </label>
           </div>
         </div>
 
@@ -705,8 +767,33 @@ export default function PatientConsultationsPage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-start justify-between gap-2">
-                          <span className={`border px-2 py-1 text-[10px] font-black uppercase ${style.badge}`}>
-                            {t(style.labelKey)}
+                          <span className="flex flex-wrap items-center gap-1.5">
+                            <span className={`border px-2 py-1 text-[10px] font-black uppercase ${style.badge}`}>
+                              {t(style.labelKey)}
+                            </span>
+                            <span
+                              className={`inline-flex items-center gap-1 border px-2 py-1 text-[10px] font-black uppercase ${
+                                (consultation.mode ?? 'PRESENTIEL') === 'TELECONSULTATION'
+                                  ? 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/25 dark:bg-sky-500/10 dark:text-sky-200'
+                                  : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300'
+                              }`}
+                              title={t(
+                                (consultation.mode ?? 'PRESENTIEL') === 'TELECONSULTATION'
+                                  ? 'patient.consultations.modeTeleconsultationHint'
+                                  : 'patient.consultations.modePresentielHint',
+                              )}
+                            >
+                              {(consultation.mode ?? 'PRESENTIEL') === 'TELECONSULTATION' ? (
+                                <Video className="h-3 w-3" aria-hidden="true" />
+                              ) : (
+                                <Building2 className="h-3 w-3" aria-hidden="true" />
+                              )}
+                              {t(
+                                (consultation.mode ?? 'PRESENTIEL') === 'TELECONSULTATION'
+                                  ? 'patient.consultations.modeTeleconsultation'
+                                  : 'patient.consultations.modePresentiel',
+                              )}
+                            </span>
                           </span>
                           {consultation.priorite !== 'NORMALE' && (
                             <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600 dark:text-red-300">

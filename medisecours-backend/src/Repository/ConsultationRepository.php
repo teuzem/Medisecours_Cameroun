@@ -33,7 +33,7 @@ class ConsultationRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array{total: int, pending: int, inProgress: int, finished: int, cancelled: int}
+     * @return array{total: int, pending: int, inProgress: int, finished: int, cancelled: int, presentiel: int, teleconsultation: int}
      */
     public function countByStatusForPatient(Patient $patient): array
     {
@@ -56,12 +56,33 @@ class ConsultationRepository extends ServiceEntityRepository
             $counts[$row['status']] = (int) $row['total'];
         }
 
+        $modeRows = $this->createQueryBuilder('c')
+            ->select('c.mode AS mode, COUNT(c.id) AS total')
+            ->where('c.patient = :patient')
+            ->setParameter('patient', $patient)
+            ->groupBy('c.mode')
+            ->getQuery()
+            ->getArrayResult();
+
+        $modes = [
+            Consultation::MODE_PRESENTIEL => 0,
+            Consultation::MODE_TELECONSULTATION => 0,
+        ];
+
+        foreach ($modeRows as $row) {
+            if (array_key_exists($row['mode'], $modes)) {
+                $modes[$row['mode']] = (int) $row['total'];
+            }
+        }
+
         return [
             'total' => array_sum($counts),
             'pending' => $counts[Consultation::STATUT_OUVERTE],
             'inProgress' => $counts[Consultation::STATUT_EN_COURS],
             'finished' => $counts[Consultation::STATUT_TERMINEE],
             'cancelled' => $counts[Consultation::STATUT_ANNULEE],
+            'presentiel' => $modes[Consultation::MODE_PRESENTIEL],
+            'teleconsultation' => $modes[Consultation::MODE_TELECONSULTATION],
         ];
     }
 }

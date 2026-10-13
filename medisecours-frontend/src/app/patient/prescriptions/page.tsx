@@ -281,7 +281,11 @@ function OrdonnancesPharmacieSection({ locale }: { locale: string }) {
   })
   const [busyId, setBusyId] = useState<number | null>(null)
 
-  const ordonnances = useMemo(() => (Array.isArray(data) ? data : []), [data])
+  const ordonnances = useMemo(() => {
+    if (Array.isArray(data)) return data
+    const nested = (data as { ordonnances?: unknown })?.ordonnances
+    return Array.isArray(nested) ? nested : []
+  }, [data])
 
   const demander = async (id: number) => {
     setBusyId(id)

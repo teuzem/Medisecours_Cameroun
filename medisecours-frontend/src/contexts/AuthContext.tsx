@@ -40,8 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user
   }, [persist])
 
-  const register = useCallback(async (payload: any) => {
-    const { data } = await api.post('/api/auth/register', payload)
+  const register = useCallback(async (payload: any, config?: { timeout?: number }) => {
+    const { data } = await api.post('/api/auth/register', payload, config)
     return data
   }, [])
 

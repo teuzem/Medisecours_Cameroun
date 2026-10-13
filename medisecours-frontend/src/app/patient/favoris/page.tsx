@@ -8,7 +8,7 @@ import useSWR from 'swr'
 import { mutate as globalMutate } from 'swr'
 import api from '../../../api/axios'
 import { useAuth } from '../../../hooks/useAuth'
-import { fetcher } from '../../../lib/fetcher'
+import { fetcher, fetcherIds } from '../../../lib/fetcher'
 import { ETABLISSEMENTS_KEY, FAVORIS_KEY } from '../../../lib/keys'
 import { extractArray } from '../../../lib/api'
 import type { CarteCentre } from '../../../lib/carte'
@@ -22,7 +22,7 @@ export default function PatientFavorisPage() {
 
   const { data: favoris, isLoading: loadingFavoris, mutate: mutateFavoris } = useSWR<number[]>(
     isAuthenticated ? FAVORIS_KEY : null,
-    fetcher,
+    fetcherIds,
   )
   const favoriteIds = Array.isArray(favoris) ? favoris : []
 

@@ -640,6 +640,31 @@ function PatientMessagesContent() {
     return () => window.clearTimeout(timer)
   }, [preselectConv, convLoading, user])
 
+  // Deep-link depuis une consultation : ouvre (ou crée) la discussion avec
+  // le médecin assigné, comme le fait la messagerie globale (?consultation=).
+  const preselectConsultation = searchParams.get('consultation')
+  const preselectConsultationStarted = useRef(false)
+  useEffect(() => {
+    if (!preselectConsultation || convLoading || !user || preselectConsultationStarted.current) return
+    preselectConsultationStarted.current = true
+    const consultationId = Number(preselectConsultation)
+    if (!consultationId) return
+    ;(async () => {
+      try {
+        const { data: consultation } = await api.get(`/api/consultations/${consultationId}`)
+        const medecinId = consultation?.medecin?.id
+        if (!medecinId) {
+          toast.error(t('patient.messages.noDoctorForConsultation'))
+          return
+        }
+        const convId = await findOrCreateConv(medecinId)
+        setActiveId(convId)
+      } catch {
+        toast.error(t('patient.messages.consultationChatError'))
+      }
+    })()
+  }, [preselectConsultation, convLoading, user, findOrCreateConv, toast, t])
+
   function handleAttach(type) {
     setShowAttachMenu(false)
     if (type === 'camera') { cameraRef.current?.click(); return }
