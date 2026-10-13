@@ -483,7 +483,13 @@
       "uploadLienInvalide": "Unsupported link: paste the full video URL (not a shortened link).",
       "uploadApercuInstantane": "Instant preview",
       "uploadAjouterLien": "Add this video",
-      "videoOuvrirPlateforme": "Open on {{plateforme}}"
+      "videoOuvrirPlateforme": "Open on {{plateforme}}",
+      "mediaPrint": "Print",
+      "mediaReport": "Report a problem",
+      "mediaReportValue": "Photo/video \"{{nom}}\" (media {{id}}) — problem reported from the gallery.",
+      "mediaReportOk": "Problem reported. Thank you.",
+      "mediaReportError": "Could not report this media.",
+      "galleryImageDate": "Image date: {{date}}"
     },
     "notFound": {
       "title": "Diagnosis: page not found",

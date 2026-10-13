@@ -483,7 +483,13 @@
       "uploadLienInvalide": "Lien non pris en charge : collez le lien complet de la vidéo (pas un lien raccourci).",
       "uploadApercuInstantane": "Aperçu instantané",
       "uploadAjouterLien": "Ajouter cette vidéo",
-      "videoOuvrirPlateforme": "Ouvrir sur {{plateforme}}"
+      "videoOuvrirPlateforme": "Ouvrir sur {{plateforme}}",
+      "mediaPrint": "Imprimer",
+      "mediaReport": "Signaler un problème",
+      "mediaReportValue": "Photo/vidéo « {{nom}} » (média {{id}}) — problème signalé depuis la galerie.",
+      "mediaReportOk": "Problème signalé. Merci pour votre vigilance.",
+      "mediaReportError": "Impossible de signaler ce média.",
+      "galleryImageDate": "Date de l’image : {{date}}"
     },
     "notFound": {
       "title": "Diagnostic : page introuvable",

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type 
 ReactNode } from 'react'
-import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clapperboard, Clock, ExternalLink, Flag, FolderPlus, Globe, History, Image as ImageIcon, Images, Info, Link2, Loader2, MapPin, MoreVertical, Navigation, Phone, Play, Plus, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, Video, X } from 'lucide-react'
+import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clapperboard, Clock, ExternalLink, Flag, FolderPlus, Globe, History, Image as ImageIcon, Images, Info, Link2, Loader2, MapPin, MoreVertical, Navigation, Phone, Play, Plus, Printer, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, Video, X } from 'lucide-react'
 import useSWR, { mutate } from 'swr'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
@@ -146,6 +146,7 @@ function FacilityMediaViewer({
   onClose,
   onShare,
   onAdd,
+  onReport,
 }: {
   facility: FicheCentre
   filter: GalleryFilter
@@ -155,10 +156,13 @@ function FacilityMediaViewer({
   onClose: () => void
   onShare: (media: NonNullable<FicheCentre['images']>[number]) => void
   onAdd?: () => void
+  onReport?: (media: NonNullable<FicheCentre['images']>[number]) => void
 }) {
   const { t, i18n } = useTranslation()
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const media = orderedFacilityMedia(facility)
   const filtered = useMemo(() => {
     if (filter === 'videos') return media.filter(isVideoItem)
@@ -185,7 +189,10 @@ function FacilityMediaViewer({
     document.body.style.overflow = 'hidden'
     closeButtonRef.current?.focus()
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') {
+        if (menuOpen) setMenuOpen(false)
+        else onClose()
+      }
       else if (event.key === 'ArrowLeft') goPrev()
       else if (event.key === 'ArrowRight') goNext()
     }
@@ -195,7 +202,22 @@ function FacilityMediaViewer({
       document.body.style.overflow = previousOverflow
       previousActive?.focus?.()
     }
-  }, [goNext, goPrev, onClose])
+  }, [goNext, goPrev, onClose, menuOpen])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [menuOpen])
+
+  useEffect(() => {
+    // Ferme le menu à chaque changement de média.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMenuOpen(false)
+  }, [safeIndex, filter])
 
   useEffect(() => {
     const active = listRef.current?.querySelector('[data-active="true"]')
@@ -204,6 +226,29 @@ function FacilityMediaViewer({
 
   const uploaderLabel = mediaUploaderName(current, t('visitor.carte.galleryMember'))
   const dateLabel = current ? (formatMediaDate(current.createdAt, i18n.language) || formatRelativeDate(current.createdAt, i18n.language)) : ''
+  const imageMonthYear = (() => {
+    if (!current?.createdAt) return ''
+    const date = new Date(current.createdAt)
+    if (Number.isNaN(date.getTime())) return ''
+    try {
+      return date.toLocaleDateString(i18n.language.toLowerCase().startsWith('en') ? 'en-CM' : 'fr-CM', { month: 'short', year: 'numeric' })
+    } catch {
+      return ''
+    }
+  })()
+
+  const handlePrint = () => {
+    setMenuOpen(false)
+    window.print()
+  }
+  const handleReport = () => {
+    setMenuOpen(false)
+    if (current && onReport) onReport(current)
+  }
+  const handleShareFromMenu = () => {
+    setMenuOpen(false)
+    if (current) onShare(current)
+  }
   const kindLabel = !current
     ? ''
     : currentIsExternal && currentProviderLabel
@@ -304,7 +349,34 @@ function FacilityMediaViewer({
       <main className="maps-media-stage-gmaps">
         <header className="maps-media-stage-top">
           <div className="maps-media-stage-identity">
-            <h2>{facility.nom}</h2>
+            <div className="maps-media-stage-title-row">
+              <h2 title={facility.nom}>{facility.nom}</h2>
+              <div className="maps-media-stage-menu-wrap" ref={menuRef}>
+                <button
+                  type="button"
+                  className="maps-media-stage-overflow"
+                  aria-label={t('visitor.carte.reviewMenuLabel')}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  <MoreVertical size={18} />
+                </button>
+                {menuOpen && (
+                  <div className="maps-media-stage-menu" role="menu">
+                    <button type="button" role="menuitem" onClick={handlePrint}>
+                      <Printer size={15} aria-hidden="true" /> {t('visitor.carte.mediaPrint')}
+                    </button>
+                    <button type="button" role="menuitem" onClick={handleReport}>
+                      <Flag size={15} aria-hidden="true" /> {t('visitor.carte.mediaReport')}
+                    </button>
+                    <button type="button" role="menuitem" onClick={handleShareFromMenu}>
+                      <Share2 size={15} aria-hidden="true" /> {t('visitor.carte.actionShare')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
             <p>
               <span className="maps-media-stage-avatar" aria-hidden="true">
                 {mediaUploaderInitials(uploaderLabel)}
@@ -318,14 +390,11 @@ function FacilityMediaViewer({
             )}
           </div>
           <div className="maps-media-stage-top-actions">
-            <button type="button" className="maps-media-stage-overflow" aria-label={t('visitor.carte.reviewMenuLabel')} onClick={() => current && onShare(current)}>
-              <MoreVertical size={20} />
-            </button>
             <button type="button" className="maps-media-stage-share" onClick={() => current && onShare(current)}>
-              <Share2 size={17} aria-hidden="true" /> {t('visitor.carte.actionShare')}
+              <Share2 size={15} aria-hidden="true" /> {t('visitor.carte.actionShare')}
             </button>
             <button type="button" className="maps-media-stage-close" onClick={onClose} aria-label={t('visitor.carte.galleryClose')}>
-              <X size={22} />
+              <X size={20} />
             </button>
           </div>
         </header>
@@ -372,14 +441,36 @@ function FacilityMediaViewer({
         </div>
 
         <div className="maps-media-stage-locate">
-          <span className="maps-media-stage-pin" aria-hidden="true"><MapPin size={18} /></span>
-          <span className="maps-media-stage-locate-copy">
-            <strong>{facility.nom}</strong>
-            <small>{[facility.quartier, facility.ville].filter(Boolean).join(', ') || facility.adresse}</small>
-          </span>
-          <a href={toGoogleMapsUrl(facility)} target="_blank" rel="noopener noreferrer" aria-label="Google Maps">
-            <ExternalLink size={15} />
+          <a
+            href={toGoogleMapsUrl(facility)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="maps-media-stage-minimap"
+            aria-label={facility.nom}
+            title={facility.nom}
+          >
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <rect width="120" height="120" fill="#e9edf0" />
+              <path d="M-4 34 H124 M-4 72 H124 M28 -4 V124 M64 -4 V124 M96 -4 V124" stroke="#ffffff" strokeWidth="7" />
+              <path d="M-4 118 L124 26" stroke="#ffffff" strokeWidth="5" />
+              <path d="M70 78 h54 v46 H70 z" fill="#cfe8cf" />
+              <circle cx="18" cy="16" r="7" fill="#9aa0a6" />
+              <circle cx="18" cy="16" r="3.4" fill="#e9edf0" />
+              <g>
+                <circle cx="60" cy="56" r="17" fill="#ea4335" stroke="#ffffff" strokeWidth="3" />
+                <circle cx="60" cy="50" r="4.6" fill="#ffd54f" />
+                <path d="M51.5 66 c0-6.5 3.8-10.5 8.5-10.5 s8.5 4 8.5 10.5 z" fill="#ffd54f" />
+              </g>
+            </svg>
+            <span className="maps-media-stage-minimap-open" aria-hidden="true">
+              <ExternalLink size={12} />
+            </span>
           </a>
+          <small className="maps-media-stage-locate-caption">
+            {imageMonthYear
+              ? t('visitor.carte.galleryImageDate', "Date de l'image : {{date}}").replace('{{date}}', imageMonthYear)
+              : ([facility.ville].filter(Boolean).join('') || facility.adresse)}
+          </small>
         </div>
         <span className="maps-media-stage-brand" aria-hidden="true">MediSecours Maps</span>
       </main>
@@ -516,13 +607,10 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [galleryFilter, setGalleryFilter] = useState<GalleryFilter>('images')
   const [galleryIndex, setGalleryIndex] = useState(0)
   // Galerie « Photos et vidéos » : filtre des tuiles, pagination du carrousel,
-  // carrousel vidéo dédié, popup d'import réservé au personnel de l'établissement.
+  // popup d'import réservé au personnel de l'établissement.
   const [mediaFilter, setMediaFilter] = useState<'tout' | 'recent' | 'videos'>('tout')
   const [carouselIndex, setCarouselIndex] = useState(0)
   const carouselRef = useRef<HTMLDivElement | null>(null)
-  const tilesRef = useRef<HTMLDivElement | null>(null)
-  const [videoIndex, setVideoIndex] = useState(0)
-  const videoStripRef = useRef<HTMLDivElement | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [uploadFiles, setUploadFiles] = useState<File[]>([])
   const [uploadPreviews, setUploadPreviews] = useState<string[]>([])
@@ -637,23 +725,6 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     const cible = piste ? (Array.from(piste.children)[index] as HTMLElement | undefined) : undefined
     cible?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
   }
-  const surDefilementVideos = () => {
-    const piste = videoStripRef.current
-    if (!piste) return
-    const gauche = piste.scrollLeft + 8
-    const enfants = Array.from(piste.children) as HTMLElement[]
-    const index = enfants.findIndex((enfant) => enfant.offsetLeft + enfant.clientWidth > gauche)
-    if (index >= 0) setVideoIndex(index)
-  }
-  const defilerVersVideo = (index: number) => {
-    const piste = videoStripRef.current
-    const cible = piste ? (Array.from(piste.children)[index] as HTMLElement | undefined) : undefined
-    cible?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
-  }
-  const defilerTuiles = (direction: 1 | -1) => {
-    tilesRef.current?.scrollBy({ left: direction * 320, behavior: 'smooth' })
-  }
-
   const accepterFichiersMedia = (entrants: File[]) => {
     const valides: File[] = []
     for (const fichier of entrants) {
@@ -723,7 +794,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   useEffect(() => {
     // Reset the drawer workflow when a different establishment is selected.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setCarouselIndex(0); setVideoIndex(0); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
+    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setCarouselIndex(0); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
     try {
       const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
       const saved = typeof stored === 'object' && stored !== null ? stored[String(props.selectedId ?? 0)] : null
@@ -820,6 +891,30 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       }
     } catch (cause) {
       if ((cause as Error).name !== 'AbortError') toast.error(t('visitor.carte.toastMediaShareUnavailable'))
+    }
+  }
+  // « Signaler un problème » sur un média : réutilise le workflow de
+  // suggestions/modération existant (champ « autre »), jamais d'endpoint ad hoc.
+  const reportMedia = async (media: NonNullable<FicheCentre['images']>[number]) => {
+    if (!facility) return
+    if (!isAuthenticated) {
+      window.location.assign('/login')
+      return
+    }
+    try {
+      await api.post('/api/suggestion_etablissements', {
+        etablissement: `/api/centre_de_santes/${facility.id}`,
+        champ: 'autre',
+        valeurProposee: t('visitor.carte.mediaReportValue', {
+          nom: media.originalName ?? t('visitor.carte.mediaFallbackName'),
+          id: media.id,
+        }),
+        commentaire: null,
+      })
+      trackInteraction(facility.id, 'suggestion')
+      toast.success(t('visitor.carte.mediaReportOk'))
+    } catch (cause: any) {
+      toast.error(cause?.response?.data?.detail ?? t('visitor.carte.mediaReportError'))
     }
   }
   const submit = async () => {
@@ -948,11 +1043,18 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
                 {mediasEtablissement.length}
               </span>
             )}
+            <button
+              type="button"
+              className="maps-photos-more"
+              onClick={() => { setGalleryFilter(mediaFilter === 'videos' ? 'videos' : 'images'); setGalleryIndex(0); setGalleryOpen(true) }}
+            >
+              {t('visitor.carte.voirPlus')} <ChevronRight size={13} aria-hidden="true" />
+            </button>
           </div>
 
-          {/* Tuiles élégantes façon Google : Tout / Les plus récentes / Vidéos */}
+          {/* Tuiles verticales façon Google : Tout / Les plus récentes / Vidéos — cliquables vers le viewer */}
           <div className="maps-media-tiles-wrap">
-            <div ref={tilesRef} className="maps-media-tiles maps-media-tiles-scroll" role="tablist" aria-label={t('visitor.carte.photosVideosTitle')}>
+            <div className="maps-media-tiles maps-media-tiles-shorts" role="tablist" aria-label={t('visitor.carte.photosVideosTitle')}>
               {([
                 ['tout', mediasEtablissement[0], t('visitor.carte.mediaFiltreTout'), mediasEtablissement.length > 0 ? `${mediasEtablissement.length} médias` : ''],
                 ['recent', mediasRecents[0], t('visitor.carte.mediaFiltreRecentes'), mediasRecents[0]?.createdAt ? formatRelativeDate(mediasRecents[0]?.createdAt, i18n.language) : ''],
@@ -963,14 +1065,22 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
                 const thumb = premier ? mediaThumbSrc(premier) : null
                 const srcFichier = premier && !estExterne ? mediaFileSrc(premier) : null
                 const providerLabel = premier ? getMediaProviderLabel(premier) : null
+                const filtreViewer: GalleryFilter = mode === 'videos' ? 'videos' : mode === 'recent' ? 'recent' : 'images'
                 return (
                   <button
                     key={mode}
                     type="button"
                     role="tab"
                     aria-selected={mediaFilter === mode}
-                    onClick={() => { setMediaFilter(mode); setCarouselIndex(0) }}
-                    className={`maps-media-tile maps-media-tile-luxe${mediaFilter === mode ? ' is-active' : ''}`}
+                    aria-label={`${label}${sousLabel ? ` — ${sousLabel}` : ''}`}
+                    onClick={() => {
+                      setMediaFilter(mode)
+                      setCarouselIndex(0)
+                      setGalleryFilter(filtreViewer)
+                      setGalleryIndex(0)
+                      setGalleryOpen(true)
+                    }}
+                    className={`maps-media-tile maps-media-tile-luxe maps-media-tile-short${mediaFilter === mode ? ' is-active' : ''}`}
                   >
                     {thumb || srcFichier ? (
                       estVideo ? (
@@ -1008,9 +1118,6 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
                 )
               })}
             </div>
-            <button type="button" className="maps-tiles-arrow" aria-label={t('visitor.carte.galleryNext')} onClick={() => defilerTuiles(1)}>
-              <ChevronRight size={22} />
-            </button>
           </div>
 
           {/* Carrousel moderne paginé — filtre courant */}
@@ -1079,85 +1186,17 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             </div>
           )}
 
-          {/* Section galerie vidéo — carrousel moderne dédié avec pagination */}
-          {videosEtablissement.length > 0 && (
-            <div className="maps-video-gallery" aria-label={t('visitor.carte.mediaFiltreVideos')}>
-              <div className="maps-video-gallery-head">
-                <p>
-                  <Video size={16} aria-hidden="true" />
-                  <strong>{t('visitor.carte.mediaFiltreVideos')}</strong>
-                  <span className="maps-video-count">{videosEtablissement.length}</span>
-                </p>
-                <span className="maps-media-counter">{videoIndex + 1} / {videosEtablissement.length}</span>
-              </div>
-              <div ref={videoStripRef} onScroll={surDefilementVideos} className="maps-media-strip maps-video-strip">
-                {videosEtablissement.map((item, index) => {
-                  const estExterne = isExternalVideoMedia(item)
-                  const thumb = mediaThumbSrc(item)
-                  const srcFichier = !estExterne ? mediaFileSrc(item) : null
-                  const providerLabel = getMediaProviderLabel(item)
-                  return (
-                    <button
-                      key={`video-${item.id ?? index}`}
-                      type="button"
-                      className={`maps-media-slide maps-video-slide${videoIndex === index ? ' is-current' : ''}`}
-                      aria-label={`${t('visitor.carte.videoLire')} — ${index + 1} / ${videosEtablissement.length}`}
-                      onClick={() => {
-                        const position = videosEtablissement.findIndex((m) => m === item)
-                        setGalleryFilter('videos')
-                        setGalleryIndex(position >= 0 ? position : 0)
-                        setGalleryOpen(true)
-                      }}
-                    >
-                      <span className="maps-media-slide-video">
-                        {estExterne && thumb ? (
-                          // eslint-disable-next-line @next/next/no-img-element -- vignette distante du fournisseur
-                          <img src={thumb} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none' }} />
-                        ) : estExterne ? (
-                          <span className="maps-media-tile-provider" aria-hidden="true">
-                            <Clapperboard size={24} />
-                            <strong>{providerLabel}</strong>
-                          </span>
-                        ) : (
-                          srcFichier && <video src={srcFichier} muted playsInline preload="metadata" aria-hidden="true" />
-                        )}
-                        <span className="maps-media-play maps-play-luxe"><Play size={22} fill="currentColor" /></span>
-                        {providerLabel && <span className="maps-media-tile-provider-badge">{providerLabel}</span>}
-                      </span>
-                      <span className="maps-video-slide-label">{providerLabel ? `${providerLabel} · ` : ''}{item.originalName && !item.externalUrl ? item.originalName : `${t('visitor.carte.mediaFiltreVideos')} ${index + 1}`}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              {videosEtablissement.length > 1 && (
-                <div className="maps-media-pagination maps-pagination-luxe">
-                  <button type="button" className="maps-page-btn" aria-label={t('visitor.carte.galleryPrevious')} onClick={() => defilerVersVideo(Math.max(0, videoIndex - 1))}><ChevronLeft size={18} /></button>
-                  <div className="maps-media-dots" role="tablist" aria-label="Pagination vidéos">
-                    {videosEtablissement.slice(0, 12).map((_, index) => (
-                      <button key={index} type="button" role="tab" aria-selected={videoIndex === index} aria-label={`${index + 1} / ${videosEtablissement.length}`} onClick={() => defilerVersVideo(index)} className={videoIndex === index ? 'is-active' : ''} />
-                    ))}
-                  </div>
-                  <span className="maps-media-counter">{videoIndex + 1} / {videosEtablissement.length}</span>
-                  <button type="button" className="maps-page-btn" aria-label={t('visitor.carte.galleryNext')} onClick={() => defilerVersVideo(Math.min(videosEtablissement.length - 1, videoIndex + 1))}><ChevronRight size={18} /></button>
-                </div>
-              )}
-            </div>
-          )}
-
           {mediasEtablissement.length === 0 && (
             <p className="maps-media-empty">{t('visitor.carte.galleryEmpty')}</p>
           )}
 
-          <div className="maps-media-actions maps-media-actions-luxe">
-            <button type="button" className="maps-media-more maps-btn-voir-plus" onClick={() => { setGalleryFilter(mediaFilter === 'videos' ? 'videos' : 'images'); setGalleryIndex(0); setGalleryOpen(true) }}>
-              <Images size={16} aria-hidden="true" /> {t('visitor.carte.voirPlus')}
-            </button>
-            {peutDeposerMedia ? (
-              <button type="button" className="maps-media-add maps-btn-ajouter" onClick={() => setUploadOpen(true)}>
-                <Plus size={18} aria-hidden="true" /> {t('visitor.carte.ajouterMedia')}
+          {peutDeposerMedia ? (
+            <div className="maps-media-actions maps-media-actions-luxe">
+              <button type="button" className="maps-media-add maps-btn-ajouter-sobre" onClick={() => setUploadOpen(true)}>
+                <Plus size={16} aria-hidden="true" /> {t('visitor.carte.ajouterMedia')}
               </button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </section>}
 
         {/* ── Établissements similaires : mieux notés + moins visités (équilibré) ── */}
@@ -1396,6 +1435,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         onClose={() => setGalleryOpen(false)}
         onShare={(media) => void shareMedia(media)}
         onAdd={peutDeposerMedia ? () => { setGalleryOpen(false); setUploadOpen(true) } : undefined}
+        onReport={(media) => void reportMedia(media)}
       />
     )}
     {composer && facility && <div className="maps-modal-backdrop" onClick={() => !sending && setComposer(false)}><form className="maps-dialog maps-review-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.writeReview')} onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submit() }}><header className="maps-dialog-header"><div className="maps-dialog-title"><span className="maps-dialog-kicker">{t('visitor.carte.yourReview')}</span><h2>{facility.nom}</h2></div><button type="button" disabled={sending} onClick={() => setComposer(false)} aria-label={t('common.close')}><X size={20} /></button></header><div className="maps-reviewer"><span className="maps-reviewer-avatar">{String(user?.prenom ?? user?.nom ?? user?.email ?? 'U').slice(0, 1).toUpperCase()}</span><div><strong>{user?.prenom || user?.nom ? `${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim() : t('visitor.carte.yourProfile')}</strong><small>{t('visitor.carte.reviewPostPublic')}</small></div></div><div className="maps-review-stars" role="group" aria-label={t('visitor.carte.noteAria')}>{[1, 2, 3, 4, 5].map(star => <button type="button" key={star} aria-label={t('visitor.medecinDetail.starAria', { count: star, value: star })} aria-pressed={note === star} onClick={() => setNote(star)}><Star size={32} fill={star <= note ? 'currentColor' : 'none'} /></button>)}</div><textarea autoFocus value={comment} minLength={5} maxLength={2000} onChange={event => setComment(event.target.value)} placeholder={t('visitor.carte.reviewPlaceholder')} aria-label={t('visitor.carte.yourReview')} /><label className={`maps-upload maps-dropzone ${dragActive ? 'is-dragging' : ''}`} onDragEnter={event => { event.preventDefault(); setDragActive(true) }} onDragOver={event => event.preventDefault()} onDragLeave={() => setDragActive(false)} onDrop={event => { event.preventDefault(); setDragActive(false); acceptReviewFiles(Array.from(event.dataTransfer.files)) }}><span className="maps-dropzone-icon"><ImageIcon size={25} /></span><strong>{dragActive ? t('visitor.carte.dropImages') : t('visitor.carte.addPhotos')}</strong><small>{t('visitor.carte.dropHint')}</small><input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={event => { acceptReviewFiles(Array.from(event.target.files ?? [])); event.target.value = '' }} /></label>{files.length > 0 && <div className="maps-upload-grid">{files.map((file, index) => <figure key={`${file.name}-${index}`}><img src={filePreviews[index]} alt={t('visitor.carte.previewAlt', { name: file.name })} /><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={t('visitor.carte.removeFile', { name: file.name })}><X size={16} /></button></figure>)}</div>}<ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span></li>)}</ul><footer><button type="button" disabled={sending} onClick={() => setComposer(false)}>{t('common.cancel')}</button><button type="submit" disabled={!note || sending}>{sending ? t('visitor.carte.publishing') : t('visitor.carte.publish')}</button></footer></form></div>}
