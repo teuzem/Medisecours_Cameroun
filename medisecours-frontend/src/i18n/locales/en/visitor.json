@@ -489,7 +489,20 @@
       "mediaReportValue": "Photo/video \"{{nom}}\" (media {{id}}) — problem reported from the gallery.",
       "mediaReportOk": "Problem reported. Thank you.",
       "mediaReportError": "Could not report this media.",
-      "galleryImageDate": "Image date: {{date}}"
+      "galleryImageDate": "Image date: {{date}}",
+      "toastNetworkDown": "Cannot reach the server. Check your connection.",
+      "reviewCommentTooShort": "The comment must be at least 5 characters.",
+      "reviewShareItem": "Share review",
+      "reviewReportItem": "Report review",
+      "keywordAll": "All",
+      "sortTitle": "Sort",
+      "reviewAddVideo": "Add a video",
+      "reviewVideoHint": "MP4, WebM or MOV — 30 MB max, 1 video per review.",
+      "reviewVideoFormat": "Video rejected. Use MP4, WebM or MOV.",
+      "reviewVideoTooLarge": "The video must not exceed 30 MB.",
+      "reviewLinkLabel": "Or add a video link (YouTube, TikTok, Instagram…)",
+      "reviewLinkPlaceholder": "https://www.youtube.com/watch?v=…",
+      "reviewLinkInvalid": "Unsupported video link."
     },
     "notFound": {
       "title": "Diagnosis: page not found",
@@ -2147,7 +2160,7 @@
       "teamAlreadyMember": "This account is already part of the team.",
       "mediaFormatInvalid": "Unsupported format. Use JPEG, PNG, WebP, GIF, MP4, WebM or MOV.",
       "mediaImageTooLarge": "Image is too large (10 MB maximum).",
-      "mediaVideoTooLarge": "Video is too large (30 MB maximum).",
+      "mediaVideoTooLarge": "Video too large (10 MB maximum).",
       "mediaDropActive": "Drop to upload this media",
       "reviewMedia": "Image attached to review",
       "panelLoadError": "This section could not be loaded.",
@@ -2170,7 +2183,7 @@
       "galleryEmpty": "No media published yet. Add a picture to enrich your fiche.",
       "mediaAdd": "Add",
       "mediaUploading": "Uploading…",
-      "mediaSizeHint": "JPEG, PNG or MP4 (max 20 MB)",
+      "mediaSizeHint": "JPEG, PNG, WebP, GIF or MP4 (max 10 MB)",
       "mediaDeleteAlt": "Delete this media",
       "setAsCover": "Use as cover",
       "coverActive": "Active cover",
@@ -2445,7 +2458,19 @@
           "VALIDE": "Approved",
           "REJETE": "Rejected"
         }
-      }
+      },
+      "reviewReportedLabel": "reported",
+      "reviewWithMediaLabel": "with media",
+      "reviewWithVideoLabel": "with video",
+      "reviewReportedOnly": "Reported",
+      "mediaHiddenFilter": "Hidden",
+      "mediaExternalLabel": "external",
+      "mediaHiddenBadge": "Hidden",
+      "mediaShowAlt": "Make visible",
+      "mediaHideAlt": "Hide",
+      "mediaVisible": "Media visible in the gallery.",
+      "mediaHidden": "Media hidden from the gallery.",
+      "mediaVisibilityFailed": "Could not change visibility."
     }
   }
 }

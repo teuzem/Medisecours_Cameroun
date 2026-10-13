@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type 
 ReactNode } from 'react'
-import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clapperboard, Clock, ExternalLink, Flag, FolderPlus, Globe, History, Image as ImageIcon, Images, Info, Link2, Loader2, MapPin, MoreVertical, Navigation, Phone, Play, Plus, Printer, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, Video, X } from 'lucide-react'
+import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clapperboard, Clock, ExternalLink, Flag, FolderPlus, Globe, History, Image as ImageIcon, Images, Info, Link2, Loader2, MapPin, MoreVertical, Navigation, PenLine, Phone, Play, Plus, Printer, Search, Send, Share2, ShieldCheck, SlidersHorizontal, Star, ThumbsUp, Video, X } from 'lucide-react'
 import useSWR, { mutate } from 'swr'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
@@ -574,6 +574,9 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [tab, setTab] = useState<'presentation' | 'reviews' | 'about' | 'directions'>('presentation')
   const [sort, setSort] = useState('recent')
   const [reviewSearch, setReviewSearch] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [sortMenuOpen, setSortMenuOpen] = useState(false)
+  const [activeKeyword, setActiveKeyword] = useState<string | null>(null)
   const [composer, setComposer] = useState(false)
   const [note, setNote] = useState(0)
   const [comment, setComment] = useState('')
@@ -581,8 +584,13 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [filePreviews, setFilePreviews] = useState<string[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [sending, setSending] = useState(false)
+  // Une seule vidéo (fichier ≤ 30 Mo) OU un lien vidéo externe par avis.
+  const [reviewVideo, setReviewVideo] = useState<File | null>(null)
+  const [reviewVideoPreview, setReviewVideoPreview] = useState('')
+  const [reviewVideoUrl, setReviewVideoUrl] = useState('')
   const [likes, setLikes] = useState<number[]>([])
   const [menuReviewId, setMenuReviewId] = useState<number | null>(null)
+  const [expandedVideo, setExpandedVideo] = useState<string | null>(null)
 
   const toggleLike = useCallback((reviewId: number) => {
     setLikes((current) => {
@@ -648,6 +656,46 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     }
     return table
   }, [reviews])
+
+  // Mots-clés façon Google (« parfois 2 ») : mots significatifs des commentaires.
+  const reviewKeywords = useMemo(() => {
+    const stop = new Set([
+      'les', 'des', 'une', 'dans', 'pour', 'avec', 'sont', 'mais', 'tout', 'tous', 'toute', 'toutes',
+      'cette', 'ces', 'leur', 'leurs', 'notre', 'votre', 'plus', 'moins', 'tres', 'très', 'aussi',
+      'comme', 'cela', 'cest', "c'est", 'etre', 'être', 'avoir', 'faire', 'fait', 'pas', 'sur', 'par',
+      'the', 'and', 'with', 'this', 'that', 'have', 'from', 'they', 'them', 'very', 'will', 'pour',
+    ])
+    const counts = new Map<string, number>()
+    for (const review of reviews) {
+      const words = new Set(
+        (review.commentaire ?? '')
+          .toLocaleLowerCase()
+          .replace(/[^a-zàâäéèêëîïôöùûüçœa-z]+/gi, ' ')
+          .split(/\s+/)
+          .map((w) => w.trim())
+          .filter((w) => w.length >= 4 && !stop.has(w)),
+      )
+      for (const word of words) counts.set(word, (counts.get(word) ?? 0) + 1)
+    }
+    return [...counts.entries()]
+      .filter(([, count]) => count >= 1)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 6)
+  }, [reviews])
+
+  const visibleReviews = useMemo(() => {
+    if (!activeKeyword) return reviews
+    const keyword = activeKeyword.toLocaleLowerCase()
+    return reviews.filter((review) =>
+      (review.commentaire ?? '').toLocaleLowerCase().includes(keyword),
+    )
+  }, [reviews, activeKeyword])
+
+  const parsedReviewVideoLink = useMemo(() => {
+    const trimmed = reviewVideoUrl.trim()
+    if (!trimmed) return null
+    return parseExternalVideoUrl(trimmed)
+  }, [reviewVideoUrl])
 
   // ── Galerie « Photos et vidéos » : données dérivées ──────────────────────
   const mediasEtablissement = useMemo(
@@ -781,7 +829,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   useEffect(() => {
     // Reset the drawer workflow when a different establishment is selected.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
+    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setReviewVideo(null); setReviewVideoPreview(''); setReviewVideoUrl(''); setActiveKeyword(null); setSearchOpen(false); setSortMenuOpen(false); setExpandedVideo(null); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
     try {
       const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
       const saved = typeof stored === 'object' && stored !== null ? stored[String(props.selectedId ?? 0)] : null
@@ -806,6 +854,9 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     setFilePreviews(urls)
     return () => urls.forEach(url => URL.revokeObjectURL(url))
   }, [files])
+  useEffect(() => () => {
+    if (reviewVideoPreview) URL.revokeObjectURL(reviewVideoPreview)
+  }, [reviewVideoPreview])
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(COLLECTION_KEY) ?? '[]')
@@ -904,24 +955,62 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       toast.error(cause?.response?.data?.detail ?? t('visitor.carte.mediaReportError'))
     }
   }
+  const resetComposer = useCallback(() => {
+    setComposer(false)
+    setNote(0)
+    setComment('')
+    setFiles([])
+    setReviewVideo(null)
+    setReviewVideoUrl('')
+  }, [])
+
+  const reviewErrorMessage = useCallback((cause: any, fallbackKey: string): string => {
+    const data = cause?.response?.data
+    if (typeof data?.error === 'string' && data.error) return data.error
+    if (typeof data?.detail === 'string' && data.detail) {
+      const firstViolation = Array.isArray(data?.violations) && data.violations.length > 0
+        ? data.violations[0]?.message
+        : null
+      return typeof firstViolation === 'string' && firstViolation ? firstViolation : data.detail
+    }
+    if (!cause?.response) return t('visitor.carte.toastNetworkDown')
+    return t(fallbackKey)
+  }, [t])
+
   const submit = async () => {
-    if (!selected || !note || sending) return
+    if (!selected || sending) return
+    if (!note) {
+      toast.error(t('visitor.carte.reviews.requiredNote'))
+      return
+    }
+    const trimmedComment = comment.trim()
+    if (trimmedComment !== '' && trimmedComment.length < 5) {
+      toast.error(t('visitor.carte.reviewCommentTooShort'))
+      return
+    }
+    const link = reviewVideoUrl.trim()
+    if (link !== '' && !parseExternalVideoUrl(link)) {
+      toast.error(t('visitor.carte.reviewLinkInvalid'))
+      return
+    }
     setSending(true)
     try {
-      if (files.length) {
+      if (files.length || reviewVideo || link !== '') {
         const form = new FormData()
-        form.set('centre', String(selected.id)); form.set('note', String(note)); form.set('commentaire', comment.trim())
+        form.set('centre', String(selected.id)); form.set('note', String(note)); form.set('commentaire', trimmedComment)
         files.forEach(file => form.append('images[]', file))
+        if (reviewVideo) form.append('videos[]', reviewVideo)
+        if (link !== '') form.set('videoUrl', link)
         await api.post('/api/avis_etablissements/avec-images', form)
       } else {
-        await api.post('/api/avis_etablissements', { etablissement: `/api/centre_de_santes/${selected.id}`, note, commentaire: comment.trim() || null })
+        await api.post('/api/avis_etablissements', { etablissement: `/api/centre_de_santes/${selected.id}`, note, commentaire: trimmedComment || null })
       }
-      setComposer(false); setNote(0); setComment(''); setFiles([])
+      resetComposer()
       await refreshReviews()
       void mutate(`/api/centre_de_santes/${selected.id}/fiche`)
       trackInteraction(selected.id, 'avis')
       toast.success(t('visitor.carte.toastReviewPublished'))
-    } catch (cause: any) { toast.error(cause?.response?.data?.error ?? t('visitor.carte.toastReviewPublishFailed')) }
+    } catch (cause: any) { toast.error(reviewErrorMessage(cause, 'visitor.carte.toastReviewPublishFailed')) }
     finally { setSending(false) }
   }
   const submitSuggestion = async () => {
@@ -951,6 +1040,35 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       return
     }
     setFiles(incoming)
+  }
+
+  const REVIEW_VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime']
+  const REVIEW_VIDEO_MAX_BYTES = 30 * 1024 * 1024
+
+  const acceptReviewVideo = (incoming: File[]) => {
+    const file = incoming[0]
+    if (!file) return
+    if (!REVIEW_VIDEO_MIMES.includes(file.type)) {
+      toast.error(t('visitor.carte.reviewVideoFormat'))
+      return
+    }
+    if (file.size > REVIEW_VIDEO_MAX_BYTES) {
+      toast.error(t('visitor.carte.reviewVideoTooLarge'))
+      return
+    }
+    if (reviewVideoPreview) URL.revokeObjectURL(reviewVideoPreview)
+    setReviewVideo(file)
+    try {
+      setReviewVideoPreview(URL.createObjectURL(file))
+    } catch {
+      setReviewVideoPreview('')
+    }
+  }
+
+  const removeReviewVideo = () => {
+    if (reviewVideoPreview) URL.revokeObjectURL(reviewVideoPreview)
+    setReviewVideo(null)
+    setReviewVideoPreview('')
   }
   const join = async () => {
     if (!selected) return
@@ -1323,18 +1441,226 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             <ol>{props.steps.map((step, index) => <li key={index}><span>{index + 1}.</span> {step.instruction} <small>{Math.round(step.distance)} m</small></li>)}</ol>
             <div className="maps-external-links"><a href={toGoogleMapsUrl(facility)} target="_blank" rel="noopener noreferrer" onClick={() => trackInteraction(facility.id, 'itineraire', { via: 'google' })}>Google Maps</a><a href={toWazeUrl(facility)} target="_blank" rel="noopener noreferrer" onClick={() => trackInteraction(facility.id, 'itineraire', { via: 'waze' })}>Waze</a>{props.routeActive && <button type="button" onClick={props.onClearRoute}>{t('visitor.carte.routeCard.clear')}</button>}</div>
           </div>}
-          {tab === 'reviews' && <div className="maps-reviews">
-            <div className="maps-review-summary"><div>{[5, 4, 3, 2, 1].map(star => <div className="maps-rating-bar" key={star}><span>{star}</span><progress max={Math.max(1, reviews.length)} value={reviews.filter(review => review.note === star).length} /></div>)}</div><div><strong>{mean.toFixed(1)}</strong><Rating value={mean} /><p>{t('visitor.carte.reviews.count', { count: total })}</p></div><div className="maps-review-notice"><button type="button" aria-expanded={noticeOpen} aria-controls="maps-review-notice-text" aria-label={t('visitor.carte.ariaAboutReviews')} onClick={() => setNoticeOpen(current => !current)}><Info size={16} /></button>{noticeOpen && <p id="maps-review-notice-text" role="tooltip">{t('visitor.carte.reviewsNotice')}</p>}</div></div>
-            <button type="button" className="maps-outline-command" onClick={() => isAuthenticated ? setComposer(true) : window.location.assign('/login')}><Star size={18} />{t('visitor.carte.writeReview')}</button>
-            <div className="maps-review-tools"><label><Search size={17} /><input value={reviewSearch} onChange={event => setReviewSearch(event.target.value)} placeholder={t('visitor.carte.reviewsSearchPlaceholder')} aria-label={t('visitor.carte.reviewsSearchPlaceholder')} /></label><select aria-label={t('visitor.carte.reviewsSortLabel')} value={sort} onChange={event => setSort(event.target.value)}><option value="recent">{t('visitor.carte.sortRecent')}</option><option value="positive">{t('visitor.carte.sortPositive')}</option><option value="critical">{t('visitor.carte.sortCritical')}</option></select></div>
-            {isLoading && <p role="status">{t('visitor.carte.reviewsLoading')}</p>}
-            {reviewError && <p role="alert">{t('visitor.carte.reviewsLoadError')}</p>}
-            {!isLoading && !reviewError && !reviews.length && <p>{t('visitor.carte.reviewsEmpty')}</p>}
-            {reviews.map((review) => {
+          {tab === 'reviews' && <div className="maps-reviews maps-reviews-g">
+            {/* Résumé façon Google : barres + note géante + Rédiger */}
+            <div className="maps-review-summary-g">
+              <div className="maps-review-bars" aria-hidden="true">
+                {[5, 4, 3, 2, 1].map((star) => (
+                  <div className="maps-review-bar-row" key={star}>
+                    <span>{star}</span>
+                    <span className="maps-review-bar-track">
+                      <span
+                        className="maps-review-bar-fill"
+                        style={{ width: `${reviews.length > 0 ? Math.round((reviews.filter((review) => review.note === star).length / reviews.length) * 100) : 0}%` }}
+                      />
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="maps-review-score">
+                <strong>{mean.toFixed(1).replace('.', ',')}</strong>
+                <Rating value={mean} />
+                <p>{t('visitor.carte.reviews.count', { count: total })}</p>
+              </div>
+              <div className="maps-review-notice">
+                <button type="button" aria-expanded={noticeOpen} aria-controls="maps-review-notice-text" aria-label={t('visitor.carte.ariaAboutReviews')} onClick={() => setNoticeOpen(current => !current)}>
+                  <Info size={15} />
+                </button>
+                {noticeOpen && <p id="maps-review-notice-text" role="tooltip">{t('visitor.carte.reviewsNotice')}</p>}
+              </div>
+            </div>
+            <button type="button" className="maps-write-review-btn" onClick={() => isAuthenticated ? setComposer(true) : window.location.assign('/login')}>
+              <PenLine size={16} aria-hidden="true" /> {t('visitor.carte.writeReview')}
+            </button>
+            {/* Recherche + tri façon Google */}
+            <div className="maps-review-toolbar">
+              {searchOpen ? (
+                <label className="maps-review-search-open">
+                  <Search size={16} aria-hidden="true" />
+                  <input
+                    autoFocus
+                    value={reviewSearch}
+                    onChange={(event) => setReviewSearch(event.target.value)}
+                    onKeyDown={(event) => { if (event.key === 'Escape') { setReviewSearch(''); setSearchOpen(false) } }}
+                    placeholder={t('visitor.carte.reviewsSearchPlaceholder')}
+                    aria-label={t('visitor.carte.reviewsSearchPlaceholder')}
+                  />
+                  <button
+                    type="button"
+                    aria-label={t('visitor.carte.clearSearch')}
+                    onClick={() => { setReviewSearch(''); setSearchOpen(false) }}
+                  >
+                    <X size={15} />
+                  </button>
+                </label>
+              ) : (
+                <button
+                  type="button"
+                  className="maps-review-icon-btn"
+                  aria-label={t('visitor.carte.reviewsSearchPlaceholder')}
+                  onClick={() => setSearchOpen(true)}
+                >
+                  <Search size={17} />
+                </button>
+              )}
+              <div className="maps-review-sort-wrap">
+                <button
+                  type="button"
+                  className="maps-review-sort-btn"
+                  aria-haspopup="menu"
+                  aria-expanded={sortMenuOpen}
+                  onClick={() => setSortMenuOpen((open) => !open)}
+                >
+                  <SlidersHorizontal size={15} aria-hidden="true" /> {t('visitor.carte.sortTitle')}
+                </button>
+                {sortMenuOpen && (
+                  <div className="maps-review-sort-menu" role="menu" aria-label={t('visitor.carte.reviewsSortLabel')}>
+                    {([
+                      ['recent', t('visitor.carte.sortRecent')],
+                      ['positive', t('visitor.carte.sortPositive')],
+                      ['critical', t('visitor.carte.sortCritical')],
+                    ] as const).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={sort === value}
+                        className={sort === value ? 'is-active' : ''}
+                        onClick={() => { setSort(value); setSortMenuOpen(false) }}
+                      >
+                        {sort === value ? '●' : '○'} {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* Pastilles de mots-clés */}
+            <div className="maps-review-chips" role="group" aria-label={t('visitor.carte.reviewsSearchPlaceholder')}>
+              <button
+                type="button"
+                aria-pressed={activeKeyword === null}
+                className={`maps-review-chip${activeKeyword === null ? ' is-active' : ''}`}
+                onClick={() => setActiveKeyword(null)}
+              >
+                {t('visitor.carte.keywordAll')}
+              </button>
+              {reviewKeywords.map(([word, count]) => (
+                <button
+                  key={word}
+                  type="button"
+                  aria-pressed={activeKeyword === word}
+                  className={`maps-review-chip${activeKeyword === word ? ' is-active' : ''}`}
+                  onClick={() => setActiveKeyword((current) => (current === word ? null : word))}
+                >
+                  {word} <span>{count}</span>
+                </button>
+              ))}
+            </div>
+            {isLoading && <p role="status" className="maps-inline-status">{t('visitor.carte.reviewsLoading')}</p>}
+            {reviewError && <p role="alert" className="maps-inline-status">{t('visitor.carte.reviewsLoadError')}</p>}
+            {!isLoading && !reviewError && visibleReviews.length === 0 && <p className="maps-inline-status">{t('visitor.carte.reviewsEmpty')}</p>}
+            {visibleReviews.map((review) => {
               const menuOuvert = menuReviewId === review.id
               const stats = statsAuteur[review.auteurNom ?? ''] ?? { avis: 1, photos: 0 }
+              const liked = likes.includes(review.id)
+              const photos = (review.images ?? []).filter((media) => !isVideoItem(media))
+              const videos = (review.images ?? []).filter((media) => isVideoItem(media))
               return (
-              <article className="maps-review" key={review.id}><div className="maps-review-head"><span className="maps-avatar" style={{ backgroundColor: `hsl(${teinteAvatar(review.auteurNom)} 45% 42%)` }} aria-hidden="true">{(review.auteurNom || 'U')[0]}</span><div className="maps-review-who"><strong>{review.auteurNom || t('visitor.carte.userFallback')}</strong><small>{t('visitor.carte.reviewsCount', { count: stats.avis })} · {t('visitor.carte.reviewPhotosCount', { count: stats.photos })}</small></div><div className="maps-review-menu-wrap"><button type="button" className="maps-review-menu-btn" aria-expanded={menuOuvert} aria-label={t('visitor.carte.reviewMenuLabel')} onClick={() => setMenuReviewId(menuOuvert ? null : review.id)}><MoreVertical size={18} /></button>{menuOuvert && (<div className="maps-review-menu" role="menu"><button type="button" role="menuitem" onClick={() => { setMenuReviewId(null); void share(review.commentaire) }}><Share2 size={16} />{t('visitor.carte.actionShare')}</button><button type="button" role="menuitem" onClick={() => toggleLike(review.id)}><ThumbsUp size={16} fill={likes.includes(review.id) ? 'currentColor' : 'none'} />{likes.includes(review.id) ? t('visitor.carte.likedButton') : t('visitor.carte.likeButton')}</button><button type="button" role="menuitem" onClick={() => { setMenuReviewId(null); void signalerReview(review.id) }}><Flag size={16} />{t('visitor.carte.reviewSignaler')}</button></div>)}</div></div><div className="maps-review-note"><Rating value={review.note} /><small>{formatRelativeDate(review.createdAt, i18n.language)}</small></div><p>{review.commentaire}</p>{review.images?.length ? <div className="maps-review-images">{review.images.map(image => <a key={image.id} href={imgUrl(image.contentUrl) ?? image.contentUrl} target="_blank" rel="noopener noreferrer"><img src={imgUrl(image.contentUrl) ?? image.contentUrl} alt={t('visitor.carte.reviewPhotoAlt')} loading="lazy" /></a>)}</div> : null}</article>
+              <article className="maps-review maps-review-g" key={review.id}>
+                <div className="maps-review-head">
+                  <span className="maps-avatar" style={{ backgroundColor: `hsl(${teinteAvatar(review.auteurNom)} 55% 45%)` }} aria-hidden="true">{(review.auteurNom || 'U')[0]}</span>
+                  <div className="maps-review-who">
+                    <strong>{review.auteurNom || t('visitor.carte.userFallback')}</strong>
+                    <small>{t('visitor.carte.reviewsCount', { count: stats.avis })} · {t('visitor.carte.reviewPhotosCount', { count: stats.photos })}</small>
+                  </div>
+                  <div className="maps-review-menu-wrap">
+                    <button type="button" className="maps-review-menu-btn" aria-expanded={menuOuvert} aria-label={t('visitor.carte.reviewMenuLabel')} onClick={() => setMenuReviewId(menuOuvert ? null : review.id)}>
+                      <MoreVertical size={18} />
+                    </button>
+                    {menuOuvert && (
+                      <div className="maps-review-menu" role="menu">
+                        <button type="button" role="menuitem" onClick={() => { setMenuReviewId(null); void share(review.commentaire) }}>
+                          <Share2 size={16} />{t('visitor.carte.reviewShareItem')}
+                        </button>
+                        <button type="button" role="menuitem" onClick={() => { setMenuReviewId(null); void signalerReview(review.id) }}>
+                          <Flag size={16} />{t('visitor.carte.reviewReportItem')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="maps-review-note">
+                  <Rating value={review.note} />
+                  <small>{formatRelativeDate(review.createdAt, i18n.language)}</small>
+                </div>
+                {review.commentaire && <p>{review.commentaire}</p>}
+                {photos.length > 0 && (
+                  <div className="maps-review-images">
+                    {photos.map((image) => (
+                      <a key={image.id} href={imgUrl(image.contentUrl) ?? image.contentUrl} target="_blank" rel="noopener noreferrer">
+                        <img src={imgUrl(image.contentUrl) ?? image.contentUrl} alt={t('visitor.carte.reviewPhotoAlt')} loading="lazy" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {videos.map((media) => {
+                  const external = isExternalVideoMedia(media)
+                  const embed = external ? getMediaEmbedUrl(media) : null
+                  const thumb = getMediaThumbnailUrl(media)
+                  const providerLabel = getMediaProviderLabel(media)
+                  const expandedKey = `${review.id}:${media.id}`
+                  const expanded = expandedVideo === expandedKey
+                  return (
+                    <div className="maps-review-video" key={media.id}>
+                      {external && embed && expanded ? (
+                        <iframe
+                          src={embed}
+                          title={`${t('visitor.carte.galleryVideo')} ${providerLabel ?? ''}`}
+                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        />
+                      ) : external ? (
+                        <button
+                          type="button"
+                          className="maps-review-video-thumb"
+                          aria-label={t('visitor.carte.videoLire')}
+                          onClick={() => (embed ? setExpandedVideo(expandedKey) : window.open(media.externalUrl ?? media.contentUrl, '_blank', 'noopener,noreferrer'))}
+                        >
+                          {thumb ? (
+                            // eslint-disable-next-line @next/next/no-img-element -- vignette distante du fournisseur
+                            <img src={thumb} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none' }} />
+                          ) : (
+                            <span className="maps-review-video-fallback" aria-hidden="true">
+                              <Clapperboard size={26} />
+                              <strong>{providerLabel ?? t('visitor.carte.galleryVideo')}</strong>
+                            </span>
+                          )}
+                          <span className="maps-media-play maps-play-luxe"><Play size={20} fill="currentColor" /></span>
+                          {providerLabel && <span className="maps-media-tile-provider-badge">{providerLabel}</span>}
+                        </button>
+                      ) : (
+                        <video src={imgUrl(media.contentUrl) ?? media.contentUrl} controls preload="none" playsInline />
+                      )}
+                    </div>
+                  )
+                })}
+                <div className="maps-review-foot">
+                  <button
+                    type="button"
+                    aria-pressed={liked}
+                    onClick={() => toggleLike(review.id)}
+                    className={liked ? 'is-active' : ''}
+                  >
+                    <ThumbsUp size={16} fill={liked ? 'currentColor' : 'none'} />
+                    {t('visitor.carte.likeButton')}
+                  </button>
+                  <button type="button" onClick={() => void share(review.commentaire)}>
+                    <Share2 size={16} />
+                    {t('visitor.carte.actionShare')}
+                  </button>
+                </div>
+              </article>
               )
             })}
           </div>}
@@ -1358,7 +1684,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         onReport={(media) => void reportMedia(media)}
       />
     )}
-    {composer && facility && <div className="maps-modal-backdrop" onClick={() => !sending && setComposer(false)}><form className="maps-dialog maps-review-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.writeReview')} onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submit() }}><header className="maps-dialog-header"><div className="maps-dialog-title"><span className="maps-dialog-kicker">{t('visitor.carte.yourReview')}</span><h2>{facility.nom}</h2></div><button type="button" disabled={sending} onClick={() => setComposer(false)} aria-label={t('common.close')}><X size={20} /></button></header><div className="maps-reviewer"><span className="maps-reviewer-avatar">{String(user?.prenom ?? user?.nom ?? user?.email ?? 'U').slice(0, 1).toUpperCase()}</span><div><strong>{user?.prenom || user?.nom ? `${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim() : t('visitor.carte.yourProfile')}</strong><small>{t('visitor.carte.reviewPostPublic')}</small></div></div><div className="maps-review-stars" role="group" aria-label={t('visitor.carte.noteAria')}>{[1, 2, 3, 4, 5].map(star => <button type="button" key={star} aria-label={t('visitor.medecinDetail.starAria', { count: star, value: star })} aria-pressed={note === star} onClick={() => setNote(star)}><Star size={32} fill={star <= note ? 'currentColor' : 'none'} /></button>)}</div><textarea autoFocus value={comment} minLength={5} maxLength={2000} onChange={event => setComment(event.target.value)} placeholder={t('visitor.carte.reviewPlaceholder')} aria-label={t('visitor.carte.yourReview')} /><label className={`maps-upload maps-dropzone ${dragActive ? 'is-dragging' : ''}`} onDragEnter={event => { event.preventDefault(); setDragActive(true) }} onDragOver={event => event.preventDefault()} onDragLeave={() => setDragActive(false)} onDrop={event => { event.preventDefault(); setDragActive(false); acceptReviewFiles(Array.from(event.dataTransfer.files)) }}><span className="maps-dropzone-icon"><ImageIcon size={25} /></span><strong>{dragActive ? t('visitor.carte.dropImages') : t('visitor.carte.addPhotos')}</strong><small>{t('visitor.carte.dropHint')}</small><input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={event => { acceptReviewFiles(Array.from(event.target.files ?? [])); event.target.value = '' }} /></label>{files.length > 0 && <div className="maps-upload-grid">{files.map((file, index) => <figure key={`${file.name}-${index}`}><img src={filePreviews[index]} alt={t('visitor.carte.previewAlt', { name: file.name })} /><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={t('visitor.carte.removeFile', { name: file.name })}><X size={16} /></button></figure>)}</div>}<ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span></li>)}</ul><footer><button type="button" disabled={sending} onClick={() => setComposer(false)}>{t('common.cancel')}</button><button type="submit" disabled={!note || sending}>{sending ? t('visitor.carte.publishing') : t('visitor.carte.publish')}</button></footer></form></div>}
+    {composer && facility && <div className="maps-modal-backdrop" onClick={() => { if (!sending) resetComposer() }}><form className="maps-dialog maps-review-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.writeReview')} onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submit() }}><header className="maps-dialog-header"><div className="maps-dialog-title"><span className="maps-dialog-kicker">{t('visitor.carte.yourReview')}</span><h2>{facility.nom}</h2></div><button type="button" disabled={sending} onClick={() => { if (!sending) resetComposer() }} aria-label={t('common.close')}><X size={20} /></button></header><div className="maps-reviewer"><span className="maps-reviewer-avatar">{String(user?.prenom ?? user?.nom ?? user?.email ?? 'U').slice(0, 1).toUpperCase()}</span><div><strong>{user?.prenom || user?.nom ? `${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim() : t('visitor.carte.yourProfile')}</strong><small>{t('visitor.carte.reviewPostPublic')}</small></div></div><div className="maps-review-stars" role="group" aria-label={t('visitor.carte.noteAria')}>{[1, 2, 3, 4, 5].map(star => <button type="button" key={star} aria-label={t('visitor.medecinDetail.starAria', { count: star, value: star })} aria-pressed={note === star} onClick={() => setNote(star)}><Star size={32} fill={star <= note ? 'currentColor' : 'none'} /></button>)}</div><textarea autoFocus value={comment} minLength={5} maxLength={2000} onChange={event => setComment(event.target.value)} placeholder={t('visitor.carte.reviewPlaceholder')} aria-label={t('visitor.carte.yourReview')} /><label className={`maps-upload maps-dropzone ${dragActive ? 'is-dragging' : ''}`} onDragEnter={event => { event.preventDefault(); setDragActive(true) }} onDragOver={event => event.preventDefault()} onDragLeave={() => setDragActive(false)} onDrop={event => { event.preventDefault(); setDragActive(false); acceptReviewFiles(Array.from(event.dataTransfer.files)) }}><span className="maps-dropzone-icon"><ImageIcon size={25} /></span><strong>{dragActive ? t('visitor.carte.dropImages') : t('visitor.carte.addPhotos')}</strong><small>{t('visitor.carte.dropHint')}</small><input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={event => { acceptReviewFiles(Array.from(event.target.files ?? [])); event.target.value = '' }} /></label>{files.length > 0 && <div className="maps-upload-grid">{files.map((file, index) => <figure key={`${file.name}-${index}`}><img src={filePreviews[index]} alt={t('visitor.carte.previewAlt', { name: file.name })} /><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={t('visitor.carte.removeFile', { name: file.name })}><X size={16} /></button></figure>)}</div>}<ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span></li>)}</ul>{!reviewVideo ? (<label className="maps-upload maps-review-video-add"><span className="maps-review-video-add-row"><Video size={18} aria-hidden="true" /><strong>{t('visitor.carte.reviewAddVideo')}</strong></span><small>{t('visitor.carte.reviewVideoHint')}</small><input type="file" accept="video/mp4,video/webm,video/quicktime" disabled={sending} onChange={(event) => { acceptReviewVideo(Array.from(event.target.files ?? [])); event.target.value = '' }} /></label>) : (<div className="maps-review-video-picked">{reviewVideoPreview ? <video src={reviewVideoPreview} muted preload="metadata" playsInline aria-hidden="true" /> : <Video size={20} aria-hidden="true" />}<span className="maps-review-video-picked-meta"><strong>{reviewVideo.name}</strong><small>{(reviewVideo.size / 1048576).toFixed(1)} {t('visitor.carte.uploadUniteMo')}</small></span><button type="button" onClick={removeReviewVideo} aria-label={t('common.delete')}><X size={15} /></button></div>)}<div className="maps-review-link"><label htmlFor="maps-review-video-url"><Link2 size={15} aria-hidden="true" />{t('visitor.carte.reviewLinkLabel')}</label><input id="maps-review-video-url" type="url" inputMode="url" autoComplete="off" spellCheck={false} value={reviewVideoUrl} disabled={sending} onChange={(event) => setReviewVideoUrl(event.target.value)} placeholder={t('visitor.carte.reviewLinkPlaceholder')} />{reviewVideoUrl.trim() !== '' && !parsedReviewVideoLink && (<p className="maps-review-link-error" role="alert">{t('visitor.carte.reviewLinkInvalid')}</p>)}{parsedReviewVideoLink && (<div className="maps-review-link-preview"><p>{t('visitor.carte.uploadApercuInstantane')} · {EXTERNAL_VIDEO_PROVIDER_LABELS[parsedReviewVideoLink.provider]}</p><div className="maps-review-link-frame"><iframe key={parsedReviewVideoLink.embedUrl} src={parsedReviewVideoLink.embedUrl} title={`${t('visitor.carte.galleryVideo')} ${EXTERNAL_VIDEO_PROVIDER_LABELS[parsedReviewVideoLink.provider]}`} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div></div>)}</div><footer><button type="button" disabled={sending} onClick={() => { if (!sending) resetComposer() }}>{t('common.cancel')}</button><button type="submit" disabled={sending}>{sending ? t('visitor.carte.publishing') : t('visitor.carte.publish')}</button></footer></form></div>}
     {suggestionOpen && facility && <div className="maps-modal-backdrop" onClick={() => !suggestionSending && setSuggestionOpen(false)}><form className="maps-dialog maps-suggestion-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.suggestTitle')} onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submitSuggestion() }}><header><div><h2>{t('visitor.carte.suggestTitle')}</h2><p className="maps-dialog-subtitle">{facility.nom}</p></div><button type="button" disabled={suggestionSending} onClick={() => setSuggestionOpen(false)} aria-label={t('common.close')}><X size={22} /></button></header><label className="maps-field-label">{t('visitor.carte.suggestFieldLabel')}<select value={suggestionField} onChange={event => setSuggestionField(event.target.value)}><option value="adresse">{t('visitor.carte.suggestFieldAdresse')}</option><option value="ville">{t('visitor.carte.suggestFieldVille')}</option><option value="region">{t('visitor.carte.suggestFieldRegion')}</option><option value="telephone">{t('visitor.carte.suggestFieldTelephone')}</option><option value="horaires">{t('visitor.carte.suggestFieldHoraires')}</option><option value="services">{t('visitor.carte.suggestFieldServices')}</option><option value="description">{t('visitor.carte.suggestFieldDescription')}</option><option value="siteWeb">{t('visitor.carte.suggestFieldSiteWeb')}</option><option value="autre">{t('visitor.carte.suggestFieldAutre')}</option></select></label><label className="maps-field-label">{t('visitor.carte.suggestValueLabel')}<textarea required minLength={2} maxLength={2000} value={suggestionValue} onChange={event => setSuggestionValue(event.target.value)} placeholder={t('visitor.carte.suggestValuePlaceholder')} /></label><label className="maps-field-label">{t('visitor.carte.suggestCommentLabel')}<textarea maxLength={1200} value={suggestionComment} onChange={event => setSuggestionComment(event.target.value)} placeholder={t('visitor.carte.suggestCommentPlaceholder')} /></label><p className="maps-suggestion-note">{t('visitor.carte.suggestNote')}</p><footer><button type="button" disabled={suggestionSending} onClick={() => setSuggestionOpen(false)}>{t('common.cancel')}</button><button type="submit" disabled={suggestionSending || suggestionValue.trim().length < 2}>{suggestionSending ? t('visitor.carte.sending') : t('visitor.carte.sendSuggestion')}</button></footer></form></div>}
     {collectionOpen && facility && <div className="maps-modal-backdrop"><section className="maps-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.collectionsAria')}><header><h2>{t('visitor.carte.saveToCollection')}</h2><button type="button" onClick={() => setCollectionOpen(false)} aria-label={t('common.close')}><X size={20} /></button></header>{collections.map(collection => <div className="maps-collection" key={collection.id}><label><input type="checkbox" checked={collection.places.includes(facility.id)} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, places: event.target.checked ? [...item.places, facility.id] : item.places.filter(id => id !== facility.id) }))} />{collection.name}</label><input value={collection.note} placeholder={t('visitor.carte.privateNote')} aria-label={t('visitor.carte.noteFor', { name: collection.name })} maxLength={600} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, note: event.target.value }))} /><button type="button" onClick={() => saveCollections(collections.filter(item => item.id !== collection.id))}>{t('common.delete')}</button></div>)}<form onSubmit={event => { event.preventDefault(); if (!collectionName.trim()) return; saveCollections([...collections, { id: crypto.randomUUID(), name: collectionName.trim(), places: [facility.id], note: '' }]); setCollectionName('') }}><input required maxLength={80} value={collectionName} onChange={event => setCollectionName(event.target.value)} placeholder={t('visitor.carte.collectionNamePlaceholder')} aria-label={t('visitor.carte.collectionNamePlaceholder')} /><button type="submit">{t('visitor.carte.create')}</button></form></section></div>}
   </>

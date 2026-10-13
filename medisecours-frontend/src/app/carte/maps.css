@@ -869,6 +869,104 @@
 .maps-upload-link-frame iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
 .maps-upload-link-watch { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 600; color: #93c5fd; overflow-wrap: anywhere; }
 
+/* ═══════════ Widget avis façon Google Maps ═══════════ */
+.maps-reviews-g { display: flex; flex-direction: column; }
+.maps-review-summary-g { display: flex; align-items: center; gap: 18px; padding: 6px 0 4px; }
+.maps-review-bars { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.maps-review-bar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #5f6368; }
+.maps-review-bar-row > span:first-child { width: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+.maps-review-bar-track { position: relative; flex: 1 1 auto; height: 8px; border-radius: 999px; background: #f1f3f4; overflow: hidden; }
+.maps-review-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: #f59e0b; }
+.maps-review-score { flex-shrink: 0; min-width: 96px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.maps-review-score strong { font-size: 38px; line-height: 1.1; font-weight: 600; color: #202124; font-variant-numeric: tabular-nums; }
+.maps-review-score p { font-size: 11px; color: #5f6368; }
+.maps-write-review-btn {
+  align-self: center; display: inline-flex; align-items: center; gap: 8px; min-height: 46px; margin-top: 14px; padding: 0 26px;
+  border: 0; border-radius: 999px; background: linear-gradient(135deg, #d9f2f7, #c9eaf3); color: #0b5b6b;
+  font-size: 14px; font-weight: 800; box-shadow: 0 6px 18px rgba(11,91,107,0.18); transition: transform .18s ease, box-shadow .18s ease;
+}
+.maps-write-review-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(11,91,107,0.28); }
+.maps-review-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.maps-review-icon-btn {
+  display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid #dadce0; background: #fff; color: #3c4043;
+}
+.maps-review-icon-btn:hover { background: #f1f3f4; }
+.maps-review-search-open {
+  display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 8px 0 14px; border-radius: 999px;
+  border: 1px solid #1a73e8; background: #fff; color: #3c4043; box-shadow: 0 0 0 1px #1a73e8;
+}
+.maps-review-search-open input { width: 150px; border: 0; outline: none; background: transparent; font-size: 13px; color: #202124; }
+.maps-review-search-open > button { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: transparent; color: #5f6368; }
+.maps-review-search-open > button:hover { background: #f1f3f4; }
+.maps-review-sort-wrap { position: relative; }
+.maps-review-sort-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 18px; border-radius: 999px;
+  border: 1px solid #dadce0; background: #fff; color: #3c4043; font-size: 13px; font-weight: 600;
+}
+.maps-review-sort-btn:hover { background: #f8f9fa; }
+.maps-review-sort-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 200px; padding: 6px 0;
+  background: #fff; border-radius: 10px; box-shadow: 0 8px 28px rgba(32,33,36,0.25);
+}
+.maps-review-sort-menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 16px; border: 0; background: transparent;
+  color: #3c4043; font-size: 13px; text-align: left;
+}
+.maps-review-sort-menu button:hover { background: #f1f3f4; }
+.maps-review-sort-menu button.is-active { color: #1e3a5f; font-weight: 700; }
+.maps-review-chips { display: flex; gap: 8px; overflow-x: auto; margin-top: 12px; padding-bottom: 4px; scrollbar-width: none; }
+.maps-review-chips::-webkit-scrollbar { display: none; }
+.maps-review-chip {
+  flex-shrink: 0; display: inline-flex; align-items: baseline; gap: 6px; min-height: 36px; padding: 8px 16px; border-radius: 999px;
+  border: 1px solid #dadce0; background: #fff; color: #3c4043; font-size: 13px; font-weight: 500; white-space: nowrap;
+}
+.maps-review-chip span { font-size: 12px; color: #80868b; }
+.maps-review-chip:hover { background: #f8f9fa; }
+.maps-review-chip.is-active { border-color: #1a73e8; background: #e3edf7; color: #1e3a5f; font-weight: 700; }
+.maps-review-chip.is-active span { color: #1e3a5f; }
+.maps-review-g { padding: 18px 0; }
+.maps-review-g .maps-avatar { width: 36px; height: 36px; }
+.maps-review-g .maps-review-who strong { font-size: 14px; }
+.maps-review-g .maps-review-who small { font-size: 12px; }
+.maps-review-foot { display: flex; align-items: center; gap: 28px; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--maps-line); }
+.maps-review-foot button {
+  display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 0; padding: 6px 0;
+  color: #5f6368; font-size: 12px; font-weight: 600;
+}
+.maps-review-foot button:hover { color: #1e3a5f; }
+.maps-review-foot button.is-active { color: #1e3a5f; }
+.maps-review-video { margin-top: 12px; }
+.maps-review-video video, .maps-review-video iframe { display: block; width: 100%; border: 0; border-radius: 8px; background: #000; }
+.maps-review-video iframe { aspect-ratio: 16 / 9; }
+.maps-review-video video { max-height: 320px; background: #000; }
+.maps-review-video-thumb {
+  position: relative; display: block; width: 100%; overflow: hidden; border: 0; border-radius: 8px; padding: 0;
+  background: #0f172a; cursor: pointer;
+}
+.maps-review-video-thumb img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.maps-review-video-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; aspect-ratio: 16 / 9; color: #e2e8f0; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; background: linear-gradient(135deg, #1e293b, #0f172a); }
+/* Composer : vidéo + lien externe */
+.maps-review-video-add {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border-style: dashed; cursor: pointer; text-align: center;
+}
+.maps-review-video-add-row { display: inline-flex; align-items: center; gap: 8px; color: #1e3a5f; }
+.maps-review-video-picked { display: flex; align-items: center; gap: 10px; margin: 12px 0; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.maps-review-video-picked video { width: 72px; height: 48px; flex-shrink: 0; border-radius: 8px; object-fit: cover; background: #000; }
+.maps-review-video-picked-meta { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.maps-review-video-picked-meta strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.maps-review-video-picked-meta small { font-size: 11px; color: #64748b; }
+.maps-review-video-picked > button { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; background: #fee2e2; color: #dc2626; }
+.maps-review-link { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 6px; }
+.maps-review-link > label { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #334155; }
+.maps-review-link > input { width: 100%; border: 1px solid #dadce0; border-radius: 10px; padding: 10px 12px; font-size: 13px; outline: none; }
+.maps-review-link > input:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.15); }
+.maps-review-link-error { font-size: 12px; font-weight: 600; color: #c5221f; }
+.maps-review-link-preview p { font-size: 11px; font-weight: 800; color: #475569; margin-bottom: 6px; }
+.maps-review-link-frame { overflow: hidden; border-radius: 12px; background: #000; }
+.maps-review-link-frame iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
+
 /* ── Bouton Voir plus : breathtaking, élégant ── */
 .maps-btn-voir-plus {
   background: linear-gradient(180deg, #ffffff, #f1f5f9);

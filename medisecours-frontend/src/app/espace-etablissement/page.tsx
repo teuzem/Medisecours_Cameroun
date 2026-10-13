@@ -15,7 +15,9 @@ import {
   EyeOff,
   FileImage,
   Filter,
+  Flag,
   Gauge,
+  Globe,
   Loader2,
   LogIn,
   MapPin,
@@ -118,6 +120,11 @@ type ManagedMedia = {
   kind: 'image' | 'video'
   size?: number | null
   createdAt: string
+  isPublic?: boolean | null
+  provider?: string | null
+  externalUrl?: string | null
+  embedUrl?: string | null
+  thumbnailUrl?: string | null
 }
 
 type CoverSearchResult = {
@@ -144,6 +151,10 @@ type ManagedReview = {
     mimeType?: string | null
     size?: number | null
     kind?: 'image' | 'video'
+    provider?: string | null
+    externalUrl?: string | null
+    embedUrl?: string | null
+    thumbnailUrl?: string | null
   }>
 }
 
@@ -647,7 +658,8 @@ export default function EtablissementEspacePage() {
       'video/quicktime',
     ])
     const isVideo = file.type.startsWith('video/')
-    const maxBytes = isVideo ? 30 * 1024 * 1024 : 10 * 1024 * 1024
+    // Aligné au backend (/api/carte/medias) : 10 Mo pour images comme vidéos.
+    const maxBytes = 10 * 1024 * 1024
     if (!allowed.has(file.type)) {
       toast.error(t('etablissement.mediaFormatInvalid'))
       return null
@@ -678,6 +690,27 @@ export default function EtablissementEspacePage() {
       setUploadingMedia(false)
     }
   }, [mon, t, toast, uploadingMedia])
+
+  const [togglingMediaId, setTogglingMediaId] = useState<number | null>(null)
+
+  const toggleMediaVisibility = useCallback(async (item: ManagedMedia, isPublic: boolean) => {
+    setTogglingMediaId(item.id)
+    try {
+      const { data } = await api.patch<{ media: ManagedMedia }>(`/api/carte/medias/${item.id}/visibilite`, { isPublic })
+      const next = data.media ?? { ...item, isPublic }
+      setMedia((current) => current.map((mediaItem) => (mediaItem.id === item.id ? { ...mediaItem, ...next } : mediaItem)))
+      setMon((current) =>
+        current?.centre
+          ? { ...current, centre: { ...current.centre, images: (current.centre.images ?? []).map((image: any) => (image.id === item.id ? { ...image, ...next } : image)) } }
+          : current,
+      )
+      toast.success(isPublic ? t('etablissement.mediaVisible') : t('etablissement.mediaHidden'))
+    } catch {
+      toast.error(t('etablissement.mediaVisibilityFailed'))
+    } finally {
+      setTogglingMediaId(null)
+    }
+  }, [t, toast])
 
   const deleteMedia = useCallback(async (item: ManagedMedia) => {
     try {
@@ -900,6 +933,8 @@ export default function EtablissementEspacePage() {
                 uploadingMedia={uploadingMedia}
                 uploadMedia={uploadMedia}
                 deleteMedia={deleteMedia}
+                toggleMediaVisibility={toggleMediaVisibility}
+                togglingMediaId={togglingMediaId}
                 canManageMedia={canManageMedia}
                 coverUrl={mon.centre.imageUrl ?? null}
                 settingCover={settingCover}
@@ -949,6 +984,8 @@ function DashboardWorkspace({
   uploadingMedia,
   uploadMedia,
   deleteMedia,
+  toggleMediaVisibility,
+  togglingMediaId,
   canManageMedia,
   coverUrl,
   settingCover,
@@ -989,6 +1026,8 @@ function DashboardWorkspace({
   uploadingMedia: boolean
   uploadMedia: (file: File) => Promise<ManagedMedia | null>
   deleteMedia: (item: ManagedMedia) => void
+  toggleMediaVisibility: (item: ManagedMedia, isPublic: boolean) => void
+  togglingMediaId: number | null
   canManageMedia: boolean
   coverUrl: string | null
   settingCover: boolean
@@ -1068,6 +1107,8 @@ function DashboardWorkspace({
               onRetry={reloadData}
               onUpload={uploadMedia}
               onDelete={deleteMedia}
+              onToggleVisibility={toggleMediaVisibility}
+              togglingId={togglingMediaId}
               canManageMedia={canManageMedia}
               coverUrl={coverUrl}
               settingCover={settingCover}
@@ -1658,6 +1699,11 @@ function StatsAvisWidget({ dashboard, reviews }: { dashboard: DashboardData | nu
   }))
   const max = Math.max(1, ...distribution.map((d) => d.count))
   const notePct = note != null ? Math.max(2, Math.min(100, (note / 5) * 100)) : 0
+  const reportedCount = reviews.filter((item) => item.signale).length
+  const withMediaCount = reviews.filter((item) => (item.images?.length ?? 0) > 0).length
+  const withVideoCount = reviews.filter((item) =>
+    (item.images ?? []).some((media) => media.kind === 'video' || media.mimeType?.startsWith('video/')),
+  ).length
 
   return (
     <GlassCard hover className="wdg-anim p-5" delay={120}>
@@ -1709,6 +1755,20 @@ function StatsAvisWidget({ dashboard, reviews }: { dashboard: DashboardData | nu
             </div>
           ))}
         </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        <span className="wdg-chip wdg-chip--red">
+          <Flag className="h-3 w-3" />
+          {reportedCount} {t('etablissement.reviewReportedLabel')}
+        </span>
+        <span className="wdg-chip wdg-chip--slate">
+          <FileImage className="h-3 w-3" />
+          {withMediaCount} {t('etablissement.reviewWithMediaLabel')}
+        </span>
+        <span className="wdg-chip wdg-chip--violet">
+          <Video className="h-3 w-3" />
+          {withVideoCount} {t('etablissement.reviewWithVideoLabel')}
+        </span>
       </div>
       {reviews.length === 0 && (
         <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2.5 text-[11px] font-semibold text-slate-400 dark:bg-slate-950/50">
@@ -2145,9 +2205,11 @@ function MediaPanel({
   canManageMedia,
   coverUrl,
   settingCover,
+  togglingId,
   onRetry,
   onUpload,
   onDelete,
+  onToggleVisibility,
   onSetCover,
 }: {
   items: ManagedMedia[]
@@ -2157,17 +2219,25 @@ function MediaPanel({
   canManageMedia: boolean
   coverUrl?: string | null
   settingCover?: boolean
+  togglingId?: number | null
   onRetry?: () => void
   onUpload: (file: File) => void
   onDelete: (item: ManagedMedia) => void
+  onToggleVisibility: (item: ManagedMedia, isPublic: boolean) => void
   onSetCover: (item: ManagedMedia | null) => void
 }) {
   const { t } = useTranslation()
   const [dragActive, setDragActive] = useState(false)
   const [query, setQuery] = useState('')
-  const [kindFilter, setKindFilter] = useState<'all' | 'image' | 'video'>('all')
+  const [kindFilter, setKindFilter] = useState<'all' | 'image' | 'video' | 'hidden'>('all')
+  const imageCount = items.filter((item) => item.kind !== 'video').length
+  const videoCount = items.filter((item) => item.kind === 'video').length
+  const externalCount = items.filter((item) => item.provider != null).length
+  const hiddenCount = items.filter((item) => item.isPublic === false).length
   const visibleItems = items.filter((item) => {
-    const matchesKind = kindFilter === 'all' || item.kind === kindFilter
+    const matchesKind =
+      kindFilter === 'all' ||
+      (kindFilter === 'hidden' ? item.isPublic === false : item.kind === kindFilter)
     const matchesQuery = !query.trim() || (item.originalName ?? '').toLowerCase().includes(query.trim().toLowerCase())
     return matchesKind && matchesQuery
   })
@@ -2224,16 +2294,42 @@ function MediaPanel({
           <Filter className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <select
             value={kindFilter}
-            onChange={(event) => setKindFilter(event.target.value as 'all' | 'image' | 'video')}
+            onChange={(event) => setKindFilter(event.target.value as 'all' | 'image' | 'video' | 'hidden')}
             className="min-h-9 rounded-lg border border-slate-200 bg-white pl-9 pr-7 text-xs font-semibold text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             aria-label={t('etablissement.mediaTypeFilter')}
           >
             <option value="all">{t('etablissement.allMedia')}</option>
             <option value="image">{t('etablissement.mediaImage')}</option>
             <option value="video">{t('etablissement.mediaVideo')}</option>
+            <option value="hidden">{t('etablissement.mediaHiddenFilter')}</option>
           </select>
         </label>
       </div>
+
+      {items.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5" aria-label={t('etablissement.galleryTitle')}>
+          <span className="wdg-chip wdg-chip--slate">
+            <FileImage className="h-3 w-3" />
+            {imageCount} {t('etablissement.mediaImage')}
+          </span>
+          <span className="wdg-chip wdg-chip--violet">
+            <Video className="h-3 w-3" />
+            {videoCount} {t('etablissement.mediaVideo')}
+          </span>
+          {externalCount > 0 && (
+            <span className="wdg-chip wdg-chip--blue">
+              <Globe className="h-3 w-3" />
+              {externalCount} {t('etablissement.mediaExternalLabel')}
+            </span>
+          )}
+          {hiddenCount > 0 && (
+            <span className="wdg-chip wdg-chip--red">
+              <EyeOff className="h-3 w-3" />
+              {hiddenCount} {t('etablissement.mediaHiddenFilter')}
+            </span>
+          )}
+        </div>
+      )}
 
       {items.length === 0 ? (
         canManageMedia ? (
@@ -2287,25 +2383,58 @@ function MediaPanel({
             const source = imgUrl(item.contentUrl) || item.contentUrl
             const itemUrl = (imgUrl(item.contentUrl) || item.contentUrl).replace(/\/+$/, '').toLowerCase()
             const isCover = Boolean(normalizedCoverUrl && normalizedCoverUrl === itemUrl)
+            const hidden = item.isPublic === false
             return (
-              <div key={item.id} className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-slate-100 dark:bg-slate-800 ${isCover ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700'}`}>
+              <div key={item.id} className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-slate-100 dark:bg-slate-800 ${isCover ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700'} ${hidden ? 'opacity-75' : ''}`}>
                 {item.kind === 'video' ? (
                   <>
-                    <video src={source} muted preload="metadata" className="h-full w-full object-cover" />
-                    <Video className="pointer-events-none absolute left-2 top-2 h-5 w-5 text-white" />
+                    {item.thumbnailUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- vignette distante du fournisseur
+                      <img src={item.thumbnailUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    ) : (
+                      <video src={source} muted preload="metadata" className="h-full w-full object-cover" />
+                    )}
+                    <Video className="pointer-events-none absolute left-2 top-2 h-5 w-5 text-white drop-shadow" />
+                    {item.provider && (
+                      <span className="absolute bottom-8 left-2 rounded-full bg-black/70 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                        {item.provider}
+                      </span>
+                    )}
                   </>
                 ) : (
                   <img src={source} alt={item.originalName || t('etablissement.mediaImage')} className="h-full w-full object-cover" />
                 )}
+                {hidden && (
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                    <EyeOff className="h-3 w-3" />
+                    {t('etablissement.mediaHiddenBadge')}
+                  </span>
+                )}
                 {canManageMedia && (
-                  <button
-                    type="button"
-                    onClick={() => onDelete(item)}
-                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-slate-950/75 text-white opacity-100 transition hover:bg-red-600 sm:opacity-0 sm:group-hover:opacity-100"
-                    aria-label={t('etablissement.mediaDeleteAlt')}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <span className="absolute right-2 top-2 flex gap-1.5 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => onToggleVisibility(item, hidden)}
+                      disabled={togglingId === item.id}
+                      className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-950/75 text-white transition hover:bg-slate-700"
+                      aria-label={hidden ? t('etablissement.mediaShowAlt') : t('etablissement.mediaHideAlt')}
+                      title={hidden ? t('etablissement.mediaShowAlt') : t('etablissement.mediaHideAlt')}
+                    >
+                      {togglingId === item.id
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : hidden
+                          ? <Eye className="h-4 w-4" />
+                          : <EyeOff className="h-4 w-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(item)}
+                      className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-950/75 text-white transition hover:bg-red-600"
+                      aria-label={t('etablissement.mediaDeleteAlt')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </span>
                 )}
                 {canManageMedia && item.kind === 'image' && (
                   <button
@@ -2357,14 +2486,17 @@ function ReviewsPanel({
   const { t, i18n } = useTranslation()
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'ALL' | ManagedReview['statut']>('ALL')
+  const [reportedOnly, setReportedOnly] = useState(false)
   const published = items.filter((item) => item.statut === 'PUBLIE').length
   const pending = items.filter((item) => item.statut === 'EN_ATTENTE').length
+  const reported = items.filter((item) => item.signale).length
+  const withMedia = items.filter((item) => (item.images?.length ?? 0) > 0).length
   const filteredItems = items.filter((item) => {
     const search = query.trim().toLowerCase()
     const matchesQuery =
       !search ||
       `${item.auteurNom ?? ''} ${item.commentaire ?? ''}`.toLowerCase().includes(search)
-    return matchesQuery && (statusFilter === 'ALL' || item.statut === statusFilter)
+    return matchesQuery && (statusFilter === 'ALL' || item.statut === statusFilter) && (!reportedOnly || item.signale)
   })
 
   return (
@@ -2373,9 +2505,19 @@ function ReviewsPanel({
         eyebrow={t('etablissement.moderationDesc', { published, hidden: items.length - published })}
         title={t('etablissement.moderationTitle')}
         action={
-          <span className="wdg-chip wdg-chip--amber">
-            <Clock className="h-3 w-3" />
-            {pending} {t('etablissement.reviewPendingLabel')}
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="wdg-chip wdg-chip--amber">
+              <Clock className="h-3 w-3" />
+              {pending} {t('etablissement.reviewPendingLabel')}
+            </span>
+            <span className="wdg-chip wdg-chip--red">
+              <Flag className="h-3 w-3" />
+              {reported} {t('etablissement.reviewReportedLabel')}
+            </span>
+            <span className="wdg-chip wdg-chip--slate">
+              <FileImage className="h-3 w-3" />
+              {withMedia} {t('etablissement.reviewWithMediaLabel')}
+            </span>
           </span>
         }
       />
@@ -2386,7 +2528,7 @@ function ReviewsPanel({
         <PanelState kind="loading" />
       ) : null}
 
-      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
         <label className="relative block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
@@ -2410,6 +2552,19 @@ function ReviewsPanel({
             <option value="REJETE">{t('etablissement.moderationStatusHidden')}</option>
           </select>
         </label>
+        <button
+          type="button"
+          aria-pressed={reportedOnly}
+          onClick={() => setReportedOnly((current) => !current)}
+          className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition ${
+            reportedOnly
+              ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300'
+              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+          }`}
+        >
+          <Flag className="h-3.5 w-3.5" aria-hidden="true" />
+          {t('etablissement.reviewReportedOnly')} ({reported})
+        </button>
       </div>
 
       <div className="mt-4 max-h-[28rem] divide-y divide-slate-100 overflow-y-auto rounded-xl border-y border-slate-100 dark:divide-white/10 dark:border-white/10">
@@ -2437,12 +2592,20 @@ function ReviewsPanel({
                   </div>
                 </div>
               </div>
-              <span className={`wdg-chip ${REVIEW_TONE[item.statut]}`}>
-                {item.statut === 'PUBLIE'
-                  ? t('etablissement.moderationStatusVisible')
-                  : item.statut === 'EN_ATTENTE'
-                    ? t('etablissement.reviewPendingLabel')
-                    : t('etablissement.moderationStatusHidden')}
+              <span className="flex shrink-0 items-center gap-1.5">
+                {item.signale && (
+                  <span className="wdg-chip wdg-chip--red">
+                    <Flag className="h-3 w-3" />
+                    {t('etablissement.reviewReportedLabel')}
+                  </span>
+                )}
+                <span className={`wdg-chip ${REVIEW_TONE[item.statut]}`}>
+                  {item.statut === 'PUBLIE'
+                    ? t('etablissement.moderationStatusVisible')
+                    : item.statut === 'EN_ATTENTE'
+                      ? t('etablissement.reviewPendingLabel')
+                      : t('etablissement.moderationStatusHidden')}
+                </span>
               </span>
             </div>
             {item.commentaire && (
@@ -2450,22 +2613,45 @@ function ReviewsPanel({
             )}
             {item.images && item.images.length > 0 && (
               <div className="mt-3 grid grid-cols-5 gap-1.5">
-                {item.images.map((image) => (
-                  <a
-                    key={image.id}
-                    href={imgUrl(image.contentUrl) || image.contentUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
-                    aria-label={image.originalName || t('etablissement.reviewMedia')}
-                  >
-                    <img
-                      src={imgUrl(image.contentUrl) || image.contentUrl}
-                      alt={image.originalName || t('etablissement.reviewMedia')}
-                      className="h-full w-full object-cover transition group-hover:opacity-80"
-                    />
-                  </a>
-                ))}
+                {item.images.map((image) => {
+                  const isVideo = image.kind === 'video' || image.mimeType?.startsWith('video/')
+                  const source = imgUrl(image.contentUrl) || image.contentUrl
+                  return isVideo ? (
+                    <span
+                      key={image.id}
+                      className="relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-950 dark:border-slate-700"
+                      title={image.originalName || t('etablissement.mediaVideo')}
+                    >
+                      {image.thumbnailUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- vignette distante du fournisseur
+                        <img src={image.thumbnailUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+                      ) : (
+                        <video src={source} muted preload="metadata" className="h-full w-full object-cover" aria-hidden="true" />
+                      )}
+                      <Video className="pointer-events-none absolute left-1.5 top-1.5 h-4 w-4 text-white drop-shadow" aria-hidden="true" />
+                      {image.provider && (
+                        <span className="absolute bottom-1 left-1 rounded-full bg-black/70 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                          {image.provider}
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <a
+                      key={image.id}
+                      href={source}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+                      aria-label={image.originalName || t('etablissement.reviewMedia')}
+                    >
+                      <img
+                        src={source}
+                        alt={image.originalName || t('etablissement.reviewMedia')}
+                        className="h-full w-full object-cover transition group-hover:opacity-80"
+                      />
+                    </a>
+                  )
+                })}
               </div>
             )}
             <div className="mt-3 flex gap-2">

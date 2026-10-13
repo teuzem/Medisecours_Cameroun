@@ -489,7 +489,20 @@
       "mediaReportValue": "Photo/vidéo « {{nom}} » (média {{id}}) — problème signalé depuis la galerie.",
       "mediaReportOk": "Problème signalé. Merci pour votre vigilance.",
       "mediaReportError": "Impossible de signaler ce média.",
-      "galleryImageDate": "Date de l’image : {{date}}"
+      "galleryImageDate": "Date de l’image : {{date}}",
+      "toastNetworkDown": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+      "reviewCommentTooShort": "Le commentaire doit contenir au moins 5 caractères.",
+      "reviewShareItem": "Partager l'avis",
+      "reviewReportItem": "Signaler l'avis",
+      "keywordAll": "Tout",
+      "sortTitle": "Trier",
+      "reviewAddVideo": "Ajouter une vidéo",
+      "reviewVideoHint": "MP4, WebM ou MOV — 30 Mo maximum, 1 vidéo par avis.",
+      "reviewVideoFormat": "Vidéo refusée. Utilisez MP4, WebM ou MOV.",
+      "reviewVideoTooLarge": "La vidéo ne doit pas dépasser 30 Mo.",
+      "reviewLinkLabel": "Ou ajouter un lien vidéo (YouTube, TikTok, Instagram…)",
+      "reviewLinkPlaceholder": "https://www.youtube.com/watch?v=…",
+      "reviewLinkInvalid": "Lien vidéo non pris en charge."
     },
     "notFound": {
       "title": "Diagnostic : page introuvable",
@@ -2147,7 +2160,7 @@
       "teamAlreadyMember": "Ce compte fait dÃ©jÃ  partie de l'Ã©quipe.",
       "mediaFormatInvalid": "Format non pris en charge. Utilisez JPEG, PNG, WebP, GIF, MP4, WebM ou MOV.",
       "mediaImageTooLarge": "Image trop volumineuse (10 Mo maximum).",
-      "mediaVideoTooLarge": "Vid?o trop volumineuse (30 Mo maximum).",
+      "mediaVideoTooLarge": "Vidéo trop volumineuse (10 Mo maximum).",
       "mediaDropActive": "Rel?chez pour importer le m?dia",
       "reviewMedia": "Image jointe ? l'avis",
       "panelLoadError": "Ce bloc n'a pas pu ?tre charg?.",
@@ -2170,7 +2183,7 @@
       "galleryEmpty": "Aucun média publié. Ajoutez une photo pour enrichir votre fiche.",
       "mediaAdd": "Ajouter",
       "mediaUploading": "Envoi…",
-      "mediaSizeHint": "JPEG, PNG ou MP4 (max 20 Mo)",
+      "mediaSizeHint": "JPEG, PNG, WebP, GIF ou MP4 (max 10 Mo)",
       "mediaDeleteAlt": "Supprimer ce média",
       "setAsCover": "Utiliser comme couverture",
       "coverActive": "Couverture active",
@@ -2445,7 +2458,19 @@
           "VALIDE": "Validée",
           "REJETE": "Rejetée"
         }
-      }
+      },
+      "reviewReportedLabel": "signalés",
+      "reviewWithMediaLabel": "avec médias",
+      "reviewWithVideoLabel": "avec vidéo",
+      "reviewReportedOnly": "Signalés",
+      "mediaHiddenFilter": "Masqués",
+      "mediaExternalLabel": "externes",
+      "mediaHiddenBadge": "Masqué",
+      "mediaShowAlt": "Rendre visible",
+      "mediaHideAlt": "Masquer",
+      "mediaVisible": "Média visible dans la galerie.",
+      "mediaHidden": "Média masqué de la galerie.",
+      "mediaVisibilityFailed": "Impossible de modifier la visibilité."
     }
   }
 }
