@@ -56,15 +56,19 @@ use Symfony\Component\Validator\Constraints as Assert;
             processor: AvisEtablissementProcessor::class,
             normalizationContext: ['groups' => ['avis_etablissement:read']]
         ),
-        // Modération : admin (statut/flag) ou auteur (contenu)
+        // Modération : admin (statut/flag) ou auteur (contenu).
+        // Le processor recalcule les agrégats après chaque écriture afin que
+        // la fiche n'affiche jamais des compteurs divergents de la liste.
         new Patch(
             security: "is_granted('ROLE_ADMIN') or object.getUser() == user",
             securityMessage: 'Vous ne pouvez modifier que vos propres avis.',
+            processor: AvisEtablissementProcessor::class,
             normalizationContext: ['groups' => ['avis_etablissement:read']]
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN') or object.getUser() == user",
-            securityMessage: 'Vous ne pouvez supprimer que vos propres avis.'
+            securityMessage: 'Vous ne pouvez supprimer que vos propres avis.',
+            processor: AvisEtablissementProcessor::class
         )
     ],
     normalizationContext: ['groups' => ['avis_etablissement:read']],
