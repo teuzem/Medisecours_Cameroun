@@ -1081,6 +1081,28 @@ class CarteController extends AbstractController
     }
 
     /**
+     * Signalement d'un avis d'établissement par un utilisateur connecté.
+     *
+     * POST /api/avis_etablissements/{id}/signaler   body: {"raison"?: string}
+     * Marque l'avis comme signalé pour la file de modération (manager, admin).
+     */
+    #[Route('/api/avis_etablissements/{id}/signaler', name: 'api_avis_etablissement_signaler', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function signalerAvis(Request $request, int $id): JsonResponse
+    {
+        $this->requireUser();
+        $avis = $this->avisRepository->find($id);
+        if (!$avis instanceof AvisEtablissement) {
+            throw new NotFoundHttpException('Avis introuvable.');
+        }
+        $raison = mb_substr(trim((string) ($request->toArray()['raison'] ?? '')), 0, 500);
+        $avis->setSignale(true);
+        $avis->setRaisonSignalement($raison !== '' ? $raison : null);
+        $this->em->flush();
+
+        return new JsonResponse(['id' => $avis->getId(), 'signale' => true]);
+    }
+
+    /**
      * Réclamation d'un établissement par un manager (compte "etablissement").
      *
      * POST /api/carte/revendiquer   body: {"centre": int, "force"?: bool}

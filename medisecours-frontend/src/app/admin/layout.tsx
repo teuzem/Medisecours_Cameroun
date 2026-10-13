@@ -19,6 +19,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  Star,
   Users,
   X,
 } from 'lucide-react'
@@ -64,6 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: '/admin/catalogue', label: t('admin.layout.navCatalogue'), icon: BookOpen },
         { href: '/admin/protocoles', label: t('admin.layout.navProtocoles'), icon: ClipboardCheck },
         { href: '/admin/signalements', label: t('admin.layout.navSignalements'), icon: Flag, badge: 'reports' },
+        { href: '/admin/avis-etablissements', label: t('admin.layout.navAvisEtablissements'), icon: Star },
         { href: '/admin/parametres', label: t('admin.layout.navParametres'), icon: Settings },
       ],
     },
@@ -97,6 +99,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/signalements': {
       title: t('admin.layout.pageMeta.signalementsTitle'),
       subtitle: t('admin.layout.pageMeta.signalementsSubtitle'),
+    },
+    '/admin/avis-etablissements': {
+      title: t('admin.layout.pageMeta.avisEtablissementsTitle'),
+      subtitle: t('admin.layout.pageMeta.avisEtablissementsSubtitle'),
     },
     '/admin/parametres': {
       title: t('admin.layout.pageMeta.parametresTitle'),

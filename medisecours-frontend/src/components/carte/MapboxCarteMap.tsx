@@ -68,6 +68,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, picking 
   const patientMarkerRef = useRef<any>(null)
   const initialBasemapRef = useRef(basemap)
   const [mapZoom, setMapZoom] = useState(5.5)
+  const [mapReady, setMapReady] = useState(false)
 
   // The map instance is intentionally created once; satellite changes are applied by the dedicated style effect below.
   useEffect(() => {
@@ -92,6 +93,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, picking 
     })
     map.addControl(new window.mapboxgl.NavigationControl(), 'bottom-right')
     mapRef.current = map
+    setMapReady(true)
     return () => {
       markersRef.current.forEach((marker) => marker.remove())
       markersRef.current = []
@@ -328,7 +330,7 @@ export default function MapboxCarteMap({ centres, selectedId, position, picking 
     } else if (position) {
       map.flyTo({ center: [position.lng, position.lat], zoom: 13, essential: true })
     }
-  }, [destination, position])
+  }, [destination, position, mapReady])
 
   useEffect(() => {
     const map = mapRef.current

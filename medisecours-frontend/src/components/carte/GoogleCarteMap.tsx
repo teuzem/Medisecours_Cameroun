@@ -14,7 +14,7 @@
  * Repli Leaflet : voir CarteMap.tsx (mêmes props — échange transparent).
  */
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { type CarteCentre } from '../../lib/carte'
 import type { Position } from '../../hooks/useWayfinding'
@@ -120,6 +120,7 @@ export default function GoogleCarteMap({
   const destinationRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
   const polylineRef = useRef<google.maps.Polyline | null>(null)
   const recenteredRef = useRef(false)
+  const [mapReady, setMapReady] = useState(false)
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null)
   const transitLayerRef = useRef<google.maps.TransitLayer | null>(null)
   const cyclingLayerRef = useRef<{ setMap: (map: google.maps.Map | null) => void } | null>(null)
@@ -143,6 +144,7 @@ export default function GoogleCarteMap({
       zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
     })
     mapRef.current = map
+    setMapReady(true)
 
     return () => {
       clustererRef.current?.clearMarkers()
@@ -444,7 +446,7 @@ export default function GoogleCarteMap({
       map.setZoom(13)
       recenteredRef.current = true
     }
-  }, [position, destination])
+  }, [position, destination, mapReady])
 
   return <div ref={containerRef} className="h-full w-full" aria-label="Carte Google" />
 }

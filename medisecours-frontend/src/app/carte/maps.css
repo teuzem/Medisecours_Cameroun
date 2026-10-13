@@ -203,7 +203,14 @@
 .maps-review-tools select { min-height: 36px; border: 1px solid #dadce0; border-radius: 4px; background: #fff; font-size: 13px; color: #3c4043; padding: 7px 30px 7px 12px; }
 .maps-review { border-top: 1px solid var(--maps-line); padding: 20px 0; font-size: 14px; }
 .maps-reviews { padding-top: 8px; }
-.maps-review-dialog { width: min(520px, 100%); padding: 28px; }
+.maps-review-dialog { width: min(520px, 100%); padding: 28px; border-radius: 20px; }
+.maps-review-dialog .maps-dropzone { flex-direction: row; min-height: 0; padding: 12px 16px; border: 0; border-radius: 999px; background: #e8f0fe; color: #1a73e8; }
+.maps-review-dialog .maps-dropzone:hover, .maps-review-dialog .maps-dropzone.is-dragging { background: #d2e3fc; }
+.maps-review-dialog .maps-dropzone-icon { width: 32px; height: 32px; background: transparent; color: #1a73e8; }
+.maps-review-dialog .maps-dropzone strong { font-size: 13px; }
+.maps-review-dialog .maps-dropzone small { display: none; }
+.maps-review-dialog footer { border-top: 0; }
+.maps-review-dialog footer button { border-radius: 999px; padding: 10px 24px; }
 .maps-dialog-header { margin-bottom: 14px !important; }
 .maps-dialog-title { flex: 1; text-align: center; }
 .maps-dialog-kicker { display: block; color: #5f6368; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
@@ -213,7 +220,21 @@
 .maps-reviewer strong, .maps-reviewer small { display: block; }
 .maps-reviewer strong { color: #202124; font-size: 13px; }
 .maps-reviewer small { margin-top: 2px; color: #5f6368; font-size: 11px; }
-.maps-review-author { display: flex; gap: 12px; align-items: center; }
+.maps-review { border-top: 1px solid var(--maps-line); padding: 18px 0; }
+.maps-review:first-of-type { border-top: 0; }
+.maps-review-head { display: flex; align-items: center; gap: 12px; }
+.maps-review-head .maps-avatar { color: #fff; font-weight: 700; }
+.maps-review-who { min-width: 0; flex: 1; }
+.maps-review-who strong { display: block; overflow: hidden; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.maps-review-who small { color: #5f6368; font-size: 11px; }
+.maps-review-menu-wrap { position: relative; flex-shrink: 0; }
+.maps-review-menu-btn { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: transparent; color: #5f6368; }
+.maps-review-menu-btn:hover { background: #f1f3f4; }
+.maps-review-menu { position: absolute; right: 0; top: 36px; z-index: 5; min-width: 190px; padding: 6px 0; background: #fff; border: 1px solid #dadce0; border-radius: 8px; box-shadow: 0 4px 16px rgba(32,33,36,0.22); }
+.maps-review-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 14px; background: transparent; font-size: 13px; color: #3c4043; text-align: left; }
+.maps-review-menu button:hover { background: #f1f3f4; }
+.maps-review-note { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.maps-review-note small { color: #5f6368; font-size: 11px; }
 .maps-avatar { display: grid; place-items: center; width: 36px; height: 36px; background: #eaf0f7; color: #1a3252; border-radius: 50%; flex-shrink: 0; }
 .maps-review-author strong { font-size: 14px; font-weight: 500; }
 .maps-review-author > div > div { display: flex; align-items: center; gap: 10px; margin-top: 5px; }

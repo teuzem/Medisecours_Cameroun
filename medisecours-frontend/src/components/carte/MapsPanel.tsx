@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type 
 ReactNode } from 'react'
-import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clock, ExternalLink, FolderPlus, History, Image as ImageIcon, Images, Info, MapPin, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
+import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clock, ExternalLink, Flag, FolderPlus, History, Image as ImageIcon, Images, Info, MapPin, MoreVertical, Navigation, Phone, Search, Send, Share2, ShieldCheck, Star, ThumbsUp, X } from 'lucide-react'
 import useSWR, { mutate } from 'swr'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
@@ -61,6 +61,41 @@ function formatMediaDate(value?: string, language = 'fr'): string {
         month: 'long',
         year: 'numeric',
   })
+}
+
+/** Date relative façon Google (« il y a 7 mois »), avec repli absolu. */
+function formatRelativeDate(value?: string, language = 'fr'): string {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const locale = language.toLowerCase().startsWith('en') ? 'en' : 'fr'
+  const secondes = Math.round((date.getTime() - Date.now()) / 1000)
+  const unites: [Intl.RelativeTimeFormatUnit, number][] = [
+    ['year', 31536000],
+    ['month', 2592000],
+    ['day', 86400],
+    ['hour', 3600],
+    ['minute', 60],
+    ['second', 1],
+  ]
+  for (const [unite, duree] of unites) {
+    if (Math.abs(secondes) >= duree || unite === 'second') {
+      try {
+        return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(Math.round(secondes / duree), unite)
+      } catch {
+        return formatMediaDate(value, language)
+      }
+    }
+  }
+  return formatMediaDate(value, language)
+}
+
+/** Teinte d'avatar déterministe par auteur (pastille couleur distinctive). */
+function teinteAvatar(nom?: string | null): number {
+  const base = nom ?? 'U'
+  let hash = 0
+  for (let i = 0; i < base.length; i++) hash = (hash * 31 + base.charCodeAt(i)) % 360
+  return hash
 }
 
 function mediaUploaderName(media: NonNullable<FicheCentre['images']>[number] | undefined, fallback: string): string {
@@ -216,6 +251,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [dragActive, setDragActive] = useState(false)
   const [sending, setSending] = useState(false)
   const [likes, setLikes] = useState<number[]>([])
+  const [menuReviewId, setMenuReviewId] = useState<number | null>(null)
 
   const toggleLike = useCallback((reviewId: number) => {
     setLikes((current) => {
@@ -258,10 +294,23 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     })
   }, [reviewResponse, reviewSearch, sort])
 
+  // Statistiques par auteur calculées sur les avis chargés (« N avis · M photos »).
+  const statsAuteur = useMemo(() => {
+    const table: Record<string, { avis: number; photos: number }> = {}
+    for (const review of reviews) {
+      const key = review.auteurNom ?? ''
+      const entry = table[key] ?? { avis: 0, photos: 0 }
+      entry.avis += 1
+      entry.photos += review.images?.length ?? 0
+      table[key] = entry
+    }
+    return table
+  }, [reviews])
+
   useEffect(() => {
     // Reset the drawer workflow when a different establishment is selected.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images')
+    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null)
     try {
       const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
       const saved = typeof stored === 'object' && stored !== null ? stored[String(props.selectedId ?? 0)] : null
@@ -334,6 +383,18 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       if (navigator.share) await navigator.share({ title: facility?.nom, text: text ?? facility?.adresse, url: placeUrl() })
       else { await navigator.clipboard.writeText(`${text ?? facility?.nom ?? ''}\n${placeUrl()}`); toast.success(t('visitor.carte.toastLinkCopied')) }
     } catch (cause) { if ((cause as Error).name !== 'AbortError') toast.error(t('visitor.carte.toastShareUnavailable')) }
+  }
+  const signalerReview = async (id: number) => {
+    if (!isAuthenticated) {
+      window.location.assign('/login')
+      return
+    }
+    try {
+      await api.post(`/api/avis_etablissements/${id}/signaler`, {})
+      toast.success(t('visitor.carte.reviewSignaleOk'))
+    } catch {
+      toast.error(t('visitor.carte.reviewSignalerErreur'))
+    }
   }
   const shareMedia = async (media: NonNullable<FicheCentre['images']>[number]) => {
     const source = imgUrl(media.contentUrl) || media.contentUrl
@@ -470,7 +531,13 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             {isLoading && <p role="status">{t('visitor.carte.reviewsLoading')}</p>}
             {reviewError && <p role="alert">{t('visitor.carte.reviewsLoadError')}</p>}
             {!isLoading && !reviewError && !reviews.length && <p>{t('visitor.carte.reviewsEmpty')}</p>}
-            {reviews.map(review => <article className="maps-review" key={review.id}><div className="maps-review-author"><span className="maps-avatar">{(review.auteurNom || 'U')[0]}</span><div><strong>{review.auteurNom || t('visitor.carte.userFallback')}</strong><div><Rating value={review.note} /><small>{formatMediaDate(review.createdAt, i18n.language)}</small></div></div></div><p>{review.commentaire}</p>{review.images?.length ? <div className="maps-review-images">{review.images.map(image => <a key={image.id} href={imgUrl(image.contentUrl) ?? image.contentUrl} target="_blank" rel="noopener noreferrer"><img src={imgUrl(image.contentUrl) ?? image.contentUrl} alt={t('visitor.carte.reviewPhotoAlt')} loading="lazy" /></a>)}</div> : null}<div className="maps-review-actions"><button type="button" aria-pressed={likes.includes(review.id)} onClick={() => toggleLike(review.id)}><ThumbsUp size={17} fill={likes.includes(review.id) ? 'currentColor' : 'none'} />{t('visitor.carte.likeButton')}</button><button type="button" onClick={() => void share(review.commentaire)}><Share2 size={17} />{t('visitor.carte.actionShare')}</button></div></article>)}
+            {reviews.map((review) => {
+              const menuOuvert = menuReviewId === review.id
+              const stats = statsAuteur[review.auteurNom ?? ''] ?? { avis: 1, photos: 0 }
+              return (
+              <article className="maps-review" key={review.id}><div className="maps-review-head"><span className="maps-avatar" style={{ backgroundColor: `hsl(${teinteAvatar(review.auteurNom)} 45% 42%)` }} aria-hidden="true">{(review.auteurNom || 'U')[0]}</span><div className="maps-review-who"><strong>{review.auteurNom || t('visitor.carte.userFallback')}</strong><small>{t('visitor.carte.reviewsCount', { count: stats.avis })} · {t('visitor.carte.reviewPhotosCount', { count: stats.photos })}</small></div><div className="maps-review-menu-wrap"><button type="button" className="maps-review-menu-btn" aria-expanded={menuOuvert} aria-label={t('visitor.carte.reviewMenuLabel')} onClick={() => setMenuReviewId(menuOuvert ? null : review.id)}><MoreVertical size={18} /></button>{menuOuvert && (<div className="maps-review-menu" role="menu"><button type="button" role="menuitem" onClick={() => { setMenuReviewId(null); void share(review.commentaire) }}><Share2 size={16} />{t('visitor.carte.actionShare')}</button><button type="button" role="menuitem" onClick={() => toggleLike(review.id)}><ThumbsUp size={16} fill={likes.includes(review.id) ? 'currentColor' : 'none'} />{likes.includes(review.id) ? t('visitor.carte.likedButton') : t('visitor.carte.likeButton')}</button><button type="button" role="menuitem" onClick={() => { setMenuReviewId(null); void signalerReview(review.id) }}><Flag size={16} />{t('visitor.carte.reviewSignaler')}</button></div>)}</div></div><div className="maps-review-note"><Rating value={review.note} /><small>{formatRelativeDate(review.createdAt, i18n.language)}</small></div><p>{review.commentaire}</p>{review.images?.length ? <div className="maps-review-images">{review.images.map(image => <a key={image.id} href={imgUrl(image.contentUrl) ?? image.contentUrl} target="_blank" rel="noopener noreferrer"><img src={imgUrl(image.contentUrl) ?? image.contentUrl} alt={t('visitor.carte.reviewPhotoAlt')} loading="lazy" /></a>)}</div> : null}</article>
+              )
+            })}
           </div>}
         </section>
       </> : <>
@@ -490,7 +557,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         onShare={(media) => void shareMedia(media)}
       />
     )}
-    {composer && facility && <div className="maps-modal-backdrop" onClick={() => !sending && setComposer(false)}><form className="maps-dialog maps-review-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.writeReview')} onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submit() }}><header className="maps-dialog-header"><div className="maps-dialog-title"><span className="maps-dialog-kicker">{t('visitor.carte.yourReview')}</span><h2>{facility.nom}</h2></div><button type="button" disabled={sending} onClick={() => setComposer(false)} aria-label={t('common.close')}><X size={20} /></button></header><div className="maps-reviewer"><span className="maps-reviewer-avatar">{String(user?.prenom ?? user?.nom ?? user?.email ?? 'U').slice(0, 1).toUpperCase()}</span><div><strong>{user?.prenom || user?.nom ? `${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim() : t('visitor.carte.yourProfile')}</strong><small>{user?.email ?? t('visitor.carte.connectedProfile')}</small></div></div><div className="maps-review-stars" role="group" aria-label={t('visitor.carte.noteAria')}>{[1, 2, 3, 4, 5].map(star => <button type="button" key={star} aria-label={t('visitor.medecinDetail.starAria', { count: star, value: star })} aria-pressed={note === star} onClick={() => setNote(star)}><Star size={32} fill={star <= note ? 'currentColor' : 'none'} /></button>)}</div><textarea autoFocus value={comment} minLength={5} maxLength={2000} onChange={event => setComment(event.target.value)} placeholder={t('visitor.carte.reviewPlaceholder')} aria-label={t('visitor.carte.yourReview')} /><label className={`maps-upload maps-dropzone ${dragActive ? 'is-dragging' : ''}`} onDragEnter={event => { event.preventDefault(); setDragActive(true) }} onDragOver={event => event.preventDefault()} onDragLeave={() => setDragActive(false)} onDrop={event => { event.preventDefault(); setDragActive(false); acceptReviewFiles(Array.from(event.dataTransfer.files)) }}><span className="maps-dropzone-icon"><ImageIcon size={25} /></span><strong>{dragActive ? t('visitor.carte.dropImages') : t('visitor.carte.addPhotos')}</strong><small>{t('visitor.carte.dropHint')}</small><input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={event => { acceptReviewFiles(Array.from(event.target.files ?? [])); event.target.value = '' }} /></label>{files.length > 0 && <div className="maps-upload-grid">{files.map((file, index) => <figure key={`${file.name}-${index}`}><img src={filePreviews[index]} alt={t('visitor.carte.previewAlt', { name: file.name })} /><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={t('visitor.carte.removeFile', { name: file.name })}><X size={16} /></button></figure>)}</div>}<ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span></li>)}</ul><footer><button type="button" disabled={sending} onClick={() => setComposer(false)}>{t('common.cancel')}</button><button type="submit" disabled={!note || sending}>{sending ? t('visitor.carte.publishing') : t('visitor.carte.publish')}</button></footer></form></div>}
+    {composer && facility && <div className="maps-modal-backdrop" onClick={() => !sending && setComposer(false)}><form className="maps-dialog maps-review-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.writeReview')} onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submit() }}><header className="maps-dialog-header"><div className="maps-dialog-title"><span className="maps-dialog-kicker">{t('visitor.carte.yourReview')}</span><h2>{facility.nom}</h2></div><button type="button" disabled={sending} onClick={() => setComposer(false)} aria-label={t('common.close')}><X size={20} /></button></header><div className="maps-reviewer"><span className="maps-reviewer-avatar">{String(user?.prenom ?? user?.nom ?? user?.email ?? 'U').slice(0, 1).toUpperCase()}</span><div><strong>{user?.prenom || user?.nom ? `${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim() : t('visitor.carte.yourProfile')}</strong><small>{t('visitor.carte.reviewPostPublic')}</small></div></div><div className="maps-review-stars" role="group" aria-label={t('visitor.carte.noteAria')}>{[1, 2, 3, 4, 5].map(star => <button type="button" key={star} aria-label={t('visitor.medecinDetail.starAria', { count: star, value: star })} aria-pressed={note === star} onClick={() => setNote(star)}><Star size={32} fill={star <= note ? 'currentColor' : 'none'} /></button>)}</div><textarea autoFocus value={comment} minLength={5} maxLength={2000} onChange={event => setComment(event.target.value)} placeholder={t('visitor.carte.reviewPlaceholder')} aria-label={t('visitor.carte.yourReview')} /><label className={`maps-upload maps-dropzone ${dragActive ? 'is-dragging' : ''}`} onDragEnter={event => { event.preventDefault(); setDragActive(true) }} onDragOver={event => event.preventDefault()} onDragLeave={() => setDragActive(false)} onDrop={event => { event.preventDefault(); setDragActive(false); acceptReviewFiles(Array.from(event.dataTransfer.files)) }}><span className="maps-dropzone-icon"><ImageIcon size={25} /></span><strong>{dragActive ? t('visitor.carte.dropImages') : t('visitor.carte.addPhotos')}</strong><small>{t('visitor.carte.dropHint')}</small><input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={event => { acceptReviewFiles(Array.from(event.target.files ?? [])); event.target.value = '' }} /></label>{files.length > 0 && <div className="maps-upload-grid">{files.map((file, index) => <figure key={`${file.name}-${index}`}><img src={filePreviews[index]} alt={t('visitor.carte.previewAlt', { name: file.name })} /><button type="button" onClick={() => setFiles(current => current.filter((_, item) => item !== index))} aria-label={t('visitor.carte.removeFile', { name: file.name })}><X size={16} /></button></figure>)}</div>}<ul className="maps-selected-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><span>{file.name}</span></li>)}</ul><footer><button type="button" disabled={sending} onClick={() => setComposer(false)}>{t('common.cancel')}</button><button type="submit" disabled={!note || sending}>{sending ? t('visitor.carte.publishing') : t('visitor.carte.publish')}</button></footer></form></div>}
     {suggestionOpen && facility && <div className="maps-modal-backdrop" onClick={() => !suggestionSending && setSuggestionOpen(false)}><form className="maps-dialog maps-suggestion-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.suggestTitle')} onClick={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); void submitSuggestion() }}><header><div><h2>{t('visitor.carte.suggestTitle')}</h2><p className="maps-dialog-subtitle">{facility.nom}</p></div><button type="button" disabled={suggestionSending} onClick={() => setSuggestionOpen(false)} aria-label={t('common.close')}><X size={22} /></button></header><label className="maps-field-label">{t('visitor.carte.suggestFieldLabel')}<select value={suggestionField} onChange={event => setSuggestionField(event.target.value)}><option value="adresse">{t('visitor.carte.suggestFieldAdresse')}</option><option value="ville">{t('visitor.carte.suggestFieldVille')}</option><option value="region">{t('visitor.carte.suggestFieldRegion')}</option><option value="telephone">{t('visitor.carte.suggestFieldTelephone')}</option><option value="horaires">{t('visitor.carte.suggestFieldHoraires')}</option><option value="services">{t('visitor.carte.suggestFieldServices')}</option><option value="description">{t('visitor.carte.suggestFieldDescription')}</option><option value="siteWeb">{t('visitor.carte.suggestFieldSiteWeb')}</option><option value="autre">{t('visitor.carte.suggestFieldAutre')}</option></select></label><label className="maps-field-label">{t('visitor.carte.suggestValueLabel')}<textarea required minLength={2} maxLength={2000} value={suggestionValue} onChange={event => setSuggestionValue(event.target.value)} placeholder={t('visitor.carte.suggestValuePlaceholder')} /></label><label className="maps-field-label">{t('visitor.carte.suggestCommentLabel')}<textarea maxLength={1200} value={suggestionComment} onChange={event => setSuggestionComment(event.target.value)} placeholder={t('visitor.carte.suggestCommentPlaceholder')} /></label><p className="maps-suggestion-note">{t('visitor.carte.suggestNote')}</p><footer><button type="button" disabled={suggestionSending} onClick={() => setSuggestionOpen(false)}>{t('common.cancel')}</button><button type="submit" disabled={suggestionSending || suggestionValue.trim().length < 2}>{suggestionSending ? t('visitor.carte.sending') : t('visitor.carte.sendSuggestion')}</button></footer></form></div>}
     {collectionOpen && facility && <div className="maps-modal-backdrop"><section className="maps-dialog" role="dialog" aria-modal="true" aria-label={t('visitor.carte.collectionsAria')}><header><h2>{t('visitor.carte.saveToCollection')}</h2><button type="button" onClick={() => setCollectionOpen(false)} aria-label={t('common.close')}><X size={20} /></button></header>{collections.map(collection => <div className="maps-collection" key={collection.id}><label><input type="checkbox" checked={collection.places.includes(facility.id)} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, places: event.target.checked ? [...item.places, facility.id] : item.places.filter(id => id !== facility.id) }))} />{collection.name}</label><input value={collection.note} placeholder={t('visitor.carte.privateNote')} aria-label={t('visitor.carte.noteFor', { name: collection.name })} maxLength={600} onChange={event => saveCollections(collections.map(item => item.id !== collection.id ? item : { ...item, note: event.target.value }))} /><button type="button" onClick={() => saveCollections(collections.filter(item => item.id !== collection.id))}>{t('common.delete')}</button></div>)}<form onSubmit={event => { event.preventDefault(); if (!collectionName.trim()) return; saveCollections([...collections, { id: crypto.randomUUID(), name: collectionName.trim(), places: [facility.id], note: '' }]); setCollectionName('') }}><input required maxLength={80} value={collectionName} onChange={event => setCollectionName(event.target.value)} placeholder={t('visitor.carte.collectionNamePlaceholder')} aria-label={t('visitor.carte.collectionNamePlaceholder')} /><button type="submit">{t('visitor.carte.create')}</button></form></section></div>}
   </>
