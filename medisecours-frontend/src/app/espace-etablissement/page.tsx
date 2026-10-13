@@ -941,6 +941,7 @@ export default function EtablissementEspacePage() {
                 setCoverMedia={setCoverMedia}
                 moderatingReview={moderatingReview}
                 moderateReview={moderateReview}
+                canModerateReviews={isAdmin}
                 applyPrefs={applyPrefs}
                 resetPrefs={resetPrefs}
                 setLogoUrl={setLogoUrl}
@@ -992,6 +993,7 @@ function DashboardWorkspace({
   setCoverMedia,
   moderatingReview,
   moderateReview,
+  canModerateReviews,
   applyPrefs,
   resetPrefs,
   setLogoUrl,
@@ -1034,6 +1036,7 @@ function DashboardWorkspace({
   setCoverMedia: (item: ManagedMedia | null) => Promise<boolean>
   moderatingReview: number | null
   moderateReview: (review: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
+  canModerateReviews: boolean
   applyPrefs: (prefs: Prefs) => void
   resetPrefs: () => void
   setLogoUrl: (url: string | null) => Promise<boolean>
@@ -1128,6 +1131,7 @@ function DashboardWorkspace({
               error={reviewsError}
               onRetry={reloadData}
               onModerate={moderateReview}
+              canModerate={canModerateReviews}
             />
           </div>
         </div>
@@ -2475,6 +2479,7 @@ function ReviewsPanel({
   error,
   onRetry,
   onModerate,
+  canModerate,
 }: {
   items: ManagedReview[]
   moderatingId: number | null
@@ -2482,6 +2487,7 @@ function ReviewsPanel({
   error?: boolean
   onRetry?: () => void
   onModerate: (item: ManagedReview, statut: 'PUBLIE' | 'REJETE') => void
+  canModerate: boolean
 }) {
   const { t, i18n } = useTranslation()
   const [query, setQuery] = useState('')
@@ -2654,26 +2660,33 @@ function ReviewsPanel({
                 })}
               </div>
             )}
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                onClick={() => onModerate(item, 'PUBLIE')}
-                disabled={moderatingId === item.id || item.statut === 'PUBLIE'}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-40 dark:border-white/10 dark:text-slate-200"
-              >
-                {moderatingId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
-                {t('etablissement.moderationPublish')}
-              </button>
-              <button
-                type="button"
-                onClick={() => onModerate(item, 'REJETE')}
-                disabled={moderatingId === item.id || item.statut === 'REJETE'}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-40 dark:border-white/10 dark:text-slate-200"
-              >
-                <EyeOff className="h-3.5 w-3.5" />
-                {t('etablissement.moderationHide')}
-              </button>
-            </div>
+            {canModerate ? (
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => onModerate(item, 'PUBLIE')}
+                  disabled={moderatingId === item.id || item.statut === 'PUBLIE'}
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-40 dark:border-white/10 dark:text-slate-200"
+                >
+                  {moderatingId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+                  {t('etablissement.moderationPublish')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onModerate(item, 'REJETE')}
+                  disabled={moderatingId === item.id || item.statut === 'REJETE'}
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-40 dark:border-white/10 dark:text-slate-200"
+                >
+                  <EyeOff className="h-3.5 w-3.5" />
+                  {t('etablissement.moderationHide')}
+                </button>
+              </div>
+            ) : (
+              <p className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {t('etablissement.moderationAdminOnly')}
+              </p>
+            )}
           </article>
         ))}
       </div>

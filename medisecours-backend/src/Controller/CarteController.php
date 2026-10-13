@@ -1175,17 +1175,23 @@ class CarteController extends AbstractController
     }
 
     /**
-     * Publication ou masquage d'un avis par le manager de l'etablissement.
+     * Publication ou masquage d'un avis — réservé aux administrateurs.
+     *
+     * Les avis sont publics dès leur publication, sans approbation préalable,
+     * et les responsables d'établissement ne peuvent pas masquer les avis
+     * qui les arrangent le moins : seule la modération admin peut le faire.
      */
     #[Route('/api/carte/avis/{id}', name: 'api_carte_avis_moderate', methods: ['PATCH'])]
     public function modererAvis(Request $request, int $id): JsonResponse
     {
         $user = $this->requireUser();
+        if (!$this->isAdmin($user)) {
+            throw new AccessDeniedHttpException('Modération des avis réservée aux administrateurs.');
+        }
         $avis = $this->avisRepository->find($id);
         if (!$avis instanceof AvisEtablissement || !$avis->getEtablissement()) {
             throw new NotFoundHttpException('Avis introuvable.');
         }
-        $this->assertCanManage($user, $avis->getEtablissement());
 
         $data = $request->toArray();
         $statut = strtoupper(trim((string) ($data['statut'] ?? '')));

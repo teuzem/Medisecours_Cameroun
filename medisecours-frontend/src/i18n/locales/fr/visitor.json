@@ -2477,7 +2477,8 @@
       "mediaHideAlt": "Masquer",
       "mediaVisible": "Média visible dans la galerie.",
       "mediaHidden": "Média masqué de la galerie.",
-      "mediaVisibilityFailed": "Impossible de modifier la visibilité."
+      "mediaVisibilityFailed": "Impossible de modifier la visibilité.",
+      "moderationAdminOnly": "Avis publics automatiquement — modération réservée aux administrateurs."
     }
   }
 }

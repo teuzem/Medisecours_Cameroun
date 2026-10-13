@@ -2477,7 +2477,8 @@
       "mediaHideAlt": "Hide",
       "mediaVisible": "Media visible in the gallery.",
       "mediaHidden": "Media hidden from the gallery.",
-      "mediaVisibilityFailed": "Could not change visibility."
+      "mediaVisibilityFailed": "Could not change visibility.",
+      "moderationAdminOnly": "Reviews stay public automatically — moderation restricted to administrators."
     }
   }
 }
