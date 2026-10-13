@@ -917,7 +917,7 @@ class CarteController extends AbstractController
         $this->assertCanManage($user, $centre);
 
         $items = array_map(
-            fn (MediaObject $media): array => $this->serializeMedia($media),
+            fn (MediaObject $media): array => self::serializeMedia($media),
             $centre->getImages()->toArray()
         );
 
@@ -982,7 +982,7 @@ class CarteController extends AbstractController
             $this->em->persist($media);
             $this->em->flush();
 
-            return new JsonResponse(['media' => $this->serializeMedia($media)], Response::HTTP_CREATED);
+            return new JsonResponse(['media' => self::serializeMedia($media)], Response::HTTP_CREATED);
         }
 
         $file = $request->files->get('file');
@@ -1034,7 +1034,7 @@ class CarteController extends AbstractController
         $this->em->persist($media);
         $this->em->flush();
 
-        return new JsonResponse(['media' => $this->serializeMedia($media)], Response::HTTP_CREATED);
+        return new JsonResponse(['media' => self::serializeMedia($media)], Response::HTTP_CREATED);
     }
 
     /**
@@ -1144,7 +1144,7 @@ class CarteController extends AbstractController
         $media->setIsPublic($data['isPublic']);
         $this->em->flush();
 
-        return new JsonResponse(['media' => $this->serializeMedia($media)]);
+        return new JsonResponse(['media' => self::serializeMedia($media)]);
     }
 
     /**
@@ -1167,7 +1167,7 @@ class CarteController extends AbstractController
         }
 
         $items = array_map(
-            fn (AvisEtablissement $avis): array => $this->serializeAvis($avis),
+            fn (AvisEtablissement $avis): array => self::serializeAvis($avis),
             $qb->getQuery()->getResult()
         );
 
@@ -1213,7 +1213,7 @@ class CarteController extends AbstractController
         $this->em->flush();
         $this->avisRepository->refreshAggregates($avis->getEtablissement());
 
-        return new JsonResponse(['avis' => $this->serializeAvis($avis)]);
+        return new JsonResponse(['avis' => self::serializeAvis($avis)]);
     }
 
     /**
@@ -1431,7 +1431,7 @@ class CarteController extends AbstractController
             'latitude' => $centre->getLatitude(),
             'longitude' => $centre->getLongitude(),
             'images' => array_map(
-                fn (MediaObject $media): array => $this->serializeMedia($media),
+                fn (MediaObject $media): array => self::serializeMedia($media),
                 $centre->getImages()->toArray()
             ),
         ];
@@ -1498,7 +1498,7 @@ class CarteController extends AbstractController
         return ExternalVideoParser::parse($url);
     }
 
-    private function serializeMedia(MediaObject $media): array
+    public static function serializeMedia(MediaObject $media): array
     {
         $uploadedBy = $media->getUploadedBy();
         $uploadedByName = $uploadedBy
@@ -1528,7 +1528,7 @@ class CarteController extends AbstractController
         ];
     }
 
-    private function serializeAvis(AvisEtablissement $avis): array
+    public static function serializeAvis(AvisEtablissement $avis): array
     {
         return [
             'id' => $avis->getId(),
@@ -1541,7 +1541,7 @@ class CarteController extends AbstractController
             'createdAt' => $avis->getCreatedAt()->format('c'),
             'updatedAt' => $avis->getUpdatedAt()?->format('c'),
             'images' => array_map(
-                fn (MediaObject $media): array => $this->serializeMedia($media),
+                fn (MediaObject $media): array => self::serializeMedia($media),
                 $avis->getImages()->toArray()
             ),
         ];

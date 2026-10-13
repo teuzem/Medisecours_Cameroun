@@ -643,10 +643,16 @@ export default function EtablissementDrawer({
     selectedId ? `/api/centre_de_santes/${selectedId}/fiche` : null,
   )
 
-  const { data: avisData, isLoading: avisLoading, mutate: mutateAvis } = useSWR<Avis[]>(
-    selectedId ? `/api/avis_etablissements?etablissement=${selectedId}` : null,
+  const { data: avisDataRaw, isLoading: avisLoading, mutate: mutateAvis } = useSWR<unknown>(
+    selectedId ? `/api/etablissements/${selectedId}/avis?itemsPerPage=100` : null,
     { revalidateOnMount: true },
   )
+  const avisData: Avis[] | undefined = useMemo(() => {
+    if (!avisDataRaw) return undefined
+    const raw = (avisDataRaw as { items?: Avis[]; 'hydra:member'?: Avis[] }) ?? {}
+    const values = Array.isArray(avisDataRaw) ? (avisDataRaw as Avis[]) : raw.items ?? raw['hydra:member'] ?? []
+    return values
+  }, [avisDataRaw])
 
   const fiche = useMemo(() => (ficheData ? { ...selectedCentre, ...ficheData } : selectedCentre), [ficheData, selectedCentre]) as FicheCentre | null
 

@@ -630,14 +630,14 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [uploading, setUploading] = useState(false)
   const selected = props.visibleCentres.find(centre => centre.id === props.selectedId)
   const { data: detail, error: detailError } = useSWR<FicheCentre>(selected ? `/api/centre_de_santes/${selected.id}/fiche` : null)
-  const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(selected ? `/api/avis_etablissements?etablissement=${selected.id}` : null)
+  const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(selected ? `/api/etablissements/${selected.id}/avis?itemsPerPage=100` : null)
   const facility = useMemo(
     () => (detail ? { ...selected, ...detail } : selected),
     [detail, selected],
   )
   const reviews = useMemo(() => {
-    const raw = reviewResponse as { member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
-    const values = Array.isArray(raw) ? raw : raw?.member ?? raw?.['hydra:member'] ?? []
+    const raw = reviewResponse as { items?: Avis[]; member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
+    const values = Array.isArray(raw) ? raw : raw?.items ?? raw?.member ?? raw?.['hydra:member'] ?? []
     return values.filter(review => review.statut === 'PUBLIE').filter(review => !reviewSearch || `${review.auteurNom ?? ''} ${review.commentaire ?? ''}`.toLocaleLowerCase().includes(reviewSearch.toLocaleLowerCase())).sort((a, b) => {
       if (sort === 'positive') return b.note - a.note
       if (sort === 'critical') return a.note - b.note
@@ -1015,8 +1015,8 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       // bien dans la liste rechargée, avec relances en cas de lecture stale.
       const containsCreated = (list: unknown): boolean => {
         if (createdId == null) return true
-        const raw = list as { member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
-        const values = Array.isArray(raw) ? raw : raw?.member ?? raw?.['hydra:member'] ?? []
+        const raw = list as { items?: Avis[]; member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
+        const values = Array.isArray(raw) ? raw : raw?.items ?? raw?.member ?? raw?.['hydra:member'] ?? []
         return values.some((item) => item?.id === createdId)
       }
       let updated = await refreshReviews()

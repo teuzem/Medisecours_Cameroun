@@ -66,12 +66,12 @@ export default function PatientEtablissementDetailPage() {
   const centre = fiche as FicheCentre | undefined
 
   const { data: avisData } = useSWR(
-    centreId ? `/api/avis_etablissements?etablissement=${centreId}&statut=PUBLIE&order[createdAt]=desc` : null,
+    centreId ? `/api/etablissements/${centreId}/avis?itemsPerPage=100` : null,
     fetcher,
   )
   const avisList = useMemo<Avis[]>(() => {
     if (!avisData) return []
-    const raw = (avisData as any)['hydra:member'] ?? avisData
+    const raw = (avisData as any)?.items ?? (avisData as any)['hydra:member'] ?? avisData
     return Array.isArray(raw) ? raw : []
   }, [avisData])
 
