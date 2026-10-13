@@ -1144,7 +1144,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
           )}
         </div>
         <header className="maps-place-heading"><h1>{facility.nom}</h1><div className="maps-rating-line"><button type="button" className="maps-rating-open" onClick={() => setTab('reviews')} aria-label={t('visitor.carte.reviews.count', { count: total })}><span>{mean.toFixed(1)}</span><Rating value={mean} /></button><button type="button" onClick={() => setTab('reviews')}>{t('visitor.carte.reviews.count', { count: total })}</button></div><p>{facility.type.replaceAll('_', ' ')}{facility.verificationStatut === 'VERIFIE' && <ShieldCheck size={15} aria-label={t('visitor.carte.verified')} />}</p></header>
-        <div className="maps-tabs" role="tablist" aria-label={t('visitor.carte.ariaFiche')}>{([['presentation', t('visitor.carte.tabPresentation')], ['reviews', t('visitor.carte.tabs.reviews')], ['about', t('visitor.carte.tabAbout')]] as const).map(([id, label]) => <button type="button" key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>)}</div>
+        <div className="maps-tabs" role="tablist" aria-label={t('visitor.carte.ariaFiche')}>{([['presentation', t('visitor.carte.tabPresentation')], ['reviews', t('visitor.carte.tabs.reviews')], ['about', t('visitor.carte.tabAbout')]] as const).map(([id, label]) => <button type="button" key={id} role="tab" aria-selected={tab === id} onClick={() => { setTab(id); if (id === 'reviews') void refreshReviews() }}>{label}</button>)}</div>
         {tab === 'presentation' && <div className="maps-actions">
           <Action icon={<Navigation size={20} />} onClick={() => { trackInteraction(facility.id, 'itineraire'); props.onRequestDirections(); setTab('directions') }}>{t('visitor.carte.actions.directions')}</Action>
           <Action icon={<Bookmark size={20} />} active={props.favorites.includes(facility.id)} onClick={() => { trackInteraction(facility.id, 'sauvegarde'); props.onToggleFavorite(facility.id) }}>{props.favorites.includes(facility.id) ? t('visitor.carte.markerSaved') : t('visitor.carte.markerSave')}</Action>
@@ -1592,7 +1592,25 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             </div>
             {isLoading && <p role="status" className="maps-inline-status">{t('visitor.carte.reviewsLoading')}</p>}
             {reviewError && <p role="alert" className="maps-inline-status">{t('visitor.carte.reviewsLoadError')}</p>}
-            {!isLoading && !reviewError && visibleReviews.length === 0 && <p className="maps-inline-status">{t('visitor.carte.reviewsEmpty')}</p>}
+            {!isLoading && !reviewError && visibleReviews.length === 0 && (
+              total > 0 ? (
+                <div className="maps-review-sync" role="status">
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                  <p>{t('visitor.carte.reviewsSyncing')}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void refreshReviews()
+                      if (selected) void mutate(`/api/centre_de_santes/${selected.id}/fiche`)
+                    }}
+                  >
+                    {t('visitor.carte.reviewsSyncRetry')}
+                  </button>
+                </div>
+              ) : (
+                <p className="maps-inline-status">{t('visitor.carte.reviewsEmpty')}</p>
+              )
+            )}
             {visibleReviews.map((review) => {
               const menuOuvert = menuReviewId === review.id
               const stats = statsAuteur[review.auteurNom ?? ''] ?? { avis: 1, photos: 0 }
