@@ -644,9 +644,11 @@ export default function EtablissementDrawer({
     selectedId ? `/api/centre_de_santes/${selectedId}/fiche` : null,
   )
 
-  const { data: avisDataRaw, isLoading: avisLoading, mutate: mutateAvis } = useSWR<unknown>(
+  const { data: avisDataRaw, isLoading: avisLoading, error: avisError, mutate: mutateAvis } = useSWR<unknown>(
     selectedId ? `/api/etablissements/${selectedId}/avis?itemsPerPage=100` : null,
-    { revalidateOnMount: true },
+    // Relecture périodique + `dedupingInterval: 0` pour ne pas hériter du
+    // réglage global (120 s), qui retarderait l'affichage d'un nouvel avis.
+    { revalidateOnMount: true, refreshInterval: 45000, dedupingInterval: 0 },
   )
   const avisData: Avis[] | undefined = useMemo(() => {
     if (!avisDataRaw) return undefined
@@ -1103,6 +1105,12 @@ export default function EtablissementDrawer({
                     <div className="flex justify-center py-6">
                       <Loader2 className="h-6 w-6 animate-spin text-primary-500" />
                     </div>
+                  ) : avisError ? (
+                    // Ne jamais afficher « Aucun avis » sur une erreur réseau/API :
+                    // c'est ce message trompeur qui masquait un chargement cassé.
+                    <p role="alert" className="text-center text-sm text-red-600 dark:text-red-400">
+                      {t('visitor.carte.reviewsLoadError')}
+                    </p>
                   ) : sortedAvis.length === 0 ? (
                     <p className="text-center text-sm text-slate-500 dark:text-slate-400">{t('visitor.carte.reviews.noReviews')}</p>
                   ) : (

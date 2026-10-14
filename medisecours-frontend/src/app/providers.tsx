@@ -3,6 +3,8 @@
 import { memo, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import { SWRConfig } from 'swr'
+import { swrConfig } from '../lib/fetcher'
 import { AuthProvider } from '../contexts/AuthContext'
 import { NotificationProvider } from '../contexts/NotificationContext'
 import { ToastProvider } from '../components/ui/Toast'
@@ -39,21 +41,28 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <StableGoogleProvider>
-      <AuthProvider key={currentLang}>
-        <ToastProvider>
-          {hideShell ? (
-            children
-          ) : (
-            <NotificationProvider>
-              <Navbar />
-              <main className="flex-1 flex flex-col min-h-0">{children}</main>
-              {!isMessagingRoute && !isCentresRoute && <Footer />}
-              {!isCentresRoute && <FloatingHelpButton />}
-            </NotificationProvider>
-          )}
-        </ToastProvider>
-      </AuthProvider>
-    </StableGoogleProvider>
+    // SWRConfig global : sans fetcher, `useSWR(clé)` ne déclenche AUCUNE
+    // requête dans SWR 2 (data=undefined, isLoading=false, error=undefined).
+    // Les composants hors layout (ex. /carte : MapsPanel, EtablissementDrawer)
+    // ne passent pas de fetcher explicite, donc aucune donnée n'était
+    // chargée : avis vide alors que l'en-tête affichait la note dénormalisée.
+    <SWRConfig value={swrConfig}>
+      <StableGoogleProvider>
+        <AuthProvider key={currentLang}>
+          <ToastProvider>
+            {hideShell ? (
+              children
+            ) : (
+              <NotificationProvider>
+                <Navbar />
+                <main className="flex-1 flex flex-col min-h-0">{children}</main>
+                {!isMessagingRoute && !isCentresRoute && <Footer />}
+                {!isCentresRoute && <FloatingHelpButton />}
+              </NotificationProvider>
+            )}
+          </ToastProvider>
+        </AuthProvider>
+      </StableGoogleProvider>
+    </SWRConfig>
   )
 }

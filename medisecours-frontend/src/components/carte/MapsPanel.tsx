@@ -634,7 +634,9 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(
     selected ? `/api/etablissements/${selected.id}/avis?itemsPerPage=100` : null,
     // Synchronisation temps réel : relecture périodique en arrière-plan.
-    { refreshInterval: 45000, revalidateOnFocus: true },
+    // `dedupingInterval: 0` obligatoire : le réglage global (120 s) supprimerait
+    // les relectures à 45 s et un avis publié mettrait plusieurs minutes à apparaître.
+    { refreshInterval: 45000, revalidateOnFocus: true, dedupingInterval: 0 },
   )
   const facility = useMemo(
     () => (detail ? { ...selected, ...detail } : selected),
