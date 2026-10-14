@@ -11,6 +11,7 @@ import { useToast } from '../ui/Toast'
 import { FicheInfos, MediaGallery, type EtablissementDrawerProps } from './EtablissementDrawer'
 import { formatDistanceKm, formatDuration, getEtablissementPhoto, haversineKm, toGoogleMapsUrl, toWazeUrl, WAYFINDING_MODES, type Avis, type EtablissementMedia, type FicheCentre } from '../../lib/carte'
 import { getMediaEmbedUrl, getMediaProviderLabel, getMediaThumbnailUrl, isExternalVideoMedia, parseExternalVideoUrl, EXTERNAL_VIDEO_PROVIDER_LABELS } from '../../lib/externalVideo'
+import { extractAvisList } from '../../lib/api'
 import { imgUrl } from '../../lib/config'
 import { trackInteraction } from '../../lib/track'
 
@@ -636,8 +637,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     [detail, selected],
   )
   const reviews = useMemo(() => {
-    const raw = reviewResponse as { items?: Avis[]; member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
-    const values = Array.isArray(raw) ? raw : raw?.items ?? raw?.member ?? raw?.['hydra:member'] ?? []
+    const values = extractAvisList<Avis>(reviewResponse)
     return values.filter(review => review.statut === 'PUBLIE').filter(review => !reviewSearch || `${review.auteurNom ?? ''} ${review.commentaire ?? ''}`.toLocaleLowerCase().includes(reviewSearch.toLocaleLowerCase())).sort((a, b) => {
       if (sort === 'positive') return b.note - a.note
       if (sort === 'critical') return a.note - b.note
@@ -1015,9 +1015,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       // bien dans la liste rechargée, avec relances en cas de lecture stale.
       const containsCreated = (list: unknown): boolean => {
         if (createdId == null) return true
-        const raw = list as { items?: Avis[]; member?: Avis[]; 'hydra:member'?: Avis[] } | Avis[] | undefined
-        const values = Array.isArray(raw) ? raw : raw?.items ?? raw?.member ?? raw?.['hydra:member'] ?? []
-        return values.some((item) => item?.id === createdId)
+        return extractAvisList<Avis>(list).some((item) => item?.id === createdId)
       }
       let updated = await refreshReviews()
       for (let attempt = 0; attempt < 2 && !containsCreated(updated); attempt++) {

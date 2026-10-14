@@ -54,6 +54,7 @@ import {
   type EtablissementType,
   type FicheCentre,
 } from '../../lib/carte'
+import { extractAvisList } from '../../lib/api'
 import { imgUrl } from '../../lib/config'
 import { useToast } from '../ui/Toast'
 import { FACILITY_OPTION_GROUPS, type FacilityOptionGroup } from '../../lib/facilityOptions'
@@ -649,9 +650,7 @@ export default function EtablissementDrawer({
   )
   const avisData: Avis[] | undefined = useMemo(() => {
     if (!avisDataRaw) return undefined
-    const raw = (avisDataRaw as { items?: Avis[]; 'hydra:member'?: Avis[] }) ?? {}
-    const values = Array.isArray(avisDataRaw) ? (avisDataRaw as Avis[]) : raw.items ?? raw['hydra:member'] ?? []
-    return values
+    return extractAvisList<Avis>(avisDataRaw)
   }, [avisDataRaw])
 
   const fiche = useMemo(() => (ficheData ? { ...selectedCentre, ...ficheData } : selectedCentre), [ficheData, selectedCentre]) as FicheCentre | null

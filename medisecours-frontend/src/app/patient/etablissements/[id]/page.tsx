@@ -27,6 +27,7 @@ import { mutate as globalMutate } from 'swr'
 import api from '../../../../api/axios'
 import { useAuth } from '../../../../hooks/useAuth'
 import { fetcher, fetcherIds } from '../../../../lib/fetcher'
+import { extractAvisList } from '../../../../lib/api'
 import { FAVORIS_KEY } from '../../../../lib/keys'
 import {
   FACILITY_COLORS,
@@ -69,11 +70,7 @@ export default function PatientEtablissementDetailPage() {
     centreId ? `/api/etablissements/${centreId}/avis?itemsPerPage=100` : null,
     fetcher,
   )
-  const avisList = useMemo<Avis[]>(() => {
-    if (!avisData) return []
-    const raw = (avisData as any)?.items ?? (avisData as any)['hydra:member'] ?? avisData
-    return Array.isArray(raw) ? raw : []
-  }, [avisData])
+  const avisList = useMemo<Avis[]>(() => extractAvisList<Avis>(avisData), [avisData])
 
   const { data: favoris, mutate: mutateFavoris } = useSWR<number[]>(isAuthenticated ? FAVORIS_KEY : null, fetcherIds)
   const favoriteIds = Array.isArray(favoris) ? favoris : []

@@ -12,10 +12,14 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Lecture des avis d'établissement.
+ * Lecture des avis d'établissement (collection API Platform générique).
  *
  * - Utilisateur anonyme / lambda : seuls les avis PUBLIE sont exposés.
  * - Administrateur : accès à tout (modération : EN_ATTENTE / REJETE aussi).
+ *
+ * La requête passe par AvisEtablissementRepository::findPublicByEtablissement,
+ * source unique partagée avec GET /api/etablissements/{id}/avis : les deux
+ * voies de lecture ne peuvent plus diverger.
  */
 class AvisEtablissementCollectionProvider implements ProviderInterface
 {

@@ -52,25 +52,9 @@ final class AvisEtablissementListeController extends AbstractController
         $page = max(1, (int) $request->query->get('page', 1));
         $perPage = min(100, max(1, (int) $request->query->get('itemsPerPage', 50)));
 
-        $qb = $em->getRepository(AvisEtablissement::class)->createQueryBuilder('a')
-            ->where('a.etablissement = :centre')
-            ->setParameter('centre', $centre)
-            ->andWhere('a.statut = :statut')
-            ->setParameter('statut', 'PUBLIE')
-            ->orderBy('a.createdAt', 'DESC')
-            ->addOrderBy('a.id', 'DESC');
-        if ($note !== null) {
-            $qb->andWhere('a.note = :note')->setParameter('note', $note);
-        }
-
-        $countQb = clone $qb;
-        $total = (int) $countQb->select('COUNT(a.id)')->getQuery()->getSingleScalarResult();
-
-        $items = $qb
-            ->setFirstResult(($page - 1) * $perPage)
-            ->setMaxResults($perPage)
-            ->getQuery()
-            ->getResult();
+        $avisRepository = $em->getRepository(AvisEtablissement::class);
+        $total = $avisRepository->countPublic($centre, $note);
+        $items = $avisRepository->findPublicList($centre, $note, ($page - 1) * $perPage, $perPage);
 
         $response = new JsonResponse([
             'items' => array_map(
