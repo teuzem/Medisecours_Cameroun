@@ -90,6 +90,28 @@ class AvisEtablissementRepository extends ServiceEntityRepository
     }
 
     /**
+     * Agrégats calculés EN DIRECT sur les avis publiés (note moyenne, total),
+     * sans passer par les colonnes dénormalisées de la fiche : le résumé
+     * affiché est toujours cohérent avec la liste lue.
+     *
+     * @return array{noteMoyenne: float, total: int}
+     */
+    public function aggregatesFor(CentreDeSante $centre): array
+    {
+        /** @var array{note_moyenne: string|float|null, total_avis: string|int} $row */
+        $row = $this->createPublicQueryBuilder($centre, null)
+            ->select('COALESCE(AVG(a.note), 0) AS note_moyenne, COUNT(a.id) AS total_avis')
+            ->resetDQLPart('orderBy')
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            'noteMoyenne' => round((float) ($row['note_moyenne'] ?? 0), 1),
+            'total' => (int) ($row['total_avis'] ?? 0),
+        ];
+    }
+
+    /**
      * Recalcule et met à jour la note moyenne et le total d'avis publiés d'un
      * établissement. Appelé après chaque écriture via AvisEtablissementProcessor,
      * les contrôleurs dédiés et la commande app:avis:refresh-aggregates.

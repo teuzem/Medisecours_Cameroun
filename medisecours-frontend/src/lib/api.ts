@@ -24,19 +24,16 @@ export function extractTotal(responseData: any, fallback = 0) {
 }
 
 /**
- * Extrait la liste des avis depuis toutes les formes de réponse connues :
- * - enveloppe dédiée `{items: [...]}` (GET /api/etablissements/{id}/avis),
- * - Hydra (`hydra:member` / `member`),
- * - tableau brut.
- * Garantit toujours un Array (jamais null/undefined/objet) afin que la
- * fiche n'affiche jamais une liste vide par erreur de forme.
+ * Extrait la liste des avis depuis l'enveloppe dédiée `{items: [...]}`
+ * (GET /api/etablissements/{id}/avis) ou un tableau brut.
+ *
+ * Seule la plateforme est lue : aucune extraction d'avis tiers (Google ou
+ * autre) n'a lieu ici. Garantit toujours un Array (jamais null ni objet)
+ * afin que la fiche n'affiche jamais une liste vide par erreur de forme.
  */
 export function extractAvisList<T = any>(responseData: any): T[] {
   if (!responseData) return []
   if (Array.isArray(responseData)) return responseData as T[]
-  const nested =
-    (responseData as { items?: unknown })?.items ??
-    responseData?.member ??
-    responseData?.['hydra:member']
+  const nested = (responseData as { items?: unknown })?.items
   return Array.isArray(nested) ? (nested as T[]) : []
 }

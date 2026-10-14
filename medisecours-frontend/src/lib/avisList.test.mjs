@@ -33,14 +33,12 @@ test('regression: five published reviews are never collapsed to empty', () => {
   )
 })
 
-test('keeps legacy Hydra and member envelopes working', () => {
-  assert.deepEqual(extractAvisList({ member: [review(1)] }).map((r) => r.id), [1])
-  assert.deepEqual(extractAvisList({ 'hydra:member': [review(2)] }).map((r) => r.id), [2])
+test('reads raw arrays directly', () => {
   assert.deepEqual(extractAvisList([review(3)]).map((r) => r.id), [3])
 })
 
-test('never returns nullish or non-array values', () => {
-  for (const bad of [null, undefined, {}, { items: null }, { member: 'x' }, 42, 'oops']) {
+test('ignores anything that is not the platform envelope', () => {
+  for (const bad of [null, undefined, {}, { items: null }, { member: [review(1)] }, { 'hydra:member': [review(2)] }, 42, 'oops']) {
     assert.deepEqual(extractAvisList(bad), [])
   }
 })

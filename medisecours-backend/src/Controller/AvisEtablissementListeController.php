@@ -63,6 +63,7 @@ final class AvisEtablissementListeController extends AbstractController
             ),
             'total' => $total,
             'page' => $page,
+            'aggregates' => $avisRepository->aggregatesFor($centre),
         ]);
         $response->headers->set('Cache-Control', 'no-store, must-revalidate');
         $response->headers->set('Pragma', 'no-cache');

@@ -631,7 +631,11 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [uploading, setUploading] = useState(false)
   const selected = props.visibleCentres.find(centre => centre.id === props.selectedId)
   const { data: detail, error: detailError } = useSWR<FicheCentre>(selected ? `/api/centre_de_santes/${selected.id}/fiche` : null)
-  const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(selected ? `/api/etablissements/${selected.id}/avis?itemsPerPage=100` : null)
+  const { data: reviewResponse, error: reviewError, isLoading, mutate: refreshReviews } = useSWR<unknown>(
+    selected ? `/api/etablissements/${selected.id}/avis?itemsPerPage=100` : null,
+    // Synchronisation temps réel : relecture périodique en arrière-plan.
+    { refreshInterval: 45000, revalidateOnFocus: true },
+  )
   const facility = useMemo(
     () => (detail ? { ...selected, ...detail } : selected),
     [detail, selected],
@@ -1118,6 +1122,11 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
     : baseList
   const mean = facility?.noteMoyenne ?? 0
   const total = facility?.totalAvis ?? 0
+  // Note et compteur calculés EN DIRECT sur les avis plateforme lus
+  // (agrégats de la réponse), avec repli sur la fiche avant chargement.
+  const liveAggregates = (reviewResponse as { aggregates?: { noteMoyenne?: number; total?: number } } | null)?.aggregates
+  const displayMean = typeof liveAggregates?.noteMoyenne === 'number' ? liveAggregates.noteMoyenne : mean
+  const displayTotal = typeof liveAggregates?.total === 'number' ? liveAggregates.total : total
   const hasCoords = facility?.latitude != null && facility.longitude != null
 
   return <>
@@ -1141,7 +1150,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             </button>
           )}
         </div>
-        <header className="maps-place-heading"><h1>{facility.nom}</h1><div className="maps-rating-line"><button type="button" className="maps-rating-open" onClick={() => setTab('reviews')} aria-label={t('visitor.carte.reviews.count', { count: total })}><span>{mean.toFixed(1)}</span><Rating value={mean} /></button><button type="button" onClick={() => setTab('reviews')}>{t('visitor.carte.reviews.count', { count: total })}</button></div><p>{facility.type.replaceAll('_', ' ')}{facility.verificationStatut === 'VERIFIE' && <ShieldCheck size={15} aria-label={t('visitor.carte.verified')} />}</p></header>
+        <header className="maps-place-heading"><h1>{facility.nom}</h1><div className="maps-rating-line"><button type="button" className="maps-rating-open" onClick={() => setTab('reviews')} aria-label={t('visitor.carte.reviews.count', { count: displayTotal })}><span>{displayMean.toFixed(1)}</span><Rating value={displayMean} /></button><button type="button" onClick={() => setTab('reviews')}>{t('visitor.carte.reviews.count', { count: displayTotal })}</button></div><p>{facility.type.replaceAll('_', ' ')}{facility.verificationStatut === 'VERIFIE' && <ShieldCheck size={15} aria-label={t('visitor.carte.verified')} />}</p></header>
         <div className="maps-tabs" role="tablist" aria-label={t('visitor.carte.ariaFiche')}>{([['presentation', t('visitor.carte.tabPresentation')], ['reviews', t('visitor.carte.tabs.reviews')], ['about', t('visitor.carte.tabAbout')]] as const).map(([id, label]) => <button type="button" key={id} role="tab" aria-selected={tab === id} onClick={() => { setTab(id); if (id === 'reviews') void refreshReviews() }}>{label}</button>)}</div>
         {tab === 'presentation' && <div className="maps-actions">
           <Action icon={<Navigation size={20} />} onClick={() => { trackInteraction(facility.id, 'itineraire'); props.onRequestDirections(); setTab('directions') }}>{t('visitor.carte.actions.directions')}</Action>
@@ -1489,9 +1498,9 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
                 })}
               </div>
               <div className="maps-review-score">
-                <strong>{mean.toFixed(1).replace('.', ',')}</strong>
-                <Rating value={mean} />
-                <p>{t('visitor.carte.reviews.count', { count: total })}</p>
+                <strong>{displayMean.toFixed(1).replace('.', ',')}</strong>
+                <Rating value={displayMean} />
+                <p>{t('visitor.carte.reviews.count', { count: displayTotal })}</p>
               </div>
               <div className="maps-review-notice">
                 <button type="button" aria-expanded={noticeOpen} aria-controls="maps-review-notice-text" aria-label={t('visitor.carte.ariaAboutReviews')} onClick={() => setNoticeOpen(current => !current)}>
@@ -1591,23 +1600,7 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             {isLoading && <p role="status" className="maps-inline-status">{t('visitor.carte.reviewsLoading')}</p>}
             {reviewError && <p role="alert" className="maps-inline-status">{t('visitor.carte.reviewsLoadError')}</p>}
             {!isLoading && !reviewError && visibleReviews.length === 0 && (
-              total > 0 ? (
-                <div className="maps-review-sync" role="status">
-                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-                  <p>{t('visitor.carte.reviewsSyncing')}</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void refreshReviews()
-                      if (selected) void mutate(`/api/centre_de_santes/${selected.id}/fiche`)
-                    }}
-                  >
-                    {t('visitor.carte.reviewsSyncRetry')}
-                  </button>
-                </div>
-              ) : (
-                <p className="maps-inline-status">{t('visitor.carte.reviewsEmpty')}</p>
-              )
+              <p className="maps-inline-status">{t('visitor.carte.reviewsEmpty')}</p>
             )}
             {visibleReviews.map((review) => {
               const menuOuvert = menuReviewId === review.id

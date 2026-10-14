@@ -974,15 +974,6 @@
 .maps-review-link-preview p { font-size: 11px; font-weight: 800; color: #475569; margin-bottom: 6px; }
 .maps-review-link-frame { overflow: hidden; border-radius: 12px; background: #000; }
 .maps-review-link-frame iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
-.maps-review-sync {
-  display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; padding: 14px;
-  border: 1px dashed #cbdbea; border-radius: 12px; background: #f6fafd; color: #1e3a5f; font-size: 12px; font-weight: 600;
-}
-.maps-review-sync button {
-  flex-shrink: 0; padding: 7px 14px; border: 0; border-radius: 999px; background: #1e3a5f; color: #fff;
-  font-size: 12px; font-weight: 700;
-}
-.maps-review-sync button:hover { background: #2a4f7e; }
 
 /* ── Bouton Voir plus : breathtaking, élégant ── */
 .maps-btn-voir-plus {

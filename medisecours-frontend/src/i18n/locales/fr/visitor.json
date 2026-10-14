@@ -503,9 +503,7 @@
       "reviewLinkLabel": "Ou ajouter un lien vidéo (YouTube, TikTok, Instagram…)",
       "reviewLinkPlaceholder": "https://www.youtube.com/watch?v=…",
       "reviewLinkInvalid": "Lien vidéo non pris en charge.",
-      "toastReviewPending": "Avis publié. Actualisation de la liste en cours…",
-      "reviewsSyncing": "Avis publiés : synchronisation de la liste en cours…",
-      "reviewsSyncRetry": "Réessayer"
+      "toastReviewPending": "Avis publié. Actualisation de la liste en cours…"
     },
     "notFound": {
       "title": "Diagnostic : page introuvable",
