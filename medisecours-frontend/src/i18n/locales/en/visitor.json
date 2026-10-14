@@ -503,7 +503,11 @@
       "reviewLinkLabel": "Or add a video link (YouTube, TikTok, Instagram…)",
       "reviewLinkPlaceholder": "https://www.youtube.com/watch?v=…",
       "reviewLinkInvalid": "Unsupported video link.",
-      "toastReviewPending": "Review published. Refreshing the list…"
+      "toastReviewPending": "Review published. Refreshing the list…",
+      "reviewLikeError": "Could not save your like.",
+      "likeCount_one": "{{count}} like",
+      "likeCount_other": "{{count}} likes",
+      "reviewsShareUnavailable": "Sharing is unavailable."
     },
     "notFound": {
       "title": "Diagnosis: page not found",
@@ -1826,7 +1830,8 @@
         "causes": "Causes",
         "firstAid": "First aid steps",
         "precautions": "Precautions",
-        "treatment": "Treatment"
+        "treatment": "Treatment",
+        "notContagious": "Not contagious"
       },
       "centresMap": {
         "yourPosition": "Your current position",

@@ -55,6 +55,8 @@ import {
   type FicheCentre,
 } from '../../lib/carte'
 import { extractAvisList } from '../../lib/api'
+import { avisLikeState, setAvisLike } from '../../lib/avisLikes'
+import { isVideoMedia, ReviewAvatar, ReviewImages, ReviewVideo } from './ReviewMedia'
 import { imgUrl } from '../../lib/config'
 import { useToast } from '../ui/Toast'
 import { FACILITY_OPTION_GROUPS, type FacilityOptionGroup } from '../../lib/facilityOptions'
@@ -600,7 +602,7 @@ export default function EtablissementDrawer({
   const [joined, setJoined] = useState(false)
   const [wishlisted, setWishlisted] = useState(false)
   const [collectionSaved, setCollectionSaved] = useState(false)
-  const [likedReviews, setLikedReviews] = useState<number[]>([])
+  const [jaimeOverrides, setJaimeOverrides] = useState<Record<number, { aime: boolean; nbJaime: number }>>({})
   const [view, setView] = useState<'explore' | 'saved' | 'recent'>('explore')
 
   const [prevSelectedId, setPrevSelectedId] = useState(selectedId)
@@ -654,6 +656,27 @@ export default function EtablissementDrawer({
     if (!avisDataRaw) return undefined
     return extractAvisList<Avis>(avisDataRaw)
   }, [avisDataRaw])
+
+  const toggleAvisLike = async (avis: Avis) => {
+    if (!isAuthenticated) {
+      window.location.assign('/login')
+      return
+    }
+    const current = avisLikeState(avis, jaimeOverrides[avis.id])
+    const cible = !current.aime
+    setJaimeOverrides((o) => ({ ...o, [avis.id]: { aime: cible, nbJaime: Math.max(0, current.nbJaime + (cible ? 1 : -1)) } }))
+    try {
+      const resultat = await setAvisLike(avis.id, cible)
+      setJaimeOverrides((o) => ({ ...o, [avis.id]: resultat }))
+    } catch {
+      setJaimeOverrides((o) => {
+        const suivant = { ...o }
+        delete suivant[avis.id]
+        return suivant
+      })
+      toast.error(t('visitor.carte.reviewLikeError'))
+    }
+  }
 
   const fiche = useMemo(() => (ficheData ? { ...selectedCentre, ...ficheData } : selectedCentre), [ficheData, selectedCentre]) as FicheCentre | null
 
@@ -738,9 +761,9 @@ export default function EtablissementDrawer({
 
       <nav className="pointer-events-auto absolute bottom-3 left-3 top-3 hidden w-16 flex-col items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 px-1.5 py-3 backdrop-blur xl:flex dark:border-white/10 dark:bg-slate-950/95">
         {([
-          ['explore', MapIcon, 'Explorer'],
-          ['saved', Bookmark, 'Enregistres'],
-          ['recent', History, 'Recents'],
+          ['explore', MapIcon, t('visitor.carte.viewExplore')],
+          ['saved', Bookmark, t('visitor.carte.viewSaved')],
+          ['recent', History, t('visitor.carte.viewRecent')],
         ] as const).map(([key, Icon, label]) => (
           <button
             key={key}
@@ -894,7 +917,7 @@ export default function EtablissementDrawer({
                 <a href={selectedCentre.telephone ? `sms:${selectedCentre.telephone}?body=${encodeURIComponent(`${selectedCentre.nom} - ${selectedCentre.adresse}`)}` : undefined} aria-disabled={!selectedCentre.telephone} className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10 ${!selectedCentre.telephone ? 'pointer-events-none opacity-40' : ''}`}>
                   <Phone className="h-5 w-5 text-primary-600" />Vers telephone
                 </a>
-                <button type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href); toast.success('Lien copie') }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
+                <button type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href); toast.success(t('visitor.carte.toastLinkCopied')) }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">
                   <Share2 className="h-5 w-5 text-primary-600" />Partager
                 </button>
                 <button type="button" onClick={onSosClick} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl bg-rose-600 text-[11px] font-bold text-white hover:bg-rose-700">
@@ -915,7 +938,13 @@ export default function EtablissementDrawer({
                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
-                    {key === 'presentation' ? 'Presentation' : key === 'reviews' ? 'Avis' : 'A propos'}
+                    {t(
+                      key === 'presentation'
+                        ? 'visitor.carte.tabPresentation'
+                        : key === 'reviews'
+                          ? 'visitor.carte.tabReviews'
+                          : 'visitor.carte.tabAbout',
+                    )}
                   </button>
                 ))}
               </div>
@@ -1117,13 +1146,15 @@ export default function EtablissementDrawer({
                     <div className="space-y-3">
                       {sortedAvis
                         .filter((avis) => avis.statut === 'PUBLIE' || isAdmin)
-                        .map((avis) => (
+.map((avis) => {
+                          const like = avisLikeState(avis, jaimeOverrides[avis.id])
+                          const photos = (avis.images ?? []).filter((media) => !isVideoMedia(media))
+                          const videos = (avis.images ?? []).filter((media) => isVideoMedia(media))
+                          return (
                           <div key={avis.id} className="rounded-xl border border-slate-200 p-3 dark:border-white/10">
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex items-center gap-2">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500 dark:bg-white/10 dark:text-slate-300">
-                                  {(avis.auteurNom || 'A')[0]?.toUpperCase()}
-                                </span>
+                                <ReviewAvatar nom={avis.auteurNom} photo={avis.auteurPhoto} />
                                 <div>
                                   <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
                                     {avis.auteurNom || t('visitor.carte.reviews.anonymousAuthor')}
@@ -1136,25 +1167,26 @@ export default function EtablissementDrawer({
                             {avis.commentaire && (
                               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{avis.commentaire}</p>
                             )}
+                            <ReviewImages photos={photos} />
+                            {videos.map((media) => <ReviewVideo key={media.id} media={media} />)}
                             <div className="mt-3 flex items-center gap-4 border-t border-slate-100 pt-3 dark:border-white/10">
                               <button
                                 type="button"
-                                aria-pressed={likedReviews.includes(avis.id)}
-                                onClick={() =>
-                                  setLikedReviews((current) =>
-                                    current.includes(avis.id)
-                                      ? current.filter((id) => id !== avis.id)
-                                      : [...current, avis.id],
-                                  )
-                                }
+                                aria-pressed={like.aime}
+                                onClick={() => void toggleAvisLike(avis)}
                                 className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
-                                  likedReviews.includes(avis.id)
+                                  like.aime
                                     ? 'text-primary-700 dark:text-primary-300'
                                     : 'text-slate-500 hover:text-primary-700 dark:text-slate-400 dark:hover:text-primary-300'
                                 }`}
                               >
-                                <ThumbsUp className={`h-4 w-4 ${likedReviews.includes(avis.id) ? 'fill-current' : ''}`} />
-                                J’aime
+                                <ThumbsUp className={`h-4 w-4 ${like.aime ? 'fill-current' : ''}`} />
+                                {t('visitor.carte.likeButton')}
+                                {like.nbJaime > 0 && (
+                                  <span className="inline-grid h-[18px] min-w-[18px] place-items-center rounded-full bg-slate-100 px-1.5 text-[11px] font-bold text-slate-700 dark:bg-white/10 dark:text-slate-200">
+                                    {like.nbJaime}
+                                  </span>
+                                )}
                               </button>
                               <button
                                 type="button"
@@ -1168,19 +1200,20 @@ export default function EtablissementDrawer({
                                       toast.success(t('visitor.etablissement.reviewCopied'))
                                     }
                                   } catch (error) {
-                                    if ((error as Error).name !== 'AbortError') toast.error('Le partage est indisponible.')
+                                    if ((error as Error).name !== 'AbortError') toast.error(t('visitor.carte.reviewsShareUnavailable'))
                                   }
                                 }}
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-primary-700 dark:text-slate-400 dark:hover:text-primary-300"
                               >
                                 <Share2 className="h-4 w-4" />
-                                Partager
+                                {t('visitor.carte.actionShare')}
                               </button>
                             </div>
                           </div>
-                        ))}
-                    </div>
-                  )}
+                        )
+                        })}
+                      </div>
+                    )}
                 </div>
               )}
             </div>
@@ -1203,9 +1236,9 @@ export default function EtablissementDrawer({
 
               <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 xl:hidden dark:bg-white/5">
                 {([
-                  ['explore', MapIcon, 'Explorer'],
-                  ['saved', Bookmark, 'Enregistres'],
-                  ['recent', History, 'Recents'],
+                  ['explore', MapIcon, t('visitor.carte.viewExplore')],
+                  ['saved', Bookmark, t('visitor.carte.viewSaved')],
+                  ['recent', History, t('visitor.carte.viewRecent')],
                 ] as const).map(([key, Icon, label]) => (
                   <button
                     key={key}

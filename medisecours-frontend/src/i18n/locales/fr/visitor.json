@@ -503,7 +503,11 @@
       "reviewLinkLabel": "Ou ajouter un lien vidéo (YouTube, TikTok, Instagram…)",
       "reviewLinkPlaceholder": "https://www.youtube.com/watch?v=…",
       "reviewLinkInvalid": "Lien vidéo non pris en charge.",
-      "toastReviewPending": "Avis publié. Actualisation de la liste en cours…"
+      "toastReviewPending": "Avis publié. Actualisation de la liste en cours…",
+      "reviewLikeError": "Impossible d'enregistrer votre « J'aime ».",
+      "likeCount_one": "{{count}} J’aime",
+      "likeCount_other": "{{count}} J’aime",
+      "reviewsShareUnavailable": "Le partage est indisponible."
     },
     "notFound": {
       "title": "Diagnostic : page introuvable",
@@ -1826,7 +1830,8 @@
         "causes": "Causes",
         "firstAid": "Gestes de premiers secours",
         "precautions": "Précautions",
-        "treatment": "Traitement"
+        "treatment": "Traitement",
+        "notContagious": "Non contagieuse"
       },
       "centresMap": {
         "yourPosition": "Votre position actuelle",

@@ -125,6 +125,12 @@ export interface Avis {
   signale: boolean
   createdAt: string
   auteurNom?: string | null
+  /** Photo de profil de l'auteur (URL absolue ou chemin téléversé). */
+  auteurPhoto?: string | null
+  /** Nombre de « J'aime » (toujours présent sur l'endpoint dédié). */
+  nbJaime?: number
+  /** L'utilisateur connecté a déjà aimé cet avis. */
+  aimeParMoi?: boolean
   images?: EtablissementMedia[]
 }
 

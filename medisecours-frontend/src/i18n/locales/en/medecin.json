@@ -468,7 +468,8 @@
         "prescriptions": "Prescriptions",
         "etablissementTitle": "By facility",
         "etablissementSub": "Consultations linked to each structure",
-        "etablissementLabel": "Facility"
+        "etablissementLabel": "Facility",
+        "interactions": "Interactions"
       },
       "blood": {
         "patients": "Patients",
@@ -643,7 +644,8 @@
       "endTitle": "Need additional help?",
       "endDesc": "Our technical team is available to assist you.",
       "backDashboard": "Back to dashboard"
-    }
+    },
+    "consultations": {}
   },
   "signature": {
     "padAria": "Handwritten signature area",

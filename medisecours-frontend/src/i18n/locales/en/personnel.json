@@ -122,7 +122,8 @@
       "aucunOuvert": "No light cases pending.",
       "aucunePrise": "No ongoing intervention.",
       "enServiceLabel": "Crew available",
-      "enServiceDesc": "Receive priority light cases to transport."
+      "enServiceDesc": "Receive priority light cases to transport.",
+      "intro": "Ambulance schedule and crew availability: review open slots and assign a crew."
     },
     "accueil": {
       "titre": "Patient admission",

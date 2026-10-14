@@ -468,7 +468,8 @@
         "prescriptions": "Prescriptions",
         "etablissementTitle": "Par établissement",
         "etablissementSub": "Consultations rattachées à chaque structure",
-        "etablissementLabel": "Établissement"
+        "etablissementLabel": "Établissement",
+        "interactions": "Interactions"
       },
       "blood": {
         "patients": "Patients",
@@ -643,7 +644,8 @@
       "endTitle": "Besoin d'aide supplémentaire ?",
       "endDesc": "Notre équipe technique est disponible pour vous accompagner.",
       "backDashboard": "Retour au tableau de bord"
-    }
+    },
+    "consultations": {}
   },
   "signature": {
     "padAria": "Zone de signature manuscrite",

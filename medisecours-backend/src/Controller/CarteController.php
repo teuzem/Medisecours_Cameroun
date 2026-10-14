@@ -1538,6 +1538,10 @@ class CarteController extends AbstractController
             'signale' => $avis->isSignale(),
             'raisonSignalement' => $avis->getRaisonSignalement(),
             'auteurNom' => $avis->getAuteurNom(),
+            // Photo de profil de l'auteur (URL Google ou chemin téléversé) :
+            // l'interface affiche l'image réelle et retombe sur les initiales
+            // quand le compte n'a pas de photo.
+            'auteurPhoto' => $avis->getUser()?->getPhotoProfil(),
             'createdAt' => $avis->getCreatedAt()->format('c'),
             'updatedAt' => $avis->getUpdatedAt()?->format('c'),
             'images' => array_map(

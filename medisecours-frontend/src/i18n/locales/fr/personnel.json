@@ -122,7 +122,8 @@
       "aucunOuvert": "Aucun cas léger en attente.",
       "aucunePrise": "Aucune intervention en cours.",
       "enServiceLabel": "Équipage disponible",
-      "enServiceDesc": "Recevoir les cas légers à transporter en priorité."
+      "enServiceDesc": "Recevoir les cas légers à transporter en priorité.",
+      "intro": "Planning des ambulances : consultez les créneaux disponibles et affectez un équipage."
     },
     "accueil": {
       "titre": "Admission patient",

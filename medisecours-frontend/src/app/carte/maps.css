@@ -407,6 +407,8 @@
 .maps-review-note { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .maps-review-note small { color: #5f6368; font-size: 11px; }
 .maps-avatar { display: grid; place-items: center; width: 36px; height: 36px; background: #eaf0f7; color: #1a3252; border-radius: 50%; flex-shrink: 0; }
+/* Photo de profil réelle : l'initiale est remplacée par l'image, pas superposée. */
+.maps-avatar-photo { display: block; object-fit: cover; background: #eaf0f7; }
 .maps-review-author strong { font-size: 14px; font-weight: 500; }
 .maps-review-author > div > div { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
 .maps-review small { color: #5f6368; font-size: 11px; }
@@ -414,8 +416,37 @@
 .maps-review-actions { display: flex; gap: 24px; }
 .maps-review-actions button { display: flex; align-items: center; gap: 8px; background: transparent; font-size: 12px; color: #5f6368; padding: 8px 0; }
 .maps-review-actions button[aria-pressed="true"] { color: var(--maps-blue); }
-.maps-review-images { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; }
-.maps-review-images img { width: 112px; height: 112px; object-fit: cover; border-radius: 6px; }
+/* Galerie de photos d'un avis.
+   - une seule photo : pleine largeur, proportions réelles (height:auto) ;
+   - plusieurs : mosaïque 2 colonnes, la 1re pleine largeur quand il y en a 3,
+     et une vignette « +N » au-delà de 4 photos. */
+.maps-review-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin: 12px 0; }
+.maps-review-gallery.is-single { grid-template-columns: 1fr; }
+/* 3 photos : la première en pleine largeur, les deux autres en dessous. */
+.maps-review-gallery.is-triplet > :first-child { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
+.maps-review-gallery-cell { position: relative; display: block; overflow: hidden; padding: 0; border: 0; background: #eef2f7; cursor: zoom-in; }
+.maps-review-gallery-cell img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* proportion réelle mesurée à la charge : évite le saut de mise en page */
+.maps-review-gallery-cell[style*="aspect-ratio"] img { height: auto; }
+.maps-review-gallery.is-single .maps-review-gallery-cell img { max-height: 420px; object-fit: contain; background: #0f172a; }
+.maps-review-gallery-more {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: rgba(15, 23, 42, 0.55); color: #fff; font-size: 20px; font-weight: 700;
+}
+.maps-review-lightbox {
+  position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
+  padding: 24px; background: rgba(2, 6, 23, 0.94);
+}
+.maps-review-lightbox-image { max-width: 100%; max-height: 86vh; object-fit: contain; border-radius: 8px; }
+.maps-review-lightbox-close, .maps-review-lightbox-nav {
+  position: absolute; display: grid; place-items: center; width: 42px; height: 42px;
+  border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.14); color: #fff;
+}
+.maps-review-lightbox-close { top: 16px; right: 16px; }
+.maps-review-lightbox-nav { top: 50%; transform: translateY(-50%); }
+.maps-review-lightbox-nav.is-prev { left: 16px; }
+.maps-review-lightbox-nav.is-next { right: 16px; }
+.maps-review-lightbox-count { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #e2e8f0; font-size: 12px; font-weight: 600; }
 .maps-directions { min-width: 0; overflow-x: clip; }
 .maps-directions p { font-size: 13px; line-height: 1.6; margin: 12px 0; }
 .maps-mode-selector { display: flex; gap: 8px; margin: 12px 0; }
@@ -945,9 +976,17 @@
 .maps-review-foot button:hover { color: #1e3a5f; }
 .maps-review-foot button.is-active { color: #1e3a5f; }
 .maps-review-video { margin-top: 12px; }
+/* Vidéo d'un avis : une seule par avis, pleine largeur. Le ratio est fixé
+   depuis les dimensions réelles du fichier (cf. ReviewVideo) ; 16/9 reste
+   le repli tant que les métadonnées ne sont pas chargées. */
 .maps-review-video video, .maps-review-video iframe { display: block; width: 100%; border: 0; border-radius: 8px; background: #000; }
 .maps-review-video iframe { aspect-ratio: 16 / 9; }
-.maps-review-video video { max-height: 320px; background: #000; }
+.maps-review-video video { aspect-ratio: 16 / 9; max-height: 70vh; background: #000; object-fit: contain; }
+/* Vidéo portrait : hauteur bridée pour rester lisible dans la fiche. */
+.maps-review-video.is-portrait { display: flex; justify-content: center; }
+.maps-review-video.is-portrait video { width: auto; max-width: 100%; max-height: 70vh; }
+.maps-review-like-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #e8eef6; color: #1e3a5f; font-size: 11px; font-weight: 700; }
+.maps-review-foot button.is-active .maps-review-like-count { background: #1e3a5f; color: #fff; }
 .maps-review-video-thumb {
   position: relative; display: block; width: 100%; overflow: hidden; border: 0; border-radius: 8px; padding: 0;
   background: #0f172a; cursor: pointer;

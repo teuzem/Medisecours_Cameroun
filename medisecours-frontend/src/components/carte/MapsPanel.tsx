@@ -12,13 +12,14 @@ import { FicheInfos, MediaGallery, type EtablissementDrawerProps } from './Etabl
 import { formatDistanceKm, formatDuration, getEtablissementPhoto, haversineKm, toGoogleMapsUrl, toWazeUrl, WAYFINDING_MODES, type Avis, type EtablissementMedia, type FicheCentre } from '../../lib/carte'
 import { getMediaEmbedUrl, getMediaProviderLabel, getMediaThumbnailUrl, isExternalVideoMedia, parseExternalVideoUrl, EXTERNAL_VIDEO_PROVIDER_LABELS } from '../../lib/externalVideo'
 import { extractAvisList } from '../../lib/api'
+import { avisLikeState, setAvisLike } from '../../lib/avisLikes'
+import { isVideoMedia, ReviewAvatar, ReviewImages, ReviewVideo } from './ReviewMedia'
 import { imgUrl } from '../../lib/config'
 import { trackInteraction } from '../../lib/track'
 
 type View = 'explore' | 'saved' | 'recent'
 type Collection = { id: string; name: string; places: number[]; note: string }
 const COLLECTION_KEY = 'medisecours_map_named_collections'
-const LIKES_KEY = 'medisecours_carte_avis_likes'
 
 function ResultPhoto({ centre }: { centre: FicheCentre | EtablissementDrawerProps['visibleCentres'][number] }) {
   const { t } = useTranslation()
@@ -98,13 +99,6 @@ function formatRelativeDate(value?: string, language = 'fr'): string {
 }
 
 /** Teinte d'avatar déterministe par auteur (pastille couleur distinctive). */
-function teinteAvatar(nom?: string | null): number {
-  const base = nom ?? 'U'
-  let hash = 0
-  for (let i = 0; i < base.length; i++) hash = (hash * 31 + base.charCodeAt(i)) % 360
-  return hash
-}
-
 function mediaUploaderName(media: NonNullable<FicheCentre['images']>[number] | undefined, fallback: string): string {
   return media?.uploadedBy?.name || media?.uploadedByName || fallback
 }
@@ -124,7 +118,7 @@ type FacilityMediaItem = NonNullable<FicheCentre['images']>[number]
 
 /** Vrai pour les vidéos : fichier téléversé OU lien externe intégré. */
 function isVideoItem(item: Pick<EtablissementMedia, 'kind' | 'mimeType' | 'provider' | 'externalUrl' | 'embedUrl'>): boolean {
-  return item.kind === 'video' || item.mimeType?.startsWith('video/') || isExternalVideoMedia(item)
+  return isVideoMedia(item)
 }
 
 /** Vignette à afficher : miniature externe, fichier résolu, ou null (badge provider). */
@@ -590,22 +584,11 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   const [reviewVideo, setReviewVideo] = useState<File | null>(null)
   const [reviewVideoPreview, setReviewVideoPreview] = useState('')
   const [reviewVideoUrl, setReviewVideoUrl] = useState('')
-  const [likes, setLikes] = useState<number[]>([])
   const [menuReviewId, setMenuReviewId] = useState<number | null>(null)
-  const [expandedVideo, setExpandedVideo] = useState<string | null>(null)
+  // État optimiste du vote : la réponse serveur fait foi (double clic,
+  // deux onglets) et ne peut donc pas gonfler le compteur.
+  const [jaimeOverrides, setJaimeOverrides] = useState<Record<number, { aime: boolean; nbJaime: number }>>({})
 
-  const toggleLike = useCallback((reviewId: number) => {
-    setLikes((current) => {
-      const next = current.includes(reviewId) ? current.filter((id) => id !== reviewId) : [...current, reviewId]
-      try {
-        const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
-        const table = typeof stored === 'object' && stored !== null ? stored : {}
-        table[String(props.selectedId ?? 0)] = next
-        localStorage.setItem(LIKES_KEY, JSON.stringify(table))
-      } catch { /* stockage indisponible : le like reste en mémoire */ }
-      return next
-    })
-  }, [props.selectedId])
   const [joining, setJoining] = useState(false)
   const [joined, setJoined] = useState(false)
   const [collections, setCollections] = useState<Collection[]>([])
@@ -837,14 +820,8 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
   useEffect(() => {
     // Reset the drawer workflow when a different establishment is selected.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setReviewVideo(null); setReviewVideoPreview(''); setReviewVideoUrl(''); setActiveKeyword(null); setNoteFilter(null); setSearchOpen(false); setSortMenuOpen(false); setExpandedVideo(null); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
-    try {
-      const stored = JSON.parse(localStorage.getItem(LIKES_KEY) ?? '{}')
-      const saved = typeof stored === 'object' && stored !== null ? stored[String(props.selectedId ?? 0)] : null
-      setLikes(Array.isArray(saved) ? saved.filter((id) => typeof id === 'number') : [])
-    } catch {
-      setLikes([])
-    }
+    setTab('presentation'); setComposer(false); setNote(0); setComment(''); setFiles([]); setReviewVideo(null); setReviewVideoPreview(''); setReviewVideoUrl(''); setActiveKeyword(null); setNoteFilter(null); setSearchOpen(false); setSortMenuOpen(false); setJoined(false); setGalleryOpen(false); setGalleryIndex(0); setGalleryFilter('images'); setMenuReviewId(null); setMediaFilter('tout'); setUploadOpen(false); setUploadFiles([]); setUploadPreviews([]); setUploadDragOver(false); setUploadTab('fichiers'); setVideoLink('')
+    setJaimeOverrides({})
   }, [props.selectedId])
   useEffect(() => {
     // Review notice state is scoped to the selected establishment and tab.
@@ -924,6 +901,28 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
       toast.success(t('visitor.carte.reviewSignaleOk'))
     } catch {
       toast.error(t('visitor.carte.reviewSignalerErreur'))
+    }
+  }
+  const toggleReviewLike = async (review: Avis) => {
+    if (!isAuthenticated) {
+      window.location.assign('/login')
+      return
+    }
+    const current = avisLikeState(review, jaimeOverrides[review.id])
+    const cible = !current.aime
+    // Mise à jour optimiste : l'interface réagit au clic, la réponse serveur
+    // remplace ensuite la valeur (y compris si elle diffère).
+    setJaimeOverrides((o) => ({ ...o, [review.id]: { aime: cible, nbJaime: Math.max(0, current.nbJaime + (cible ? 1 : -1)) } }))
+    try {
+      const resultat = await setAvisLike(review.id, cible)
+      setJaimeOverrides((o) => ({ ...o, [review.id]: resultat }))
+    } catch {
+      setJaimeOverrides((o) => {
+        const suivant = { ...o }
+        delete suivant[review.id]
+        return suivant
+      })
+      toast.error(t('visitor.carte.reviewLikeError'))
     }
   }
   const shareMedia = async (media: NonNullable<FicheCentre['images']>[number]) => {
@@ -1607,16 +1606,16 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
             {visibleReviews.map((review) => {
               const menuOuvert = menuReviewId === review.id
               const stats = statsAuteur[review.auteurNom ?? ''] ?? { avis: 1, photos: 0 }
-              const liked = likes.includes(review.id)
+              const like = avisLikeState(review, jaimeOverrides[review.id])
               const photos = (review.images ?? []).filter((media) => !isVideoItem(media))
               const videos = (review.images ?? []).filter((media) => isVideoItem(media))
               return (
               <article className="maps-review maps-review-g" key={review.id}>
                 <div className="maps-review-head">
-                  <span className="maps-avatar" style={{ backgroundColor: `hsl(${teinteAvatar(review.auteurNom)} 55% 45%)` }} aria-hidden="true">{(review.auteurNom || 'U')[0]}</span>
+                  <ReviewAvatar nom={review.auteurNom} photo={review.auteurPhoto} />
                   <div className="maps-review-who">
                     <strong>{review.auteurNom || t('visitor.carte.userFallback')}</strong>
-                    <small>{t('visitor.carte.reviewsCount', { count: stats.avis })} · {t('visitor.carte.reviewPhotosCount', { count: stats.photos })}</small>
+                    <small>{t('visitor.carte.reviews.count', { count: stats.avis })} · {t('visitor.carte.reviewPhotosCount', { count: stats.photos })}</small>
                   </div>
                   <div className="maps-review-menu-wrap">
                     <button type="button" className="maps-review-menu-btn" aria-expanded={menuOuvert} aria-label={t('visitor.carte.reviewMenuLabel')} onClick={() => setMenuReviewId(menuOuvert ? null : review.id)}>
@@ -1639,65 +1638,18 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
                   <small>{formatRelativeDate(review.createdAt, i18n.language)}</small>
                 </div>
                 {review.commentaire && <p>{review.commentaire}</p>}
-                {photos.length > 0 && (
-                  <div className="maps-review-images">
-                    {photos.map((image) => (
-                      <a key={image.id} href={imgUrl(image.contentUrl) ?? image.contentUrl} target="_blank" rel="noopener noreferrer">
-                        <img src={imgUrl(image.contentUrl) ?? image.contentUrl} alt={t('visitor.carte.reviewPhotoAlt')} loading="lazy" />
-                      </a>
-                    ))}
-                  </div>
-                )}
-                {videos.map((media) => {
-                  const external = isExternalVideoMedia(media)
-                  const embed = external ? getMediaEmbedUrl(media) : null
-                  const thumb = getMediaThumbnailUrl(media)
-                  const providerLabel = getMediaProviderLabel(media)
-                  const expandedKey = `${review.id}:${media.id}`
-                  const expanded = expandedVideo === expandedKey
-                  return (
-                    <div className="maps-review-video" key={media.id}>
-                      {external && embed && expanded ? (
-                        <iframe
-                          src={embed}
-                          title={`${t('visitor.carte.galleryVideo')} ${providerLabel ?? ''}`}
-                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                        />
-                      ) : external ? (
-                        <button
-                          type="button"
-                          className="maps-review-video-thumb"
-                          aria-label={t('visitor.carte.videoLire')}
-                          onClick={() => (embed ? setExpandedVideo(expandedKey) : window.open(media.externalUrl ?? media.contentUrl, '_blank', 'noopener,noreferrer'))}
-                        >
-                          {thumb ? (
-                            // eslint-disable-next-line @next/next/no-img-element -- vignette distante du fournisseur
-                            <img src={thumb} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none' }} />
-                          ) : (
-                            <span className="maps-review-video-fallback" aria-hidden="true">
-                              <Clapperboard size={26} />
-                              <strong>{providerLabel ?? t('visitor.carte.galleryVideo')}</strong>
-                            </span>
-                          )}
-                          <span className="maps-media-play maps-play-luxe"><Play size={20} fill="currentColor" /></span>
-                          {providerLabel && <span className="maps-media-tile-provider-badge">{providerLabel}</span>}
-                        </button>
-                      ) : (
-                        <video src={imgUrl(media.contentUrl) ?? media.contentUrl} controls preload="none" playsInline />
-                      )}
-                    </div>
-                  )
-                })}
+                <ReviewImages photos={photos} />
+                {videos.map((media) => <ReviewVideo key={media.id} media={media} />)}
                 <div className="maps-review-foot">
                   <button
                     type="button"
-                    aria-pressed={liked}
-                    onClick={() => toggleLike(review.id)}
-                    className={liked ? 'is-active' : ''}
+                    aria-pressed={like.aime}
+                    onClick={() => void toggleReviewLike(review)}
+                    className={like.aime ? 'is-active' : ''}
                   >
-                    <ThumbsUp size={16} fill={liked ? 'currentColor' : 'none'} />
+                    <ThumbsUp size={16} fill={like.aime ? 'currentColor' : 'none'} />
                     {t('visitor.carte.likeButton')}
+                    {like.nbJaime > 0 && <span className="maps-review-like-count">{like.nbJaime}</span>}
                   </button>
                   <button type="button" onClick={() => void share(review.commentaire)}>
                     <Share2 size={16} />

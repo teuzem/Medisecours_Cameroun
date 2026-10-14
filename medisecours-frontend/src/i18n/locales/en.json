@@ -1,11 +1,11 @@
 {
   "affiliation": {
-  "statut": {
-  "EN_ATTENTE": "Pending",
-  "ACCEPTEE": "Accepted",
-  "REFUSEE": "Declined",
-  "SUSPENDUE": "Suspended"
-  }
+    "statut": {
+      "EN_ATTENTE": "Pending",
+      "ACCEPTEE": "Accepted",
+      "REFUSEE": "Declined",
+      "SUSPENDUE": "Suspended"
+    }
   },
   "sos": {
     "titre": "SOS alerts",
@@ -240,7 +240,8 @@
       "zoomIn": "Zoom in",
       "pdfError": "PDF generation failed.",
       "patientFallback": "Patient"
-    }
+    },
+    "date": "Date"
   },
   "prescriptions": {
     "title": "Prescriptions",

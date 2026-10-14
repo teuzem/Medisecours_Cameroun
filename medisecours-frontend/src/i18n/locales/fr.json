@@ -1,11 +1,11 @@
 {
   "affiliation": {
-  "statut": {
-  "EN_ATTENTE": "En attente",
-  "ACCEPTEE": "Acceptée",
-  "REFUSEE": "Refusée",
-  "SUSPENDUE": "Suspendue"
-  }
+    "statut": {
+      "EN_ATTENTE": "En attente",
+      "ACCEPTEE": "Acceptée",
+      "REFUSEE": "Refusée",
+      "SUSPENDUE": "Suspendue"
+    }
   },
   "sos": {
     "titre": "Alertes SOS",
@@ -240,7 +240,8 @@
       "zoomIn": "Zoom avant",
       "pdfError": "La génération du PDF a échoué.",
       "patientFallback": "Patient"
-    }
+    },
+    "date": "Date"
   },
   "prescriptions": {
     "title": "Prescriptions",

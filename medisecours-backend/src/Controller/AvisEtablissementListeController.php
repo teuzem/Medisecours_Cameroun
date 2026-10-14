@@ -6,8 +6,11 @@ namespace App\Controller;
 
 use App\Entity\AvisEtablissement;
 use App\Entity\CentreDeSante;
+use App\Entity\User;
+use App\Repository\AvisJaimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +24,8 @@ use Symfony\Component\Routing\Annotation\Route;
  *   sur l'entité établissement (jamais un simple entier),
  * - ne retourne que des avis PUBLIE, triés par création décroissante,
  * - renvoie une enveloppe stable {items, total, page},
+ * - joint les compteurs de « J'aime » et la photo de l'auteur,
+ * - indique si l'utilisateur connecté a déjà aimé chaque avis,
  * - interdit toute mise en cache HTTP (no-store) pour que chaque avis
  *   publié apparaisse immédiatement dans les fiches.
  *
@@ -34,8 +39,13 @@ final class AvisEtablissementListeController extends AbstractController
         methods: ['GET'],
         requirements: ['id' => '\d+']
     )]
-    public function __invoke(Request $request, int $id, EntityManagerInterface $em): JsonResponse
-    {
+    public function __invoke(
+        Request $request,
+        int $id,
+        EntityManagerInterface $em,
+        AvisJaimeRepository $jaimes,
+        Security $security,
+    ): JsonResponse {
         $centre = $em->getRepository(CentreDeSante::class)->find($id);
         if (!$centre) {
             return new JsonResponse(['error' => 'Établissement introuvable.'], Response::HTTP_NOT_FOUND);
@@ -56,9 +66,25 @@ final class AvisEtablissementListeController extends AbstractController
         $total = $avisRepository->countPublic($centre, $note);
         $items = $avisRepository->findPublicList($centre, $note, ($page - 1) * $perPage, $perPage);
 
+        $avisIds = array_values(array_filter(array_map(
+            static fn (AvisEtablissement $avis): ?int => $avis->getId(),
+            $items
+        )));
+        $compteurs = $jaimes->countByAvis($avisIds);
+
+        $viewer = $security->getUser();
+        $likes = $viewer instanceof User ? $jaimes->likedAvisIds($viewer, $avisIds) : [];
+
         $response = new JsonResponse([
             'items' => array_map(
-                static fn (AvisEtablissement $avis): array => CarteController::serializeAvis($avis),
+                static function (AvisEtablissement $avis) use ($compteurs, $likes): array {
+                    $id = (int) $avis->getId();
+                    $item = CarteController::serializeAvis($avis);
+                    $item['nbJaime'] = $compteurs[$id] ?? 0;
+                    $item['aimeParMoi'] = in_array($id, $likes, true);
+
+                    return $item;
+                },
                 $items
             ),
             'total' => $total,
