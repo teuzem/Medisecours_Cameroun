@@ -42,6 +42,11 @@ security:
         # (visiteurs non connectés peuvent consulter maladies, catégories, centres, premiers soins, avis)
         - { path: ^/api/centres_de_santes/proches$, methods: [GET], roles: PUBLIC_ACCESS }
         - { path: ^/api/(categories|centre_de_santes|premier_soins|avis), methods: [GET], roles: PUBLIC_ACCESS }
+        # Avis publiés d'un établissement via la route dédiée des fiches carte.
+        # Indispensable : sans cette règle, la requête tombe sur la règle
+        # « IS_AUTHENTICATED_FULLY » ci-dessous et renvoie 401 aux visiteurs
+        # anonymes, qui voient alors une liste d'avis vide.
+        - { path: ^/api/etablissements/[0-9]+/avis$, methods: [GET], roles: PUBLIC_ACCESS }
         - { path: ^/api/protocole_premiers_gestes, methods: [GET], roles: PUBLIC_ACCESS }
         - { path: ^/api/public/conditions, methods: [GET], roles: PUBLIC_ACCESS }
         # API publique dédiée aux premiers gestes (liste, détail, catégories, recherche)
