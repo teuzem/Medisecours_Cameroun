@@ -28,6 +28,10 @@ class AvisJaimeRepository extends ServiceEntityRepository
     /**
      * Nombre de « J'aime » par avis, en une seule requête.
      *
+     * La jointure est explicite et le regroupement porte sur `a.id` (un
+     * scalaire) : grouper sur l'association elle-même (`GROUP BY j.avis`)
+     * produit une requête invalide selon la version de Doctrine.
+     *
      * @param int[] $avisIds
      *
      * @return array<int, int> indexé par identifiant d'avis (0 si absent)
@@ -39,10 +43,11 @@ class AvisJaimeRepository extends ServiceEntityRepository
         }
 
         $rows = $this->createQueryBuilder('j')
-            ->select('j.avis AS avisId', 'COUNT(j.id) AS total')
-            ->where('j.avis IN (:ids)')
+            ->select('a.id AS avisId', 'COUNT(j.id) AS total')
+            ->join('j.avis', 'a')
+            ->where('a.id IN (:ids)')
             ->setParameter('ids', $avisIds)
-            ->groupBy('j.avis')
+            ->groupBy('a.id')
             ->getQuery()
             ->getArrayResult();
 
@@ -57,9 +62,10 @@ class AvisJaimeRepository extends ServiceEntityRepository
     public function countForAvis(AvisEtablissement $avis): int
     {
         return (int) $this->createQueryBuilder('j')
-            ->select('COUNT(j.id)')
-            ->where('j.avis = :avis')
-            ->setParameter('avis', $avis)
+            ->select('COUNT(j.id) AS total')
+            ->join('j.avis', 'a')
+            ->where('a.id = :id')
+            ->setParameter('id', $avis->getId())
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -78,9 +84,10 @@ class AvisJaimeRepository extends ServiceEntityRepository
         }
 
         $rows = $this->createQueryBuilder('j')
-            ->select('j.avis AS avisId')
+            ->select('a.id AS avisId')
+            ->join('j.avis', 'a')
             ->where('j.user = :user')
-            ->andWhere('j.avis IN (:ids)')
+            ->andWhere('a.id IN (:ids)')
             ->setParameter('user', $user)
             ->setParameter('ids', $avisIds)
             ->getQuery()

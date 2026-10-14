@@ -34,7 +34,7 @@ final class Version20261014120000 extends AbstractMigration
         )');
         $this->addSql('CREATE INDEX IF NOT EXISTS IDX_AVIS_JAIME_AVIS ON avis_jaime (avis_id)');
         $this->addSql('CREATE INDEX IF NOT EXISTS IDX_AVIS_JAIME_USER ON avis_jaime (user_id)');
-        $this->addSql('CREATE UNIQUE INDEX IF NOT EXISTS UNIQ_AVIS_JAIME_AVIS_USER ON avis_jaime (avis_id, user_id)');
+        $this->addSql('CREATE UNIQUE INDEX IF NOT EXISTS uniq_avis_jaime_user ON avis_jaime (avis_id, user_id)');
         $this->addSql('ALTER TABLE avis_jaime DROP CONSTRAINT IF EXISTS FK_AVIS_JAIME_AVIS');
         $this->addSql('ALTER TABLE avis_jaime ADD CONSTRAINT FK_AVIS_JAIME_AVIS FOREIGN KEY (avis_id) REFERENCES avis_etablissement (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE avis_jaime DROP CONSTRAINT IF EXISTS FK_AVIS_JAIME_USER');

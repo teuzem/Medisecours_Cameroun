@@ -44,6 +44,9 @@ class HealthController extends AbstractController
         'dossier_medical' => 'SELECT 1 FROM dossier_medical LIMIT 0',
         'soin_administre' => 'SELECT 1 FROM soin_administre LIMIT 0',
         'ordonnance_pharmacie' => 'SELECT 1 FROM ordonnance_pharmacie LIMIT 0',
+        // Table du compteur de « J'aime » sur les avis : sans elle, la lecture
+        // des avis d'un établissement qui en possède renvoie 500.
+        'avis_jaime' => 'SELECT 1 FROM avis_jaime LIMIT 0',
     ];
 
     /** @var array{checkedAt: float, problems: list<string>}|null */

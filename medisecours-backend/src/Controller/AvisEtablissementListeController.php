@@ -9,6 +9,7 @@ use App\Entity\CentreDeSante;
 use App\Entity\User;
 use App\Repository\AvisJaimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -45,6 +46,7 @@ final class AvisEtablissementListeController extends AbstractController
         EntityManagerInterface $em,
         AvisJaimeRepository $jaimes,
         Security $security,
+        LoggerInterface $logger,
     ): JsonResponse {
         $centre = $em->getRepository(CentreDeSante::class)->find($id);
         if (!$centre) {
@@ -70,10 +72,24 @@ final class AvisEtablissementListeController extends AbstractController
             static fn (AvisEtablissement $avis): ?int => $avis->getId(),
             $items
         )));
-        $compteurs = $jaimes->countByAvis($avisIds);
 
+        // Le compteur de « J'aime » est un enrichissement : il ne doit jamais
+        // empêcher l'affichage des avis (une erreur ici rendait la fiche vide
+        // avec un 500). En cas de souci, on renvoie 0 plutôt qu'une erreur.
+        $compteurs = array_fill_keys($avisIds, 0);
+        $likes = [];
         $viewer = $security->getUser();
-        $likes = $viewer instanceof User ? $jaimes->likedAvisIds($viewer, $avisIds) : [];
+        try {
+            $compteurs = $jaimes->countByAvis($avisIds) + $compteurs;
+            if ($viewer instanceof User) {
+                $likes = $jaimes->likedAvisIds($viewer, $avisIds);
+            }
+        } catch (\Throwable $erreur) {
+            $this->logger->warning('Compteur de J\'aime indisponible sur les avis.', [
+                'etablissement' => $id,
+                'exception' => $erreur->getMessage(),
+            ]);
+        }
 
         $response = new JsonResponse([
             'items' => array_map(
