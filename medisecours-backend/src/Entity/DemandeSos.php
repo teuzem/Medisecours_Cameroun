@@ -195,6 +195,44 @@ class DemandeSos
     private ?\DateTimeImmutable $resoluAt = null;
 
     /**
+     * ── Suivi opérationnel de l'intervention ──────────────────────────────
+     *
+     * La prise en charge ouvre la fenêtre d'intervention ; ces horodatages en
+     * mesurent le délai de départ et le délai d'arrivée sur les lieux, qui
+     * sont les deux indicateurs que les équipes suivent en continu. Ils sont
+     * posés par le répondant lui-même (médecin ou ambulancier) au fil de
+     * l'intervention, jamais par le demandeur.
+     */
+
+    /**
+     * Type d'intervenant : MEDECIN ou AMBULANCIER. Figé à la prise en charge
+     * pour que le tableau de bord puisse séparer les deux Flux.
+     */
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['demande_sos:read'])]
+    private ?string $priseEnChargeType = null;
+
+    /** Départ effectif de l'équipage ou du médecin. */
+    #[ORM\Column(nullable: true)]
+    #[Groups(['demande_sos:read'])]
+    private ?\DateTimeImmutable $departAt = null;
+
+    /** Arrivée physique sur les lieux de l'incident. */
+    #[ORM\Column(nullable: true)]
+    #[Groups(['demande_sos:read'])]
+    private ?\DateTimeImmutable $arriveeAt = null;
+
+    /** Patient pris en charge par l'équipage et transporté. */
+    #[ORM\Column(nullable: true)]
+    #[Groups(['demande_sos:read'])]
+    private ?\DateTimeImmutable $patientEmbarqueAt = null;
+
+    /** Note libre de l'intervenant (état du patient, moyen utilisé…). */
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['demande_sos:read'])]
+    private ?string $noteIntervention = null;
+
+    /**
      * Sirène active sur les postes de l'établissement (après confirmation).
      */
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
@@ -507,6 +545,66 @@ class DemandeSos
     public function setSireneActive(bool $sireneActive): static
     {
         $this->sireneActive = $sireneActive;
+
+        return $this;
+    }
+
+    public function getPriseEnChargeType(): ?string
+    {
+        return $this->priseEnChargeType;
+    }
+
+    public function setPriseEnChargeType(?string $priseEnChargeType): static
+    {
+        $this->priseEnChargeType = $priseEnChargeType;
+
+        return $this;
+    }
+
+    public function getDepartAt(): ?\DateTimeImmutable
+    {
+        return $this->departAt;
+    }
+
+    public function setDepartAt(?\DateTimeImmutable $departAt): static
+    {
+        $this->departAt = $departAt;
+
+        return $this;
+    }
+
+    public function getArriveeAt(): ?\DateTimeImmutable
+    {
+        return $this->arriveeAt;
+    }
+
+    public function setArriveeAt(?\DateTimeImmutable $arriveeAt): static
+    {
+        $this->arriveeAt = $arriveeAt;
+
+        return $this;
+    }
+
+    public function getPatientEmbarqueAt(): ?\DateTimeImmutable
+    {
+        return $this->patientEmbarqueAt;
+    }
+
+    public function setPatientEmbarqueAt(?\DateTimeImmutable $patientEmbarqueAt): static
+    {
+        $this->patientEmbarqueAt = $patientEmbarqueAt;
+
+        return $this;
+    }
+
+    public function getNoteIntervention(): ?string
+    {
+        return $this->noteIntervention;
+    }
+
+    public function setNoteIntervention(?string $noteIntervention): static
+    {
+        $this->noteIntervention = $noteIntervention;
 
         return $this;
     }

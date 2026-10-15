@@ -30,6 +30,10 @@ class SosTrace
     public const ACTION_SIRENE_ACTIVEE = 'SIRENE_ACTIVEE';
     public const ACTION_SIRENE_ETEINTE = 'SIRENE_ETEINTE';
     public const ACTION_PRISE_EN_CHARGE = 'PRISE_EN_CHARGE';
+    public const ACTION_DEPART = 'DEPART_EN_ROUTE';
+    public const ACTION_SUR_PLACE = 'ARRIVEE_SUR_PLACE';
+    public const ACTION_TRANSPORT = 'PATIENT_A_BORD';
+    public const ACTION_NOTE = 'NOTE_INTERVENTION';
     public const ACTION_RELAYE = 'RELAYE_ETABLISSEMENT';
     public const ACTION_TRAITEE = 'TRAITEE';
     public const ACTION_CLOTUREE = 'CLOTUREE';

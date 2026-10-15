@@ -345,7 +345,13 @@
         "callTitle": "Call the facility",
         "callNumber": "Or call {{emergency}} (SAMU) for a life-threatening emergency.",
         "newAlerte": "New alert",
-        "close": "Close"
+        "close": "Close",
+        "importTitle": "Import a proof",
+        "importHint": "Image or video under 20 MB, already on your device.",
+        "importTooLarge": "File too large: 20 MB maximum.",
+        "importWrongFormat": "Unsupported format. Choose an image or a video.",
+        "importVideoFormat": "Unsupported video. Use MP4, WebM or MOV.",
+        "importFailed": "Could not read this file. Try another one."
       },
       "railLabel": "My places",
       "viewExplore": "Explore",

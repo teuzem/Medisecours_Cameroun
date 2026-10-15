@@ -16,6 +16,7 @@ import {
   Siren,
   Square,
   Stethoscope,
+  Upload,
   Video,
   VideoOff,
   X,
@@ -177,6 +178,8 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
 
   const MAX_VIDEO_SECS = 20
   const MAX_VIDEO_BLOB_OCTETS = 7_000_000
+  // Plafond d'import : 20 Mo, identique à la validation serveur.
+  const MAX_IMPORT_OCTETS = 20 * 1024 * 1024
   const mediaRecorderSupported = typeof MediaRecorder !== 'undefined'
   const preuveIsVideo = preuve?.startsWith('data:video/') ?? false
 
@@ -346,6 +349,64 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
     cameraAttemptedRef.current = true
     void startCamera()
   }, [startCamera, stopRecording, stopStream])
+
+  /**
+   * Repli « caméra refusée / indisponible » : le demandeur importe une image
+   * ou une vidéo déjà présente sur son appareil (< 20 Mo). Le fichier est
+   * validé puis converti en data-URL — le format exact de la capture, donc
+   * le même chemin d'envoi côté API.
+   */
+  const importerPreuve = useCallback(async (fichier: File | undefined | null) => {
+    if (!fichier) return
+    if (fichier.size > MAX_IMPORT_OCTETS) {
+      toast.error(t('visitor.carte.sos.importTooLarge'))
+      return
+    }
+    const type = fichier.type || ''
+    const estImage = type.startsWith('image/')
+    const estVideo = type.startsWith('video/')
+    if (!estImage && !estVideo) {
+      toast.error(t('visitor.carte.sos.importWrongFormat'))
+      return
+    }
+    if (estVideo && !/^video\/(mp4|webm|quicktime|x-m4v)$/.test(type)) {
+      toast.error(t('visitor.carte.sos.importVideoFormat'))
+      return
+    }
+    const dataUrl = await new Promise<string>((resolve) => {
+      const lecteur = new FileReader()
+      lecteur.onload = () => resolve(String(lecteur.result ?? ''))
+      lecteur.onerror = () => resolve('')
+      lecteur.readAsDataURL(fichier)
+    })
+
+    if (!dataUrl) {
+      toast.error(t('visitor.carte.sos.importFailed'))
+      return
+    }
+
+    stopRecording(true)
+    stopStream()
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current)
+      previewUrlRef.current = null
+    }
+    setPreviewUrl(null)
+    setPreuve(dataUrl)
+    // Une preuve importée vaut preuve : on ne force plus « sans caméra ».
+    setSansCamera(false)
+    setCameraState('captured')
+    setPreuveMode(estVideo ? 'video' : 'photo')
+    setVideoMeta(null)
+    if (estVideo) {
+      const blob = await fetch(dataUrl).then((r) => r.blob()).catch(() => null)
+      if (blob) {
+        const url = URL.createObjectURL(blob)
+        previewUrlRef.current = url
+        setPreviewUrl(url)
+      }
+    }
+  }, [MAX_IMPORT_OCTETS, stopRecording, stopStream, t, toast])
 
   const reset = useCallback(() => {
     stopRecording(true)
@@ -958,6 +1019,28 @@ export default function SosModal({ open, onClose, position, onLocate, etablissem
                         {t('visitor.carte.sos.cameraRetry')}
                       </button>
                     )}
+                    {/* Repli sans caméra : import d'une image ou d'une vidéo déjà
+                        présente sur l'appareil (< 20 Mo). Sans ce repli, une
+                        permission refusée bloque l'envoi de l'alerte. */}
+                    <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-primary-400 bg-primary-50/50 px-3 py-3 text-center transition hover:bg-primary-50 dark:border-primary-500/40 dark:bg-primary-500/10 dark:hover:bg-primary-500/20">
+                      <Upload className="h-4 w-4 text-primary-600 dark:text-primary-300" />
+                      <span className="text-xs font-bold text-primary-800 dark:text-primary-200">
+                        {t('visitor.carte.sos.importTitle')}
+                      </span>
+                      <span className="text-[11px] leading-4 text-slate-500 dark:text-slate-400">
+                        {t('visitor.carte.sos.importHint')}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,video/mp4,video/webm"
+                        className="hidden"
+                        onChange={(event) => {
+                          const fichier = event.target.files?.[0]
+                          event.target.value = ''
+                          void importerPreuve(fichier)
+                        }}
+                      />
+                    </label>
                   </div>
                 ) : (
                   <button

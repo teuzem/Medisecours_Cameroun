@@ -123,7 +123,8 @@
       "aucunePrise": "No ongoing intervention.",
       "enServiceLabel": "Crew available",
       "enServiceDesc": "Receive priority light cases to transport.",
-      "intro": "Ambulance schedule and crew availability: review open slots and assign a crew."
+      "intro": "Ambulance schedule and crew availability: review open slots and assign a crew.",
+      "horsService": "Off duty: switch to on duty to take an alert."
     },
     "accueil": {
       "titre": "Patient admission",

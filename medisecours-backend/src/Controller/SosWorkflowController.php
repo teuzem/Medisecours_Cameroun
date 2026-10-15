@@ -198,6 +198,7 @@ class SosWorkflowController extends AbstractController
 
         $sos->setPrisEnChargePar($user)
             ->setPrisEnChargeAt(new \DateTimeImmutable())
+            ->setPriseEnChargeType($estAmbulancier ? 'AMBULANCIER' : 'MEDECIN')
             ->setStatut('EN_PRISE_EN_CHARGE')
             ->setSireneActive(false);
 
@@ -294,6 +295,159 @@ class SosWorkflowController extends AbstractController
         ]);
 
         return new JsonResponse(['sos' => $this->serializeSos($sos, true)]);
+    }
+
+    // ── Avancement de l'intervention (départ, sur place, transport) ─────────
+
+    /**
+     * POST /api/sos/{id}/avancement   body: {"etape": "DEPART"|"SUR_PLACE"|"TRANSPORT", "note"?: string}
+     *
+     * Suite de la prise en charge, par le répondant lui-même uniquement :
+     *  - DEPART     : l'équipage/le médecin quitte l'établissement ;
+     *  - SUR_PLACE  : arrivée physique sur les lieux ;
+     *  - TRANSPORT  : patient pris en charge et embarqué.
+     *
+     * Ces horodatages alimentent les délais moyens du tableau de bord
+     * (délai de départ, délai d'arrivée). Chaque étape est tracée et
+     * diffusée en temps réel au demandeur.
+     */
+    #[Route('/api/sos/{id}/avancement', name: 'api_sos_avancement', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function avancement(int $id, Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $sos = $this->findSos($id);
+
+        if ($sos->getStatut() !== 'EN_PRISE_EN_CHARGE') {
+            throw new BadRequestHttpException('Prenez l\'alerte en charge avant de faire avancer l\'intervention.');
+        }
+        if ($sos->getPrisEnChargePar() !== $user) {
+            throw new AccessDeniedHttpException('Seul l\'intervenant qui a pris cette alerte peut la faire avancer.');
+        }
+
+        $data = $request->toArray();
+        $etape = strtoupper(trim((string) ($data['etape'] ?? '')));
+        if (!in_array($etape, ['DEPART', 'SUR_PLACE', 'TRANSPORT'], true)) {
+            throw new BadRequestHttpException('Étape invalide (DEPART, SUR_PLACE ou TRANSPORT).');
+        }
+
+        $maintenant = new \DateTimeImmutable();
+        // Un horodatage n'est jamais écrasé : on garde la première mesure
+        // réelle (repasser sur l'étape après un incident ne doit pas
+        // fausser les délais moyens du tableau de bord).
+        $action = match ($etape) {
+            'DEPART' => SosTrace::ACTION_DEPART,
+            'SUR_PLACE' => SosTrace::ACTION_SUR_PLACE,
+            default => SosTrace::ACTION_TRANSPORT,
+        };
+
+        if ($etape === 'DEPART') {
+            $sos->setDepartAt($sos->getDepartAt() ?? $maintenant);
+        } elseif ($etape === 'SUR_PLACE') {
+            if ($sos->getDepartAt() === null) {
+                $sos->setDepartAt($maintenant);
+            }
+            $sos->setArriveeAt($sos->getArriveeAt() ?? $maintenant);
+        } else {
+            if ($sos->getDepartAt() === null) {
+                $sos->setDepartAt($maintenant);
+            }
+            if ($sos->getArriveeAt() === null) {
+                $sos->setArriveeAt($maintenant);
+            }
+            $sos->setPatientEmbarqueAt($sos->getPatientEmbarqueAt() ?? $maintenant);
+        }
+
+        $note = trim((string) ($data['note'] ?? ''));
+        if ($note !== '') {
+            $sos->setNoteIntervention(mb_substr($note, 0, 1000));
+        }
+
+        $this->em->persist(
+            (new SosTrace())
+                ->setSos($sos)
+                ->setAction($action)
+                ->setAuteur($user)
+                ->setDetails(array_filter([
+                    'etape' => $etape,
+                    'note' => $note !== '' ? mb_substr($note, 0, 1000) : null,
+                ], static fn ($value): bool => $value !== null))
+        );
+        $this->em->flush();
+
+        $this->publish($sos, 'sos_avancement', [
+            'id' => $sos->getId(),
+            'statut' => $sos->getStatut(),
+            'etape' => $etape,
+            'departAt' => $sos->getDepartAt()?->format('c'),
+            'arriveeAt' => $sos->getArriveeAt()?->format('c'),
+            'patientEmbarqueAt' => $sos->getPatientEmbarqueAt()?->format('c'),
+        ]);
+
+        return new JsonResponse(['sos' => $this->serializeSos($sos, false)]);
+    }
+
+    // ── Tableau de bord de l'intervenant (médecin ou ambulancier) ─────────
+
+    /**
+     * GET /api/sos/stats/moi
+     *
+     * Compteurs et délais moyens **de l'utilisateur connecté** : ce qu'il a
+     * pris en charge, ce qui est encore ouvert, et son temps de réaction
+     * moyen (prise en charge, arrivée sur place). Un seul endpoint pour les
+     * deux rôles : le tri par gravité se fait dans la vue dédiée.
+     */
+    #[Route('/api/sos/stats/moi', name: 'api_sos_stats_moi', methods: ['GET'])]
+    public function statsMoi(): JsonResponse
+    {
+        $user = $this->requireUser();
+
+        $mesAlertes = $this->em->createQueryBuilder()
+            ->select('d')
+            ->from(DemandeSos::class, 'd')
+            ->where('d.prisEnChargePar = :user')
+            ->setParameter('user', $user->getId())
+            ->orderBy('d.createdAt', 'DESC')
+            ->setMaxResults(200)
+            ->getQuery()
+            ->getResult();
+
+        $enCours = 0;
+        $traitees = 0;
+        $delaisPriseEnCharge = [];
+        $delaisDepart = [];
+        $delaisArrivee = [];
+        $parGravite = [];
+
+        foreach ($mesAlertes as $sos) {
+            $parGravite[$sos->getGravite()] = ($parGravite[$sos->getGravite()] ?? 0) + 1;
+            if ($sos->getStatut() === 'EN_PRISE_EN_CHARGE') {
+                $enCours++;
+            }
+            if (in_array($sos->getStatut(), ['TRAITEE', 'CLOTUREE'], true)) {
+                $traitees++;
+            }
+            if ($sos->getPrisEnChargeAt()) {
+                $delaisPriseEnCharge[] = $sos->getPrisEnChargeAt()->getTimestamp() - $sos->getCreatedAt()->getTimestamp();
+            }
+            if ($sos->getDepartAt() && $sos->getPrisEnChargeAt()) {
+                $delaisDepart[] = $sos->getDepartAt()->getTimestamp() - $sos->getPrisEnChargeAt()->getTimestamp();
+            }
+            if ($sos->getArriveeAt() && $sos->getPrisEnChargeAt()) {
+                $delaisArrivee[] = $sos->getArriveeAt()->getTimestamp() - $sos->getPrisEnChargeAt()->getTimestamp();
+            }
+        }
+
+        $moyenne = static fn (array $valeurs): ?int => $valeurs === [] ? null : (int) round(array_sum($valeurs) / count($valeurs));
+
+        return new JsonResponse([
+            'total' => count($mesAlertes),
+            'enCours' => $enCours,
+            'traitees' => $traitees,
+            'parGravite' => $parGravite,
+            'delaiMoyenPriseEnChargeSec' => $moyenne($delaisPriseEnCharge),
+            'delaiMoyenDepartSec' => $moyenne($delaisDepart),
+            'delaiMoyenArriveeSec' => $moyenne($delaisArrivee),
+        ]);
     }
 
     // ── Traçabilité ────────────────────────────────────────────────────────
@@ -937,6 +1091,11 @@ class SosWorkflowController extends AbstractController
                 'nom' => $this->displayName($sos->getPrisEnChargePar()),
             ] : null,
             'prisEnChargeAt' => $sos->getPrisEnChargeAt()?->format('c'),
+            'priseEnChargeType' => $sos->getPriseEnChargeType(),
+            'departAt' => $sos->getDepartAt()?->format('c'),
+            'arriveeAt' => $sos->getArriveeAt()?->format('c'),
+            'patientEmbarqueAt' => $sos->getPatientEmbarqueAt()?->format('c'),
+            'noteIntervention' => $sos->getNoteIntervention(),
             'resoluAt' => $sos->getResoluAt()?->format('c'),
             'createdAt' => $sos->getCreatedAt()->format('c'),
         ];
@@ -958,6 +1117,9 @@ class SosWorkflowController extends AbstractController
                 ? $this->displayName($sos->getPrisEnChargePar())
                 : null,
             'verifieAt' => $sos->getVerifieAt()?->format('c'),
+            'departAt' => $sos->getDepartAt()?->format('c'),
+            'arriveeAt' => $sos->getArriveeAt()?->format('c'),
+            'patientEmbarqueAt' => $sos->getPatientEmbarqueAt()?->format('c'),
             'resoluAt' => $sos->getResoluAt()?->format('c'),
             'createdAt' => $sos->getCreatedAt()->format('c'),
         ];

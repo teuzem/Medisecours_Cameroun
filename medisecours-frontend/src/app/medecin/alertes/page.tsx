@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  History,
   Loader2,
   MapPin,
   Navigation,
@@ -18,26 +19,11 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '../../../api/axios'
-import { useNotification } from '../../../contexts/NotificationContext'
-
-interface AlerteSos {
-  id: number
-  statut: string
-  gravite: string
-  agePatient: number | null
-  enceinte: boolean
-  nom: string | null
-  telephone: string | null
-  description: string | null
-  latitude: number | number[] | null
-  longitude: number | number[] | null
-  sireneActive: boolean
-  preuvePhoto: string | null
-  etablissement: { id: number; nom: string } | null
-  prisEnChargePar: { id: string; nom: string } | null
-  createdAt: string
-  habilitation?: string
-}
+import { SosJournal } from '../../../components/sos/SosJournal'
+import { SosProgression } from '../../../components/sos/SosProgression'
+import { SosStatsTiles } from '../../../components/sos/SosStatsTiles'
+import { useSosFeedback, useSosFeed } from '../../../hooks/useSosFeed'
+import type { AlerteSos } from '../../../lib/sosWorkflow'
 
 const HABILITATION_COULEUR: Record<string, string> = {
   admin: 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30',
@@ -70,72 +56,24 @@ function heureExacte(iso: string | null, locale: string): string {
  * ────────────────────────────────────────────────────────────────────────── */
 export default function MedecinAlertesPage() {
   const { t, i18n } = useTranslation()
-  const { subscribeToSos } = useNotification()
   const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
 
-  const [ouvertes, setOuvertes] = useState<AlerteSos[]>([])
-  const [mesPrises, setMesPrises] = useState<AlerteSos[]>([])
-  const [loading, setLoading] = useState(true)
-  const [erreur, setErreur] = useState(false)
   const [busyId, setBusyId] = useState<number | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [succes, setSucces] = useState<string | null>(null)
   const [photoOuverte, setPhotoOuverte] = useState<string | null>(null)
+  const [journalId, setJournalId] = useState<number | null>(null)
 
-  const charger = useCallback(async () => {
-    try {
-      const { data } = await api.get('/api/medecin/sos')
-      setOuvertes(Array.isArray(data?.ouvertes) ? data.ouvertes : [])
-      setMesPrises(Array.isArray(data?.mesPrises) ? data.mesPrises : [])
-      setErreur(false)
-    } catch {
-      setErreur(true)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void charger()
-  }, [charger])
-
-  useEffect(() => {
-    return subscribeToSos(() => {
-      void charger()
-    })
-  }, [subscribeToSos, charger])
-
-  const msgErreur = (err: unknown): string => {
-    const data = (err as any)?.response?.data
-    return data?.detail || data?.message || t('medecin.alertes.actionErreur')
-  }
+  const { ouvertes, mesPrises, stats, loading, erreur, rafraichissement, rafraichir } = useSosFeed('/api/medecin/sos')
+  const { erreur: actionError, succes, signalerErreur, signalerSucces, reinitialiser } = useSosFeedback()
 
   const prendre = async (sos: AlerteSos) => {
     setBusyId(sos.id)
-    setActionError(null)
-    setSucces(null)
+    reinitialiser()
     try {
       await api.post(`/api/sos/${sos.id}/prise-en-charge`)
-      setSucces(t('medecin.alertes.priseOk'))
-      await charger()
+      signalerSucces(t('medecin.alertes.priseOk'))
+      await rafraichir()
     } catch (err) {
-      setActionError(msgErreur(err))
-    } finally {
-      setBusyId(null)
-    }
-  }
-
-  const cloturer = async (sos: AlerteSos) => {
-    setBusyId(sos.id)
-    setActionError(null)
-    setSucces(null)
-    try {
-      await api.post(`/api/sos/${sos.id}/cloturer`, {})
-      setSucces(t('medecin.alertes.clotureOk'))
-      await charger()
-    } catch (err) {
-      setActionError(msgErreur(err))
+      signalerErreur(err, 'medecin.alertes.actionErreur')
     } finally {
       setBusyId(null)
     }
@@ -229,6 +167,24 @@ export default function MedecinAlertesPage() {
                 {t('medecin.alertes.preuve')}
               </button>
 
+              <button
+                type="button"
+                onClick={() => setJournalId(sos.id)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+              >
+                <History className="h-3.5 w-3.5" />
+                {t('sos.journal')}
+              </button>
+
+              {sos.telephone && (
+                <a
+                  href={`tel:${sos.telephone}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                >
+                  {t('sos.appeler')}
+                </a>
+              )}
+
               {lat != null && lng != null && (
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
@@ -253,18 +209,12 @@ export default function MedecinAlertesPage() {
                   {busyId === sos.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Stethoscope className="h-3.5 w-3.5" />}
                   {t('medecin.alertes.prendre')}
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => void cloturer(sos)}
-                  disabled={busyId === sos.id}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {busyId === sos.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                  {t('medecin.alertes.cloturer')}
-                </button>
-              )}
+              ) : null}
             </div>
+
+            {mode === 'prise' && (
+              <SosProgression sos={sos} onChange={rafraichir} disabled={busyId === sos.id} />
+            )}
           </div>
         </div>
       </li>
@@ -308,19 +258,21 @@ export default function MedecinAlertesPage() {
         </div>
         <button
           type="button"
-          onClick={() => void charger()}
+          onClick={() => void rafraichir()}
           aria-label={t('sos.actualiser')}
           className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className={`h-4 w-4 ${rafraichissement ? 'animate-spin' : ''}`} />
         </button>
       </div>
+
+      <SosStatsTiles stats={stats} />
 
       {erreur ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white py-12 text-center dark:border-white/10 dark:bg-slate-900">
           <AlertTriangle className="h-8 w-8 text-amber-500" />
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{t('sos.erreurChargement')}</p>
-          <button type="button" onClick={() => { setLoading(true); void charger() }} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-900">
+          <button type="button" onClick={() => { void rafraichir() }} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-900">
             {t('sos.actualiser')}
           </button>
         </div>
@@ -375,6 +327,8 @@ export default function MedecinAlertesPage() {
       )}
 
       {/* ── Visionneuse de preuve ── */}
+      {journalId !== null && <SosJournal sosId={journalId} onClose={() => setJournalId(null)} />}
+
       {photoOuverte && (
         <div
           className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"

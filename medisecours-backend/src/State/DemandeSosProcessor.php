@@ -37,7 +37,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class DemandeSosProcessor implements ProcessorInterface
 {
     private const MAX_PREUVE_OCTETS = 1_500_000;
-    private const MAX_PREUVE_VIDEO_OCTETS = 10_000_000;
+    private const MAX_PREUVE_VIDEO_OCTETS = 20 * 1024 * 1024;
 
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
@@ -75,10 +75,14 @@ class DemandeSosProcessor implements ProcessorInterface
             $preuve = trim((string) ($data->getPreuvePhoto() ?? ''));
             $preuveEstVideo = $preuve !== '' && str_starts_with($preuve, 'data:video/');
             if ($preuve !== '') {
+                // Le plafond porte sur la taille RÉELLE du fichier : une data-URL
+                // base64 pèse ~4/3 de plus, la comparer telle quelle refusait
+                // des vidéos pourtant sous la limite.
+                $tailleReelle = self::tailleDecodee($preuve);
                 $tailleMax = $preuveEstVideo ? self::MAX_PREUVE_VIDEO_OCTETS : self::MAX_PREUVE_OCTETS;
-                if (strlen($preuve) > $tailleMax) {
+                if ($tailleReelle > $tailleMax) {
                     throw new BadRequestHttpException($preuveEstVideo
-                        ? 'La preuve vidéo dépasse la taille maximale (10 Mo). Réduisez la durée ou laissez la compression automatique agir.'
+                        ? 'La preuve vidéo dépasse la taille maximale (20 Mo). Choisissez un fichier plus léger.'
                         : 'La preuve photo dépasse la taille maximale (1,5 Mo).');
                 }
                 if ($preuveEstVideo) {
@@ -221,5 +225,22 @@ class DemandeSosProcessor implements ProcessorInterface
             ],
             $targets
         ));
+    }
+
+    /**
+     * Taille réelle, en octets, du fichier encodé dans une data-URL base64.
+     * Sans décodage (le fichier n'a pas besoin d'être en mémoire : seule la
+     * longueur du payload suffit à connaître sa taille).
+     */
+    private static function tailleDecodee(string $dataUrl): int
+    {
+        $virgule = strpos($dataUrl, ',');
+        if ($virgule === false) {
+            return 0;
+        }
+
+        $charge = substr($dataUrl, $virgule + 1);
+        // Le format base64 encode 3 octets sur 4 caractères.
+        return (int) (strlen(rtrim($charge, '=')) * 3 / 4);
     }
 }

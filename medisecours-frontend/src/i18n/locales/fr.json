@@ -100,8 +100,29 @@
       "SIRENE_ETEINTE": "Sirène éteinte",
       "PRISE_EN_CHARGE": "Prise en charge",
       "TRAITEE": "Traitement terminé",
-      "CLOTUREE": "Clôturée"
-    }
+      "CLOTUREE": "Clôturée",
+      "DEPART_EN_ROUTE": "Départ en route",
+      "ARRIVEE_SUR_PLACE": "Arrivée sur place",
+      "PATIENT_A_BORD": "Patient embarqué",
+      "NOTE_INTERVENTION": "Note d’intervention"
+    },
+    "statsEnCours": "En cours",
+    "statsTraitees": "Traitées",
+    "statsDelaiReaction": "Délai de réaction",
+    "statsDelaiArrivee": "Délai d’arrivée",
+    "statsTotalPerso_one": "{{count}} intervention",
+    "statsTotalPerso_other": "{{count}} interventions",
+    "suiviIntervention": "Suivi de l’intervention",
+    "etapePriseEnCharge": "Prise en charge",
+    "etapeDepart": "Départ",
+    "etapeSurPlace": "Arrivée sur place",
+    "etapeTransport": "Patient embarqué",
+    "departAction": "Je suis en route",
+    "surPlaceAction": "Je suis sur place",
+    "transportAction": "Patient à bord",
+    "depuis": "depuis",
+    "enAttente": "en attente",
+    "journalVide": "Aucun événement enregistré."
   },
   "common": {
     "loading": "Chargement…",

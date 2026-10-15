@@ -7,13 +7,14 @@ import {
   Ambulance,
   CheckCircle2,
   Clock,
+  History,
   Loader2,
   MapPin,
   Navigation,
+  RefreshCw,
   Siren,
   Stethoscope,
   UserRound,
-  X,
 } from 'lucide-react'
 import api from '../../../api/axios'
 import { useToast } from '../../../components/ui/Toast'
@@ -21,25 +22,11 @@ import GlassCard from '../../../components/ui/GlassCard'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import Toggle from '../../../components/ui/Toggle'
 import SectionHeader from '../../../components/ui/SectionHeader'
-import { useNotification } from '../../../contexts/NotificationContext'
-
-interface AlerteLegere {
-  id: number
-  statut: string
-  gravite: string
-  agePatient: number | null
-  enceinte: boolean
-  nom: string | null
-  telephone: string | null
-  description: string | null
-  latitude: number | null
-  longitude: number | null
-  sireneActive: boolean
-  preuvePhoto: string | null
-  etablissement: { id: number; nom: string } | null
-  prisEnChargePar: { id: string; nom: string } | null
-  createdAt: string
-}
+import { SosJournal } from '../../../components/sos/SosJournal'
+import { SosProgression } from '../../../components/sos/SosProgression'
+import { SosStatsTiles } from '../../../components/sos/SosStatsTiles'
+import { useSosFeedback, useSosFeed } from '../../../hooks/useSosFeed'
+import { messageErreur, type AlerteSos } from '../../../lib/sosWorkflow'
 
 function coordonnee(value: number | number[] | null): number | null {
   if (typeof value === 'number') return value
@@ -48,24 +35,22 @@ function coordonnee(value: number | number[] | null): number | null {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
- * Espace ambulancier : cas LÉGERS vérifiés de l'établissement + interventions.
+ * Espace amblancier : cas LÉGERS vérifiés de l'établissement + interventions.
  * Les cas urgents/critiques restent réservés aux médecins (tri à la lecture).
  * ────────────────────────────────────────────────────────────────────────── */
 export default function PersonnelAmbulancePage() {
   const { t, i18n } = useTranslation()
   const toast = useToast()
-  const { subscribeToSos } = useNotification()
   const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
 
   const [enService, setEnService] = useState(true)
   const [serviceCharge, setServiceCharge] = useState(true)
-  const [ouvertes, setOuvertes] = useState<AlerteLegere[]>([])
-  const [mesPrises, setMesPrises] = useState<AlerteLegere[]>([])
-  const [loading, setLoading] = useState(true)
-  const [erreur, setErreur] = useState(false)
   const [busyId, setBusyId] = useState<number | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
   const [photoOuverte, setPhotoOuverte] = useState<string | null>(null)
+  const [journalId, setJournalId] = useState<number | null>(null)
+
+  const { ouvertes, mesPrises, stats, loading, erreur, rafraichissement, rafraichir } = useSosFeed('/api/ambulancier/sos')
+  const { erreur: actionError, signalerErreur, signalerSucces, reinitialiser } = useSosFeedback()
 
   useEffect(() => {
     let annule = false
@@ -82,30 +67,6 @@ export default function PersonnelAmbulancePage() {
     }
   }, [])
 
-  const charger = useCallback(async () => {
-    try {
-      const { data } = await api.get('/api/ambulancier/sos')
-      setOuvertes(Array.isArray(data?.ouvertes) ? data.ouvertes : [])
-      setMesPrises(Array.isArray(data?.mesPrises) ? data.mesPrises : [])
-      setErreur(false)
-    } catch {
-      setErreur(true)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void charger()
-  }, [charger])
-
-  useEffect(() => {
-    return subscribeToSos(() => {
-      void charger()
-    })
-  }, [subscribeToSos, charger])
-
   const basculerService = async (next: boolean) => {
     try {
       await api.patch('/api/me/disponibilite', { enService: next })
@@ -115,40 +76,21 @@ export default function PersonnelAmbulancePage() {
     }
   }
 
-  const msgErreur = (err: unknown): string => {
-    const data = (err as any)?.response?.data
-    return data?.detail || data?.message || t('personnel.ambulance.actionErreur')
-  }
-
-  const prendre = async (sos: AlerteLegere) => {
+  const prendre = async (sos: AlerteSos) => {
     setBusyId(sos.id)
-    setActionError(null)
+    reinitialiser()
     try {
       await api.post(`/api/sos/${sos.id}/prise-en-charge`)
-      toast.success(t('personnel.ambulance.priseOk'))
-      await charger()
+      signalerSucces(t('personnel.ambulance.priseOk'))
+      await rafraichir()
     } catch (err) {
-      setActionError(msgErreur(err))
+      signalerErreur(err, 'personnel.ambulance.actionErreur')
     } finally {
       setBusyId(null)
     }
   }
 
-  const cloturer = async (sos: AlerteLegere) => {
-    setBusyId(sos.id)
-    setActionError(null)
-    try {
-      await api.post(`/api/sos/${sos.id}/cloturer`, {})
-      toast.success(t('personnel.ambulance.clotureOk'))
-      await charger()
-    } catch (err) {
-      setActionError(msgErreur(err))
-    } finally {
-      setBusyId(null)
-    }
-  }
-
-  const carte = (sos: AlerteLegere, mode: 'ouverte' | 'prise') => {
+  const carte = (sos: AlerteSos, mode: 'ouverte' | 'prise') => {
     const lat = coordonnee(sos.latitude)
     const lng = coordonnee(sos.longitude)
     return (
@@ -187,14 +129,29 @@ export default function PersonnelAmbulancePage() {
               {sos.enceinte && <span className="font-semibold text-pink-600 dark:text-pink-400">{t('sos.enceinteBadge')}</span>}
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              {sos.preuvePhoto && (
-                <button
-                  type="button"
-                  onClick={() => setPhotoOuverte(sos.preuvePhoto)}
+              <button
+                type="button"
+                onClick={() => setPhotoOuverte(sos.preuvePhoto)}
+                disabled={!sos.preuvePhoto}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+              >
+                {t('personnel.ambulance.preuve')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setJournalId(sos.id)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+              >
+                <History className="h-3.5 w-3.5" />
+                {t('sos.journal')}
+              </button>
+              {sos.telephone && (
+                <a
+                  href={`tel:${sos.telephone}`}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
                 >
-                  {t('personnel.ambulance.preuve')}
-                </button>
+                  {t('sos.appeler')}
+                </a>
               )}
               {lat != null && lng != null && (
                 <a
@@ -207,28 +164,22 @@ export default function PersonnelAmbulancePage() {
                   {t('personnel.ambulance.itineraire')}
                 </a>
               )}
-              {mode === 'ouverte' ? (
+              {mode === 'ouverte' && (
                 <button
                   type="button"
                   onClick={() => void prendre(sos)}
-                  disabled={busyId === sos.id}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-700 disabled:opacity-50"
+                  disabled={busyId === sos.id || !enService}
+                  title={!enService ? t('personnel.ambulance.horsService') : undefined}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busyId === sos.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ambulance className="h-3.5 w-3.5" />}
                   {t('personnel.ambulance.prendre')}
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => void cloturer(sos)}
-                  disabled={busyId === sos.id}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {busyId === sos.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                  {t('personnel.ambulance.cloturer')}
-                </button>
               )}
             </div>
+            {mode === 'prise' && (
+              <SosProgression sos={sos} onChange={rafraichir} disabled={busyId === sos.id} />
+            )}
           </div>
         </div>
       </li>
@@ -241,10 +192,19 @@ export default function PersonnelAmbulancePage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl min-w-0 px-3 py-6 sm:px-6">
-      <SectionHeader
-        title={t('personnel.ambulance.titre')}
-        description={t('personnel.ambulance.intro')}
-      />
+      <div className="flex items-start gap-3">
+        <SectionHeader title={t('personnel.ambulance.titre')} description={t('personnel.ambulance.intro')} />
+        <button
+          type="button"
+          onClick={() => void rafraichir()}
+          aria-label={t('sos.actualiser')}
+          className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5"
+        >
+          <RefreshCw className={`h-4 w-4 ${rafraichissement ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+
+      <SosStatsTiles stats={stats} />
 
       {actionError && (
         <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
@@ -291,6 +251,8 @@ export default function PersonnelAmbulancePage() {
         </section>
       </div>
 
+      {journalId !== null && <SosJournal sosId={journalId} onClose={() => setJournalId(null)} />}
+
       {photoOuverte && (
         <div
           className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
@@ -311,3 +273,4 @@ export default function PersonnelAmbulancePage() {
     </div>
   )
 }
+

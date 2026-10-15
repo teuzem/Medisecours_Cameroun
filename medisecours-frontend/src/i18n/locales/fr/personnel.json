@@ -123,7 +123,8 @@
       "aucunePrise": "Aucune intervention en cours.",
       "enServiceLabel": "Équipage disponible",
       "enServiceDesc": "Recevoir les cas légers à transporter en priorité.",
-      "intro": "Planning des ambulances : consultez les créneaux disponibles et affectez un équipage."
+      "intro": "Planning des ambulances : consultez les créneaux disponibles et affectez un équipage.",
+      "horsService": "Hors service : activez le service pour prendre une alerte."
     },
     "accueil": {
       "titre": "Admission patient",

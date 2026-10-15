@@ -100,8 +100,29 @@
       "SIRENE_ETEINTE": "Siren turned off",
       "PRISE_EN_CHARGE": "Taken in charge",
       "TRAITEE": "Handled",
-      "CLOTUREE": "Closed"
-    }
+      "CLOTUREE": "Closed",
+      "DEPART_EN_ROUTE": "Departed",
+      "ARRIVEE_SUR_PLACE": "Arrived on site",
+      "PATIENT_A_BORD": "Patient aboard",
+      "NOTE_INTERVENTION": "Intervention note"
+    },
+    "statsEnCours": "In progress",
+    "statsTraitees": "Handled",
+    "statsDelaiReaction": "Reaction time",
+    "statsDelaiArrivee": "Arrival time",
+    "statsTotalPerso_one": "{{count}} intervention",
+    "statsTotalPerso_other": "{{count}} interventions",
+    "suiviIntervention": "Intervention tracking",
+    "etapePriseEnCharge": "Take-over",
+    "etapeDepart": "Departure",
+    "etapeSurPlace": "On site",
+    "etapeTransport": "Patient aboard",
+    "departAction": "I'm on my way",
+    "surPlaceAction": "I'm on site",
+    "transportAction": "Patient aboard",
+    "depuis": "for",
+    "enAttente": "pending",
+    "journalVide": "No event recorded."
   },
   "common": {
     "loading": "Loading…",

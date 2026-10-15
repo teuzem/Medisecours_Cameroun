@@ -47,6 +47,9 @@ class HealthController extends AbstractController
         // Table du compteur de « J'aime » sur les avis : sans elle, la lecture
         // des avis d'un établissement qui en possède renvoie 500.
         'avis_jaime' => 'SELECT 1 FROM avis_jaime LIMIT 0',
+        // Suivi opérationnel des interventions SOS : sans ces colonnes, le
+        // tableau de bord ambulance/médecin ne peut plus mesurer les délais.
+        'demande_sos.suivi_intervention' => 'SELECT 1 FROM demande_sos WHERE prise_en_charge_type IS NULL AND depart_at IS NULL LIMIT 0',
     ];
 
     /** @var array{checkedAt: float, problems: list<string>}|null */

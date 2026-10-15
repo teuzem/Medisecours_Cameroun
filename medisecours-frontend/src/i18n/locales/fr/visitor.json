@@ -346,7 +346,13 @@
         "callTitle": "Appeler l'établissement",
         "callNumber": "Ou appelez le {{emergency}} (SAMU) pour une urgence vitale.",
         "newAlerte": "Nouvelle alerte",
-        "close": "Fermer"
+        "close": "Fermer",
+        "importTitle": "Importer une preuve",
+        "importHint": "Image ou vidéo de moins de 20 Mo, déjà sur votre appareil.",
+        "importTooLarge": "Fichier trop lourd : 20 Mo maximum.",
+        "importWrongFormat": "Format non pris en charge. Choisissez une image ou une vidéo.",
+        "importVideoFormat": "Vidéo non prise en charge. Utilisez MP4, WebM ou MOV.",
+        "importFailed": "Impossible de lire ce fichier. Essayez-en un autre."
       },
       "railLabel": "Mes lieux",
       "viewExplore": "Explorer",
