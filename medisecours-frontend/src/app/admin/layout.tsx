@@ -18,6 +18,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Siren,
   Sparkles,
   Star,
   Users,
@@ -26,6 +27,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../api/axios'
+import useSWR from 'swr'
+import { fetcher } from '../../lib/fetcher'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import NotificationBell from '../../components/ui/NotificationBell'
 import DashboardThemeToggle from '../../components/ui/DashboardThemeToggle'
@@ -57,6 +60,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: '/admin/utilisateurs', label: t('admin.layout.navUtilisateurs'), icon: Users },
         { href: '/admin/medecins', label: t('admin.layout.navMedecins'), icon: ShieldCheck, badge: 'pending' },
         { href: '/admin/centres', label: t('admin.layout.navCentres'), icon: Building2 },
+      ],
+    },
+    {
+      label: t('admin.layout.navPilotage'),
+      items: [
+        { href: '/admin/sos', label: t('admin.layout.navSos'), icon: Siren, badge: 'sos' },
       ],
     },
     {
@@ -104,6 +113,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: t('admin.layout.pageMeta.avisEtablissementsTitle'),
       subtitle: t('admin.layout.pageMeta.avisEtablissementsSubtitle'),
     },
+    '/admin/sos': {
+      title: t('admin.layout.pageMeta.sosTitle'),
+      subtitle: t('admin.layout.pageMeta.sosSubtitle'),
+    },
     '/admin/parametres': {
       title: t('admin.layout.pageMeta.parametresTitle'),
       subtitle: t('admin.layout.pageMeta.parametresSubtitle'),
@@ -131,6 +144,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .then((res) => setReportCount(res.data?.nouveaux ?? 0))
       .catch(() => {})
   }, [])
+
+  // Alertes SOS ouvertes : la caserne nationale doit voir le compteur depuis
+  // n'importe quelle page d'administration, pas seulement du centre de contrôle.
+  const { data: sosOuvertes } = useSWR<{ ouvertes: number }>(
+    '/api/admin/sos/alertes?jours=1&limit=1',
+    fetcher,
+    { refreshInterval: 60000, dedupingInterval: 0, shouldRetryOnError: false }
+  )
+  const openSosCount = sosOuvertes?.ouvertes ?? 0
 
   if (!mounted || !isAdmin) {
     return (
@@ -306,6 +328,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           {badge === 'pending' && pendingCount > 0 && (
                             <span className={`min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold ${active ? 'bg-mint-500 text-primary-900' : 'bg-primary-800 text-white'}`}>
                               {pendingCount}
+                            </span>
+                          )}
+{badge === 'sos' && openSosCount > 0 && (
+                            <span className={`min-w-[22px] animate-pulse rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold ${active ? 'bg-red-300 text-red-950' : 'bg-red-600 text-white'}`}>
+                              {openSosCount}
                             </span>
                           )}
                           {badge === 'reports' && reportCount > 0 && (

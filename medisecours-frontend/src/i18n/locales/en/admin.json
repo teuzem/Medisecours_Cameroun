@@ -33,7 +33,9 @@
         "avisEtablissementsTitle": "Facility reviews",
         "avisEtablissementsSubtitle": "Central moderation and tracking of map reviews",
         "parametresTitle": "Settings",
-        "parametresSubtitle": "General administration configuration"
+        "parametresSubtitle": "General administration configuration",
+        "sosTitle": "SOS control centre",
+        "sosSubtitle": "Real-time alerts and interventions across the network"
       },
       "fallbackTitle": "Administration",
       "fallbackSubtitle": "Global platform management",
@@ -46,7 +48,9 @@
       "support": "Support",
       "logout": "Log out",
       "loading": "Loading administration...",
-      "dateFormat": "{{date}}"
+      "dateFormat": "{{date}}",
+      "navPilotage": "Monitoring",
+      "navSos": "SOS centre"
     },
     "avisEtablissements": {
       "statTotal": "Total reviews",
@@ -882,6 +886,26 @@
       "emailFallback": "doctor@medisecours.com",
       "officialStamp": "Official stamp",
       "electronicallySigned": "Electronically signed"
+    },
+    "sos": {
+      "titre": "SOS control centre",
+      "intro": "National monitoring of alerts and interventions, in real time.",
+      "periode_one": "{{count}} day",
+      "periode_other": "{{count}} days",
+      "filtres": "Filters",
+      "filTitre": "Ongoing alerts",
+      "graphiqueTendance": "Alerts per day",
+      "tuileTotal": "Alerts",
+      "tuileOuvertes": "Open",
+      "tuileRetard": "Overdue",
+      "topEtablissements": "Busiest facilities",
+      "enRetard_one": "{{count}} overdue",
+      "enRetard_other": "{{count}} overdue",
+      "sansCible": "No targeted facility",
+      "urgenceVitale": "Vital emergency",
+      "equipeMedecin": "Doctor interventions",
+      "proofVideo": "Video evidence",
+      "connectes": "Connected callers"
     }
   }
 }

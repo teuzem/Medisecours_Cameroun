@@ -33,7 +33,9 @@
         "avisEtablissementsTitle": "Avis des établissements",
         "avisEtablissementsSubtitle": "Modération centrale et suivi des avis publiés sur la carte",
         "parametresTitle": "Paramètres",
-        "parametresSubtitle": "Configuration générale de l'administration"
+        "parametresSubtitle": "Configuration générale de l'administration",
+        "sosTitle": "Centre de contrôle SOS",
+        "sosSubtitle": "Alertes et interventions en temps réel sur tout le réseau"
       },
       "fallbackTitle": "Administration",
       "fallbackSubtitle": "Pilotage global de la plateforme",
@@ -46,7 +48,9 @@
       "support": "Support",
       "logout": "Déconnexion",
       "loading": "Chargement de l'administration...",
-      "dateFormat": "{{date}}"
+      "dateFormat": "{{date}}",
+      "navPilotage": "Pilotage",
+      "navSos": "Centre SOS"
     },
     "avisEtablissements": {
       "statTotal": "Avis totaux",
@@ -882,6 +886,26 @@
       "emailFallback": "doctor@medisecours.com",
       "officialStamp": "Cachet officiel",
       "electronicallySigned": "Signé électroniquement"
+    },
+    "sos": {
+      "titre": "Centre de contrôle SOS",
+      "intro": "Pilotage national des alertes et interventions, en temps réel.",
+      "periode_one": "{{count}} jour",
+      "periode_other": "{{count}} jours",
+      "filtres": "Filtres",
+      "filTitre": "Alertes en cours",
+      "graphiqueTendance": "Alertes par jour",
+      "tuileTotal": "Alertes",
+      "tuileOuvertes": "Ouvertes",
+      "tuileRetard": "En retard",
+      "topEtablissements": "Établissements les plus sollicités",
+      "enRetard_one": "{{count}} en retard",
+      "enRetard_other": "{{count}} en retard",
+      "sansCible": "Sans établissement ciblé",
+      "urgenceVitale": "Urgence vitale",
+      "equipeMedecin": "Interventions médecin",
+      "proofVideo": "Preuves vidéo",
+      "connectes": "Demandeurs connectés"
     }
   }
 }

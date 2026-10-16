@@ -1088,7 +1088,10 @@ class SosWorkflowController extends AbstractController
      *    → uniquement l'équipe de l'établissement (ce sont eux qui
      *    pilotent la sirène et le poste d'alerte) ;
      *  - `sos_suivi` (même charge utile) → demandeur + répondant,
-     *    pour suivre l'avancement sans jamais déclencher la sirène.
+     *    pour suivre l'avancement sans jamais déclencher la sirène ;
+     *  - `sos_admin` → administrateurs central, qui pilotent le réseau
+     *    entier. Canal distinct : un poste admin ne fait pas sonner sa
+     *    sirène pour une alerte qui n'est pas la sienne.
      */
     private function publish(DemandeSos $sos, string $event, array $payload): void
     {
@@ -1104,6 +1107,15 @@ class SosWorkflowController extends AbstractController
 
         if ($equipe !== []) {
             $this->messageBus->dispatch(new WebSocketNotification($event, $payload, $equipe));
+        }
+
+        // Centre de contrôle national : mêmes informations, canal à part.
+        $admins = AdminSosController::idsAdministrateurs($this->em);
+        if ($admins !== []) {
+            $this->messageBus->dispatch(new WebSocketNotification('sos_admin', [
+                'evenement' => $event,
+                'sos' => $this->serializeSos($sos, false),
+            ], $admins));
         }
 
         $suivi = [];

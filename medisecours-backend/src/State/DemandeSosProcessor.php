@@ -10,6 +10,7 @@ use App\Entity\CentreDeSante;
 use App\Entity\DemandeSos;
 use App\Entity\SosTrace;
 use App\Entity\User;
+use App\Controller\AdminSosController;
 use App\Message\WebSocketNotification;
 use App\Repository\CentreDeSanteRepository;
 use App\Repository\EtablissementEquipeRepository;
@@ -235,6 +236,32 @@ class DemandeSosProcessor implements ProcessorInterface
             ],
             $targets
         ));
+
+        // Canal du centre de contrôle national : chaque nouvelle alerte doit
+        // remonter jusqu'à l'administration, y compris hors établissement cible.
+        $admins = AdminSosController::idsAdministrateurs($this->em);
+        if ($admins !== []) {
+            $this->messageBus->dispatch(new WebSocketNotification(
+                'sos_admin',
+                [
+                    'evenement' => 'sos_creee',
+                    'sos' => [
+                        'id' => $sos->getId(),
+                        'statut' => $sos->getStatut(),
+                        'gravite' => $sos->getGravite(),
+                        'nom' => $sos->getNom(),
+                        'telephone' => $sos->getTelephone(),
+                        'description' => mb_substr((string) $sos->getDescription(), 0, 200),
+                        'latitude' => $sos->getLatitude(),
+                        'longitude' => $sos->getLongitude(),
+                        'preuveType' => $sos->getPreuveType(),
+                        'createdAt' => $sos->getCreatedAt()->format('c'),
+                        'etablissement' => $cible ? ['id' => $cible->getId(), 'nom' => $cible->getNom()] : null,
+                    ],
+                ],
+                $admins
+            ));
+        }
     }
 
     /**

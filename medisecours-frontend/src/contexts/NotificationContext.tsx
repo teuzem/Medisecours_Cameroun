@@ -564,6 +564,12 @@ useEffect(() => {
     onSosSuivi: (payload: any) => {
       dispatchSos('sos_suivi', payload)
     },
+    // Centre de contrôle admin : réception seule. Ni sirène ni bandeau —
+    // un poste d'administration surveille le réseau, il n'est pas l'équipe
+    // de secours d'un établissement donné.
+    onSosAdmin: (payload: any) => {
+      dispatchSos('sos_admin', payload)
+    },
   })
 
   // ── Dropdown notifications : fetch ON DEMAND au clic ───────────────────

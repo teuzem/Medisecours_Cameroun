@@ -70,6 +70,8 @@ export function useWebSocket(userId: string, token: string, handlers: {
   onSosCloturee?: (data: any) => void
   onSosRelayee?: (data: any) => void
   onSosSuivi?: (data: any) => void
+  /** Canal du centre de contrôle admin : jamais de sirène, juste un rafraîchissement. */
+  onSosAdmin?: (data: any) => void
 }, role?: string) {
   const wsRef = useRef<WebSocket | null>(null)
   const attemptRef = useRef(0)
@@ -168,6 +170,7 @@ export function useWebSocket(userId: string, token: string, handlers: {
           if (evt === 'sos_cloturee' && h.onSosCloturee) h.onSosCloturee(payload)
           if (evt === 'sos_relayee' && h.onSosRelayee) h.onSosRelayee(payload)
           if (evt === 'sos_suivi' && h.onSosSuivi) h.onSosSuivi(payload)
+    if (evt === 'sos_admin' && h.onSosAdmin) h.onSosAdmin(payload)
           if (evt === 'language_changed') {
             const locale = payload?.locale
             if (locale === 'fr' || locale === 'en') {
