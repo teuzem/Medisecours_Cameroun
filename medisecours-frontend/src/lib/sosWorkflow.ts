@@ -16,6 +16,8 @@ export interface AlerteSos {
   longitude: number | number[] | null
   sireneActive: boolean
   preuvePhoto: string | null
+  /** Nature de la preuve renvoyée par l'API : évite de renifler la data-URL. */
+  preuveType?: 'PHOTO' | 'VIDEO' | null
   etablissement: { id: number; nom: string } | null
   prisEnChargePar: { id: string; nom: string } | null
   prisEnChargeAt?: string | null

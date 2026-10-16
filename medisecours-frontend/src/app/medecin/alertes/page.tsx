@@ -20,6 +20,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import api from '../../../api/axios'
 import { SosJournal } from '../../../components/sos/SosJournal'
+import { SosPosition } from '../../../components/sos/SosPosition'
+import { SosPreuve } from '../../../components/sos/SosPreuve'
 import { SosProgression } from '../../../components/sos/SosProgression'
 import { SosStatsTiles } from '../../../components/sos/SosStatsTiles'
 import { useSosFeedback, useSosFeed } from '../../../hooks/useSosFeed'
@@ -59,7 +61,6 @@ export default function MedecinAlertesPage() {
   const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
 
   const [busyId, setBusyId] = useState<number | null>(null)
-  const [photoOuverte, setPhotoOuverte] = useState<string | null>(null)
   const [journalId, setJournalId] = useState<number | null>(null)
 
   const { ouvertes, mesPrises, stats, loading, erreur, rafraichissement, rafraichir } = useSosFeed('/api/medecin/sos')
@@ -158,14 +159,7 @@ export default function MedecinAlertesPage() {
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPhotoOuverte(sos.preuvePhoto || null)}
-                disabled={!sos.preuvePhoto}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-              >
-                {t('medecin.alertes.preuve')}
-              </button>
+              <SosPreuve preuve={sos.preuvePhoto} type={sos.preuveType} />
 
               <button
                 type="button"
@@ -190,13 +184,15 @@ export default function MedecinAlertesPage() {
                   href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
                   target="_blank"
                   rel="noreferrer"
-                  title={t('medecin.alertes.itineraireHint')}
+                  title={t('sos.itineraireHint')}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-primary-200 px-4 py-2 text-xs font-bold text-primary-700 transition hover:bg-primary-50 dark:border-mint-500/30 dark:text-mint-300 dark:hover:bg-mint-500/10"
                 >
                   <Navigation className="h-3.5 w-3.5" />
-                  {t('medecin.alertes.itineraire')}
+                  {t('sos.itineraire')}
                 </a>
               )}
+              {/* Position exacte du patient + partage de l'itinéraire */}
+              <SosPosition latitude={lat} longitude={lng} nom={sos.nom} telephone={sos.telephone} />
 
               {mode === 'ouverte' ? (
                 <button
@@ -326,27 +322,8 @@ export default function MedecinAlertesPage() {
         </div>
       )}
 
-      {/* ── Visionneuse de preuve ── */}
+{/* ── Visionneuse de preuve ── */}
       {journalId !== null && <SosJournal sosId={journalId} onClose={() => setJournalId(null)} />}
-
-      {photoOuverte && (
-        <div
-          className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-          onClick={() => setPhotoOuverte(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('sos.preuve')}
-        >
-          <div className="max-h-full w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
-            {photoOuverte.startsWith('data:video/') ? (
-              <video src={photoOuverte} controls playsInline preload="metadata" className="max-h-[70vh] w-full bg-black" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element -- preuve image base64 serveur
-              <img src={photoOuverte} alt={t('sos.preuveAlt')} className="max-h-[70vh] w-full object-contain bg-slate-100 dark:bg-slate-950" />
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

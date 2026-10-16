@@ -20,12 +20,14 @@ import {
   Siren,
   Stethoscope,
   UserRound,
+  Video,
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/axios'
 import { useNotification } from '../../contexts/NotificationContext'
 import { useToast } from '../ui/Toast'
+import { SosPosition } from '../sos/SosPosition'
 
 interface SosItem {
   id: number
@@ -40,6 +42,8 @@ interface SosItem {
   longitude: number | number[] | null
   sireneActive: boolean
   preuvePhoto: string | null
+  /** Nature de la preuve renvoyée par l'API (PHOTO / VIDEO). */
+  preuveType: 'PHOTO' | 'VIDEO' | null
   etablissement: { id: number; nom: string } | null
   verifiePar: string | null
   verifieAt: string | null
@@ -478,9 +482,11 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                         disabled={!sos.preuvePhoto}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
                       >
-                        {sos.preuvePhoto ? <Eye className="h-3.5 w-3.5" /> : <CircleSlash className="h-3.5 w-3.5" />}
-                        {sos.preuvePhoto ? t('sos.preuve') : t('sos.preuveAbsente')}
+                        {sos.preuveType === 'VIDEO' ? <Video className="h-3.5 w-3.5" /> : sos.preuvePhoto ? <Eye className="h-3.5 w-3.5" /> : <CircleSlash className="h-3.5 w-3.5" />}
+                        {sos.preuvePhoto ? (sos.preuveType === 'VIDEO' ? t('sos.preuveVideo') : t('sos.preuve')) : t('sos.preuveAbsente')}
                       </button>
+                      {/* Position exacte du patient + partage de l'itinéraire */}
+                      <SosPosition latitude={lat} longitude={lng} nom={sos.nom} telephone={sos.telephone} />
                       <button
                         type="button"
                         onClick={() => void ouvrirJournal(sos)}

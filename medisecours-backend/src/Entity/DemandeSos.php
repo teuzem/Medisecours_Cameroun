@@ -154,12 +154,26 @@ class DemandeSos
     private ?int $etablissementId = null;
 
     /**
-     * Preuve photo capturée par la caméra du demandeur (JPEG base64).
-     * Permets à l'équipe de vérifier la réalité de l'urgence.
+     * Preuve capturée par le demandeur : photo (JPEG base64) ou vidéo
+     * (MP4/WebM base64). Permet à l'équipe de vérifier la réalité de
+     * l'urgence avant de lancer la sirène.
      */
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['demande_sos:write'])]
     private ?string $preuvePhoto = null;
+
+    public const PREUVE_PHOTO = 'PHOTO';
+    public const PREUVE_VIDEO = 'VIDEO';
+
+    /**
+     * Nature de la preuve jointe. Calculée par le processor à partir de la
+     * data-URL : sans elle, l'interface devait deviner le type en reniflant
+     * la chaîne base64, et une vidéo se faisait afficher comme une image
+     * (icône cassée, relecture impossible côté équipe de secours).
+     */
+    #[ORM\Column(length: 10, nullable: true)]
+    #[Groups(['demande_sos:read'])]
+    private ?string $preuveType = null;
 
     /**
      * Propriété transitoire : le client déclare l'absence de caméra
@@ -449,6 +463,18 @@ class DemandeSos
     public function setPreuvePhoto(?string $preuvePhoto): static
     {
         $this->preuvePhoto = $preuvePhoto;
+
+        return $this;
+    }
+
+    public function getPreuveType(): ?string
+    {
+        return $this->preuveType;
+    }
+
+    public function setPreuveType(?string $preuveType): static
+    {
+        $this->preuveType = $preuveType;
 
         return $this;
     }

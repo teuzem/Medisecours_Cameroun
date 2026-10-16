@@ -190,6 +190,7 @@ class RepairSchemaCommand extends Command
             'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS arrivee_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL',
             'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS patient_embarque_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL',
             'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS note_intervention TEXT DEFAULT NULL',
+            'ALTER TABLE demande_sos ADD COLUMN IF NOT EXISTS preuve_type VARCHAR(10) DEFAULT NULL',
 
             // ── etablissement_equipe (sonde health/deploy) ──
             'CREATE TABLE IF NOT EXISTS etablissement_equipe (

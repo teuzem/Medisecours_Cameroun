@@ -591,21 +591,58 @@ class SosWorkflowController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $jours = 30;
+        $parJour = [];
+        $parGravite = ['LEGERE' => 0, 'URGENTE' => 0, 'CRITIQUE' => 0];
+        $parHeure = array_fill(0, 24, 0);
+        $parIntervenant = ['MEDECIN' => 0, 'AMBULANCIER' => 0, 'NON_POURVU' => 0];
+        $seriesPreuves = ['PHOTO' => 0, 'VIDEO' => 0, 'AUCUNE' => 0];
         $parStatut = [];
         $avecPreuve = 0;
         $sirenesActives = 0;
         $delaisVerification = [];
         $delaisPriseEnCharge = [];
         $delaisResolution = [];
+        $delaisArrivee = [];
+
+        // Série temporelle : un point par jour, trous comblés à zéro pour que
+        // le graphique montre des jours sans alerte au lieu de sauter la ligne.
+        for ($j = $jours - 1; $j >= 0; $j--) {
+            $jour = (new \DateTimeImmutable())->modify('-' . $j . ' days');
+            $parJour[$jour->format('Y-m-d')] = 0;
+        }
+
         foreach ($rows as $sos) {
             $statut = $sos->getStatut();
             $parStatut[$statut] = ($parStatut[$statut] ?? 0) + 1;
-            if ($sos->getPreuvePhoto()) {
+            if (in_array($statut, ['EN_COURS', 'VERIFIEE', 'EN_PRISE_EN_CHARGE'], true)) {
+                $sirenesActives += $sos->isSireneActive() ? 1 : 0;
+            }
+
+            $cleJour = $sos->getCreatedAt()->format('Y-m-d');
+            if (array_key_exists($cleJour, $parJour)) {
+                $parJour[$cleJour]++;
+            }
+            $parGravite[$sos->getGravite()] = ($parGravite[$sos->getGravite()] ?? 0) + 1;
+            $parHeure[(int) $sos->getCreatedAt()->format('G')]++;
+
+            $type = $sos->getPriseEnChargeType();
+            if ($type === 'MEDECIN' || $type === 'AMBULANCIER') {
+                $parIntervenant[$type]++;
+            } elseif ($sos->getPrisEnChargePar()) {
+                $parIntervenant['NON_POURVU']++;
+            }
+
+            if ($sos->getPreuveType() === DemandeSos::PREUVE_VIDEO) {
+                $seriesPreuves['VIDEO']++;
                 $avecPreuve++;
+            } elseif ($sos->getPreuveType() === DemandeSos::PREUVE_PHOTO || $sos->getPreuvePhoto()) {
+                $seriesPreuves['PHOTO']++;
+                $avecPreuve++;
+            } else {
+                $seriesPreuves['AUCUNE']++;
             }
-            if ($sos->isSireneActive()) {
-                $sirenesActives++;
-            }
+
             if ($sos->getVerifieAt()) {
                 $delaisVerification[] = $sos->getVerifieAt()->getTimestamp() - $sos->getCreatedAt()->getTimestamp();
             }
@@ -615,10 +652,24 @@ class SosWorkflowController extends AbstractController
             if ($sos->getResoluAt()) {
                 $delaisResolution[] = $sos->getResoluAt()->getTimestamp() - $sos->getCreatedAt()->getTimestamp();
             }
+            if ($sos->getArriveeAt() && $sos->getPrisEnChargeAt()) {
+                $delaisArrivee[] = $sos->getArriveeAt()->getTimestamp() - $sos->getPrisEnChargeAt()->getTimestamp();
+            }
         }
+
         $moyenne = static fn (array $valeurs): ?int => $valeurs === [] ? null : (int) round(array_sum($valeurs) / count($valeurs));
 
         $total = count($rows);
+
+        $serie = [];
+        foreach ($parJour as $jour => $nombre) {
+            $serie[] = ['jour' => $jour, 'total' => $nombre];
+        }
+
+        $parHeureFormat = [];
+        foreach ($parHeure as $heure => $nombre) {
+            $parHeureFormat[] = ['heure' => sprintf('%02dh', $heure), 'total' => $nombre];
+        }
 
         return new JsonResponse([
             'centreId' => $centre->getId(),
@@ -631,6 +682,13 @@ class SosWorkflowController extends AbstractController
             'delaiMoyenVerificationSec' => $moyenne($delaisVerification),
             'delaiMoyenPriseEnChargeSec' => $moyenne($delaisPriseEnCharge),
             'delaiMoyenResolutionSec' => $moyenne($delaisResolution),
+            // ── Séries pour les graphiques analytiques ──
+            'serieJour' => $serie,
+            'parGravite' => $parGravite,
+            'parHeure' => $parHeureFormat,
+            'parIntervenant' => $parIntervenant,
+            'preuves' => $seriesPreuves,
+            'delaiMoyenArriveeSec' => $moyenne($delaisArrivee),
         ]);
     }
 
@@ -682,8 +740,11 @@ class SosWorkflowController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // La preuve est transmise : sans elle, ni le médecin ni l'ambulancier ne
+        // peuvent vérifier l'urgence avant de se déplacer — et le bouton
+        // « preuve » restait désactivé en cours d'intervention.
         $serializer = function (DemandeSos $item) use ($user): array {
-            $payload = $this->serializeSos($item, false);
+            $payload = $this->serializeSos($item, true);
             $payload['habilitation'] = $this->evaluerHabilitation($user, $item->getEtablissement())['type'];
 
             return $payload;
@@ -751,8 +812,9 @@ class SosWorkflowController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // L'ambulancier vérifie lui aussi la preuve avant de partir.
         $serializer = function (DemandeSos $item): array {
-            return $this->serializeSos($item, false);
+            return $this->serializeSos($item, true);
         };
 
         return new JsonResponse([
@@ -1079,6 +1141,10 @@ class SosWorkflowController extends AbstractController
             'longitude' => $sos->getLongitude(),
             'sireneActive' => $sos->isSireneActive(),
             'preuvePhoto' => $avecPreuve ? $sos->getPreuvePhoto() : null,
+            // Le type est explicite : l'interface affiche une <video> sans
+            // renifler la data-URL (une vidéo traitée comme une image
+            // devient une icône cassée, donc une vérification impossible).
+            'preuveType' => $avecPreuve ? $sos->getPreuveType() : null,
             'etablissement' => $sos->getEtablissement() ? [
                 'id' => $sos->getEtablissement()->getId(),
                 'nom' => $sos->getEtablissement()->getNom(),

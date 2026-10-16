@@ -73,31 +73,41 @@ class DemandeSosProcessor implements ProcessorInterface
             }
 
             $preuve = trim((string) ($data->getPreuvePhoto() ?? ''));
-            $preuveEstVideo = $preuve !== '' && str_starts_with($preuve, 'data:video/');
             if ($preuve !== '') {
+                // Le type se lit dans l'en-tête de la data-URL, pas dans la
+                // charge utile : une liste de codecs contient des virgules
+                // ("video/webm;codecs=vp9,opus"), ce qu'un regex naïf rejetait.
+                [$mime, $sousType] = self::analyserDataUrl($preuve);
+                $estVideo = str_starts_with($mime, 'video/');
+                $estImage = str_starts_with($mime, 'image/');
+                if (!$estVideo && !$estImage) {
+                    throw new BadRequestHttpException('Format de preuve invalide (image ou vidéo attendu).');
+                }
+
                 // Le plafond porte sur la taille RÉELLE du fichier : une data-URL
                 // base64 pèse ~4/3 de plus, la comparer telle quelle refusait
                 // des vidéos pourtant sous la limite.
                 $tailleReelle = self::tailleDecodee($preuve);
-                $tailleMax = $preuveEstVideo ? self::MAX_PREUVE_VIDEO_OCTETS : self::MAX_PREUVE_OCTETS;
+                $tailleMax = $estVideo ? self::MAX_PREUVE_VIDEO_OCTETS : self::MAX_PREUVE_OCTETS;
                 if ($tailleReelle > $tailleMax) {
-                    throw new BadRequestHttpException($preuveEstVideo
+                    throw new BadRequestHttpException($estVideo
                         ? 'La preuve vidéo dépasse la taille maximale (20 Mo). Choisissez un fichier plus léger.'
                         : 'La preuve photo dépasse la taille maximale (1,5 Mo).');
                 }
-                if ($preuveEstVideo) {
-                    if (!preg_match('#^data:video/(mp4|webm)(;[^,]*)?;base64,#', $preuve)) {
-                        throw new BadRequestHttpException('Format de preuve vidéo invalide (MP4/WebM attendu).');
-                    }
-                } elseif (!str_starts_with($preuve, 'data:image/')) {
-                    throw new BadRequestHttpException('Format de preuve invalide (image ou vidéo attendu).');
+                if ($estVideo && !in_array($sousType, ['mp4', 'webm', 'quicktime', 'x-m4v', '3gpp', 'ogg'], true)) {
+                    throw new BadRequestHttpException('Format de preuve vidéo invalide (MP4/WebM attendu).');
                 }
+
+                // Le type est persisté : l'interface affiche une <video> sans
+                // avoir à deviner à partir de la chaîne base64.
+                $data->setPreuveType($estVideo ? DemandeSos::PREUVE_VIDEO : DemandeSos::PREUVE_PHOTO);
             } elseif (!$data->isPreuveIndisponible()) {
                 throw new BadRequestHttpException(
                     'La preuve photo (capture caméra) est requise. Déclarez preuveIndisponible si la caméra est inaccessible.'
                 );
             } else {
                 $data->setPreuvePhoto(null);
+                $data->setPreuveType(null);
             }
 
             $data->setStatut('EN_COURS');
@@ -167,7 +177,7 @@ class DemandeSosProcessor implements ProcessorInterface
                 ->setDetails([
                     'source' => $cibleSource,
                     'etablissementId' => $cible?->getId(),
-                    'preuve' => $preuve !== '' ? ($preuveEstVideo ? 'capture_video' : 'capture_camera') : 'indisponible',
+                    'preuve' => $preuve !== '' ? ($data->getPreuveType() === DemandeSos::PREUVE_VIDEO ? 'capture_video' : 'capture_camera') : 'indisponible',
                     'ip' => $ip,
                 ]);
             $this->em->persist($trace);
@@ -225,6 +235,34 @@ class DemandeSosProcessor implements ProcessorInterface
             ],
             $targets
         ));
+    }
+
+    /**
+     * Type MIME et sous-type d'une data-URL.
+     *
+     * L'en-tête s'arrête à la première virgule : c'est le seul découpage
+     * fiable, car la liste des codecs en contient elle-même
+     * (« data:video/webm;codecs=vp9,opus;base64,… »).
+     *
+     * @return array{0: string, 1: string} [0] = type MIME, [1] = sous-type
+     */
+    private static function analyserDataUrl(string $dataUrl): array
+    {
+        if (!str_starts_with($dataUrl, 'data:')) {
+            return ['', ''];
+        }
+
+        $virgule = strpos($dataUrl, ',');
+        if ($virgule === false) {
+            return ['', ''];
+        }
+
+        $entete = substr($dataUrl, 5, $virgule - 5);
+        $parties = array_map('trim', explode(';', $entete));
+        $mime = strtolower((string) array_shift($parties));
+        $sousType = strtolower((string) (str_contains($mime, '/') ? substr($mime, strpos($mime, '/') + 1) : $mime));
+
+        return [$mime, $sousType];
     }
 
     /**

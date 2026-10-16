@@ -50,6 +50,9 @@ class HealthController extends AbstractController
         // Suivi opérationnel des interventions SOS : sans ces colonnes, le
         // tableau de bord ambulance/médecin ne peut plus mesurer les délais.
         'demande_sos.suivi_intervention' => 'SELECT 1 FROM demande_sos WHERE prise_en_charge_type IS NULL AND depart_at IS NULL LIMIT 0',
+        // Nature de la preuve : sans cette colonne, l'équipe de secours ne
+        // peut pas distinguer une vidéo d'une photo avant de lancer la sirène.
+        'demande_sos.preuve_type' => 'SELECT 1 FROM demande_sos WHERE preuve_type IS NULL AND preuve_photo IS NOT NULL LIMIT 0',
     ];
 
     /** @var array{checkedAt: float, problems: list<string>}|null */

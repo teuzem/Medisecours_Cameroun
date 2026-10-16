@@ -23,6 +23,8 @@ import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import Toggle from '../../../components/ui/Toggle'
 import SectionHeader from '../../../components/ui/SectionHeader'
 import { SosJournal } from '../../../components/sos/SosJournal'
+import { SosPosition } from '../../../components/sos/SosPosition'
+import { SosPreuve } from '../../../components/sos/SosPreuve'
 import { SosProgression } from '../../../components/sos/SosProgression'
 import { SosStatsTiles } from '../../../components/sos/SosStatsTiles'
 import { useSosFeedback, useSosFeed } from '../../../hooks/useSosFeed'
@@ -46,7 +48,6 @@ export default function PersonnelAmbulancePage() {
   const [enService, setEnService] = useState(true)
   const [serviceCharge, setServiceCharge] = useState(true)
   const [busyId, setBusyId] = useState<number | null>(null)
-  const [photoOuverte, setPhotoOuverte] = useState<string | null>(null)
   const [journalId, setJournalId] = useState<number | null>(null)
 
   const { ouvertes, mesPrises, stats, loading, erreur, rafraichissement, rafraichir } = useSosFeed('/api/ambulancier/sos')
@@ -129,14 +130,7 @@ export default function PersonnelAmbulancePage() {
               {sos.enceinte && <span className="font-semibold text-pink-600 dark:text-pink-400">{t('sos.enceinteBadge')}</span>}
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPhotoOuverte(sos.preuvePhoto)}
-                disabled={!sos.preuvePhoto}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-              >
-                {t('personnel.ambulance.preuve')}
-              </button>
+              <SosPreuve preuve={sos.preuvePhoto} type={sos.preuveType} />
               <button
                 type="button"
                 onClick={() => setJournalId(sos.id)}
@@ -164,6 +158,8 @@ export default function PersonnelAmbulancePage() {
                   {t('personnel.ambulance.itineraire')}
                 </a>
               )}
+              {/* Position exacte du patient + partage de l'itinéraire */}
+              <SosPosition latitude={lat} longitude={lng} nom={sos.nom} telephone={sos.telephone} />
               {mode === 'ouverte' && (
                 <button
                   type="button"
@@ -252,24 +248,6 @@ export default function PersonnelAmbulancePage() {
       </div>
 
       {journalId !== null && <SosJournal sosId={journalId} onClose={() => setJournalId(null)} />}
-
-      {photoOuverte && (
-        <div
-          className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-          onClick={() => setPhotoOuverte(null)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="max-h-full w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
-            {photoOuverte.startsWith('data:video/') ? (
-              <video src={photoOuverte} controls playsInline preload="metadata" className="max-h-[70vh] w-full bg-black" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element -- preuve image base64 serveur
-              <img src={photoOuverte} alt="" className="max-h-[70vh] w-full object-contain bg-slate-100 dark:bg-slate-950" />
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

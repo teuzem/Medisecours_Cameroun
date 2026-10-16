@@ -237,6 +237,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [getAudioCtx])
 
   const startSiren = useCallback(() => {
+    // La vibration part AVANT l'audio : sur un poste sans sortie sonore (mode
+    // silencieux, WebAudio bloqué), l'alerte doit tout de même être perçue.
+    try {
+      navigator.vibrate?.([400, 200, 400, 200, 800])
+    } catch { /* vibration indisponible */ }
+
     if (sirenNodesRef.current) return
     const ctx = getAudioCtx()
     if (!ctx) return
@@ -259,11 +265,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       lfo.start()
       sirenNodesRef.current = { osc, lfo, gain }
       setSireneActivee(true)
-      // Vibration d'alerte (téléphones/tablettes en poche) : motif sirène,
-      // annulé à l'arrêt (prise en charge par le premier répondant, clôture).
-      try {
-        navigator.vibrate?.([400, 200, 400, 200, 800])
-      } catch { /* vibration indisponible */ }
     } catch { /* audio indisponible */ }
   }, [getAudioCtx])
 
@@ -296,6 +297,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [stopSiren])
 
   const dismissSosAlerte = useCallback(() => setSosAlerte(null), [])
+
+  // Déverrouillage audio : les navigateurs suspendent un AudioContext tant que
+// l'utilisateur n'a pas interagi avec la page. Sans ce premier geste, la
+// sirène d'une alerte SOS ne se fait pas entendre sur un poste laissé ouvert.
+useEffect(() => {
+  const deverrouiller = () => {
+    const ctx = audioCtxRef.current
+    if (ctx && ctx.state === 'suspended') void ctx.resume().catch(() => undefined)
+    window.removeEventListener('pointerdown', deverrouiller)
+    window.removeEventListener('keydown', deverrouiller)
+  }
+  window.addEventListener('pointerdown', deverrouiller)
+  window.addEventListener('keydown', deverrouiller)
+  return () => {
+    window.removeEventListener('pointerdown', deverrouiller)
+    window.removeEventListener('keydown', deverrouiller)
+  }
+}, [])
 
   // Arrêt propre de la sirène au démontage du provider.
   useEffect(() => {
