@@ -75,11 +75,15 @@ type CentreLite = {
 }
 
 type MonEtablissement = {
-  centre: FicheCentre | null
-  role?: string | null
-  via?: string | null
-  statut?: string | null
-}
+    centre: FicheCentre | null
+    role?: string | null
+    via?: string | null
+    statut?: string | null
+    // Le backend tranche : responsable, personnel rattaché ou contributeur
+    // d'équipe (MEDECIN / INFIRMIER) peuvent alimenter la galerie.
+    galerie?: boolean
+    gestionnaire?: boolean
+  }
 
 type DashboardData = {
   centre: CentreLite
@@ -251,6 +255,24 @@ const DASHBOARD_SECTION_IDS: DashboardSectionId[] = [
   'dashboard-settings',
 ]
 
+/**
+ * Sections ouvertes à un contributeur de galerie sans droit de gestion.
+ * Tout le reste (équipe, affiliations, validation du personnel, modération,
+ * préférences) exige un rôle de responsable.
+ */
+const CONTRIBUTOR_SECTIONS: DashboardSectionId[] = [
+  'dashboard-overview',
+  'dashboard-fiche',
+  'dashboard-media',
+]
+
+/**
+ * Sections d'un compte en lecture seule (médecin affilié) : consultation de
+ * l'établissement, sans galerie ni administration. Le dernier élément sert de
+ * section de repli, d'où l'ordre.
+ */
+const CONSULTATION_SECTIONS: DashboardSectionId[] = ['dashboard-overview', 'dashboard-fiche']
+
 function defaultPrefs(): Prefs {
   return {
     accent: ACCENTS[0],
@@ -339,6 +361,10 @@ export default function EtablissementEspacePage() {
   const [media, setMedia] = useState<ManagedMedia[]>([])
   const [reviews, setReviews] = useState<ManagedReview[]>([])
   const [uploadingMedia, setUploadingMedia] = useState(false)
+  // Vrai pendant toute la durée d'un import multi-fichiers : sans cet état,
+  // le bouton clignoterait à chaque fichier déposé.
+  const [batchImport, setBatchImport] = useState(false)
+  const mediaBusy = uploadingMedia || batchImport
   const [moderatingReview, setModeratingReview] = useState<number | null>(null)
   const [settingCover, setSettingCover] = useState(false)
 
@@ -346,7 +372,25 @@ export default function EtablissementEspacePage() {
   const [prefs, setPrefs] = useState<Prefs>(readPrefs)
 
   const canAccess = isEtablissement || isAdmin
-  const canManageMedia = isAdmin || mon?.role === 'DIRECTEUR' || mon?.role === 'GESTIONNAIRE'
+  // Le droit d'alimenter la galerie vient du backend (`galerie`) : le bouton
+  // d'import doit exister pour tout contributeur autorisé — responsable,
+  // personnel de santé rattaché, ou soignant membre de l'équipe.
+  const canManageMedia = mon?.galerie === true || (isAdmin && mon?.centre != null)
+  // La fiche, l'équipe et les préférences restent réservées aux
+  // responsables : un contributeur ne doit pas recevoir un 403 en enregistrant.
+  const canManageEtablissement = mon?.gestionnaire === true || isAdmin
+  // Sections réellement accessibles, selon le contrat renvoyé par le backend.
+  const sectionsAutorisees: DashboardSectionId[] = canManageEtablissement
+    ? DASHBOARD_SECTION_IDS
+    : mon?.galerie
+      ? CONTRIBUTOR_SECTIONS
+      : CONSULTATION_SECTIONS
+  // Un contributeur arrivant sur #dashboard-team (lien partagé, onglet
+  // précédent) est ramené sur une section permise plutôt que sur un panneau
+  // qui ne pourrait que renvoyer une erreur.
+  const sectionAutorisee: DashboardSectionId = sectionsAutorisees.includes(activeSection)
+    ? activeSection
+    : sectionsAutorisees[sectionsAutorisees.length - 1]
   const accent = prefs.accent
 
   const applyPrefs = useCallback((next: Prefs) => {
@@ -423,39 +467,53 @@ export default function EtablissementEspacePage() {
             .catch(() => undefined)
           setTeamLoading(true)
           setTeamError(false)
-          void api
-            .get<{ members: EquipeMembre[] }>('/api/carte/equipes', { params: { centre: centreId } })
-            .then(({ data: team }) => {
-              setEquipe(team.members)
-              setTeamError(false)
-            })
-            .catch(() => setTeamError(true))
-            .finally(() => setTeamLoading(false))
+          // Équipe et avis relèvent de la gestion : inutile d'interroger des
+          // routes qui répondraient 403 pour un contributeur de galerie.
+          if (data.gestionnaire === true) {
+            void api
+              .get<{ members: EquipeMembre[] }>('/api/carte/equipes', { params: { centre: centreId } })
+              .then(({ data: team }) => {
+                setEquipe(team.members)
+                setTeamError(false)
+              })
+              .catch(() => setTeamError(true))
+              .finally(() => setTeamLoading(false))
+          } else {
+            setTeamLoading(false)
+          }
           setMediaLoading(true)
           setMediaError(false)
-          void api
-            .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: centreId } })
-            .then(({ data: gallery }) => {
-              setMedia(gallery.items ?? [])
-              setMon((current) =>
-                current?.centre
-                  ? { ...current, centre: { ...current.centre, images: gallery.items ?? [] } }
-                  : current,
-              )
-              setMediaError(false)
-            })
-            .catch(() => setMediaError(true))
-            .finally(() => setMediaLoading(false))
+          if (data.galerie === true) {
+            void api
+              .get<{ items: ManagedMedia[] }>('/api/carte/medias', { params: { centre: centreId } })
+              .then(({ data: gallery }) => {
+                setMedia(gallery.items ?? [])
+                setMon((current) =>
+                  current?.centre
+                    ? { ...current, centre: { ...current.centre, images: gallery.items ?? [] } }
+                    : current,
+                )
+                setMediaError(false)
+              })
+              .catch(() => setMediaError(true))
+              .finally(() => setMediaLoading(false))
+          } else {
+            setMediaLoading(false)
+          }
           setReviewsLoading(true)
           setReviewsError(false)
-          void api
-            .get<{ items: ManagedReview[] }>('/api/carte/avis', { params: { centre: centreId } })
-            .then(({ data: reviewData }) => {
-              setReviews(reviewData.items ?? [])
-              setReviewsError(false)
-            })
-            .catch(() => setReviewsError(true))
-            .finally(() => setReviewsLoading(false))
+          if (data.gestionnaire === true) {
+            void api
+              .get<{ items: ManagedReview[] }>('/api/carte/avis', { params: { centre: centreId } })
+              .then(({ data: reviewData }) => {
+                setReviews(reviewData.items ?? [])
+                setReviewsError(false)
+              })
+              .catch(() => setReviewsError(true))
+              .finally(() => setReviewsLoading(false))
+          } else {
+            setReviewsLoading(false)
+          }
         }
       })
       .catch(() => setLoadError(true))
@@ -646,8 +704,15 @@ export default function EtablissementEspacePage() {
     }
   }, [loadMonEtablissement, loadStats, t, toast])
 
-  const uploadMedia = useCallback(async (file: File): Promise<ManagedMedia | null> => {
-    if (!mon?.centre?.id || uploadingMedia) return null
+  const uploadMedia = useCallback(async (file: File, silent = false): Promise<ManagedMedia | null> => {
+    const centreId = mon?.centre?.id
+    if (!centreId) {
+      // Silencieux avant : un membre du personnel n'a pas d'établissement
+      // rattaché, le clic ne faisait rien et aucun message n'expliquait pourquoi.
+      toast.error(t('etablissement.mediaNoEstablishment'))
+      return null
+    }
+
     const allowed = new Set([
       'image/jpeg',
       'image/png',
@@ -668,11 +733,15 @@ export default function EtablissementEspacePage() {
       toast.error(isVideo ? t('etablissement.mediaVideoTooLarge') : t('etablissement.mediaImageTooLarge'))
       return null
     }
+
     setUploadingMedia(true)
     try {
       const form = new FormData()
       form.append('file', file)
-      form.append('centre', String(mon.centre.id))
+      // Champ multipart : lu depuis le corps de la requête par le chemin
+      // administrateur. Ignoré pour les autres rôles, que le backend résout
+      // via l'équipe ou le rattachement du personnel de santé.
+      form.append('centre', String(centreId))
       const { data } = await api.post<{ media: ManagedMedia }>('/api/carte/medias', form)
       setMedia((current) => [data.media, ...current])
       setMon((current) =>
@@ -681,7 +750,8 @@ export default function EtablissementEspacePage() {
           : current,
       )
       setMediaError(false)
-      toast.success(t('etablissement.mediaAdded'))
+      // En lot, le bilan global remplace un toast par fichier.
+      if (!silent) toast.success(t('etablissement.mediaAdded'))
       return data.media
     } catch (error: any) {
       toast.error(error.response?.data?.detail || error.response?.data?.error || t('etablissement.mediaAddFailed'))
@@ -689,7 +759,54 @@ export default function EtablissementEspacePage() {
     } finally {
       setUploadingMedia(false)
     }
-  }, [mon, t, toast, uploadingMedia])
+  }, [mon, t, toast])
+
+  /**
+   * Import de plusieurs médias en une fois (sélection multiple ou
+   * glisser-déposer). Les fichiers partent en série : un lot de dix photos
+   * de 8 Mo saturerait une requête parallèle, et l'utilisateur verrait
+   * toutes les requêtes échouer ensemble.
+   *
+   * Bilan explicite à la fin — un import partiel doit être annoncé, pas
+   * silencieusement tronqué.
+   */
+  const importMedias = useCallback(
+    async (files: File[] | FileList | null): Promise<void> => {
+      const liste = Array.from(files ?? [])
+      if (liste.length === 0) return
+
+      const centreId = mon?.centre?.id
+      if (!centreId) {
+        toast.error(t('etablissement.mediaNoEstablishment'))
+        return
+      }
+
+      const ajoutes: ManagedMedia[] = []
+      let refuses = 0
+
+      // Maintient le bouton en état « en cours » sur toute la durée du lot,
+      // sans dépendre du compteur par fichier.
+      setBatchImport(true)
+      try {
+        for (const file of liste) {
+          const media = await uploadMedia(file, true)
+          if (media) ajoutes.push(media)
+          else refuses += 1
+        }
+      } finally {
+        setBatchImport(false)
+      }
+
+      if (ajoutes.length > 0 && refuses === 0) {
+        toast.success(t('etablissement.mediaImportOk', { count: ajoutes.length }))
+      } else if (ajoutes.length > 0) {
+        toast.error(t('etablissement.mediaImportPartiel', { ok: ajoutes.length, ko: refuses }))
+      } else {
+        toast.error(t('etablissement.mediaImportEchec', { count: refuses }))
+      }
+    },
+    [mon, t, toast, uploadMedia],
+  )
 
   const [togglingMediaId, setTogglingMediaId] = useState<number | null>(null)
 
@@ -903,9 +1020,13 @@ export default function EtablissementEspacePage() {
             />
           ) : (
             <>
-              <DashboardSectionNav activeSection={activeSection} onSelect={selectDashboardSection} />
+              <DashboardSectionNav
+                activeSection={sectionAutorisee}
+                onSelect={selectDashboardSection}
+                sections={sectionsAutorisees}
+              />
               <DashboardWorkspace
-                activeSection={activeSection}
+                activeSection={sectionAutorisee}
                 compact={prefs.compact}
                 dashboard={dashboard}
                 prefs={prefs}
@@ -914,6 +1035,7 @@ export default function EtablissementEspacePage() {
                 reviews={reviews}
                 equipe={equipe}
                 media={media}
+                canManageEtablissement={canManageEtablissement}
                 memberEmail={memberEmail}
                 setMemberEmail={setMemberEmail}
                 memberRole={memberRole}
@@ -929,9 +1051,10 @@ export default function EtablissementEspacePage() {
                 mediaError={mediaError}
                 reviewsLoading={reviewsLoading}
                 reviewsError={reviewsError}
-                reloadData={reloadData}
-                uploadingMedia={uploadingMedia}
+reloadData={reloadData}
+                uploadingMedia={mediaBusy}
                 uploadMedia={uploadMedia}
+                importMedias={importMedias}
                 deleteMedia={deleteMedia}
                 toggleMediaVisibility={toggleMediaVisibility}
                 togglingMediaId={togglingMediaId}
@@ -966,6 +1089,7 @@ function DashboardWorkspace({
   reviews,
   equipe,
   media,
+  canManageEtablissement,
   memberEmail,
   setMemberEmail,
   memberRole,
@@ -984,6 +1108,7 @@ function DashboardWorkspace({
   reloadData,
   uploadingMedia,
   uploadMedia,
+  importMedias,
   deleteMedia,
   toggleMediaVisibility,
   togglingMediaId,
@@ -1009,6 +1134,9 @@ function DashboardWorkspace({
   reviews: ManagedReview[]
   equipe: EquipeMembre[]
   media: ManagedMedia[]
+  // Droits de gestion (fiche, équipe, préférences) — distincts du droit de
+  // contribution à la galerie.
+  canManageEtablissement: boolean
   memberEmail: string
   setMemberEmail: (value: string) => void
   memberRole: string
@@ -1027,6 +1155,7 @@ function DashboardWorkspace({
   reloadData: () => void
   uploadingMedia: boolean
   uploadMedia: (file: File) => Promise<ManagedMedia | null>
+  importMedias: (files: File[] | FileList | null) => Promise<void>
   deleteMedia: (item: ManagedMedia) => void
   toggleMediaVisibility: (item: ManagedMedia, isPublic: boolean) => void
   togglingMediaId: number | null
@@ -1108,7 +1237,7 @@ function DashboardWorkspace({
               loading={mediaLoading}
               error={mediaError}
               onRetry={reloadData}
-              onUpload={uploadMedia}
+              onImport={importMedias}
               onDelete={deleteMedia}
               onToggleVisibility={toggleMediaVisibility}
               togglingId={togglingMediaId}
@@ -1162,7 +1291,7 @@ function DashboardWorkspace({
               onUploadImage={uploadMedia}
               uploadingMedia={uploadingMedia}
               settingCover={settingCover}
-              canManageBranding={canManageMedia}
+              canManageBranding={canManageEtablissement}
             />
           </div>
         </div>
@@ -1197,12 +1326,16 @@ function syncLabelIcon(syncing: boolean) {
 function DashboardSectionNav({
   activeSection,
   onSelect,
+  sections,
 }: {
   activeSection: DashboardSectionId
   onSelect: (section: DashboardSectionId) => void
+  // Liste filtrée par le backend : proposer un panneau interdit ne peut que
+  // produire une erreur 403 et décrédibiliser l'interface.
+  sections: DashboardSectionId[]
 }) {
   const { t } = useTranslation()
-  const items = [
+  const allItems = [
     { id: 'dashboard-overview', label: t('etablissement.navOverview'), icon: Gauge },
     { id: 'dashboard-fiche', label: t('etablissement.navFiche'), icon: Building2 },
     { id: 'dashboard-team', label: t('etablissement.navTeam'), icon: Users },
@@ -1213,6 +1346,8 @@ function DashboardSectionNav({
     { id: 'dashboard-analytics', label: t('etablissement.navAnalytics'), icon: Activity },
     { id: 'dashboard-settings', label: t('etablissement.navSettings'), icon: Palette },
   ]
+
+  const items = allItems.filter((item) => sections.includes(item.id as DashboardSectionId))
 
   const moveFocus = (currentId: DashboardSectionId, direction: 'next' | 'previous' | 'first' | 'last') => {
     const index = items.findIndex((item) => item.id === currentId)
@@ -2211,7 +2346,7 @@ function MediaPanel({
   settingCover,
   togglingId,
   onRetry,
-  onUpload,
+  onImport,
   onDelete,
   onToggleVisibility,
   onSetCover,
@@ -2225,7 +2360,7 @@ function MediaPanel({
   settingCover?: boolean
   togglingId?: number | null
   onRetry?: () => void
-  onUpload: (file: File) => void
+  onImport: (files: FileList | File[] | null) => void
   onDelete: (item: ManagedMedia) => void
   onToggleVisibility: (item: ManagedMedia, isPublic: boolean) => void
   onSetCover: (item: ManagedMedia | null) => void
@@ -2263,12 +2398,12 @@ function MediaPanel({
                 {uploading ? t('etablissement.mediaUploading') : t('etablissement.mediaAdd')}
                 <input
                   type="file"
+                  multiple
                   accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
                   className="sr-only"
                   disabled={uploading}
                   onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    if (file) onUpload(file)
+                    void onImport(event.target.files)
                     event.currentTarget.value = ''
                   }}
                 />
@@ -2351,8 +2486,7 @@ function MediaPanel({
             onDrop={(event) => {
               event.preventDefault()
               setDragActive(false)
-              const file = event.dataTransfer.files?.[0]
-              if (file) onUpload(file)
+              void onImport(event.dataTransfer.files)
             }}
           >
             <FileImage className="h-7 w-7 text-slate-400" />
@@ -2362,12 +2496,12 @@ function MediaPanel({
             <p className="mt-1 text-xs text-slate-500">{t('etablissement.mediaSizeHint')}</p>
             <input
               type="file"
+              multiple
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
               className="sr-only"
               disabled={uploading}
               onChange={(event) => {
-                const file = event.target.files?.[0]
-                if (file) onUpload(file)
+                void onImport(event.target.files)
                 event.currentTarget.value = ''
               }}
             />

@@ -2490,7 +2490,13 @@
       "mediaVisible": "Média visible dans la galerie.",
       "mediaHidden": "Média masqué de la galerie.",
       "mediaVisibilityFailed": "Impossible de modifier la visibilité.",
-      "moderationAdminOnly": "Avis publics automatiquement — modération réservée aux administrateurs."
+      "moderationAdminOnly": "Avis publics automatiquement — modération réservée aux administrateurs.",
+      "mediaNoEstablishment": "Aucun établissement rattaché : l’import est impossible.",
+      "mediaImportEchec_one": "{{count}} fichier a été refusé.",
+      "mediaImportEchec_other": "{{count}} fichiers ont été refusés.",
+      "mediaImportPartiel": "{{ok}} média(s) importé(s), {{ko}} refusé(s).",
+      "mediaImportOk_one": "{{count}} média importé.",
+      "mediaImportOk_other": "{{count}} médias importés."
     }
   }
 }

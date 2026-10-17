@@ -2490,7 +2490,13 @@
       "mediaVisible": "Media visible in the gallery.",
       "mediaHidden": "Media hidden from the gallery.",
       "mediaVisibilityFailed": "Could not change visibility.",
-      "moderationAdminOnly": "Reviews stay public automatically — moderation restricted to administrators."
+      "moderationAdminOnly": "Reviews stay public automatically — moderation restricted to administrators.",
+      "mediaNoEstablishment": "No attached establishment: import is not possible.",
+      "mediaImportEchec_one": "{{count}} file was rejected.",
+      "mediaImportEchec_other": "{{count}} files were rejected.",
+      "mediaImportPartiel": "{{ok}} media imported, {{ko}} rejected.",
+      "mediaImportOk_one": "{{count}} media imported.",
+      "mediaImportOk_other": "{{count}} media imported."
     }
   }
 }

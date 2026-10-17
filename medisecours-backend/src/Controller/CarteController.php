@@ -141,6 +141,8 @@ class CarteController extends AbstractController
                     ->findActiveMember($user, $equipe)?->getRole(),
                 'statut' => 'ACTIF',
                 'via' => 'equipe',
+                'galerie' => true,
+                'gestionnaire' => true,
             ]);
         }
 
@@ -148,14 +150,55 @@ class CarteController extends AbstractController
         if ($user instanceof Medecin) {
             foreach ($this->affiliationRepository->findByMedecin($user) as $affiliation) {
                 if ($affiliation->getStatut() === 'ACCEPTEE' && $affiliation->getEtablissement()) {
-                    return new JsonResponse([
+return new JsonResponse([
                         'centre' => $this->serializeCentre($affiliation->getEtablissement()),
                         'role' => 'MEDECIN',
                         'statut' => $affiliation->getStatut(),
                         'via' => 'affiliation',
+                        // Un médecin affilié est praticien externe : il consulte la
+                        // fiche mais n'alimente pas la galerie de l'établissement.
+                        'galerie' => false,
+                        'gestionnaire' => false,
                     ]);
                 }
             }
+        }
+
+        // Personnel de santé rattaché (infirmiers, ambulanciers…) : c'est ce
+        // rattachement qui débloque la galerie et l'import de médias. Sans
+        // cette branche, un membre du personnel recevait « centre: null » et
+        // l'import devenait un clic sans effet.
+        if ($user instanceof PersonnelSante && $user->getEtablissement()) {
+            if (!$user->estValide()) {
+                return $this->json(['centre' => null, 'role' => null, 'via' => 'personnel', 'raison' => 'COMPTE_NON_VALIDE']);
+            }
+
+            return new JsonResponse([
+                'centre' => $this->serializeCentre($user->getEtablissement()),
+                'role' => $user->getTypePersonnel(),
+                'statut' => 'ACTIF',
+                'via' => 'personnel',
+                'galerie' => true,
+                'gestionnaire' => false,
+            ]);
+        }
+
+        // Membre d'équipe non managérial (MEDECIN, INFIRMIER) : il n'a pas les
+        // pouvoirs de gestion mais il alimente la galerie de son poste. Sans
+        // cette branche, il recevait « centre: null » et la page affichait
+        // l'assistant « réclamer un établissement » au lieu du tableau de bord.
+        $centreGalerie = $this->equipeRepository->findGalerieCentre($user);
+        if ($centreGalerie && !$this->isAdmin($user)) {
+            $membre = $this->equipeRepository->findActiveMember($user, $centreGalerie);
+
+            return new JsonResponse([
+                'centre' => $this->serializeCentre($centreGalerie),
+                'role' => $membre?->getRole(),
+                'statut' => 'ACTIF',
+                'via' => 'equipe',
+                'galerie' => true,
+                'gestionnaire' => false,
+            ]);
         }
 
         return $this->json(['centre' => null, 'role' => null, 'via' => null]);
@@ -718,7 +761,8 @@ class CarteController extends AbstractController
 
         $email = trim((string) ($data['email'] ?? ''));
         $role = (string) ($data['role'] ?? 'LECTURE');
-        $allowedRoles = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'AIDE_SOIGNANT', 'RECEPTIONNISTE', 'PHARMACIEN', 'LECTURE'];
+        // LECTURE complète les rôles de contribution à la galerie.
+        $allowedRoles = [...EtablissementEquipeRepository::ROLES_GALERIE, 'LECTURE'];
 
         if ($email === '') {
             throw new BadRequestHttpException("L'email du membre est obligatoire.");
@@ -797,7 +841,8 @@ class CarteController extends AbstractController
         $data = $request->toArray();
 
         if (isset($data['role'])) {
-            $allowedRoles = ['DIRECTEUR', 'GESTIONNAIRE', 'MEDECIN', 'INFIRMIER', 'AIDE_SOIGNANT', 'RECEPTIONNISTE', 'PHARMACIEN', 'LECTURE'];
+            // LECTURE complète les rôles de contribution à la galerie.
+            $allowedRoles = [...EtablissementEquipeRepository::ROLES_GALERIE, 'LECTURE'];
             if (!in_array((string) $data['role'], $allowedRoles, true)) {
                 throw new BadRequestHttpException('Rôle invalide.');
             }
@@ -905,6 +950,26 @@ class CarteController extends AbstractController
     }
 
     /**
+     * Autorisation d'écriture sur la galerie d'un établissement donné.
+     *
+     * Reprend la règle de resolveCentreGalerie() : le personnel de santé
+     * validé et les membres d'équipe MEDECIN / INFIRMIER gèrent la galerie de
+     * leur seul établissement de rattachement.
+     */
+    private function assertPeutGererGalerie(User $user, CentreDeSante $centre): void
+    {
+        if ($user instanceof PersonnelSante && $user->estValide() && $user->getEtablissement() === $centre) {
+            return;
+        }
+
+        if (!$this->isAdmin($user) && $this->equipeRepository->canManageGalerie($user, $centre)) {
+            return;
+        }
+
+        $this->assertCanManage($user, $centre);
+    }
+
+    /**
      * Galerie publique de l'etablissement gere.
      *
      * GET /api/carte/medias?centre=
@@ -913,8 +978,7 @@ class CarteController extends AbstractController
     public function listeMedias(Request $request): JsonResponse
     {
         $user = $this->requireUser();
-        $centre = $this->resolveManagedCentre($user, $request);
-        $this->assertCanManage($user, $centre);
+        $centre = $this->resolveCentreGalerie($user, $request);
 
         $items = array_map(
             fn (MediaObject $media): array => self::serializeMedia($media),
@@ -930,6 +994,43 @@ class CarteController extends AbstractController
     }
 
     /**
+     * Établissement dont on tient la galerie.
+     *
+     * Deux profils d'accès :
+     *  - responsables (DIRECTEUR / GESTIONNAIRE, équipe ACTIVE) ;
+     *  - contributeurs de la galerie : personnel de santé validé rattaché, ou
+     *    membre d'équipe MEDECIN / INFIRMIER. Limités à leur établissement,
+     *    jamais celui d'un autre poste, et sans les pouvoirs de gestion.
+     *
+     * Sans ce repli, le personnel obtenait 403 sur la liste alors que le dépôt
+     * l'acceptait : la galerie était donc vide et l'import invisible.
+     */
+    private function resolveCentreGalerie(User $user, Request $request): CentreDeSante
+    {
+        try {
+            $centre = $this->resolveManagedCentre($user, $request);
+            $this->assertCanManage($user, $centre);
+
+            return $centre;
+        } catch (AccessDeniedHttpException $refus) {
+            // Personnel de santé rattaché et validé : son seul établissement.
+            if ($user instanceof PersonnelSante && $user->estValide() && $user->getEtablissement()) {
+                return $user->getEtablissement();
+            }
+
+            // Membre d'équipe MEDECIN ou INFIRMIER : il alimente la galerie du
+            // poste où il exerce, sans obtenir pour autant les pouvoirs de
+            // gestion (fiche, équipe, préférences).
+            $centreGalerie = $this->equipeRepository->findGalerieCentre($user);
+            if ($centreGalerie && !$this->isAdmin($user)) {
+                return $centreGalerie;
+            }
+
+            throw $refus;
+        }
+    }
+
+    /**
      * Ajout d'une image, d'une video ou d'un lien video externe a la
      * galerie de l'etablissement.
      *
@@ -942,17 +1043,7 @@ class CarteController extends AbstractController
     public function ajouterMedia(Request $request): JsonResponse
     {
         $user = $this->requireUser();
-        try {
-            $centre = $this->resolveManagedCentre($user, $request);
-            $this->assertCanManage($user, $centre);
-        } catch (AccessDeniedHttpException) {
-            // Personnel validé (dont ambulanciers) : dépôt limité à son
-            // établissement de rattachement, jamais ailleurs.
-            if (!$user instanceof PersonnelSante || !$user->estValide() || !$user->getEtablissement()) {
-                throw new AccessDeniedHttpException('Dépôt réservé aux responsables et personnels de l\'établissement.');
-            }
-            $centre = $user->getEtablissement();
-        }
+        $centre = $this->resolveCentreGalerie($user, $request);
 
         $videoUrl = trim((string) ($request->request->get('videoUrl') ?? ''));
         if ($videoUrl === '' && str_contains((string) $request->headers->get('Content-Type'), 'application/json')) {
@@ -1107,7 +1198,7 @@ class CarteController extends AbstractController
         if (!$media || !$media->getCentre()) {
             throw new NotFoundHttpException('Media introuvable.');
         }
-        $this->assertCanManage($user, $media->getCentre());
+        $this->assertPeutGererGalerie($user, $media->getCentre());
 
         $centre = $media->getCentre();
         if ($centre->getImageUrl() === $media->getContentUrl()) {
@@ -1135,7 +1226,7 @@ class CarteController extends AbstractController
         if (!$media || !$media->getCentre()) {
             throw new NotFoundHttpException('Media introuvable.');
         }
-        $this->assertCanManage($user, $media->getCentre());
+        $this->assertPeutGererGalerie($user, $media->getCentre());
 
         $data = $request->toArray();
         if (!array_key_exists('isPublic', $data) || !is_bool($data['isPublic'])) {
