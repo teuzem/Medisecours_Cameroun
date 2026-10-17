@@ -7,20 +7,16 @@ import {
   CheckCircle2,
   CircleSlash,
   Clock,
-  Eye,
   Forward,
   History,
   Loader2,
   MapPin,
-  Navigation,
-  Phone,
   Radio,
   RefreshCw,
   ScrollText,
   Siren,
   Stethoscope,
   UserRound,
-  Video,
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +24,7 @@ import api from '../../api/axios'
 import { useNotification } from '../../contexts/NotificationContext'
 import { useToast } from '../ui/Toast'
 import { SosPosition } from '../sos/SosPosition'
+import { SosPreuve } from '../sos/SosPreuve'
 
 interface SosItem {
   id: number
@@ -135,7 +132,6 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
   const [gravite, setGravite] = useState('URGENTE')
   const [commentaire, setCommentaire] = useState('')
   const [actionError, setActionError] = useState<string | null>(null)
-  const [photoOuverte, setPhotoOuverte] = useState<string | null>(null)
   const [traces, setTraces] = useState<Record<number, Trace[]>>({})
   const [journalLoading, setJournalLoading] = useState<number | null>(null)
 
@@ -289,12 +285,14 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
     <div className="dashboard-section">
       {/* ── En-tête ── */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-white shadow-sm">
           <Siren className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-base font-bold text-slate-950 dark:text-white">{t('sos.titre')}</h3>
-          <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <h3 className="font-display text-lg font-black tracking-tight text-slate-950 dark:text-white">
+            {t('sos.titre')}
+          </h3>
+          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -302,7 +300,13 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
             {t('sos.sousTitre')}
           </p>
         </div>
-        <span className="rounded-full bg-red-50 px-3 py-1 text-sm font-black text-red-700 dark:bg-red-500/15 dark:text-red-400">
+        <span
+          className={`rounded-full px-3 py-1 text-sm font-black tabular-nums ${
+            ouvertes.length > 0
+              ? 'bg-red-600 text-white'
+              : 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300'
+          }`}
+        >
           {t('sos.ouvertesCount', { count: ouvertes.length })}
         </span>
         <button
@@ -310,30 +314,38 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
           onClick={() => void charger()}
           aria-label={t('sos.actualiser')}
           title={t('sos.actualiser')}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
         >
           <RefreshCw className="h-4 w-4" />
         </button>
       </div>
 
-      {/* ── Filtres ── */}
-      <div className="mb-4 flex gap-2" role="tablist" aria-label={t('sos.titre')}>
-        {(['TOUTES', 'OUVERTES', 'TERMINEES'] as Filtre[]).map((f) => (
-          <button
-            key={f}
-            type="button"
-            role="tab"
-            aria-selected={filtre === f}
-            onClick={() => setFiltre(f)}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
-              filtre === f
-                ? 'bg-slate-900 text-white shadow dark:bg-white dark:text-slate-900'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/15'
-            }`}
-          >
-            {t(`sos.filtre${f.charAt(0) + f.slice(1).toLowerCase()}`)}
-          </button>
-        ))}
+      {/* ── Filtres (segmented control) ── */}
+      <div
+        className="mb-4 inline-flex gap-1 rounded-xl bg-slate-100 p-1 dark:bg-white/5"
+        role="tablist"
+        aria-label={t('sos.titre')}
+      >
+        {(['TOUTES', 'OUVERTES', 'TERMINEES'] as Filtre[]).map((f) => {
+          const nombre = f === 'TOUTES' ? items.length : f === 'OUVERTES' ? ouvertes.length : items.length - ouvertes.length
+          return (
+            <button
+              key={f}
+              type="button"
+              role="tab"
+              aria-selected={filtre === f}
+              onClick={() => setFiltre(f)}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition ${
+                filtre === f
+                  ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'
+              }`}
+            >
+              {t(`sos.filtre${f.charAt(0) + f.slice(1).toLowerCase()}`)}
+              <span className="tabular-nums opacity-60">{nombre}</span>
+            </button>
+          )
+        })}
       </div>
 
       {actionError && (
@@ -376,15 +388,15 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
             return (
               <li
                 key={sos.id}
-                className={`rounded-2xl border bg-white p-4 transition dark:bg-slate-900 ${
+                className={`overflow-hidden rounded-2xl border bg-white transition dark:bg-slate-900 ${
                   surlignee
                     ? 'border-red-400 shadow-[0_0_0_3px_rgba(239,68,68,0.15)] dark:border-red-500'
                     : estOuverte
-                      ? 'border-slate-200 dark:border-white/10'
+                      ? 'border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/20'
                       : 'border-slate-100 opacity-90 dark:border-white/5'
                 }`}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 p-4">
                   {/* Pastille statut + icône */}
                   <span
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
@@ -453,40 +465,10 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                       )}
                     </div>
 
-                    {/* Actions compactes */}
+                    {/* Barre d'actions : uniquement ce qui n'est pas dans
+                        SosPosition (appel / itinéraire / partages y sont déjà). */}
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {sos.telephone && (
-                        <a
-                          href={`tel:${sos.telephone}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-                        >
-                          <Phone className="h-3.5 w-3.5" />
-                          {t('sos.appeler')}
-                        </a>
-                      )}
-                      {lat != null && lng != null && (
-                        <a
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          title={t('sos.itineraireHint')}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-primary-800 dark:bg-mint-600 dark:text-primary-950 dark:hover:bg-mint-500"
-                        >
-                          <Navigation className="h-3.5 w-3.5" />
-                          {t('sos.itineraire')}
-                        </a>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setPhotoOuverte(sos.preuvePhoto || null)}
-                        disabled={!sos.preuvePhoto}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-                      >
-                        {sos.preuveType === 'VIDEO' ? <Video className="h-3.5 w-3.5" /> : sos.preuvePhoto ? <Eye className="h-3.5 w-3.5" /> : <CircleSlash className="h-3.5 w-3.5" />}
-                        {sos.preuvePhoto ? (sos.preuveType === 'VIDEO' ? t('sos.preuveVideo') : t('sos.preuve')) : t('sos.preuveAbsente')}
-                      </button>
-                      {/* Position exacte du patient + partage de l'itinéraire */}
-                      <SosPosition latitude={lat} longitude={lng} nom={sos.nom} telephone={sos.telephone} />
+                      <SosPreuve preuve={sos.preuvePhoto} type={sos.preuveType} />
                       <button
                         type="button"
                         onClick={() => void ouvrirJournal(sos)}
@@ -518,6 +500,15 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
                         </button>
                       )}
                     </div>
+
+                    {/* Carte réelle + actions de terrain */}
+                    <SosPosition
+                      latitude={lat}
+                      longitude={lng}
+                      nom={sos.nom}
+                      telephone={sos.telephone}
+                      compact={!estOuverte}
+                    />
 
                     {/* ── Détail déplié : décision / clôture / journal ── */}
                     {detail && (
@@ -670,40 +661,6 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
             )
           })}
         </ul>
-      )}
-
-      {/* ── Visionneuse de preuve photo ── */}
-      {photoOuverte && (
-        <div
-          className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-          onClick={() => setPhotoOuverte(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('sos.preuve')}
-        >
-          <div className="max-h-full w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10">
-              <p className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                {t('sos.preuve')}
-              </p>
-              <button
-                type="button"
-                onClick={() => setPhotoOuverte(null)}
-                aria-label={t('sos.fermer')}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {photoOuverte.startsWith('data:video/') ? (
-              <video src={photoOuverte} controls playsInline preload="metadata" className="max-h-[70vh] w-full bg-black" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element -- preuve image base64 serveur
-              <img src={photoOuverte} alt={t('sos.preuveAlt')} className="max-h-[70vh] w-full object-contain bg-slate-100 dark:bg-slate-950" />
-            )}
-          </div>
-        </div>
       )}
     </div>
   )

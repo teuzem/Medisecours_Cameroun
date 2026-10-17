@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import {
@@ -8,7 +8,6 @@ import {
   History,
   Loader2,
   MapPin,
-  Navigation,
   Radio,
   RefreshCw,
   ShieldCheck,
@@ -43,7 +42,7 @@ function coordonnee(value: number | number[] | null): number | null {
 }
 
 function heureExacte(iso: string | null, locale: string): string {
-  if (!iso) return '—'
+  if (!iso) return 'â€”'
   try {
     return new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
   } catch {
@@ -51,11 +50,11 @@ function heureExacte(iso: string | null, locale: string): string {
   }
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
- * Vue médecin : alertes vérifiées à prendre + interventions en cours.
- * L'habilitation (affiliation / équipe / ouverte) est recalculée serveur
- * à chaque appel ; le refus s'affiche avec son motif exact.
- * ────────────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * Vue mÃ©decin : alertes vÃ©rifiÃ©es Ã  prendre + interventions en cours.
+ * L'habilitation (affiliation / Ã©quipe / ouverte) est recalculÃ©e serveur
+ * Ã  chaque appel ; le refus s'affiche avec son motif exact.
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function MedecinAlertesPage() {
   const { t, i18n } = useTranslation()
   const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR'
@@ -170,28 +169,7 @@ export default function MedecinAlertesPage() {
                 {t('sos.journal')}
               </button>
 
-              {sos.telephone && (
-                <a
-                  href={`tel:${sos.telephone}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-                >
-                  {t('sos.appeler')}
-                </a>
-              )}
-
-              {lat != null && lng != null && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={t('sos.itineraireHint')}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-primary-200 px-4 py-2 text-xs font-bold text-primary-700 transition hover:bg-primary-50 dark:border-mint-500/30 dark:text-mint-300 dark:hover:bg-mint-500/10"
-                >
-                  <Navigation className="h-3.5 w-3.5" />
-                  {t('sos.itineraire')}
-                </a>
-              )}
-              {/* Position exacte du patient + partage de l'itinéraire */}
+              {/* SosPosition porte la carte, l'itinÃ©raire, l'appel et les partages. */}
               <SosPosition latitude={lat} longitude={lng} nom={sos.nom} telephone={sos.telephone} />
 
               {mode === 'ouverte' ? (
@@ -274,7 +252,7 @@ export default function MedecinAlertesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* ── Alertes à prendre ── */}
+          {/* â”€â”€ Alertes Ã  prendre â”€â”€ */}
           <section aria-labelledby="sos-ouvertes-title">
             <div className="mb-3 flex items-center gap-2">
               <h3 id="sos-ouvertes-title" className="font-display text-base font-bold text-slate-900 dark:text-white">
@@ -297,7 +275,7 @@ export default function MedecinAlertesPage() {
             )}
           </section>
 
-          {/* ── Mes prises en charge ── */}
+          {/* â”€â”€ Mes prises en charge â”€â”€ */}
           <section aria-labelledby="sos-prises-title">
             <div className="mb-3 flex items-center gap-2">
               <h3 id="sos-prises-title" className="font-display text-base font-bold text-slate-900 dark:text-white">
@@ -322,7 +300,7 @@ export default function MedecinAlertesPage() {
         </div>
       )}
 
-{/* ── Visionneuse de preuve ── */}
+{/* â”€â”€ Visionneuse de preuve â”€â”€ */}
       {journalId !== null && <SosJournal sosId={journalId} onClose={() => setJournalId(null)} />}
     </div>
   )

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -10,7 +10,6 @@ import {
   History,
   Loader2,
   MapPin,
-  Navigation,
   RefreshCw,
   Siren,
   Stethoscope,
@@ -36,10 +35,10 @@ function coordonnee(value: number | number[] | null): number | null {
   return null
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
- * Espace amblancier : cas LÉGERS vérifiés de l'établissement + interventions.
- * Les cas urgents/critiques restent réservés aux médecins (tri à la lecture).
- * ────────────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * Espace amblancier : cas LÃ‰GERS vÃ©rifiÃ©s de l'Ã©tablissement + interventions.
+ * Les cas urgents/critiques restent rÃ©servÃ©s aux mÃ©decins (tri Ã  la lecture).
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function PersonnelAmbulancePage() {
   const { t, i18n } = useTranslation()
   const toast = useToast()
@@ -139,26 +138,7 @@ export default function PersonnelAmbulancePage() {
                 <History className="h-3.5 w-3.5" />
                 {t('sos.journal')}
               </button>
-              {sos.telephone && (
-                <a
-                  href={`tel:${sos.telephone}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-                >
-                  {t('sos.appeler')}
-                </a>
-              )}
-              {lat != null && lng != null && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-bold text-primary-700 transition hover:bg-primary-50 dark:border-mint-500/30 dark:text-mint-300 dark:hover:bg-mint-500/10"
-                >
-                  <Navigation className="h-3.5 w-3.5" />
-                  {t('personnel.ambulance.itineraire')}
-                </a>
-              )}
-              {/* Position exacte du patient + partage de l'itinéraire */}
+              {/* SosPosition porte la carte, l'itinÃ©raire, l'appel et les partages. */}
               <SosPosition latitude={lat} longitude={lng} nom={sos.nom} telephone={sos.telephone} />
               {mode === 'ouverte' && (
                 <button
