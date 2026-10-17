@@ -35,14 +35,12 @@ export function SosPosition({
   nom,
   telephone,
   etablissement,
-  compact = false,
 }: {
   latitude: number | null
   longitude: number | null
   nom?: string | null
   telephone?: string | null
   etablissement?: string | null
-  compact?: boolean
 }) {
   const { t } = useTranslation()
 
@@ -61,56 +59,53 @@ export function SosPosition({
   const sms = `sms:${telephone ?? ''}?body=${encodeURIComponent(message)}`
 
   return (
-    <div className="mt-3 space-y-2.5">
-      <SosMap
-        latitude={latitude}
-        longitude={longitude}
-        className={compact ? 'h-36 w-full' : 'h-48 w-full'}
-        libelle={etablissement || nom || undefined}
-      />
+    <div className="space-y-2">
+      <SosMap latitude={latitude} longitude={longitude} libelle={etablissement || nom || undefined} />
 
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-semibold tabular-nums text-slate-500 dark:text-slate-400">
-        <MapPin className="h-3.5 w-3.5 text-red-500" />
-        {latitude.toFixed(5)}, {longitude.toFixed(5)}
-        {etablissement && <span className="truncate text-slate-400">· {etablissement}</span>}
-      </p>
+      {/* Une seule ligne : coordonnées à gauche, actions de terrain à droite. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+          <MapPin className="h-3.5 w-3.5 text-red-500" />
+          {latitude.toFixed(5)}, {longitude.toFixed(5)}
+        </span>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <a
-          href={itineraire}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
-        >
-          <Navigation className="h-3.5 w-3.5" />
-          {t('sos.itineraire')}
-        </a>
-        <a
-          href={whatsapp}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
-        >
-          <Share2 className="h-3.5 w-3.5" />
-          {t('sos.partageWhatsapp')}
-        </a>
-        {telephone && (
-          <>
-            <a
-              href={sms}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-            >
-              <Send className="h-3.5 w-3.5" />
-              {t('sos.partageSms')}
-            </a>
-            <a
-              href={`tel:${telephone}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-            >
-              {t('sos.appeler')}
-            </a>
-          </>
-        )}
+        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+          <a
+            href={itineraire}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+          >
+            <Navigation className="h-3.5 w-3.5" />
+            {t('sos.itineraire')}
+          </a>
+          <a
+            href={whatsapp}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 px-2.5 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            {t('sos.partageWhatsapp')}
+          </a>
+          {telephone && (
+            <>
+              <a
+                href={sms}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+              >
+                <Send className="h-3.5 w-3.5" />
+                {t('sos.partageSms')}
+              </a>
+              <a
+                href={`tel:${telephone}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+              >
+                {t('sos.appeler')}
+              </a>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

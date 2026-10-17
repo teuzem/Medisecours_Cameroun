@@ -8,61 +8,80 @@ import L from 'leaflet'
 /**
  * Carte de la position d'une alerte SOS.
  *
- * Leaflet + tuiles raster : aucune clé d'API à distribuer, aucun iframe
- * (openstreetmap.org interdit l'iframe via X-Frame-Options, d'où la carte
- * « Ce contenu est bloqué » constatée auparavant), et le même rendu que la
- * carte principale de la plateforme — pas de dépendance à Google ou Mapbox.
+ * Leaflet + fonds raster : aucune clé d'API à distribuer et aucun iframe
+ * (openstreetmap.org interdit l'iframe, d'où le « contenu bloqué » constaté
+ * auparavant). Même pile que la carte principale de la plateforme.
  *
- * Deux couches comme dans CarteMap/CentresMap : Esri en dessous, OSM au
- * dessus. Si l'une des deux ne répond pas, l'autre s'affiche quand même.
+ * Deux fonds superposés, comme dans CarteMap/CentresMap : Esri en dessous,
+ * OSM au-dessus. Si l'un des deux ne répond pas, l'autre s'affiche quand même.
  */
 
-const PULSE_STYLE = `
-@keyframes sosPulse {
-  0%   { transform: scale(0.6); opacity: 0.85; }
-  70%  { transform: scale(2.4); opacity: 0; }
-  100% { transform: scale(2.4); opacity: 0; }
+const STYLE_ID = 'sos-map-style'
+
+const STYLE_CSS = `
+.sos-map { position: relative; background: #eef2f6; }
+.sos-map .leaflet-container { font: inherit; background: #eef2f6; }
+.sos-map .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 9px;
+  color: #64748b;
+  padding: 1px 6px;
 }
-.sos-marker__halo {
+.sos-map .leaflet-bar a {
+  border-radius: 8px;
+  color: #0f172a;
+}
+.sos-map .leaflet-bar {
+  border: 0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12), 0 8px 24px rgba(15, 23, 42, 0.10);
+}
+
+@keyframes sosHalo {
+  0%   { transform: scale(0.55); opacity: 0.55; }
+  70%  { transform: scale(2.6);  opacity: 0; }
+  100% { transform: scale(2.6);  opacity: 0; }
+}
+
+.sos-pin {
+  display: block;
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+.sos-pin__halo {
+  display: block;
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgba(220, 38, 38, 0.35);
-  animation: sosPulse 2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+  background: rgba(220, 38, 38, 0.45);
+  animation: sosHalo 2.2s cubic-bezier(0.2, 0.65, 0.35, 1) infinite;
 }
-.sos-marker__core {
+.sos-pin__ring {
+  display: block;
   position: absolute;
-  inset: 6px;
+  inset: 5px;
   border-radius: 50%;
   background: #dc2626;
   border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.45);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(220, 38, 38, 0.35);
 }
-.sos-marker__pin {
-  position: relative;
-  width: 34px;
-  height: 34px;
-}
-.sos-popup {
-  font: inherit;
-  font-size: 12px;
-  line-height: 1.45;
-  color: #0f172a;
-}
-.sos-popup strong { display: block; margin-bottom: 2px; }
+
+.sos-popup { font-size: 12px; line-height: 1.45; color: #0f172a; margin: 2px; }
+.sos-popup strong { display: block; font-size: 12px; }
+.sos-popup span { color: #64748b; font-variant-numeric: tabular-nums; }
 `
 
-function SosMarkerIcon() {
+function creerIcone() {
   return L.divIcon({
     className: 'sos-marker',
-    html: '<span class="sos-marker__pin"><span class="sos-marker__halo"></span><span class="sos-marker__core"></span></span>',
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -18],
+    html: '<span class="sos-pin"><span class="sos-pin__halo"></span><span class="sos-pin__ring"></span></span>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16],
   })
 }
 
-/** Recentre la carte quand les coordonnées de l'alerte changent. */
+/** Recentre sur l'alerte quand ses coordonnées changent. */
 function Recenter({ latitude, longitude }: { latitude: number; longitude: number }) {
   const map = useMap()
   useEffect(() => {
@@ -71,15 +90,18 @@ function Recenter({ latitude, longitude }: { latitude: number; longitude: number
   return null
 }
 
-/** Leaflet a besoin d'être recalculé après le montage (conteneur flex/grid). */
+/**
+ * Leaflet se calculera à 0 pixel dans un conteneur flex/grid tant que la
+ * mise en page n'est pas stabilisée : on force un recalcul au montage.
+ */
 function Resize({ latitude, longitude }: { latitude: number; longitude: number }) {
   const map = useMap()
   useEffect(() => {
-    const identifiant = window.setTimeout(() => {
-      map.invalidateSize()
+    const minuteur = window.setTimeout(() => {
+      map.invalidateSize({ animate: false })
       map.setView([latitude, longitude], map.getZoom(), { animate: false })
-    }, 120)
-    return () => window.clearTimeout(identifiant)
+    }, 150)
+    return () => window.clearTimeout(minuteur)
   }, [map, latitude, longitude])
   return null
 }
@@ -88,47 +110,48 @@ export default function SosMap({
   latitude,
   longitude,
   zoom = 16,
-  className = 'h-48 w-full',
   libelle,
 }: {
   latitude: number
   longitude: number
   zoom?: number
-  className?: string
   libelle?: string | null
 }) {
   const { t } = useTranslation()
-  const icone = useMemo(() => SosMarkerIcon(), [])
+  const icone = useMemo(() => creerIcone(), [])
 
   useEffect(() => {
-    if (typeof document === 'undefined') return
-    if (document.getElementById('sos-map-style')) return
+    if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return
     const style = document.createElement('style')
-    style.id = 'sos-map-style'
-    style.textContent = PULSE_STYLE
+    style.id = STYLE_ID
+    style.textContent = STYLE_CSS
     document.head.appendChild(style)
   }, [])
 
   return (
-    <div className={`overflow-hidden rounded-xl border border-slate-200 dark:border-white/10 ${className}`}>
+    <div className="sos-map h-44 w-full overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
       <MapContainer
         center={[latitude, longitude]}
         zoom={zoom}
         scrollWheelZoom={false}
-        zoomControl
-        attributionControl={false}
+        dragging
+        touchZoom
+        zoomControl={false}
+        attributionControl
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-          attribution="Tiles &copy; Esri"
+          attribution="Esri"
         />
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="OpenStreetMap" />
         <Marker position={[latitude, longitude]} icon={icone} zIndexOffset={1000} title={t('sos.positionCarteTitre')}>
-          <Popup>
+          <Popup closeButton={false} offset={[0, -6]}>
             <div className="sos-popup">
               <strong>{libelle || t('sos.positionCarteTitre')}</strong>
-              {latitude.toFixed(5)}, {longitude.toFixed(5)}
+              <span>
+                {latitude.toFixed(5)}, {longitude.toFixed(5)}
+              </span>
             </div>
           </Popup>
         </Marker>
