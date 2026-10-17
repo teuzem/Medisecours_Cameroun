@@ -63,43 +63,43 @@ export function SosPosition({
       <SosMap latitude={latitude} longitude={longitude} libelle={etablissement || nom || undefined} />
 
       {/* Une seule ligne : coordonnées à gauche, actions de terrain à droite. */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        <span className="inline-flex items-center gap-1 text-[11px] font-semibold tabular-nums text-slate-500 dark:text-slate-400">
-          <MapPin className="h-3.5 w-3.5 text-red-500" />
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+          <MapPin className="h-4 w-4 text-red-500" />
           {latitude.toFixed(5)}, {longitude.toFixed(5)}
         </span>
 
-        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
           <a
             href={itineraire}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
           >
-            <Navigation className="h-3.5 w-3.5" />
+            <Navigation className="h-4 w-4" />
             {t('sos.itineraire')}
           </a>
           <a
             href={whatsapp}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 px-2.5 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
           >
-            <Share2 className="h-3.5 w-3.5" />
+            <Share2 className="h-4 w-4" />
             {t('sos.partageWhatsapp')}
           </a>
           {telephone && (
             <>
               <a
                 href={sms}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
               >
-                <Send className="h-3.5 w-3.5" />
+                <Send className="h-4 w-4" />
                 {t('sos.partageSms')}
               </a>
               <a
                 href={`tel:${telephone}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
               >
                 {t('sos.appeler')}
               </a>

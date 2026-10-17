@@ -37,8 +37,8 @@ export function SosPreuve({ preuve, type }: { preuve: string | null; type?: stri
 
   if (!preuve) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-400 dark:border-white/10 dark:text-slate-500">
-        <ImageOff className="h-3.5 w-3.5" />
+      <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm font-semibold text-slate-400 dark:border-white/10 dark:text-slate-500">
+        <ImageOff className="h-4 w-4" />
         {t('sos.preuveAbsente')}
       </span>
     )
@@ -49,8 +49,8 @@ export function SosPreuve({ preuve, type }: { preuve: string | null; type?: stri
 
   return (
     <details className="group relative">
-      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-white/5">
-        {video ? <Video className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+      <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-white/5">
+        {video ? <Video className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         {video ? t('sos.preuveVideo') : t('sos.preuve')}
       </summary>
       <div className="mt-2 w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-lg dark:border-white/10">
