@@ -137,7 +137,13 @@
     "positionIndisponible": "Position GPS indisponible",
     "partageMessage": "🚑 SOS — {nom} à {lat}, {lng}. Itinéraire :",
     "partageWhatsapp": "Envoyer",
-    "partageSms": "SMS"
+    "partageSms": "SMS",
+    "videOuvertes": "Aucune alerte ouverte",
+    "videTerminees": "Aucune alerte terminée",
+    "videFiltreDesc_one": "{{count}} alerte est enregistrée pour votre établissement.",
+    "videFiltreDesc_other": "{{count}} alertes sont enregistrées pour votre établissement.",
+    "voirToutes_one": "Voir l’alerte enregistrée",
+    "voirToutes_other": "Voir les {{count}} alertes enregistrées"
   },
   "common": {
     "loading": "Chargement…",

@@ -137,7 +137,13 @@
     "positionIndisponible": "GPS position unavailable",
     "partageMessage": "🚑 SOS — {nom} at {lat}, {lng}. Directions:",
     "partageWhatsapp": "Send",
-    "partageSms": "SMS"
+    "partageSms": "SMS",
+    "videOuvertes": "No ongoing alert",
+    "videTerminees": "No closed alert",
+    "videFiltreDesc_one": "{{count}} alert is recorded for your establishment.",
+    "videFiltreDesc_other": "{{count}} alerts are recorded for your establishment.",
+    "voirToutes_one": "View the recorded alert",
+    "voirToutes_other": "View the {{count}} recorded alerts"
   },
   "common": {
     "loading": "Loading…",

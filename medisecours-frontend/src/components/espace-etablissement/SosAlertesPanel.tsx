@@ -130,6 +130,50 @@ function Squelette() {
   )
 }
 
+/**
+ * État vide.
+ *
+ * Il dépend du filtre : « aucune alerte » sous un filtre ne veut pas dire
+ * « aucune alerte reçue ». Dire « Les signalements apparaîtront ici » alors
+ * qu'un registre existe ailleurs, c'est afficher un mensonge à l'écran.
+ */
+function Vide({ filtre, items, onVoirTout }: { filtre: Filtre; items: number; onVoirTout: () => void }) {
+  const { t } = useTranslation()
+
+  // Filtre restrictif alors que le registre contient des alertes.
+  if (filtre !== 'TOUTES' && items > 0) {
+    return (
+      <div className="flex flex-col items-center gap-2.5 py-10 text-center">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-500">
+          {filtre === 'OUVERTES' ? <CheckCircle2 className="h-6 w-6" /> : <History className="h-6 w-6" />}
+        </span>
+        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+          {filtre === 'OUVERTES' ? t('sos.videOuvertes') : t('sos.videTerminees')}
+        </p>
+        <p className="max-w-sm text-xs text-slate-500 dark:text-slate-400">{t('sos.videFiltreDesc', { count: items })}</p>
+        <button
+          type="button"
+          onClick={onVoirTout}
+          className="mt-1 rounded-lg bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+        >
+          {t('sos.voirToutes', { count: items })}
+        </button>
+      </div>
+    )
+  }
+
+  // Aucun signalement du tout : on explique l'interface.
+  return (
+    <div className="flex flex-col items-center gap-2.5 py-10 text-center">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-500">
+        <Radio className="h-6 w-6" />
+      </span>
+      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t('sos.aucune')}</p>
+      <p className="max-w-sm text-xs text-slate-500 dark:text-slate-400">{t('sos.aucuneDesc')}</p>
+    </div>
+  )
+}
+
 /* ──────────────────────────────────────────────────────────────────────────
  * Poste d'alerte de l'établissement.
  *
@@ -150,7 +194,7 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
   const [items, setItems] = useState<SosItem[]>([])
   const [loading, setLoading] = useState(true)
   const [erreur, setErreur] = useState(false)
-  const [filtre, setFiltre] = useState<Filtre>('OUVERTES')
+  const [filtre, setFiltre] = useState<Filtre>('TOUTES')
   const [expandId, setExpandId] = useState<number | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
   const [decision, setDecision] = useState<'REEL' | 'FAUX'>('REEL')
@@ -654,13 +698,7 @@ export default function SosAlertesPanel({ centreId }: { centreId: number }) {
           </button>
         </div>
       ) : affichees.length === 0 ? (
-        <div className="flex flex-col items-center gap-2.5 py-10 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-500">
-            <Radio className="h-6 w-6" />
-          </span>
-          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t('sos.aucune')}</p>
-          <p className="max-w-sm text-xs text-slate-500 dark:text-slate-400">{t('sos.aucuneDesc')}</p>
-        </div>
+        <Vide filtre={filtre} items={items.length} onVoirTout={() => setFiltre('TOUTES')} />
       ) : (
         <ul className="space-y-2">
           {affichees.map((sos) => carte(sos))}
