@@ -103,18 +103,26 @@
 .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 14px !important; overflow: hidden; }
 .leaflet-popup-tip { background: #fff !important; }
 .maps-cover { position: relative; height: 224px; overflow: hidden; }
-.maps-cover > div { height: 100%; border-radius: 0 !important; }
-.maps-cover > div > button { height: 100%; }
+/* Ciblage sur le premier enfant = galerie de la couverture. Les sélecteurs
+   génériques `> div` attraperaient aussi la couche de commandes et
+   étireraient la croix sur toute la hauteur. */
+.maps-cover > div:first-child { height: 100%; border-radius: 0 !important; }
+.maps-cover > div:first-child > button { height: 100%; }
 .maps-cover img { width: 100%; height: 100%; object-fit: cover; }
 .maps-cover-overlay { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.08), transparent 42%, rgba(0,0,0,.22)); }
+/* Les commandes de la couverture vivent dans une couche au-dessus de la
+   vignette (bouton pleine hauteur) : sans cela, la croix et la flèche
+   n'acceptent aucun clic sur desktop. */
+.maps-cover-actions { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.maps-cover-actions > button { pointer-events: auto; }
 .maps-cover-back, .maps-cover-close {
   position: absolute; top: 12px; width: 36px; height: 36px; display: grid;
-  place-items: center; background: #fff; border-radius: 50%; color: #3c4043; z-index: 2;
+  place-items: center; background: #fff; border-radius: 50%; color: #3c4043; z-index: 5;
 }
 .maps-cover-back { left: 12px; }
 .maps-cover-close { right: 12px; }
 .maps-cover-gallery-trigger {
-  position: absolute; right: 14px; bottom: 14px; z-index: 3; display: inline-flex; align-items: center; gap: 7px;
+  position: absolute; right: 14px; bottom: 14px; z-index: 6; display: inline-flex; align-items: center; gap: 7px;
   min-height: 36px; padding: 8px 13px; border: 1px solid rgba(255,255,255,.82); border-radius: 4px;
   background: rgba(255,255,255,.94); color: #3c4043; font-size: 12px; font-weight: 600;
 }
@@ -756,9 +764,17 @@
   background: rgba(0,0,0,0.68); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
 }
 .maps-media-grid-meta {
-  position: absolute; left: 8px; right: 8px; bottom: 6px; display: flex; flex-direction: column; gap: 0;
+  position: absolute; left: 8px; right: 8px; bottom: 6px; display: flex; align-items: center; gap: 7px;
   text-align: left; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
+/* Avatar du contributeur : photo réelle ou initiales. */
+.maps-media-grid-avatar {
+  display: grid; place-items: center; width: 22px; height: 22px; flex-shrink: 0;
+  overflow: hidden; border-radius: 50%; background: rgba(255,255,255,.92); color: #3c4043;
+  font-size: 9px; font-weight: 800; text-shadow: none;
+}
+img.maps-media-grid-avatar { object-fit: cover; }
+.maps-media-grid-text { display: flex; min-width: 0; flex-direction: column; }
 .maps-media-grid-meta strong { overflow: hidden; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .maps-media-grid-meta small { font-size: 10px; opacity: 0.9; }
 .maps-media-listing-foot {
@@ -799,6 +815,8 @@
   display: grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%;
   background: linear-gradient(135deg, #34d399, #1a73e8); color: #fff; font-size: 9px; font-weight: 800;
 }
+/* Même classe en <img> : la photo remplit la pastille sans déformer. */
+img.maps-media-stage-avatar { object-fit: cover; background: #e2e8f0; }
 .maps-media-stage-identity strong { font-weight: 600; }
 .maps-media-stage-date { display: block; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.25); font-size: 11px; color: rgba(255,255,255,0.85); }
 .maps-media-stage-top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }

@@ -319,6 +319,27 @@ function readPrefs(): Prefs {
   }
 }
 
+/**
+ * Message d'erreur d'un import, dans l'ordre d'utilité :
+ * détail renvoyé par l'API (taille refusée, format, droits) → error →
+ * message de Symfony → message réseau → repli traduit.
+ *
+ * Sans cela, un import refusé n'affichait qu'un texte générique et l'utilisateur
+ * ne pouvait pas distinguer un fichier trop lourd d'un problème de droits.
+ */
+function mediaErrorMessage(error: any, fallback: string): string {
+  const data = error?.response?.data
+  if (typeof data === 'string' && data.trim() !== '') return data
+  if (data && typeof data === 'object') {
+    const candidat = data.detail ?? data.error ?? data.message ?? data.title
+    if (typeof candidat === 'string' && candidat.trim() !== '') return candidat
+  }
+  if (!error?.response && typeof error?.message === 'string' && error.message.trim() !== '') {
+    return error.message
+  }
+  return fallback
+}
+
 /* ──────────────────────────────────────────────────────────────────────────
  * Page
  * ────────────────────────────────────────────────────────────────────────── */
@@ -754,7 +775,7 @@ export default function EtablissementEspacePage() {
       if (!silent) toast.success(t('etablissement.mediaAdded'))
       return data.media
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || error.response?.data?.error || t('etablissement.mediaAddFailed'))
+      toast.error(mediaErrorMessage(error, t('etablissement.mediaAddFailed')))
       return null
     } finally {
       setUploadingMedia(false)

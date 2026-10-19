@@ -103,6 +103,39 @@ function mediaUploaderName(media: NonNullable<FicheCentre['images']>[number] | u
   return media?.uploadedBy?.name || media?.uploadedByName || fallback
 }
 
+/**
+ * Photo réelle du contributeur, qu'elle ait été téléversée ou importée depuis
+ * un compte Google. `imgUrl` laisse passer les URL absolues (Google) et
+ * préfixe les chemins applicatifs (photo stockée en base).
+ */
+function mediaUploaderPhoto(media: FacilityMediaItem | undefined): string | null {
+  const photo = media?.uploadedBy?.photo ?? media?.uploadedByPhoto ?? null
+  if (!photo) return null
+  return imgUrl(photo) ?? photo
+}
+
+/**
+ * Avatar du contributeur : photo si elle existe et se charge, initiales sinon.
+ * L'image cassée (URL Google expirée, fichier supprimé) retombe sur les
+ * initiales plutôt que d'afficher une image brisée.
+ */
+function MediaUploaderAvatar({ media, name, className }: { media: FacilityMediaItem | undefined; name: string; className?: string }) {
+  const src = mediaUploaderPhoto(media)
+  // URL qui a échoué (et non un booléen) : un changement de photo remet
+  // l'image en service sans effet ni état à resynchroniser.
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null)
+  const broken = brokenSrc !== null && brokenSrc === src
+
+  if (src && !broken) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- avatar distant (Google) ou téléversé
+      <img className={className} src={src} alt="" loading="lazy" onError={() => setBrokenSrc(src)} />
+    )
+  }
+
+  return <span className={className} aria-hidden="true">{mediaUploaderInitials(name)}</span>
+}
+
 function mediaUploaderInitials(name: string): string {
   const initials = name
     .split(/\s+/)
@@ -325,10 +358,13 @@ function FacilityMediaViewer({
                 {providerLabel && (
                   <span className="maps-media-grid-provider-badge">{providerLabel}</span>
                 )}
-                <span className="maps-media-grid-meta">
-                  <strong>{itemUploader}</strong>
-                  <small>{formatRelativeDate(item.createdAt, i18n.language)}</small>
-                </span>
+<span className="maps-media-grid-meta">
+                    <MediaUploaderAvatar media={item} name={itemUploader} className="maps-media-grid-avatar" />
+                    <span className="maps-media-grid-text">
+                      <strong>{itemUploader}</strong>
+                      <small>{formatRelativeDate(item.createdAt, i18n.language)}</small>
+                    </span>
+                  </span>
               </button>
             )
           })}
@@ -378,9 +414,7 @@ function FacilityMediaViewer({
               </div>
             </div>
             <p>
-              <span className="maps-media-stage-avatar" aria-hidden="true">
-                {mediaUploaderInitials(uploaderLabel)}
-              </span>
+              <MediaUploaderAvatar media={current} name={uploaderLabel} className="maps-media-stage-avatar" />
               <strong>{uploaderLabel}</strong>
             </p>
             {current && (
@@ -1139,8 +1173,14 @@ export default function MapsPanel(props: EtablissementDrawerProps & { initialVie
         <div className="maps-cover">
           <MediaGallery centre={facility} compact disableLightbox onOpen={() => { setGalleryFilter('images'); setGalleryIndex(0); setGalleryOpen(true) }} />
           <div className="maps-cover-overlay" aria-hidden="true" />
-          <button type="button" className="maps-cover-back" onClick={props.onBackToList} aria-label={t('visitor.carte.ariaBackToResults')}><ChevronLeft size={22} /></button>
-          <button type="button" className="maps-cover-close" onClick={props.onClose} aria-label={t('visitor.carte.ariaCloseFiche')}><X size={20} /></button>
+          {/* Couche dédiée : la vignette de la galerie occupe toute la
+              couverture (bouton pleine hauteur). Sans cette couche, elle
+              passe au-dessus des contrôles et la croix ne reçoit jamais le
+              clic sur desktop. */}
+          <div className="maps-cover-actions">
+            <button type="button" className="maps-cover-back" onClick={props.onBackToList} aria-label={t('visitor.carte.ariaBackToResults')}><ChevronLeft size={22} /></button>
+            <button type="button" className="maps-cover-close" onClick={props.onClose} aria-label={t('visitor.carte.ariaCloseFiche')}><X size={20} /></button>
+          </div>
           {(facility.images?.length ?? 0) > 1 && (
             <button
               type="button"

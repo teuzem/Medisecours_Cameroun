@@ -110,11 +110,14 @@ export interface EtablissementMedia {
   /** Vignette distante (ex. YouTube hqdefault). */
   thumbnailUrl?: string | null
   createdAt?: string
-  uploadedBy?: {
-    id?: number | string | null
-    name?: string | null
-  } | null
-  uploadedByName?: string | null
+uploadedBy?: {
+      id?: number | string | null
+      name?: string | null
+      /** Photo réelle du contributeur : téléversée ou avatar Google. */
+      photo?: string | null
+    } | null
+    uploadedByName?: string | null
+    uploadedByPhoto?: string | null
 }
 
 export interface Avis {

@@ -50,6 +50,7 @@ import MapsPanel from '../../components/carte/MapsPanel'
 import SosModal from '../../components/carte/SosModal'
 import { useToast } from '../../components/ui/Toast'
 import { useAuth } from '../../hooks/useAuth'
+import { useWebSocket } from '../../hooks/useWebSocket'
 import { useGeolocation } from '../../hooks/useGeolocation'
 import { useGoogleDirections } from '../../hooks/useGoogleDirections'
 import { useMapProvider } from '../../hooks/useMapProvider'
@@ -270,9 +271,38 @@ function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'c
 export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
-  const { user, isAuthenticated, isMedecin, isEtablissement } = useAuth()
+  const { user, token, isAuthenticated, isMedecin, isEtablissement } = useAuth()
   const { position, accuracy, isManual, setManualPosition, clearManualPosition, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
   const { provider, state: providerState } = useMapProvider()
+
+  // Avatar temps réel : dès qu'un utilisateur change de photo (téléversée ou
+  // issue de son compte Google), les médias qu'il a publiés sur la carte
+  // portent la nouvelle image sans rechargement.
+  useWebSocket(user?.id || '', token || '', {
+    onProfilePhotoChanged: (payload: { userId?: string; photoProfil?: string | null }) => {
+      const changedId = payload?.userId ? String(payload.userId) : null
+      const photo = typeof payload?.photoProfil === 'string' && payload.photoProfil ? payload.photoProfil : null
+      if (!changedId || !photo) return
+
+      setCentres((current) =>
+        current.map((centre) => {
+          if (!centre.images?.some((media) => String(media.uploadedBy?.id) === changedId)) return centre
+          return {
+            ...centre,
+            images: centre.images.map((media) =>
+              String(media.uploadedBy?.id) === changedId
+                ? {
+                    ...media,
+                    uploadedByPhoto: photo,
+                    uploadedBy: media.uploadedBy ? { ...media.uploadedBy, photo } : media.uploadedBy,
+                  }
+                : media,
+            ),
+          }
+        }),
+      )
+    },
+  }, user?.roles?.[0])
 
   const [centres, setCentres] = useState<CarteCentre[]>([])
   const [loading, setLoading] = useState(true)

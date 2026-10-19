@@ -950,6 +950,58 @@ return new JsonResponse([
     }
 
     /**
+     * Diagnostic quand aucun fichier n'est parvenu au contrôleur.
+     *
+     * PHP vide $_FILES et $_POST en silence quand le corps de la requête
+     * dépasse post_max_size : sans ce contrôle, l'utilisateur recevait un
+     * message générique et ne pouvait pas comprendre pourquoi son import
+     * échouait.
+     */
+    private function explainMissingUpload(Request $request): string
+    {
+        $contentLength = (int) $request->headers->get('Content-Length', '0');
+        $postMax = self::iniBytes((string) ini_get('post_max_size'));
+
+        if ($contentLength > 0 && $postMax > 0 && $contentLength >= $postMax) {
+            return sprintf(
+                'Fichier trop volumineux pour le serveur (%s Mo maximum par requête). Réduisez le fichier ou découpez la vidéo.',
+                self::humanBytes($postMax)
+            );
+        }
+
+        if ($request->request->count() === 0 && $request->files->count() === 0) {
+            return 'Aucun fichier reçu : la requête a été rejetée par le serveur. Vérifiez la taille du fichier (10 Mo maximum) puis réessayez.';
+        }
+
+        return 'Un fichier image ou vidéo valide, ou un lien vidéo (videoUrl), est obligatoire.';
+    }
+
+    /** Convertit une directive php.ini (8M, 512K, 2G) en octets. */
+    private static function iniBytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        $number = (int) $value;
+
+        return match (strtoupper(substr($value, -1))) {
+            'G' => $number * 1024 * 1024 * 1024,
+            'M' => $number * 1024 * 1024,
+            'K' => $number * 1024,
+            default => $number,
+        };
+    }
+
+    private static function humanBytes(int $bytes): string
+    {
+        return $bytes % (1024 * 1024) === 0
+            ? (string) intdiv($bytes, 1024 * 1024)
+            : sprintf('%.1f', $bytes / (1024 * 1024));
+    }
+
+    /**
      * Autorisation d'écriture sur la galerie d'un établissement donné.
      *
      * Reprend la règle de resolveCentreGalerie() : le personnel de santé
@@ -1078,7 +1130,7 @@ return new JsonResponse([
 
         $file = $request->files->get('file');
         if (!$file instanceof UploadedFile || !$file->isValid()) {
-            throw new BadRequestHttpException('Un fichier image ou video valide, ou un lien video (videoUrl), est obligatoire.');
+            throw new BadRequestHttpException($this->explainMissingUpload($request));
         }
 
         $mimeType = strtolower((string) ($file->getMimeType() ?: $file->getClientMimeType()));
@@ -1595,6 +1647,11 @@ return new JsonResponse([
         $uploadedByName = $uploadedBy
             ? trim(sprintf('%s %s', (string) $uploadedBy->getPrenom(), (string) $uploadedBy->getNom()))
             : '';
+        // Photo réelle du contributeur : téléversée, ou avatar Google déjà
+        // rattaché au compte. La carte l'affiche à la place des initiales,
+        // et se met à jour en direct via l'événement WebSocket
+        // profile_photo_changed.
+        $uploadedByPhoto = $uploadedBy ? $uploadedBy->getPhotoProfil() : null;
         $externalUrl = $media->getExternalUrl();
         $provider = $media->getProvider();
 
@@ -1612,9 +1669,11 @@ return new JsonResponse([
             'isPublic' => $media->isPublic(),
             'createdAt' => $media->getCreatedAt()->format('c'),
             'uploadedByName' => $uploadedByName !== '' ? $uploadedByName : null,
+            'uploadedByPhoto' => $uploadedByPhoto,
             'uploadedBy' => $uploadedBy ? [
                 'id' => $uploadedBy->getId(),
                 'name' => $uploadedByName !== '' ? $uploadedByName : $uploadedBy->getEmail(),
+                'photo' => $uploadedByPhoto,
             ] : null,
         ];
     }
