@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, Clapperboard, Play, X } from 'lucide-react'
 
 import { imgUrl } from '../../lib/config'
+import { usePhotoSrc } from '../../hooks/usePhotoSrc'
 import type { EtablissementMedia } from '../../lib/carte'
 import { getMediaEmbedUrl, getMediaProviderLabel, getMediaThumbnailUrl, isExternalVideoMedia } from '../../lib/externalVideo'
 
@@ -18,14 +19,15 @@ function mediaSrc(media: EtablissementMedia): string {
 
 /** Avatar de l'auteur : photo réelle si elle existe et se charge, initiales sinon. */
 export function ReviewAvatar({ nom, photo }: { nom?: string | null; photo?: string | null }) {
-  const src = imgUrl(photo)
-  const [broken, setBroken] = useState(false)
+  const { src, onError } = usePhotoSrc(photo)
   const initial = (nom || 'U').trim().charAt(0).toUpperCase() || 'U'
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null)
+  const broken = brokenSrc !== null && brokenSrc === src
 
   if (src && !broken) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- photo de profil distante ou téléversée
-      <img className="maps-avatar maps-avatar-photo" src={src} alt="" loading="lazy" onError={() => setBroken(true)} />
+      // eslint-disable-next-line @next/next/no-img-element -- avatar distant (Google) ou téléversé
+      <img className="maps-avatar maps-avatar-photo" src={src} alt="" loading="lazy" onError={() => setBrokenSrc(src)} />
     )
   }
 

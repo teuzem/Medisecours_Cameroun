@@ -465,7 +465,10 @@
 .maps-directions li small { display: block; color: #5f6368; }
 .maps-external-links { display: flex; flex-wrap: wrap; gap: 16px; color: var(--maps-blue); font-size: 13px; }
 .maps-external-links button { background: transparent; }
-.maps-modal-backdrop { position: absolute; inset: 0; z-index: 1500; background: #0006; display: grid; place-items: center; padding: 20px; }
+/* `fixed` : la modale est centrée sur la page entière et non confinée au
+   panneau latéral. En `absolute`, elle se superposait à la fiche et son fond
+   interceptait la croix de fermeture. */
+.maps-modal-backdrop { position: fixed; inset: 0; z-index: 1500; background: #0006; display: grid; place-items: center; padding: 20px; }
 .maps-dialog { width: min(560px, 100%); max-width: 100%; max-height: 90dvh; overflow: auto; background: #fff; border-radius: 8px; padding: 24px; }
 .maps-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .maps-dialog h2 { font-size: 20px; font-weight: 400; overflow-wrap: anywhere; }
