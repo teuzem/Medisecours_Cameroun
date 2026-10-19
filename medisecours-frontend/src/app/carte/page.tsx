@@ -272,7 +272,7 @@ function BasemapThumb({ mode }: { mode: BasemapMode | 'traffic' | 'transit' | 'c
 export default function CartePage() {
   const { t } = useTranslation()
   const toast = useToast()
-  const { user, token, isAuthenticated, isMedecin, isEtablissement } = useAuth()
+  const { user, token, isAuthenticated, isMedecin, isEtablissement, updateUser } = useAuth()
   const { position, accuracy, isManual, setManualPosition, clearManualPosition, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
   const { provider, state: providerState } = useMapProvider()
 
@@ -306,6 +306,12 @@ export default function CartePage() {
           }
         }),
       )
+      // Rafraîchit le contexte auth pour que le bouton profil (et toute
+      // lecture de user.photoProfil) reflète immédiatement la nouvelle photo,
+      // même si elle a été uploadée après la connexion.
+      if (changedId === String(user?.id)) {
+        updateUser({ ...user, photoProfil: photo })
+      }
     },
   }, user?.roles?.[0])
 
@@ -1038,7 +1044,7 @@ export default function CartePage() {
       <div className="absolute right-4 top-4 z-[1400]">
         <a
           href={isAuthenticated ? '/profil' : '/login'}
-          className="maps-profile-btn flex h-11 w-11 items-center justify-center rounded-full border border-white/80 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-200"
+          className="maps-profile-btn flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-transparent text-slate-700 transition hover:bg-white/10 dark:border-white/10 dark:bg-transparent dark:text-slate-200 dark:hover:bg-white/5"
           aria-label={isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria')}
           title={user?.email || (isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria'))}
         >
