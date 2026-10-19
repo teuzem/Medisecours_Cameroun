@@ -51,6 +51,7 @@ import SosModal from '../../components/carte/SosModal'
 import { useToast } from '../../components/ui/Toast'
 import { useAuth } from '../../hooks/useAuth'
 import { useWebSocket } from '../../hooks/useWebSocket'
+import { usePhotoSrc } from '../../hooks/usePhotoSrc'
 import { useGeolocation } from '../../hooks/useGeolocation'
 import { useGoogleDirections } from '../../hooks/useGoogleDirections'
 import { useMapProvider } from '../../hooks/useMapProvider'
@@ -274,6 +275,10 @@ export default function CartePage() {
   const { user, token, isAuthenticated, isMedecin, isEtablissement } = useAuth()
   const { position, accuracy, isManual, setManualPosition, clearManualPosition, error: geoError, loading: locating, locate, watch, stopWatch, isWatching } = useGeolocation()
   const { provider, state: providerState } = useMapProvider()
+
+  // Avatar du profil connecté (téléversé ou avatar Google) : s’affiche en
+  // haut à droite de la carte et se met à jour en temps réel.
+  const profilePhoto = usePhotoSrc(user?.photoProfil ?? null)
 
   // Avatar temps réel : dès qu'un utilisateur change de photo (téléversée ou
   // issue de son compte Google), les médias qu'il a publiés sur la carte
@@ -1037,7 +1042,17 @@ export default function CartePage() {
           aria-label={isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria')}
           title={user?.email || (isAuthenticated ? t('visitor.carte.openProfileAria') : t('visitor.carte.loginAria'))}
         >
-          <UserCircle className="h-6 w-6" />
+          {profilePhoto.src ? (
+            <img
+              src={profilePhoto.src}
+              alt={user?.prenom || user?.nom || user?.email || ''}
+              aria-hidden="true"
+              onError={profilePhoto.onError}
+              className="h-6 w-6 rounded-full object-cover"
+            />
+          ) : (
+            <UserCircle className="h-6 w-6" />
+          )}
         </a>
       </div>
 
