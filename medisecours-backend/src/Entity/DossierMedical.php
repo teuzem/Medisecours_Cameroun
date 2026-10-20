@@ -51,6 +51,33 @@ class DossierMedical
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $closedAt = null;
 
+    /**
+     * Nombre de visites enregistrees : une visite = une admission ou une
+     * consultation rattachee au dossier. C'est le compteur de suivi du patient
+     * dans l'etablissement.
+     */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $nombreVisites = 0;
+
+    /**
+     * Date de la derniere visite.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $derniereVisiteAt = null;
+
+    /**
+     * Empreinte SHA-256 de la signature de cloture : la fermeture du dossier
+     * est signee, donc non repudiable.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $clotureSignatureHash = null;
+
+    /**
+     * Cachet de l'etablissement appose a la cloture du dossier.
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $clotureCachet = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -135,6 +162,54 @@ class DossierMedical
     public function setClosedAt(?\DateTimeImmutable $closedAt): static
     {
         $this->closedAt = $closedAt;
+
+        return $this;
+    }
+
+    public function getNombreVisites(): int
+    {
+        return $this->nombreVisites;
+    }
+
+    public function setNombreVisites(int $nombreVisites): static
+    {
+        $this->nombreVisites = $nombreVisites;
+
+        return $this;
+    }
+
+    public function getDerniereVisiteAt(): ?\DateTimeImmutable
+    {
+        return $this->derniereVisiteAt;
+    }
+
+    public function setDerniereVisiteAt(?\DateTimeImmutable $derniereVisiteAt): static
+    {
+        $this->derniereVisiteAt = $derniereVisiteAt;
+
+        return $this;
+    }
+
+    public function getClotureSignatureHash(): ?string
+    {
+        return $this->clotureSignatureHash;
+    }
+
+    public function setClotureSignatureHash(?string $clotureSignatureHash): static
+    {
+        $this->clotureSignatureHash = $clotureSignatureHash;
+
+        return $this;
+    }
+
+    public function getClotureCachet(): ?string
+    {
+        return $this->clotureCachet;
+    }
+
+    public function setClotureCachet(?string $clotureCachet): static
+    {
+        $this->clotureCachet = $clotureCachet;
 
         return $this;
     }

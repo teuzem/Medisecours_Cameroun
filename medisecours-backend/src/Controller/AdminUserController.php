@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Medecin;
 use App\Entity\Patient;
+use App\Entity\PersonnelSante;
 use App\Entity\User;
 use App\Service\EmailVerificationService;
 use App\Service\SessionService;
@@ -197,12 +198,17 @@ class AdminUserController extends AbstractController
             case 'bannir':
                 $user->setBanni(true);
                 $user->setActif(false);
+                $motif = trim((string) ($data['motif'] ?? ''));
+                $user->setBanniMotif($motif !== '' ? $motif : 'Bannissement décidé par un administrateur.');
+                $user->setBanniAt(new \DateTimeImmutable());
                 $this->sessionService->revokeUserSessions($user);
                 $message = 'Utilisateur banni avec succes.';
                 break;
             case 'debannir':
                 $user->setBanni(false);
                 $user->setActif(true);
+                $user->setBanniMotif(null);
+                $user->setBanniAt(null);
                 $message = 'Utilisateur debanni avec succes.';
                 break;
             default:
@@ -217,11 +223,13 @@ class AdminUserController extends AbstractController
         ]);
     }
 
-    private function findManagedUser(EntityManagerInterface $entityManager, string $id): Patient|Medecin|null
+    private function findManagedUser(EntityManagerInterface $entityManager, string $id): Patient|Medecin|PersonnelSante|null
     {
         $user = $entityManager->getRepository(User::class)->find($id);
 
-        if (!$user instanceof Patient && !$user instanceof Medecin) {
+        // Les personnels de santé sont administrables comme les autres
+        // comptes : un personnel banni doit pouvoir être réactivé.
+        if (!$user instanceof Patient && !$user instanceof Medecin && !$user instanceof PersonnelSante) {
             return null;
         }
 

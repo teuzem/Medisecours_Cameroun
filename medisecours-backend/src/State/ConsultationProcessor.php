@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Consultation;
+use App\Entity\DossierEvenement;
+use App\Entity\DossierMedical;
 use App\Entity\Medecin;
 use App\Entity\Patient;
 use App\Message\WebSocketNotification;
@@ -59,6 +61,64 @@ class ConsultationProcessor implements ProcessorInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Rattache la consultation au dossier medical du patient dans
+     * l'etablissement et y inscrit un acte trace (horodate, auteur, cachet).
+     *
+     * C'est ce qui transforme une consultation isolee en une visite de plus
+     * dans le dossier : la chaine de suivi du patient devient complete
+     * (accueil -> consultation -> soins -> pharmacie).
+     */
+    private function rattacherAuDossier(Consultation $consultation): void
+    {
+        $centre = $consultation->getEtablissement();
+        $patient = $consultation->getPatient();
+        if (!$centre || !$patient) {
+            return;
+        }
+
+        $dossier = $this->em->getRepository(DossierMedical::class)->findOneBy([
+            'centre' => $centre,
+            'patient' => $patient,
+        ]);
+
+        if (!$dossier) {
+            $dossier = new DossierMedical();
+            $dossier->setCentre($centre);
+            $dossier->setPatient($patient);
+            $this->em->persist($ dossier);
+            $this->em->flush();
+        }
+
+        $consultation->setDossier($dossier);
+
+        $dossier
+            ->setNombreVisites($dossier->getNombreVisites() + 1)
+            ->setDerniereVisiteAt(new \DateTimeImmutable());
+
+        $evenement = new DossierEvenement();
+        $evenement
+            ->setDossier($dossier)
+            ->setPatient($patient)
+            ->setCentre($centre)
+            ->setType(DossierEvenement::TYPE_CONSULTATION)
+            ->setTitre('Consultation médicale')
+            ->setDetails([
+                'consultationId' => $consultation->getId(),
+                'motif' => $consultation->getMotif(),
+                'priorite' => $consultation->getPriorite(),
+                'mode' => $consultation->getMode(),
+                'medecinId' => $consultation->getMedecin()?->getId(),
+                'compteRendu' => $consultation->getCompteRendu(),
+            ])
+            ->setAuteur($consultation->getMedecin() ?? $this->security->getUser())
+            // Cachet de l'etablissement appose au moment de l'acte : l'acte
+            // reste lie au cachet qui l'a scelle, meme si le cachet change.
+            ->setCachetUrl($centre->getCachetUrl());
+
+        $this->em->persist($evenement);
     }
 
     private function assertAllowedUpdate(Consultation $consultation, mixed $user, ?string $originalStatut): void
@@ -145,6 +205,10 @@ class ConsultationProcessor implements ProcessorInterface
                 event: 'consultation_closed',
                 payload: $this->buildPayload($consultation),
             ));
+            // La consultation devient une visite du dossier medical : l'acte
+            // est inscrit, horodate, avec le cachet de l'etablissement.
+            $this->rattacherAuDossier($consultation);
+            $this->em->flush();
             $prescription = $consultation->getPrescriptions()->last() ?: null;
             $this->emailService->sendClosingEmail($consultation, $prescription);
         }

@@ -57,6 +57,14 @@ class DossierEvenement
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $signatureHash = null;
 
+    /**
+     * Cachet de l'etablissement appose sur l'acte au moment de sa redaction.
+     * Conserve tel quel : meme si l'etablissement change de cachet plus tard,
+     * l'acte reste lie au cachet qui l'a scelle.
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $cachetUrl = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -168,6 +176,18 @@ class DossierEvenement
     public function setSignatureHash(?string $signatureHash): static
     {
         $this->signatureHash = $signatureHash;
+
+        return $this;
+    }
+
+    public function getCachetUrl(): ?string
+    {
+        return $this->cachetUrl;
+    }
+
+    public function setCachetUrl(?string $cachetUrl): static
+    {
+        $this->cachetUrl = $cachetUrl;
 
         return $this;
     }

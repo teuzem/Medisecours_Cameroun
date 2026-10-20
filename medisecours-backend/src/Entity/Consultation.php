@@ -71,6 +71,17 @@ class Consultation
     #[Groups(['consultation:read', 'consultation:write', 'message:read'])]
     private ?CentreDeSante $etablissement = null;
 
+    /**
+     * Dossier medical rattache : c'est lui qui porte la chaine de suivi du
+     * patient dans l'etablissement (accueil, consultation, soins,
+     * pharmacie). Une consultation rattachee incremente le compteur de
+     * visites du dossier.
+     */
+    #[ORM\ManyToOne(targetEntity: DossierMedical::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['consultation:read', 'consultation:write'])]
+    private ?DossierMedical $dossier = null;
+
     #[ORM\Column(length: 30)]
     #[Assert\Choice(choices: [
         self::STATUT_OUVERTE,
@@ -185,6 +196,18 @@ class Consultation
     public function setEtablissement(?CentreDeSante $etablissement): static
     {
         $this->etablissement = $etablissement;
+
+        return $this;
+    }
+
+    public function getDossier(): ?DossierMedical
+    {
+        return $this->dossier;
+    }
+
+    public function setDossier(?DossierMedical $dossier): static
+    {
+        $this->dossier = $dossier;
 
         return $this;
     }

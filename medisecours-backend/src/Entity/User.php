@@ -212,6 +212,38 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private bool $banni = false;
 
+    /**
+     * Motif du bannissement (ex. : note moyenne inférieure au seuil).
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['user:read'])]
+    private ?string $banniMotif = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['user:read'])]
+    private ?\DateTimeImmutable $banniAt = null;
+
+    /**
+     * Note moyenne reçue (personnel de santé noté par les patients).
+     */
+    #[ORM\Column(options: ['default' => 0.0])]
+    #[Groups(['user:read'])]
+    private float $noteMoyenne = 0.0;
+
+    /**
+     * Nombre d'avis reçus (personnel de santé noté par les patients).
+     */
+    #[ORM\Column(options: ['default' => 0])]
+    #[Groups(['user:read'])]
+    private int $totalAvis = 0;
+
+    /**
+     * Image de couverture du profil public (page de profil professionnelle).
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['user:read'])]
+    private ?string $photoCouverture = null;
+
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     #[Groups(['user:read', 'user:search', 'conversation:read'])]
     private bool $estEnLigne = false;
@@ -596,6 +628,66 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setBanni(bool $banni): static
     {
         $this->banni = $banni;
+
+        return $this;
+    }
+
+    public function getBanniMotif(): ?string
+    {
+        return $this->banniMotif;
+    }
+
+    public function setBanniMotif(?string $banniMotif): static
+    {
+        $this->banniMotif = $banniMotif;
+
+        return $this;
+    }
+
+    public function getBanniAt(): ?\DateTimeImmutable
+    {
+        return $this->banniAt;
+    }
+
+    public function setBanniAt(?\DateTimeImmutable $banniAt): static
+    {
+        $this->banniAt = $banniAt;
+
+        return $this;
+    }
+
+    public function getNoteMoyenne(): float
+    {
+        return $this->noteMoyenne;
+    }
+
+    public function setNoteMoyenne(float $noteMoyenne): static
+    {
+        $this->noteMoyenne = $noteMoyenne;
+
+        return $this;
+    }
+
+    public function getTotalAvis(): int
+    {
+        return $this->totalAvis;
+    }
+
+    public function setTotalAvis(int $totalAvis): static
+    {
+        $this->totalAvis = $totalAvis;
+
+        return $this;
+    }
+
+    public function getPhotoCouverture(): ?string
+    {
+        return $this->photoCouverture;
+    }
+
+    public function setPhotoCouverture(?string $photoCouverture): static
+    {
+        $this->photoCouverture = $photoCouverture;
 
         return $this;
     }

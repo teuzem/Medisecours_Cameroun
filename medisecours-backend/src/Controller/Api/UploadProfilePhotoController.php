@@ -55,6 +55,89 @@ final class UploadProfilePhotoController extends AbstractController
         ]);
     }
 
+    #[Route('/api/profile/couverture', name: 'api_profile_couverture_upload', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function uploadCouverture(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        #[Autowire(service: 'limiter.media_upload')] RateLimiterFactory $mediaLimiter,
+    ): JsonResponse {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $limit = $mediaLimiter->create('profile-cover-'.$user->getUserIdentifier())->consume(1);
+        if (!$limit->isAccepted()) {
+            return $this->json(
+                ['error' => 'Trop de tentatives. Reessayez dans quelques instants.'],
+                Response::HTTP_TOO_MANY_REQUESTS
+            );
+        }
+
+        $file = $request->files->get('file');
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
+            return $this->json(['error' => 'Aucune image valide fournie.'], Response::HTTP_BAD_REQUEST);
+        }
+        if ((int) $file->getSize() > self::MAX_FILE_SIZE) {
+            return $this->json(
+                ['error' => 'La couverture dépasse la taille maximale de 5 Mo.'],
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        $mimeType = $file->getMimeType();
+        if (!in_array($mimeType, self::ALLOWED_MIME_TYPES, true)) {
+            return $this->json(
+                ['error' => 'Format non autorise. Utilisez une image JPEG, PNG ou WebP.'],
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        $contents = @file_get_contents($file->getPathname());
+        if ($contents === false || $contents === '') {
+            return $this->json(
+                ['error' => 'La couverture ne peut pas être lue. Reessayez avec un autre fichier.'],
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        // La couverture est stockée en base comme la photo de profil : elle
+        // reste servie par l'API et suit le compte.
+        $extension = match ($mimeType) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => throw new \LogicException('Type d image valide non pris en charge.'),
+        };
+
+        $media = (new MediaObject())
+            ->setFilePath(bin2hex(random_bytes(20)).'.'.$extension)
+            ->setOriginalName(basename(trim($file->getClientOriginalName())) ?: 'couverture.'.$extension)
+            ->setMimeType($mimeType)
+            ->setSize(strlen($contents))
+            ->setData($contents)
+            ->setUploadedBy($user)
+            ->setIsPublic(true);
+
+        $entityManager->persist($media);
+        $entityManager->flush();
+
+        $contentUrl = $media->getContentUrl();
+        if ($contentUrl === null) {
+            throw new \RuntimeException('La couverture ne peut pas être resolue.');
+        }
+
+        $user->setPhotoCouverture($contentUrl);
+        $entityManager->flush();
+
+        return $this->json([
+            'photoCouverture' => $contentUrl,
+            'mimeType' => $mimeType,
+            'size' => $media->getSize(),
+        ], Response::HTTP_CREATED);
+    }
+
     #[Route('/api/profile/photo', name: 'api_profile_photo_upload', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function __invoke(

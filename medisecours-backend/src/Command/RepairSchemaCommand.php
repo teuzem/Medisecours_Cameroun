@@ -385,6 +385,45 @@ class RepairSchemaCommand extends Command
             'ALTER TABLE dossier_evenement DROP CONSTRAINT IF EXISTS FK_DOSSIER_EVENEMENT_AUTEUR',
             'ALTER TABLE dossier_evenement ADD CONSTRAINT FK_DOSSIER_EVENEMENT_AUTEUR FOREIGN KEY (auteur_id) REFERENCES "user" (id) ON DELETE SET NULL',
 
+            // ── avis_personnel (notation des personnels par les patients) ──
+            'CREATE SEQUENCE IF NOT EXISTS avis_personnel_id_seq INCREMENT BY 1 MINVALUE 1 START 1',
+            'CREATE TABLE IF NOT EXISTS avis_personnel (
+                id INT NOT NULL,
+                personnel_id UUID NOT NULL,
+                patient_id UUID NOT NULL,
+                note SMALLINT NOT NULL,
+                commentaire TEXT DEFAULT NULL,
+                statut VARCHAR(20) DEFAULT \'PUBLIE\' NOT NULL,
+                signale BOOLEAN DEFAULT false NOT NULL,
+                created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+                updated_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL,
+                PRIMARY KEY(id)
+            )',
+            'CREATE UNIQUE INDEX IF NOT EXISTS UNIQ_AVIS_PERSONNEL_PATIENT ON avis_personnel (personnel_id, patient_id)',
+            'CREATE INDEX IF NOT EXISTS IDX_AVIS_PERSONNEL_PERSONNEL ON avis_personnel (personnel_id)',
+            'ALTER TABLE avis_personnel DROP CONSTRAINT IF EXISTS FK_AVIS_PERSONNEL_PERSONNEL',
+            'ALTER TABLE avis_personnel ADD CONSTRAINT FK_AVIS_PERSONNEL_PERSONNEL FOREIGN KEY (personnel_id) REFERENCES "user" (id) ON DELETE CASCADE',
+            'ALTER TABLE avis_personnel DROP CONSTRAINT IF EXISTS FK_AVIS_PERSONNEL_PATIENT',
+            'ALTER TABLE avis_personnel ADD CONSTRAINT FK_AVIS_PERSONNEL_PATIENT FOREIGN KEY (patient_id) REFERENCES "user" (id) ON DELETE CASCADE',
+
+            // ── colonnes du personnel : notation, couverture, bannissement ──
+            'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS note_moyenne DOUBLE PRECISION DEFAULT 0 NOT NULL',
+            'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS total_avis INT DEFAULT 0 NOT NULL',
+            'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS photo_couverture TEXT DEFAULT NULL',
+            'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS banni_motif TEXT DEFAULT NULL',
+            'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS banni_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL',
+
+            // ── consultation rattachée au dossier + suivi des visites ──
+            'ALTER TABLE consultation ADD COLUMN IF NOT EXISTS dossier_id INT DEFAULT NULL',
+            'CREATE INDEX IF NOT EXISTS IDX_CONSULTATION_DOSSIER ON consultation (dossier_id)',
+            'ALTER TABLE consultation DROP CONSTRAINT IF EXISTS FK_CONSULTATION_DOSSIER',
+            'ALTER TABLE consultation ADD CONSTRAINT FK_CONSULTATION_DOSSIER FOREIGN KEY (dossier_id) REFERENCES dossier_medical (id) ON DELETE SET NULL',
+            'ALTER TABLE dossier_medical ADD COLUMN IF NOT EXISTS nombre_visites INT DEFAULT 0 NOT NULL',
+            'ALTER TABLE dossier_medical ADD COLUMN IF NOT EXISTS derniere_visite_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL',
+            'ALTER TABLE dossier_medical ADD COLUMN IF NOT EXISTS cloture_signature_hash VARCHAR(64) DEFAULT NULL',
+            'ALTER TABLE dossier_medical ADD COLUMN IF NOT EXISTS cloture_cachet TEXT DEFAULT NULL',
+            'ALTER TABLE dossier_evenement ADD COLUMN IF NOT EXISTS cachet_url TEXT DEFAULT NULL',
+
             // ── ordonnance_pharmacie (sonde health ; avant soin_administre qui y fait référence) ──
             'CREATE SEQUENCE IF NOT EXISTS ordonnance_pharmacie_id_seq INCREMENT BY 1 MINVALUE 1 START 1',
             'CREATE TABLE IF NOT EXISTS ordonnance_pharmacie (

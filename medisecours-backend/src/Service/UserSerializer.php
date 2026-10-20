@@ -8,6 +8,7 @@ use App\Entity\Admin;
 use App\Entity\EtablissementManager;
 use App\Entity\Medecin;
 use App\Entity\Patient;
+use App\Entity\PersonnelSante;
 use App\Entity\User;
 
 /**
@@ -42,8 +43,22 @@ final class UserSerializer
             'authProvider'  => $user->getGoogleId() !== null ? 'google' : 'local',
             'type'          => $user instanceof EtablissementManager
                 ? 'etablissement'
-                : ($user instanceof Medecin ? 'medecin' : ($user instanceof Admin ? 'admin' : 'patient')),
+                : ($user instanceof Medecin ? 'medecin' : ($user instanceof Admin ? 'admin' : ($user instanceof PersonnelSante ? 'personnel' : 'patient'))),
         ];
+
+        if ($user instanceof PersonnelSante) {
+            $data['typePersonnel']   = $user->getTypePersonnel();
+            $data['fonction']        = $user->getFonction();
+            $data['numeroOrdre']     = $user->getNumeroOrdre();
+            $data['statutValidation'] = $user->getStatutValidation();
+            $data['estValide']       = $user->estValide();
+            $data['etablissement']   = $user->getEtablissement() ? [
+                'id'   => $user->getEtablissement()->getId(),
+                'nom'  => $user->getEtablissement()->getNom(),
+                'type' => $user->getEtablissement()->getType(),
+                'ville' => $user->getEtablissement()->getVille(),
+            ] : null;
+        }
 
         if ($user instanceof Patient) {
             $data['groupeSanguin']   = $user->getGroupeSanguin();

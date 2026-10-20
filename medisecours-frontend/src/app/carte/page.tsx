@@ -896,8 +896,23 @@ export default function CartePage() {
             aria-controls="maps-search-suggestions"
           />
           <button type="button" onClick={() => { setSelectedId(null); setDrawerOpen(true); setSearchOpen(true) }} title={t('visitor.carte.showResults')} aria-label={t('visitor.carte.showResults')} className="grid h-10 w-10 shrink-0 place-items-center rounded text-slate-600 hover:bg-slate-100"><Search className="h-5 w-5" /></button>
-          {searchQuery && (
-            <button type="button" onClick={() => setSearchQuery('')} className="flex h-9 w-9 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10" aria-label={t('visitor.carte.clearSearch')}>
+          {(searchQuery || selectedId != null) && (
+            <button
+              type="button"
+              onClick={() => {
+                // Fiche ouverte : la croix ferme la fiche (et la sélection),
+                // pas seulement la recherche. Sinon elle se contente de
+                // vider le champ.
+                setSearchQuery('')
+                if (selectedId != null) {
+                  setSelectedId(null)
+                  setDrawerOpen(false)
+                }
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
+              aria-label={selectedId != null ? t('visitor.carte.ariaCloseFiche') : t('visitor.carte.clearSearch')}
+              title={selectedId != null ? t('visitor.carte.ariaCloseFiche') : t('visitor.carte.clearSearch')}
+            >
               <X className="h-4 w-4" />
             </button>
           )}
@@ -1322,7 +1337,7 @@ export default function CartePage() {
         initialView={panelView}
         onViewChange={(view) => { setPanelView(view); setDrawerOpen(true) }}
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => { setSelectedId(null); setDrawerOpen(false) }}
         visibleCentres={visibleCentres}
         loading={loading}
         searchQuery={searchQuery}

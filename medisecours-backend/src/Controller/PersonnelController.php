@@ -324,6 +324,7 @@ class PersonnelController extends AbstractController
             PersonnelSante::TYPE_RECEPTIONNISTE => $this->receptionDashboard($centre, $today),
             PersonnelSante::TYPE_INFIRMIER, PersonnelSante::TYPE_AIDE_SOIGNANT => $this->careDashboard($centre, $today),
             PersonnelSante::TYPE_PHARMACIEN => $this->pharmacyDashboard($centre, $today),
+            PersonnelSante::TYPE_AMBULANCIER => $this->ambulanceDashboard($centre, $today),
             default => [],
         };
 
@@ -331,7 +332,141 @@ class PersonnelController extends AbstractController
             'typePersonnel' => $personnel->getTypePersonnel(),
             'etablissement' => ['id' => $centre->getId(), 'nom' => $centre->getNom()],
             'stats' => $stats,
+            // Séries et répartitions pour les graphiques du tableau de bord.
+            'activite' => $this->activiteDashboard($centre),
+            'dossiers' => $this->dossiersDashboard($centre),
+            'notation' => [
+                'noteMoyenne' => $personnel->getNoteMoyenne(),
+                'totalAvis' => $personnel->getTotalAvis(),
+                'distribution' => $this->em->getRepository(\App\Entity\AvisPersonnel::class)
+                    ->getNoteDistribution($personnel),
+            ],
+            'identite' => [
+                'photoProfil' => $personnel->getPhotoProfil(),
+                'photoCouverture' => $personnel->getPhotoCouverture(),
+                'fonction' => $personnel->getFonction(),
+                'numeroOrdre' => $personnel->getNumeroOrdre(),
+                'nom' => $personnel->getNom(),
+                'prenom' => $personnel->getPrenom(),
+            ],
         ]);
+    }
+
+    /**
+     * Activité des 14 derniers jours : admissions, soins, consultations et
+     * actes de pharmacie, par jour. Alimente les graphiques du tableau de bord.
+     */
+    private function activiteDashboard(CentreDeSante $centre): array
+    {
+        $debut = new \DateTimeImmutable('-13 days');
+        $series = [];
+        for ($i = 0; $i < 14; ++$i) {
+            $jour = $debut->modify('+'.$i.' days');
+            $series[$jour->format('Y-m-d')] = [
+                'date' => $jour->format('Y-m-d'),
+                'admissions' => 0,
+                'soins' => 0,
+                'consultations' => 0,
+                'pharmacie' => 0,
+            ];
+        }
+
+        $compter = static function (array $series, iterable $dates, string $cle): void {
+            foreach ($dates as $date) {
+                $jour = $date?->format('Y-m-d');
+                if ($jour !== null && isset($series[$jour])) {
+                    ++$series[$jour][$cle];
+                }
+            }
+        };
+
+        $admissions = $this->em->getRepository(DossierMedical::class)->createQueryBuilder('d')
+            ->select('d.createdAt')
+            ->where('d.centre = :centre')
+            ->setParameter('centre', $centre)
+            ->andWhere('d.createdAt >= :debut')
+            ->setParameter('debut', $debut)
+            ->getQuery()
+            ->getScalarResult();
+        $compter($series, $admissions, 'admissions');
+
+        $soins = $this->em->getRepository(\App\Entity\SoinAdministre::class)->createQueryBuilder('s')
+            ->select('s.createdAt', 's.realisedAt')
+            ->join('s.dossier', 'd')
+            ->where('d.centre = :centre')
+            ->setParameter('centre', $centre)
+            ->getQuery()
+            ->getArrayResult();
+        $compter($series, array_column($soins, 'realisedAt'), 'soins');
+        $compter($series, array_column($soins, 'createdAt'), 'soins');
+
+        $consultations = $this->em->getRepository(\App\Entity\Consultation::class)->createQueryBuilder('c')
+            ->select('c.createdAt')
+            ->where('c.etablissement = :centre')
+            ->setParameter('centre', $centre)
+            ->andWhere('c.createdAt >= :debut')
+            ->setParameter('debut', $debut)
+            ->getQuery()
+            ->getScalarResult();
+        $compter($series, $consultations, 'consultations');
+
+        $pharmacie = $this->em->getRepository(\App\Entity\OrdonnancePharmacie::class)->createQueryBuilder('o')
+            ->select('o.createdAt')
+            ->where('o.centre = :centre')
+            ->setParameter('centre', $centre)
+            ->andWhere('o.createdAt >= :debut')
+            ->setParameter('debut', $debut)
+            ->getQuery()
+            ->getScalarResult();
+        $compter($series, $pharmacie, 'pharmacie');
+
+        return array_values($series);
+    }
+
+    /**
+     * Répartition des dossiers de l'établissement : statut et nombre de visites.
+     */
+    private function dossiersDashboard(CentreDeSante $centre): array
+    {
+        $dossiers = $this->dossiers->searchByCentre($centre, null, 2000);
+
+        $statuts = [DossierMedical::STATUT_OUVERT => 0, DossierMedical::STATUT_CLOS => 0];
+        $visites = 0;
+        foreach ($dossiers as $row) {
+            $dossier = $row['dossier'];
+            $statuts[$dossier->getStatut()] = ($statuts[$dossier->getStatut()] ?? 0) + 1;
+            $visites += $dossier->getNombreVisites();
+        }
+
+        return [
+            'statuts' => $statuts,
+            'total' => count($dossiers),
+            'visites' => $visites,
+        ];
+    }
+
+    /**
+     * Tableau de bord de l'ambulancier : prises en charge SOS et Interventions.
+     */
+    private function ambulanceDashboard(CentreDeSante $centre, \DateTimeImmutable $today): array
+    {
+        $demandes = $this->em->getRepository(\App\Entity\DemandeSos::class)->createQueryBuilder('d')
+            ->where('d.etablissement = :centre')
+            ->setParameter('centre', $centre)
+            ->getQuery()
+            ->getResult();
+
+        $statuts = [];
+        $jour = 0;
+        foreach ($demandes as $demande) {
+            $statut = $demande->getStatut();
+            $statuts[$statut] = ($statuts[$statut] ?? 0) + 1;
+            if ($demande->getCreatedAt()?->format('Y-m-d') === $today->format('Y-m-d')) {
+                ++$jour;
+            }
+        }
+
+        return ['sos' => $statuts, 'interventionsJour' => $jour];
     }
 
     // ── Patients (recherche accueil) ───────────────────────────────────────
@@ -534,8 +669,84 @@ class PersonnelController extends AbstractController
                     ? trim(($e->getAuteur()->getNom() ?? '').' '.($e->getAuteur()->getPrenom() ?? ''))
                     : null,
                 'signatureHash' => $e->getSignatureHash(),
+                // Cachet de l'etablissement appose sur l'acte.
+                'cachetUrl' => $e->getCachetUrl(),
                 'createdAt' => $e->getCreatedAt()->format('c'),
             ], $evenements),
+            'cachet' => $centre->getCachetUrl(),
+        ]);
+    }
+
+    /**
+     * Clôture signée du dossier médical.
+     *
+     * POST /api/personnel/dossiers/{id}/cloture
+     *
+     * La clôture porte la signature du personnel (empreinte SHA-256) et le
+     * cachet de l'établissement : elle est donc non répudiable. L'acte de
+     * clôture est lui-même inscrit dans la chronologie du dossier.
+     */
+    #[Route('/api/personnel/dossiers/{id}/cloture', name: 'api_personnel_dossier_cloture', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function closeDossier(int $id, Request $request): JsonResponse
+    {
+        $personnel = $this->requireActivePersonnel();
+        $centre = $personnel->getEtablissement();
+
+        $dossier = $this->dossiers->find($id);
+        if (!$dossier instanceof DossierMedical || $dossier->getCentre()?->getId() !== $centre->getId()) {
+            throw new NotFoundHttpException('Dossier introuvable dans votre établissement.');
+        }
+        if ($dossier->getStatut() === DossierMedical::STATUT_CLOS) {
+            throw new BadRequestHttpException('Ce dossier est déjà clôturé.');
+        }
+
+        $data = $request->toArray();
+        $signature = trim((string) ($data['signature'] ?? ''));
+        $motif = trim((string) ($data['motif'] ?? ''));
+
+        if ($signature === '') {
+            throw new BadRequestHttpException('La signature du personnel est obligatoire pour clôturer un dossier.');
+        }
+        if (mb_strlen($signature) > 2_000_000) {
+            throw new BadRequestHttpException('La signature fournie est trop volumineuse.');
+        }
+
+        $maintenant = new \DateTimeImmutable();
+        $empreinte = hash('sha256', implode('|', [
+            $signature,
+            (string) $dossier->getId(),
+            (string) $dossier->getNumero(),
+            (string) $personnel->getId(),
+            $maintenant->format('c'),
+        ]));
+
+        $dossier
+            ->setStatut(DossierMedical::STATUT_CLOS)
+            ->setClosedAt($maintenant)
+            ->setClotureSignatureHash($empreinte)
+            ->setClotureCachet($centre->getCachetUrl());
+
+        $this->em->persist((new DossierEvenement())
+            ->setDossier($dossier)
+            ->setPatient($dossier->getPatient())
+            ->setCentre($centre)
+            ->setType(DossierEvenement::TYPE_NOTE)
+            ->setTitre('Clôture du dossier')
+            ->setDetails([
+                'motif' => $motif !== '' ? $motif : null,
+                'nombreVisites' => $dossier->getNombreVisites(),
+                'signatureHash' => $empreinte,
+            ])
+            ->setAuteur($personnel)
+            ->setSignatureHash($empreinte)
+            ->setCachetUrl($centre->getCachetUrl()));
+
+        $this->em->flush();
+
+        return new JsonResponse([
+            'dossier' => self::serializeDossier($dossier, $dossier->getPatient()),
+            'signatureHash' => $empreinte,
+            'cachetUrl' => $centre->getCachetUrl(),
         ]);
     }
 
@@ -638,6 +849,14 @@ class PersonnelController extends AbstractController
             'numero' => $d->getNumero(),
             'statut' => $d->getStatut(),
             'createdAt' => $d->getCreatedAt()->format('c'),
+            'closedAt' => $d->getClosedAt()?->format('c'),
+            // Suivi du patient : combien de visites, quand.
+            'nombreVisites' => $d->getNombreVisites(),
+            'derniereVisiteAt' => $d->getDerniereVisiteAt()?->format('c'),
+            // Non-répudiation : la clôture porte l'empreinte de la signature
+            // et le cachet apposé.
+            'clotureSignatureHash' => $d->getClotureSignatureHash(),
+            'clotureCachet' => $d->getClotureCachet(),
             'patient' => $patient ? [
                 'id' => (string) $patient->getId(),
                 'nom' => $patient->getNom(),
