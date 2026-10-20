@@ -253,6 +253,14 @@ class PersonnelValidationController extends AbstractController
             'validationMotif' => $p->getValidationMotif(),
             'validatedAt' => $p->getValidatedAt()?->format('c'),
             'createdAt' => $p->getCreatedAt()->format('c'),
+            // Notation reçue des patients et état du compte : le manager voit
+            // immédiatement si un soignant est en difficulté ou suspendu.
+            'noteMoyenne' => $p->getNoteMoyenne(),
+            'totalAvis' => $p->getTotalAvis(),
+            'banni' => $p->isBanni(),
+            'banniMotif' => $p->getBanniMotif(),
+            'photoProfil' => $p->getPhotoProfil(),
+            'photoCouverture' => $p->getPhotoCouverture(),
             'documents' => array_map(
                 static fn (DocumentValidation $d): array => self::serializeDocument($d),
                 $documents

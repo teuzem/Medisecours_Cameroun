@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Package } from 'lucide-react'
 import api from '../../../api/axios'
 import GlassCard from '../../../components/ui/GlassCard'
+import PosteIndicateurs from '../components/PosteIndicateurs'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import Modal from '../../../components/ui/Modal'
 import { useToast } from '../../../components/ui/Toast'
@@ -130,6 +131,8 @@ export default function PersonnelPharmaciePage() {
         <h2 className="font-display text-lg font-bold text-[#0F2C52] dark:text-white">{t('personnel.pharmacie.titre')}</h2>
         <p className="mt-1 text-sm text-[#6B7280] dark:text-[#9CA3AF]">{t('personnel.pharmacie.intro')}</p>
       </div>
+
+      <PosteIndicateurs />
 
       <div className="mt-4">
         <label htmlFor="pharm-filter" className="mb-1.5 block text-xs font-medium text-[#374151] dark:text-[#D1D5DB]">

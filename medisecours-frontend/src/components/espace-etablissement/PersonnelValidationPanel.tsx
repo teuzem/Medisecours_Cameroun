@@ -4,12 +4,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BadgeCheck,
+  Ban,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   FileText,
   Loader2,
   RefreshCw,
+  Star,
   UserRound,
   XCircle,
 } from 'lucide-react'
@@ -39,6 +41,12 @@ interface PersonnelItem {
   validationMotif: string | null
   validatedAt: string | null
   createdAt: string
+  noteMoyenne?: number
+  totalAvis?: number
+  banni?: boolean
+  banniMotif?: string | null
+  photoProfil?: string | null
+  photoCouverture?: string | null
   documents: DocumentItem[]
 }
 
@@ -231,6 +239,24 @@ export default function PersonnelValidationPanel({ centreId }: { centreId: numbe
                     )}
                     {p.statutValidation === 'REJETE' && p.validationMotif && (
                       <p className="mt-1 text-xs text-red-600 dark:text-red-400">{p.validationMotif}</p>
+                    )}
+                    {/* Notation reçue des patients : le manager voit la
+                        confiance de la population envers chaque soignant. */}
+                    {p.totalAvis > 0 && (
+                      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />
+                        <span className="font-bold">{p.noteMoyenne.toFixed(1)}</span>
+                        <span className="text-primary-300">
+                          ({t('etablissement.personnelValidation.avisRecus', { count: p.totalAvis })})
+                        </span>
+                      </p>
+                    )}
+                    {p.banni && (
+                      <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 dark:bg-red-500/10 dark:text-red-300">
+                        <Ban className="h-3.5 w-3.5" aria-hidden />
+                        {t('etablissement.personnelValidation.compteBanni')}
+                        {p.banniMotif ? ` — ${p.banniMotif}` : ''}
+                      </p>
                     )}
                   </div>
                 </div>

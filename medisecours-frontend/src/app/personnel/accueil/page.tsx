@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Search, UserPlus, X } from 'lucide-react'
 import api from '../../../api/axios'
 import GlassCard from '../../../components/ui/GlassCard'
+import PosteIndicateurs from '../components/PosteIndicateurs'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import { useToast } from '../../../components/ui/Toast'
 
@@ -123,6 +124,8 @@ export default function PersonnelAccueilPage() {
       <h2 className="font-display text-lg font-bold text-[#0F2C52] dark:text-white">
         {t('personnel.accueil.titre')}
       </h2>
+
+      <PosteIndicateurs />
 
       <GlassCard className="mt-5 p-5">
         <div className="relative">

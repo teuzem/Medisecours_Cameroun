@@ -2477,7 +2477,10 @@
           "EN_ATTENTE": "En attente",
           "VALIDE": "Validée",
           "REJETE": "Rejetée"
-        }
+        },
+        "avisRecus_one": "{{ count }} avis reçu",
+        "avisRecus_other": "{{ count }} avis reçus",
+        "compteBanni": "Compte suspendu"
       },
       "reviewReportedLabel": "signalés",
       "reviewWithMediaLabel": "avec médias",

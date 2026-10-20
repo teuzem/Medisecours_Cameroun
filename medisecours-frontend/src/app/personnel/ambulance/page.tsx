@@ -18,6 +18,7 @@ import {
 import api from '../../../api/axios'
 import { useToast } from '../../../components/ui/Toast'
 import GlassCard from '../../../components/ui/GlassCard'
+import PosteIndicateurs from '../components/PosteIndicateurs'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import Toggle from '../../../components/ui/Toggle'
 import SectionHeader from '../../../components/ui/SectionHeader'
@@ -181,6 +182,8 @@ export default function PersonnelAmbulancePage() {
       </div>
 
       <SosStatsTiles stats={stats} />
+
+      <PosteIndicateurs />
 
       {actionError && (
         <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">

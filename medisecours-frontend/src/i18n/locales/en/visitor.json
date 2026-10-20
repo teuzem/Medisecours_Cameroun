@@ -2477,7 +2477,10 @@
           "EN_ATTENTE": "Pending",
           "VALIDE": "Approved",
           "REJETE": "Rejected"
-        }
+        },
+        "avisRecus_one": "{{ count }} review received",
+        "avisRecus_other": "{{ count }} reviews received",
+        "compteBanni": "Suspended account"
       },
       "reviewReportedLabel": "reported",
       "reviewWithMediaLabel": "with media",

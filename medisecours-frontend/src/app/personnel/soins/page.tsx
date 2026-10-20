@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Activity, Plus, X } from 'lucide-react'
 import api from '../../../api/axios'
 import GlassCard from '../../../components/ui/GlassCard'
+import PosteIndicateurs from '../components/PosteIndicateurs'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
 import Modal from '../../../components/ui/Modal'
 import SignaturePad from '../../../components/ui/SignaturePad'
@@ -131,6 +132,8 @@ export default function PersonnelSoinsPage() {
           {t('personnel.soins.nouveau')}
         </button>
       </div>
+
+      <PosteIndicateurs />
 
       <div className="mt-4">
         <label htmlFor="soins-filter" className="mb-1.5 block text-xs font-medium text-[#374151] dark:text-[#D1D5DB]">
