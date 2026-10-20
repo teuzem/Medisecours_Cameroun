@@ -23,7 +23,8 @@
       "unreadMessages_other": "{{count}} messages non lus",
       "admin": "Admin",
       "establishment": "Mon établissement",
-      "establishmentShort": "Établissement"
+      "establishmentShort": "Établissement",
+      "professionnels": "Professionnels"
     },
     "footer": {
       "tagline": "Premiers gestes, orientation et accès aux professionnels de santé. En cas de danger immédiat, contactez d'abord les services d'urgence.",

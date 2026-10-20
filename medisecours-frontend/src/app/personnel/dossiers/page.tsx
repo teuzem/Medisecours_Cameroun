@@ -2,16 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ClipboardList, Search, ShieldCheck } from 'lucide-react'
+import { ClipboardList, Search, ShieldCheck, Stamp, Lock } from 'lucide-react'
 import api from '../../../api/axios'
 import GlassCard from '../../../components/ui/GlassCard'
 import LoadingSpinner from '../../../components/ui/LoadingSpinner'
+import SignaturePad from '../../../components/ui/SignaturePad'
+import { useToast } from '../../../components/ui/Toast'
 
 type DossierLite = {
   id: number
   numero: string
   statut: string
   createdAt: string
+  closedAt?: string | null
+  nombreVisites?: number
+  derniereVisiteAt?: string | null
   patient: { id: string; nom: string; prenom: string; telephone?: string; email?: string } | null
 }
 
@@ -22,11 +27,13 @@ type Evenement = {
   details?: Record<string, unknown> | null
   auteur?: string | null
   signatureHash?: string | null
+  cachetUrl?: string | null
   createdAt: string
 }
 
 export default function PersonnelDossiersPage() {
   const { t, i18n } = useTranslation()
+  const toast = useToast()
   const locale = i18n.language === 'en' ? 'en-GB' : 'fr-FR'
 
   const [query, setQuery] = useState('')
@@ -35,6 +42,10 @@ export default function PersonnelDossiersPage() {
   const [selected, setSelected] = useState<DossierLite | null>(null)
   const [evenements, setEvenements] = useState<Evenement[]>([])
   const [timelineLoading, setTimelineLoading] = useState(false)
+  const [cachet, setCachet] = useState<string | null>(null)
+  const [closing, setClosing] = useState(false)
+  const [signature, setSignature] = useState('')
+  const [motif, setMotif] = useState('')
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const load = useCallback((q: string) => {
@@ -59,13 +70,35 @@ export default function PersonnelDossiersPage() {
     setSelected(dossier)
     setTimelineLoading(true)
     setEvenements([])
+    setSignature('')
+    setMotif('')
     try {
       const res = await api.get(`/api/personnel/dossiers/${dossier.id}`)
       setEvenements(res.data?.evenements ?? [])
+      setCachet(res.data?.cachet ?? null)
     } catch {
       setEvenements([])
     } finally {
       setTimelineLoading(false)
+    }
+  }
+
+  const closeDossier = async () => {
+    if (!selected) return
+    if (!signature) {
+      toast.error(t('personnel.dossier.clotureSignature'))
+      return
+    }
+    setClosing(true)
+    try {
+      await api.post(`/api/personnel/dossiers/${selected.id}/cloture`, { signature, motif })
+      await openTimeline(selected)
+      await load(query.trim())
+      toast.success(t('personnel.dossier.clotureReussie'))
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || t('personnel.dossier.clotureReussie'))
+    } finally {
+      setClosing(false)
     }
   }
 
@@ -109,6 +142,12 @@ export default function PersonnelDossiersPage() {
                       </p>
                       <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
                         {t('personnel.dossiers.numero')} {d.numero} · {t('personnel.dossiers.ouvertLe')} {new Date(d.createdAt).toLocaleDateString(locale)}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-semibold text-[#0F2C52] dark:text-mint-400">
+                        {t('personnel.dossier.visites')} : {d.nombreVisites ?? 0}
+                        {d.derniereVisiteAt
+                          ? ` · ${t('personnel.dossier.derniereVisite')} ${new Date(d.derniereVisiteAt).toLocaleDateString(locale)}`
+                          : ''}
                       </p>
                     </div>
                   </div>
@@ -164,11 +203,67 @@ export default function PersonnelDossiersPage() {
                         {t('personnel.dossiers.signe')} · <code className="text-[10px]">{ev.signatureHash.slice(0, 16)}…</code>
                       </p>
                     )}
+                    {ev.cachetUrl && (
+                      <p className="mt-1.5 flex items-center gap-1 text-xs text-[#6B7280] dark:text-[#9CA3AF]">
+                        <Stamp className="h-3.5 w-3.5" aria-hidden />
+                        {t('personnel.dossier.cachet')}
+                        <img
+                          src={ev.cachetUrl}
+                          alt=""
+                          className="h-6 w-6 rounded object-contain"
+                        />
+                      </p>
+                    )}
                   </li>
                 ))}
               </ol>
             )}
           </GlassCard>
+
+          {/* Clôture signée : l'acte est non répudiable (empreinte SHA-256)
+              et porte le cachet de l'établissement. */}
+          {selected?.statut === 'OUVERT' ? (
+            <GlassCard className="mt-4 p-4 sm:p-5">
+              <h4 className="flex items-center gap-2 text-sm font-bold text-[#0F2C52] dark:text-white">
+                <Lock className="h-4 w-4" aria-hidden="true" />
+                {t('personnel.dossier.cloturer')}
+              </h4>
+              <p className="mt-1 text-xs leading-5 text-[#6B7280] dark:text-[#9CA3AF]">
+                {t('personnel.dossier.clotureSignature')}
+              </p>
+
+              <div className="mt-3">
+                <SignaturePad onChange={setSignature} />
+              </div>
+
+              <input
+                value={motif}
+                onChange={(event) => setMotif(event.target.value)}
+                placeholder={t('personnel.dossier.clotureMotif')}
+                className="mt-3 w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0B1A33] dark:text-white"
+              />
+
+              <button
+                type="button"
+                disabled={closing || !signature}
+                onClick={closeDossier}
+                className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--accent,#0F2C52)] px-4 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-50"
+              >
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                {closing ? t('personnel.profil.envoi') : t('personnel.dossier.cloturer')}
+              </button>
+            </GlassCard>
+          ) : selected ? (
+            <GlassCard className="mt-4 p-4 sm:p-5">
+              <p className="flex items-center gap-2 text-sm font-bold text-mint-700 dark:text-mint-400">
+                <Lock className="h-4 w-4" aria-hidden="true" />
+                {t('personnel.dossier.clotureReussie')}
+              </p>
+              <p className="mt-1 text-xs text-[#6B7280] dark:text-[#9CA3AF]">
+                {t('personnel.dossier.nonRepudiable')}
+              </p>
+            </GlassCard>
+          ) : null}
         </section>
       )}
     </div>

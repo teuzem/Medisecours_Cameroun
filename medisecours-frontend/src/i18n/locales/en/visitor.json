@@ -23,7 +23,8 @@
       "unreadMessages_other": "{{count}} unread messages",
       "admin": "Admin",
       "establishment": "My establishment",
-      "establishmentShort": "Establishment"
+      "establishmentShort": "Establishment",
+      "professionnels": "Professionals"
     },
     "footer": {
       "tagline": "First aid steps, guidance and access to healthcare professionals. In case of immediate danger, contact the emergency services first.",

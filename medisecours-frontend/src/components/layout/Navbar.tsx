@@ -10,7 +10,7 @@ import {
   Home, Grid, Activity, MapPin, 
   ArrowRight, FileText,
   Cross, Stethoscope, FolderOpen, Pill,
-  Building2
+  Building2, Users
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useUnreadCount } from '../../hooks/useUnreadCount'
@@ -55,6 +55,9 @@ export default function Navbar() {
     { to: '/premiers-soins', label: t('visitor.nav.firstAid'), icon: Cross },
     { to: '/maladies', label: t('visitor.nav.orientation'), icon: Activity },
     { to: '/medecins', label: t('visitor.nav.doctors'), icon: Stethoscope },
+    // Annuaire des professionnels de santé : c'est là que le patient
+    // retrouve son soignant et le note.
+    { to: '/personnels', label: t('visitor.nav.professionnels'), icon: Users },
     { to: '/patient/consultations', label: t('visitor.nav.consultations'), icon: FileText },
     { to: '/carte', label: t('visitor.nav.carte'), icon: MapPin },
     { to: '/messages', label: t('visitor.nav.messaging'), icon: MessageCircle, badge: unreadCount },
