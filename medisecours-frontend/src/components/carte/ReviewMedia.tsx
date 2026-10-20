@@ -19,15 +19,15 @@ function mediaSrc(media: EtablissementMedia): string {
 
 /** Avatar de l'auteur : photo réelle si elle existe et se charge, initiales sinon. */
 export function ReviewAvatar({ nom, photo }: { nom?: string | null; photo?: string | null }) {
+  // `onError` fait passer au candidat suivant (proxy puis API directe) ; les
+  // initiales n'apparaissent qu'une fois tous les candidats épuisés.
   const { src, onError } = usePhotoSrc(photo)
   const initial = (nom || 'U').trim().charAt(0).toUpperCase() || 'U'
-  const [brokenSrc, setBrokenSrc] = useState<string | null>(null)
-  const broken = brokenSrc !== null && brokenSrc === src
 
-  if (src && !broken) {
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- avatar distant (Google) ou téléversé
-      <img className="maps-avatar maps-avatar-photo" src={src} alt="" loading="lazy" onError={() => setBrokenSrc(src)} />
+      <img className="maps-avatar maps-avatar-photo" src={src} alt="" loading="lazy" onError={onError} />
     )
   }
 

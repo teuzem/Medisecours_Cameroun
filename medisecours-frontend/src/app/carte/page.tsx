@@ -52,6 +52,7 @@ import { useToast } from '../../components/ui/Toast'
 import { useAuth } from '../../hooks/useAuth'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { usePhotoSrc } from '../../hooks/usePhotoSrc'
+import { mutate } from 'swr'
 import { useGeolocation } from '../../hooks/useGeolocation'
 import { useGoogleDirections } from '../../hooks/useGoogleDirections'
 import { useMapProvider } from '../../hooks/useMapProvider'
@@ -280,6 +281,25 @@ export default function CartePage() {
   // haut à droite de la carte et se met à jour en temps réel.
   const profilePhoto = usePhotoSrc(user?.photoProfil ?? null)
 
+  // La session peut porter une copie figée de l'utilisateur (photo choisie
+  // après la connexion, avatar Google récupéré plus tard). On relit la photo
+  // courante pour que l'avatar soit exact, pas l'initiale.
+  useEffect(() => {
+    if (!isAuthenticated) return
+    if (user?.photoProfil) return
+    let cancelled = false
+    api
+      .get<{ photoProfil?: string | null }>('/api/profile/photo')
+      .then(({ data }) => {
+        if (cancelled || !data?.photoProfil) return
+        updateUser({ ...user, photoProfil: data.photoProfil })
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, user?.photoProfil, user, updateUser])
+
   // Avatar temps réel : dès qu'un utilisateur change de photo (téléversée ou
   // issue de son compte Google), les médias qu'il a publiés sur la carte
   // portent la nouvelle image sans rechargement.
@@ -312,6 +332,9 @@ export default function CartePage() {
       if (changedId === String(user?.id)) {
         updateUser({ ...user, photoProfil: photo })
       }
+      // Les avis affichent l'avatar de leur auteur : on les revalide pour que
+      // la nouvelle photo y apparaisse sans rechargement.
+      void mutate((key) => typeof key === 'string' && key.includes('/avis'))
     },
   }, user?.roles?.[0])
 

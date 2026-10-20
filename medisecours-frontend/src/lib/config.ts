@@ -29,3 +29,14 @@ export function imgSrcCandidates(path: string | null | undefined): string[] {
   const relative = path.startsWith('/') ? path : `/${path}`
   return API_BASE ? [relative, `${API_BASE}${relative}`] : [relative]
 }
+
+/**
+ * Premier candidat d'URL encore disponible.
+ *
+ * Candidat épuisé = URL qui a renvoyé une erreur : on passe alors au suivant
+ * (proxy → API directe) et les initiales ne s'affichent qu'une fois la liste
+ * entièrement épuisée.
+ */
+export function pickPhotoSrc(candidates: string[], failed: string[]): string | null {
+  return candidates.find((candidate) => !failed.includes(candidate)) ?? null
+}

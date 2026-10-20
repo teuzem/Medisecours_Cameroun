@@ -115,16 +115,14 @@ function mediaUploaderName(media: NonNullable<FicheCentre['images']>[number] | u
  * initiales plutôt que d'afficher une image brisée.
  */
 function MediaUploaderAvatar({ media, name, className }: { media: FacilityMediaItem | undefined; name: string; className?: string }) {
+  // Même règle que pour les avis : on essaie chaque candidat (proxy puis API
+  // directe) et les initiales ne s'affichent qu'en dernier recours.
   const { src, onError } = usePhotoSrc(media?.uploadedBy?.photo ?? media?.uploadedByPhoto ?? null)
-  // URL qui a échoué (et non un booléen) : un changement de photo remet
-  // l'image en service sans effet ni état à resynchroniser.
-  const [brokenSrc, setBrokenSrc] = useState<string | null>(null)
-  const broken = brokenSrc !== null && brokenSrc === src
 
-  if (src && !broken) {
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- avatar distant (Google) ou téléversé
-      <img className={className} src={src} alt="" loading="lazy" onError={() => setBrokenSrc(src)} />
+      <img className={className} src={src} alt="" loading="lazy" onError={onError} />
     )
   }
 

@@ -29,6 +29,32 @@ final class UploadProfilePhotoController extends AbstractController
         'image/webp',
     ];
 
+    /**
+     * Photo de profil courante de l'utilisateur connecté.
+     *
+     * GET /api/profile/photo
+     *
+     * Permet à l'interface de récupérer la photo à l'instant T plutôt que de
+     * dépendre de la copie figée dans la session : une photo changée sur un
+     * autre poste (ou une photo Google récupérée à la connexion) s'affiche
+     * alors partout, avis et carte compris.
+     */
+    #[Route('/api/profile/photo', name: 'api_profile_photo_read', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function read(): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        return $this->json([
+            'photoProfil' => $user->getPhotoProfil(),
+            'email' => $user->getEmail(),
+            'authProvider' => $user->getGoogleId() !== null ? 'google' : 'local',
+        ]);
+    }
+
     #[Route('/api/profile/photo', name: 'api_profile_photo_upload', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function __invoke(
