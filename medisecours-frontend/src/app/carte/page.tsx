@@ -52,6 +52,7 @@ import { useToast } from '../../components/ui/Toast'
 import { useAuth } from '../../hooks/useAuth'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { usePhotoSrc } from '../../hooks/usePhotoSrc'
+import { diagnostiquerBackend } from '../../lib/backendDiagnostic'
 import { mutate } from 'swr'
 import { useGeolocation } from '../../hooks/useGeolocation'
 import { useGoogleDirections } from '../../hooks/useGoogleDirections'
@@ -497,15 +498,20 @@ export default function CartePage() {
           const items = extractCentres(response)
           setCentres(items)
         })
-        .catch((requestError: any) => {
-          if (requestError?.name !== 'CanceledError' && requestError?.message !== 'canceled' && !options?.silent) {
-            toast.error(t('visitor.centres.loadError'))
+        .catch(async (requestError: any) => {
+          if (requestError?.name === 'CanceledError' || requestError?.message === 'canceled' || options?.silent) {
+            return
           }
+          // Un message générique (« Impossible de charger les centres ») est
+          // inexploitable : on interroge la sonde de santé pour distinguer une
+          // base injoignable d'un schéma incomplet (colonne manquante) —
+          // la seconde cause produit exactement ce même message.
+          toast.error(await diagnostiquerBackend())
         })
         .finally(() => setLoading(false))
       return controller
     },
-    [toast, t],
+    [toast],
   )
 
   useEffect(() => {

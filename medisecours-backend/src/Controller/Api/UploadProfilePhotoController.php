@@ -138,6 +138,45 @@ final class UploadProfilePhotoController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
+    /**
+     * Supprime la photo de couverture du profil.
+     *
+     * DELETE /api/profile/couverture
+     *
+     * Le média stocké est également retiré : sans cela, la couverture
+     * « supprimée » réapparaissait au prochain rechargement, et la base
+     * accumulait des fichiers orphelins.
+     */
+    #[Route('/api/profile/couverture', name: 'api_profile_couverture_delete', methods: ['DELETE'])]
+    #[IsGranted('ROLE_USER')]
+    public function deleteCouverture(EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $ancienne = $user->getPhotoCouverture();
+        $user->setPhotoCouverture(null);
+        $entityManager->flush();
+
+        if ($ancienne !== null) {
+            $id = null;
+            if (preg_match('#/api/media_objects/(\d+)/download#', $ancienne, $matches) === 1) {
+                $id = (int) $matches[1];
+            }
+            if ($id !== null) {
+                $media = $entityManager->getRepository(MediaObject::class)->find($id);
+                if ($media && $media->getUploadedBy() === $user) {
+                    $entityManager->remove($media);
+                    $entityManager->flush();
+                }
+            }
+        }
+
+        return $this->json(['photoCouverture' => null]);
+    }
+
     #[Route('/api/profile/photo', name: 'api_profile_photo_upload', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function __invoke(

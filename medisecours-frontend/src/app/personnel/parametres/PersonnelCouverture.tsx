@@ -113,8 +113,13 @@ export default function PersonnelCouverture() {
               onClick={async () => {
                 setBusy(true)
                 try {
+                  // Suppression réelle : le média est retiré côté serveur,
+                  // sinon la couverture réapparaît au rechargement.
+                  await api.delete('/api/profile/couverture')
                   updateUser({ ...user, photoCouverture: null })
                   toast.success(t('personnel.dashboard.couvertureSupprimee'))
+                } catch (error: any) {
+                  toast.error(error?.response?.data?.error || t('personnel.dashboard.couvertureEchec'))
                 } finally {
                   setBusy(false)
                 }

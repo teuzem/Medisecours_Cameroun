@@ -1,0 +1,25 @@
+# Fins de ligne : le dépôt est stocké en LF.
+#
+# Pourquoi c'est critique : un script shell en CRLF casse silencieusement.
+# `then\r` n'est plus reconnu par /bin/sh et le conteneur refuse de démarrer
+# ("syntax error near unexpected token `then'"), alors que le fichier est
+# parfaitement lisible dans un éditeur. La régression est invisible en
+# relecture et fatale au déploiement.
+* text=auto eol=lf
+
+# Scripts et fichiers de configuration exécutables : LF obligatoire.
+*.sh text eol=lf
+*.bash text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+
+# Types sans conversion de fin de ligne.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

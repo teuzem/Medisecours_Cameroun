@@ -53,6 +53,18 @@ class HealthController extends AbstractController
         // Nature de la preuve : sans cette colonne, l'équipe de secours ne
         // peut pas distinguer une vidéo d'une photo avant de lancer la sirène.
         'demande_sos.preuve_type' => 'SELECT 1 FROM demande_sos WHERE preuve_type IS NULL AND preuve_photo IS NOT NULL LIMIT 0',
+        // Notation des personnels, couverture de profil et bannissement :
+        // sans ces colonnes, TOUTE lecture d'un utilisateur échoue (la
+        // colonne est sélectionnée par le mapping) et la carte elle-même ne
+        // charge plus — c'est ce qu'a provoqué la panne du 18 octobre.
+        'user.note_moyenne' => 'SELECT note_moyenne, total_avis, photo_couverture, banni_motif, banni_at FROM "user" LIMIT 0',
+        // Avis des patients sur les personnels de santé.
+        'avis_personnel' => 'SELECT 1 FROM avis_personnel LIMIT 0',
+        // Suivi des visites et cachets apposés sur les actes du dossier.
+        'dossier_medical.suivi_visites' => 'SELECT nombre_visites, derniere_visite_at, cloture_signature_hash, cloture_cachet FROM dossier_medical LIMIT 0',
+        'dossier_evenement.cachet_url' => 'SELECT cachet_url FROM dossier_evenement LIMIT 0',
+        // Consultation rattachée au dossier médical.
+        'consultation.dossier_id' => 'SELECT dossier_id FROM consultation LIMIT 0',
     ];
 
     /** @var array{checkedAt: float, problems: list<string>}|null */

@@ -94,19 +94,28 @@ chmod -R 775 var/cache var/log var/uploads
 #      Neon, Supabase…) -> set SKIP_MIGRATIONS=1 so this entrypoint does not
 #      try to re-create tables that already exist.
 echo "==> Checking database provisioning..."
+
+# Pre-migration repair (idempotent DDL replay, app:repair-schema) :
+# rebuilds every object this release requires whatever state
+# migration_versions is in (marked « migrated » without objects,
+# partial restore, interrupted deploy — Oct 12 spiral). Runs BEFORE
+# doctrine:migrations:migrate so a stuck migration chain can never
+# leave the schema hollow again. A non-zero exit is only a WARNING:
+# booting must never be blocked (the tolerant health check keeps
+# instances routable while the database itself is reachable).
+#
+# IMPORTANT : la réparation s'exécute TOUJOURS, même avec SKIP_MIGRATIONS=1.
+# SKIP_MIGRATIONS ne concerne que doctrine:migrations:migrate (la lecture
+# de l'historique de migrations) ; le DDL de la release doit être appliqué
+# dans les deux cas. Sans cela, un déploiement dont le schéma n'a pas été
+# mis à jour produit des requêtes SQL qui échouent sur des colonnes
+# manquantes (« Impossible de charger les centres de santé »).
+echo "==> Repairing schema (idempotent replay, never blocks boot)..."
+if ! php bin/console app:repair-schema --no-interaction --env=prod; then
+    echo "WARNING: app:repair-schema reported errors; continuing with migrations."
+fi
+
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
-    # Pre-migration repair (idempotent DDL replay, app:repair-schema) :
-    # rebuilds every object this release requires whatever state
-    # migration_versions is in (marked « migrated » without objects,
-    # partial restore, interrupted deploy — Oct 12 spiral). Runs BEFORE
-    # doctrine:migrations:migrate so a stuck migration chain can never
-    # leave the schema hollow again. A non-zero exit is only a WARNING:
-    # booting must never be blocked (the tolerant health check keeps
-    # instances routable while the database itself is reachable).
-    echo "==> Repairing schema (idempotent replay, never blocks boot)..."
-    if ! php bin/console app:repair-schema --no-interaction --env=prod; then
-        echo "WARNING: app:repair-schema reported errors; continuing with migrations."
-    fi
     echo "==> Running database migrations..."
     migration_attempt=1
     until php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod; do
@@ -121,7 +130,7 @@ if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
         sleep 5
     done
 else
-    echo "==> SKIP_MIGRATIONS=1 => schema assumed to already exist (imported via database/schema.sql)."
+    echo "==> SKIP_MIGRATIONS=1 => doctrine:migrations:migrate skipped (schema repaired above)."
 fi
 
 # Post-migration schema probe (diagnostic uniquement, jamais bloquant) :
@@ -132,36 +141,43 @@ fi
 #
 # The probe MUST cover the same objects as HealthController::REQUIRED_SCHEMA
 # (7 objects) so the health body and the boot log describe the same gaps.
-if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
-    echo "==> Verifying required schema objects..."
-    schema_probe_failed=0
-    probe_schema() {
-        label="$1"
-        sql="$2"
-        if ! php bin/console doctrine:query:sql "$sql" --env=prod; then
-            echo "ERROR: required schema is missing (${label})."
-            schema_probe_failed=1
-        fi
-    }
-    probe_schema 'user.type_personnel' \
-        "SELECT 1 FROM \"user\" WHERE type_personnel IS NULL LIMIT 0"
-    probe_schema 'signature_numerique' \
-        "SELECT 1 FROM signature_numerique LIMIT 0"
-    probe_schema 'centre_de_sante.dirigeant_id' \
-        "SELECT 1 FROM centre_de_sante WHERE dirigeant_id IS NULL LIMIT 0"
-    probe_schema 'etablissement_equipe' \
-        "SELECT 1 FROM etablissement_equipe LIMIT 0"
-    probe_schema 'dossier_medical' \
-        "SELECT 1 FROM dossier_medical LIMIT 0"
-    probe_schema 'soin_administre' \
-        "SELECT 1 FROM soin_administre LIMIT 0"
-    probe_schema 'ordonnance_pharmacie' \
-        "SELECT 1 FROM ordonnance_pharmacie LIMIT 0"
-    if [ "$schema_probe_failed" = "1" ]; then
-        echo "       WARNING: required schema objects are missing (see ERROR lines above) — booting anyway, /api/health reports them as degraded."
+echo "==> Verifying required schema objects..."
+schema_probe_failed=0
+probe_schema() {
+    label="$1"
+    sql="$2"
+    if ! php bin/console doctrine:query:sql "$sql" --env=prod; then
+        echo "ERROR: required schema is missing (${label})."
+        schema_probe_failed=1
     fi
-    echo "==> Schema probe done."
+}
+probe_schema 'user.type_personnel' \
+    "SELECT 1 FROM \"user\" WHERE type_personnel IS NULL LIMIT 0"
+probe_schema 'user.note_moyenne' \
+    "SELECT note_moyenne, total_avis, photo_couverture, banni_motif, banni_at FROM \"user\" LIMIT 0"
+probe_schema 'signature_numerique' \
+    "SELECT 1 FROM signature_numerique LIMIT 0"
+probe_schema 'centre_de_sante.dirigeant_id' \
+    "SELECT 1 FROM centre_de_sante WHERE dirigeant_id IS NULL LIMIT 0"
+probe_schema 'etablissement_equipe' \
+    "SELECT 1 FROM etablissement_equipe LIMIT 0"
+probe_schema 'dossier_medical' \
+    "SELECT nombre_visites, derniere_visite_at, cloture_signature_hash, cloture_cachet FROM dossier_medical LIMIT 0"
+probe_schema 'dossier_evenement.cachet_url' \
+    "SELECT cachet_url FROM dossier_evenement LIMIT 0"
+probe_schema 'consultation.dossier_id' \
+    "SELECT dossier_id FROM consultation LIMIT 0"
+probe_schema 'soin_administre' \
+    "SELECT 1 FROM soin_administre LIMIT 0"
+probe_schema 'ordonnance_pharmacie' \
+    "SELECT 1 FROM ordonnance_pharmacie LIMIT 0"
+probe_schema 'avis_personnel' \
+    "SELECT 1 FROM avis_personnel LIMIT 0"
+if [ "$schema_probe_failed" = "1" ]; then
+    echo "       WARNING: required schema objects are missing (see ERROR lines above) — booting anyway, /api/health reports them as degraded."
+    echo "       Fix: php bin/console app:repair-schema --env=prod  (idempotent, safe to re-run)."
 fi
+echo "==> Schema probe done."
 
 # (Seeds d'établissements définitivement supprimés — octobre 2026 :
 # app:seed-carte-test contenait une expression constante invalide qui
