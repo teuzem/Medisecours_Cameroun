@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run check:php && next build",
     "start": "next start",
     "lint": "eslint",
     "ws": "node --env-file=.env.local server/websocket-server.js",
-    "doctor": "npx react-doctor@latest"
+    "doctor": "npx react-doctor@latest",
+    "check:php": "node ../medisecours-backend/tools/check-php-syntax.cjs ../medisecours-backend/src ../medisecours-backend/migrations"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.6.2",

@@ -10,6 +10,7 @@ use App\Entity\DossierEvenement;
 use App\Entity\DossierMedical;
 use App\Entity\Medecin;
 use App\Entity\Patient;
+use App\Entity\User;
 use App\Message\WebSocketNotification;
 use App\Service\ConsultationEmailService;
 use App\Service\NotificationService;
@@ -88,7 +89,7 @@ class ConsultationProcessor implements ProcessorInterface
             $dossier = new DossierMedical();
             $dossier->setCentre($centre);
             $dossier->setPatient($patient);
-            $this->em->persist($ dossier);
+            $this->em->persist($dossier);
             $this->em->flush();
         }
 
@@ -99,6 +100,16 @@ class ConsultationProcessor implements ProcessorInterface
             ->setDerniereVisiteAt(new \DateTimeImmutable());
 
         $evenement = new DossierEvenement();
+
+        // L'auteur de l'acte est le médecin (Medecin extends User) ou, à
+        // défaut, l'utilisateur connecté — mais uniquement s'il s'agit bien
+        // d'une entité User : getUser() renvoie une interface.
+        $auteur = $consultation->getMedecin();
+        if (!$auteur instanceof User) {
+            $connecte = $this->security->getUser();
+            $auteur = $connecte instanceof User ? $connecte : null;
+        }
+
         $evenement
             ->setDossier($dossier)
             ->setPatient($patient)
@@ -113,7 +124,7 @@ class ConsultationProcessor implements ProcessorInterface
                 'medecinId' => $consultation->getMedecin()?->getId(),
                 'compteRendu' => $consultation->getCompteRendu(),
             ])
-            ->setAuteur($consultation->getMedecin() ?? $this->security->getUser())
+            ->setAuteur($auteur)
             // Cachet de l'etablissement appose au moment de l'acte : l'acte
             // reste lie au cachet qui l'a scelle, meme si le cachet change.
             ->setCachetUrl($centre->getCachetUrl());
