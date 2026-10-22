@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, MapPin, Phone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthContext } from '../../contexts/AuthContext'
 import { emergencyCallHref, EMERGENCY_NUMBER } from '../../config/firstAid'
+import BrandLogo from './BrandLogo'
 
 export default function Footer({ compact = false }: { compact?: boolean }) {
   const { isAuthenticated } = useAuthContext()
@@ -81,13 +81,7 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
                className="mb-8 inline-flex h-[86px] w-[230px] items-center justify-center overflow-hidden rounded-xl dark:bg-white/90 dark:shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
                aria-label={t('visitor.nav.homeAria')}
              >
-               <Image
-                 src="/brand/medisecours-logo.png"
-                 alt="MediSecours"
-                 width={853}
-                 height={299}
-                 className="h-auto w-[222px] max-w-full object-contain"
-               />
+                  <BrandLogo size="lg" />
              </Link>
              
              <p className="text-sm font-semibold text-primary-500 dark:text-white mb-4">
@@ -143,9 +137,12 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
                <div>
                  <h4 className="text-sm font-medium text-primary-500 dark:text-white mb-6">{t('visitor.footer.learnTitle')}</h4>
                  <ul className="space-y-4 text-sm text-primary-400 dark:text-primary-200">
-                   <li><Link href="/categories" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.medicalCategories')}</Link></li>
-                   <li><Link href="/guide-utilisation" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.guide')}</Link></li>
-                 </ul>
+                    <li><Link href="/categories" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.medicalCategories')}</Link></li>
+                    <li><Link href="/guide-utilisation" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.footer.guide')}</Link></li>
+                    <li><Link href="/mentions-legales" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.legal.mentions.title')}</Link></li>
+                    <li><Link href="/confidentialite" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.legal.privacy.title')}</Link></li>
+                    <li><Link href="/conditions" className="hover:text-mint-600 dark:hover:text-mint-400 transition-colors">{t('visitor.legal.terms.title')}</Link></li>
+                  </ul>
                </div>
 
                {/* Contact */}

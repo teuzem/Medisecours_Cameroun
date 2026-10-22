@@ -554,7 +554,27 @@
             "ctaPrimary": "Learn first aid",
             "ctaSecondary": "Browse conditions"
           }
-        ]
+        ],
+        "badge": "Cameroon · 10 regions covered",
+        "title": "The medical record that follows the patient, from intake to pharmacy",
+        "subtitle": "MediSecours connects patients, doctors, healthcare staff and facilities on a single pathway: intake, consultation, care, dispensing — every act signed, tracked and non-repudiable.",
+        "primaryCta": "Create my account",
+        "secondaryCta": "Explore the map",
+        "point1": "Signed and traceable medical record",
+        "point2": "Data hosted in Cameroon",
+        "point3": "Healthcare staff and facilities",
+        "mock": {
+          "label": "Patient record in progress",
+          "title": "Mother and Children Health Centre",
+          "steps": {
+            "accueil": "Intake and vital signs",
+            "consultation": "Signed consultation",
+            "soins": "Nursing care delivered",
+            "pharmacie": "Prescription dispensed"
+          },
+          "signed": "Digital signature + seal",
+          "sealed": "Sealed act"
+        }
       },
       "emergency": {
         "title": "Immediate danger?",
@@ -581,56 +601,40 @@
         "ctaGuide": "SOS center: full guide"
       },
       "solution": {
-        "title": "A complete solution, from the first call to the medical file",
-        "subtitle": "MediSecours connects the four corners of Cameroonian healthcare into one secure, traceable digital circuit.",
+        "title": "The whole health system, in one interface",
+        "subtitle": "Eight building blocks sharing the same data, the same signatures and the same traceability.",
         "items": {
           "sos": {
-            "title": "Emergency SOS",
-            "desc": "The patient triggers an alert from their phone; nearby facilities receive the request with location and reason, and the timeline keeps every step.",
-            "link": "Discover emergencies",
-            "href": "/premiers-soins"
+            "title": "Emergencies",
+            "description": "Alert, triage, ambulance, intervention timeline."
           },
           "carte": {
-            "title": "Interactive health map",
-            "desc": "Hospitals, clinics, pharmacies and labs geolocated, searchable by city, neighbourhood or spoken language — Google, Mapbox or Leaflet depending on availability.",
-            "link": "Open the map",
-            "href": "/carte"
+            "title": "Health map",
+            "description": "Facilities, on-call, 24h emergency, real distances."
           },
           "premiersSoins": {
-            "title": "First aid & protocols",
-            "desc": "Life-saving gestures explained step by step, ranked by danger level, reachable even offline so you can act in the moment.",
-            "link": "Read the protocols",
-            "href": "/premiers-soins"
+            "title": "First aid",
+            "description": "Emergency protocols, step by step, works offline."
           },
           "maladies": {
-            "title": "Conditions & symptoms",
-            "desc": "A referenced medical catalogue to recognise symptoms, understand conditions and orient toward the right level of care.",
-            "link": "Explore the catalogue",
-            "href": "/maladies"
+            "title": "Condition guidance",
+            "description": "Symptoms, causes, when to seek care, what to do."
           },
           "medecins": {
-            "title": "Doctors & teleconsultation",
-            "desc": "Verified directory, complete profiles, live availability: book an in-clinic or teleconsultation appointment, digital prescriptions included.",
-            "link": "Find a doctor",
-            "href": "/medecins"
+            "title": "Doctor directory",
+            "description": "Specialties, availability, patient reviews."
           },
           "messagerie": {
-            "title": "Secure messaging",
-            "desc": "Patient and doctor exchange in a private thread, with attachments and prescriptions, plus real-time notifications.",
-            "link": "Open messaging",
-            "href": "/login"
+            "title": "Messaging",
+            "description": "Patient and caregiver exchanges, attachments."
           },
           "etablissement": {
-            "title": "Facility space",
-            "desc": "Verified public listing, gallery, client reviews, map synchronisation and an analytics dashboard: your complete digital storefront.",
-            "link": "Manage my facility",
-            "href": "/espace-etablissement"
+            "title": "Facility workspace",
+            "description": "Team, staff, gallery, seal, indicators."
           },
           "personnel": {
-            "title": "Care staff",
-            "desc": "Reception and vitals, automatic medical file opening, non-repudiable signed care and the full pharmacy circuit.",
-            "link": "Care staff space",
-            "href": "/personnel"
+            "title": "Staff workspace",
+            "description": "Work stations, records, signatures, ratings."
           }
         }
       },
@@ -668,59 +672,76 @@
           "step2": "Validate your team's accounts",
           "step3": "Track reviews, media and analytics",
           "cta": "Open the facility space"
+        },
+        "eyebrow": "Four workspaces",
+        "discover": "Discover",
+        "items": {
+          "patient": {
+            "title": "Patient",
+            "description": "Appointments, prescriptions, medical record and reviews: your care journey always visible."
+          },
+          "medecin": {
+            "title": "Doctor",
+            "description": "Digital prescriptions, records, availability and patient follow-up, wherever you are."
+          },
+          "personnel": {
+            "title": "Healthcare staff",
+            "description": "Intake, care, pharmacy, ambulance: every role has its dashboard, signatures and records."
+          },
+          "etablissement": {
+            "title": "Facility",
+            "description": "Team, schedule, gallery, official seal and live activity indicators for the centre."
+          }
         }
       },
       "trust": {
-        "title": "Built for trust, traceability and urgency",
-        "subtitle": "Healthcare demands more than a pretty interface: every account, every act and every document leaves a proof.",
+        "title": "Trust is built trace by trace",
+        "subtitle": "Every act in the pathway is signed, timestamped and attached to its author and facility.",
         "items": {
           "signatures": {
-            "title": "Non-repudiable signatures",
-            "desc": "Every delivered care act is signed by the agent, timestamped and kept in the medical file history."
+            "title": "Digital signatures",
+            "description": "Staff signature, timestamped fingerprint, non-repudiable act."
           },
           "validation": {
-            "title": "Human-validated accounts",
-            "desc": "Doctors and care staff are checked document by document before any access to work tools."
+            "title": "Validated staff",
+            "description": "Supporting documents verified, approved by the facility."
           },
           "confidentialite": {
-            "title": "Protected data",
-            "desc": "Encrypted exchanges and strict role-based access: your information is visible only to the professionals following you."
+            "title": "Confidentiality",
+            "description": "Record access limited to the patient and their care team."
           },
           "reference": {
-            "title": "Referenced medical content",
-            "desc": "First-aid protocols and the condition catalogue reviewed by healthcare professionals."
+            "title": "Trusted references",
+            "description": "Versioned and translated protocols and condition catalogues."
           }
-        }
+        },
+        "imageAlt": "Care delivered at a health centre in Cameroon"
       },
       "journey": {
-        "title": "From the first symptom to the signed record",
-        "subtitle": "One circuit, six workstations: nothing is lost between the alert, the care and the pharmacy.",
-        "steps": [
-          {
-            "title": "Notice",
-            "desc": "Symptoms, doubt or emergency: the platform first tells you what cannot wait."
+        "title": "One complete chain, not silos",
+        "subtitle": "Every patient visit leaves a signed trace in the record: the next team knows exactly what was done.",
+        "steps": {
+          "accueil": {
+            "title": "Intake",
+            "description": "Admission, record opened, vital signs taken."
           },
-          {
-            "title": "Alert",
-            "desc": "SOS in seconds: location, situation photo, nearby facilities notified."
+          "dossier": {
+            "title": "Record",
+            "description": "A single record per patient and per facility."
           },
-          {
-            "title": "Orient",
-            "desc": "The map shows the real hospitals, clinics, pharmacies and labs around you."
+          "consultation": {
+            "title": "Consultation",
+            "description": "Report, prescription, doctor signature."
           },
-          {
-            "title": "Consult",
-            "desc": "Doctor in clinic or by telemedicine: request, messages and appointments in one place."
+          "soins": {
+            "title": "Care",
+            "description": "Signed nursing acts, observations, vitals."
           },
-          {
-            "title": "Treat",
-            "desc": "Reception, vitals, care performed and non-repudiable signed by the care team."
-          },
-          {
-            "title": "Keep",
-            "desc": "Prescriptions, records and history stay with the patient, traceable end to end."
+          "pharmacie": {
+            "title": "Pharmacy",
+            "description": "Dispensing, billing, batch traceability."
           }
-        ]
+        }
       },
       "coverage": {
         "title": "On the ground, across Cameroon",
@@ -738,13 +759,22 @@
         "imageAlt": "Eye examination in a Cameroonian hospital"
       },
       "closing": {
-        "title": "Ready to join MediSecours?",
+        "title": "Ready to truly take care",
         "desc": "Patient, care worker or facility manager: your space is waiting, free of charge.",
         "ctaPatient": "Create my patient account",
-        "ctaPro": "Professional space"
+        "ctaPro": "Professional space",
+        "subtitle": "Patients, doctors, healthcare staff and facilities: join the pathway that finally links interventions to the patient record.",
+        "primaryCta": "Create an account",
+        "secondaryCta": "Present my facility"
       },
       "credits": {
         "line": "Photographs of Cameroonian facilities and care: Happi Raphael, Destiny Deffo, Kondah, Serieminou, Fotang (CC BY-SA 4.0, Wikimedia Commons); CDC Global (CC BY 2.0)."
+      },
+      "partners": {
+        "title": "The facilities that trust us",
+        "subtitle": "Healthcare facilities listed on the map, with their details and public reviews.",
+        "empty": "The first facilities are being listed.",
+        "seeAll": "See all facilities"
       }
     },
     "home": {
@@ -2501,6 +2531,164 @@
       "mediaImportPartiel": "{{ok}} media imported, {{ko}} rejected.",
       "mediaImportOk_one": "{{count}} media imported.",
       "mediaImportOk_other": "{{count}} media imported."
+    },
+    "legal": {
+      "back": "Back to home",
+      "summary": "Summary",
+      "updatedAt": "Last updated: {{date}}",
+      "updatedDate": "October 2026",
+      "editor": "Site publisher",
+      "hosting": "Hosting",
+      "contact": "Contact",
+      "property": "Intellectual property",
+      "liability": "Liability",
+      "report": "Content reporting",
+      "dataController": "Data controller",
+      "dataCollected": "Data collected",
+      "purposes": "Purposes and legal bases",
+      "recipients": "Recipients",
+      "retention": "Retention periods",
+      "rights": "Your rights",
+      "security": "Data security",
+      "cookies": "Cookies and trackers",
+      "purpose": "Purpose and scope",
+      "accounts": "Account types",
+      "obligations": "User obligations",
+      "medical": "Care acts and medical liability",
+      "suspension": "Suspension and exclusion",
+      "userData": "Your data on the platform",
+      "disputes": "Complaints and applicable law",
+      "mentions": {
+        "title": "Legal notice",
+        "intro": "This notice identifies the publisher, the host and the terms of use of MediSecours, a digital health platform built for Cameroon.",
+        "sections": {
+          "editeur": [
+            "MediSecours is a digital health platform published and operated by MediSecours, a Cameroonian company registered in Douala, Cameroon.",
+            "The platform allows patients, doctors, healthcare staff and healthcare facilities to manage the care pathway: finding facilities, care requests, SOS emergencies, medical records, prescriptions and secure messaging.",
+            "Editorial management is the responsibility of the publishing entity. Full registration details appear on invoices and in official correspondence."
+          ],
+          "hosting": [
+            "Platform data is hosted on servers located in Cameroon, in line with local data protection requirements for health data.",
+            "The infrastructure is built for high availability: replicas, daily encrypted backups and continuous service monitoring.",
+            "Domain names and security certificates can be verified directly by the user from their browser."
+          ],
+          "contact": [
+            "Any request regarding the platform, personal data or intellectual property can be sent through the platform contact form or to the email address published in the footer.",
+            "Requests concerning a patient medical record are handled by the care team of the relevant facility, the only party authorised to access that information."
+          ],
+          "property": [
+            "The platform elements — structure, texts, graphics, brand and code — belong to the publisher or are used under licence.",
+            "Photographs of healthcare facilities and medical illustrations are distributed under licences compatible with attribution to the platform.",
+            "Any reproduction, representation or adaptation, in whole or in part, without prior written authorisation, is prohibited."
+          ],
+          "liability": [
+            "The platform is a decision-support and care-coordination tool. It does not replace medical consultation or the clinical judgement of a professional.",
+            "Published information (reference content, protocols, directories) is provided for documentation purposes. The publisher uses reasonable means to keep it accurate and up to date.",
+            "Any compensation due by the publisher is limited to the amount paid by the user for the service concerned."
+          ],
+          "report": [
+            "Any inaccurate content, incorrect facility record or observed violation can be reported from the relevant record.",
+            "Reports are reviewed by the moderation team, which may correct, suspend or remove content after informing its author."
+          ]
+        }
+      },
+      "privacy": {
+        "title": "Personal data protection",
+        "intro": "Health is sensitive data. This policy explains which information MediSecours collects, why, for how long it is kept and how to exercise your rights.",
+        "sections": {
+          "responsable": [
+            "The data controller is the publisher of the MediSecours platform, reachable through the contact details in the legal notice.",
+            "Each healthcare facility remains responsible for the processing it performs on its patients records; the platform provides technical storage and traceability for the acts it transmits."
+          ],
+          "dataCollected": [
+            "Identity and contact data: name, email address, phone number, location (district, city, region).",
+            "Professional data: specialty, order number, function, practising facility, digital signature, official seal and cover photo.",
+            "Health data: medical record, vital signs, consultations, delivered care, prescriptions, allergies, blood group, professional supporting documents and identity proof.",
+            "Usage data: pages viewed, searches performed, messages exchanged and the technical log needed for security and traceability."
+          ],
+          "purposes": [
+            "Providing the platform services: medical record, consultations, SOS emergencies, prescriptions, messaging and directories.",
+            "Securing the platform, preventing fraud and tracing access to medical records, as required for health data traceability.",
+            "Producing aggregated, non-identifying activity indicators, to improve the service and support health planning.",
+            "The legal basis is your consent for optional services, performance of the contract for requested services, and the platform legitimate interest for security and service improvement."
+          ],
+          "recipients": [
+            "The healthcare professionals caring for the patient, strictly within their care relationship, and the patient practising facilities.",
+            "Emergency dispatch teams, when an intervention is triggered by the patient.",
+            "Administrative and judicial authorities, solely on legal requisition or applicable legal obligation.",
+            "Our technical subcontractors (hosting, backup, notifications) act on instruction, with confidentiality and location commitments.",
+            "No health data is sold, rented or transferred to third parties for commercial purposes."
+          ],
+          "retention": [
+            "Medical record: kept for the statutory retention period of health records, then archived or deleted according to applicable obligations.",
+            "Account and identification data: kept for the life of the account, then deleted subject to evidence and invoicing obligations.",
+            "Professional supporting documents: kept for the duration of practice, then purged unless a control obligation applies.",
+            "Connection and traceability logs: kept for the period recommended by health data security frameworks."
+          ],
+          "rights": [
+            "You can at any time view and correct your data from your profile, request deletion, request restriction of processing or exercise your right to portability.",
+            "You may withdraw consent to optional services and object to marketing.",
+            "For any request, write to the contact address: a reply is provided within the timeframes set by applicable regulations.",
+            "In case of disagreement, you may lodge a complaint with the competent data protection authority in Cameroon."
+          ],
+          "security": [
+            "Exchanges are encrypted (TLS) between your browser and our servers, and between our servers and the database.",
+            "Passwords are hashed with a slow salted algorithm; they are never stored in clear and cannot be recovered.",
+            "Medical documents and supporting files are encrypted at rest, and access is logged, nominative and timestamped.",
+            "Backups are encrypted, regularly tested and kept outside the production site."
+          ],
+          "cookies": [
+            "Strictly necessary technical cookies (authenticated session, language and theme preferences) require no consent.",
+            "Audience measurement is aggregated and anonymised: it cannot be used to re-identify you.",
+            "No third-party advertising cookie is set on the home page, and no tracker transfers your health data to a third party.",
+            "You can delete cookies at any time from your browser settings, at the cost of being logged out of current sessions."
+          ]
+        }
+      },
+      "terms": {
+        "title": "Terms of use",
+        "intro": "These terms govern access to and use of the MediSecours platform. By creating an account or using a service, you accept them without reservation.",
+        "sections": {
+          "purpose": [
+            "MediSecours is a digital health platform. It enables care coordination between patients, doctors, healthcare staff and facilities, and provides access to reference content and directories.",
+            "These terms apply to every service accessible from the platform. Specific terms may be added for a given service and notified to you."
+          ],
+          "accounts": [
+            "Patient: access to your medical record, appointments, prescriptions and reviews.",
+            "Doctor: management of consultations, digital prescriptions, availability and the records of your own patients.",
+            "Healthcare staff: practice of your role (intake, care, pharmacy, ambulance) on the records of your facility.",
+            "Facility: management of the team, staff, gallery, official seal and indicators for your structure.",
+            "Access to a workspace is subject to validation of supporting documents and approval by the facility concerned."
+          ],
+          "obligations": [
+            "You guarantee the accuracy of the information you submit and update it as soon as it changes.",
+            "Login credentials are personal and confidential. Any connection to your account is deemed to be made by you: you alone are responsible for the acts performed.",
+            "It is forbidden to harm the platform, to attempt to bypass access controls, or to use an account to impersonate a third party.",
+            "Reviews, reports and published content must remain factual and respectful. Any defamatory or harassing publication may be removed.",
+            "You may not exploit platform data, even in aggregate, to train a model or build a competing database."
+          ],
+          "medical": [
+            "Care acts are performed by duly authorised professionals, within their duties and according to professional standards.",
+            "The platform is neither medical advice, nor a prescription, nor a diagnosis. In a life-threatening emergency, call the emergency number immediately.",
+            "Health information published on the platform (reviews, ratings, reports) is experiential feedback and carries no medical value.",
+            "Liability for a care act remains that of the professional who performed it; the platform ensures traceability and non-repudiation."
+          ],
+          "suspension": [
+            "An account may be suspended for serious breach, fraud, fake reviews or behaviour harming others.",
+            "Except in medical or legal emergency, suspension is notified with its reasons and remains open to appeal.",
+            "Healthcare staff whose average published review rating falls below the platform threshold are suspended: the reason and date are kept, and reactivation is possible after review of the file."
+          ],
+          "userData": [
+            "You remain the owner of the content you publish and of the data you enter in your record.",
+            "By publishing a review, you grant us a non-exclusive, free licence to display it on the platform and share it across the platform channels.",
+            "You may request the removal of a review; applicable security and traceability obligations are then respected."
+          ],
+          "disputes": [
+            "Any complaint about the use of the platform is addressed to our customer service, which aims to respond as soon as possible.",
+            "These terms are subject to the law applicable in Cameroon. Failing an amicable resolution, the competent courts of Douala alone are empowered."
+          ]
+        }
+      }
     }
   }
 }

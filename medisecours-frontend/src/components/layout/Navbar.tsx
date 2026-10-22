@@ -2,7 +2,6 @@
 import { Suspense, type ReactNode } from 'react'
 import Link from 'next/link'
 
-import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { 
   Sun, Moon,
@@ -18,6 +17,7 @@ import { useTheme } from '../../hooks/useTheme'
 import { useTranslation } from 'react-i18next'
 import { resolveImgPath } from '../../lib/config'
 import LanguageSwitcher from '../ui/LanguageSwitcher'
+import BrandLogo from './BrandLogo'
 
 function ConversationAware({ children }: { children: (inConversation: boolean) => ReactNode }) {
   const searchParams = useSearchParams()
@@ -121,20 +121,13 @@ export default function Navbar() {
       <div className="hidden xl:block fixed top-0 inset-x-0 z-50 border-b-2 border-primary-500 bg-white dark:border-primary-300 dark:bg-primary-900">
         <header className="mx-auto flex h-16 w-full max-w-[1500px] items-center gap-2 px-4">
           
-          {/* Logo */}
+          {/* Logotype officiel */}
           <Link
             href="/"
-            className="flex h-12 w-[132px] shrink-0 items-center justify-center overflow-hidden rounded-xl transition-colors dark:bg-white/90 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_4px_14px_rgba(0,0,0,0.16)] 2xl:h-[52px] 2xl:w-[148px]"
+            className="flex h-12 shrink-0 items-center justify-center px-1"
             aria-label={t('visitor.nav.homeAria')}
           >
-            <Image
-              src="/brand/medisecours-logo.png"
-              alt="MediSecours"
-              width={853}
-              height={299}
-              priority
-              className="h-auto w-[129px] max-w-full object-contain 2xl:w-[145px]"
-            />
+            <BrandLogo size="md" priority />
           </Link>
 
           {/* Center: Navigation Links */}
@@ -245,17 +238,10 @@ export default function Navbar() {
         <div className="flex items-center justify-between gap-2 px-3 py-3 sm:px-4">
           <Link
             href="/"
-            className="flex h-11 w-[108px] shrink-0 items-center justify-center overflow-hidden rounded-xl transition-colors dark:bg-white/90 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_3px_12px_rgba(0,0,0,0.14)] sm:h-12 sm:w-[142px]"
+            className="flex h-11 shrink-0 items-center justify-center px-1"
             aria-label={t('visitor.nav.homeAria')}
           >
-            <Image
-              src="/brand/medisecours-logo.png"
-              alt="MediSecours"
-              width={853}
-              height={299}
-              priority
-              className="h-auto w-[104px] max-w-full object-contain sm:w-[138px]"
-            />
+            <BrandLogo size="sm" priority />
           </Link>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">

@@ -2,52 +2,42 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   BookOpen,
   Building2,
-  CheckCircle2,
   ClipboardCheck,
-  ClipboardList,
   FileCheck,
   Lock,
   MapPin,
   MessageSquare,
-  Pause,
-  Phone,
-  Play,
   ShieldAlert,
-  ShieldCheck,
   Siren,
   Stethoscope,
   User,
   UserCheck,
+  Users,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
+import api from '../api/axios'
+import { extractArray } from '../lib/api'
+import { imgUrl } from '../lib/config'
+import { removeImageBackground } from '../lib/imageBackground'
+import type { CarteCentre } from '../lib/carte'
 import { emergencyCallHref, EMERGENCY_NUMBER } from '@/config/firstAid'
 
-/* ── Photography: real Cameroonian hospitals and care (see public/images/landing/CREDITS.md) ── */
-
-const SLIDE_IMAGES: Array<{ src: string; position: string }> = [
-  { src: '/images/landing/hero-equipes.jpg', position: '50% 38%' },
-  { src: '/images/landing/hero-urgences.jpg', position: '50% 50%' },
-  { src: '/images/landing/hero-carte.jpg', position: '50% 58%' },
-  { src: '/images/landing/soins-immunization.jpg', position: '50% 42%' },
-]
-
-const TRUST_IMAGE = '/images/landing/soins-kangourou.jpg'
-
-const CARE_IMAGE = '/images/landing/soins-ophtalmologie.jpg'
-
-const SLIDE_HREFS: Array<{ primary: string; secondary: string; secondaryCall?: boolean }> = [
-  { primary: '/register', secondary: '/carte' },
-  { primary: '/login', secondary: '#emergency', secondaryCall: true },
-  { primary: '/espace-etablissement', secondary: '/centres' },
-  { primary: '/premiers-soins', secondary: '/maladies' },
-]
+/**
+ * Accueil MediSecours.
+ *
+ * Composition éditoriale inspirée des produits financiers modernes (hero
+ * éditorial, maquette produit, mur de logos, sections courtes), mais
+ * encodée dans la charte de la plateforme : palette navy / mint / sable et
+ * logo officiel. Toutes les données affichées (établissements, compteurs)
+ * sont charges en direct depuis l'API.
+ */
 
 const SOLUTION_ITEMS = [
   { key: 'sos', icon: Siren },
@@ -57,20 +47,14 @@ const SOLUTION_ITEMS = [
   { key: 'medecins', icon: Stethoscope },
   { key: 'messagerie', icon: MessageSquare },
   { key: 'etablissement', icon: Building2 },
-  { key: 'personnel', icon: ClipboardList },
+  { key: 'personnel', icon: ClipboardCheck },
 ] as const
 
 const ROLE_ITEMS = [
-  { key: 'patient', icon: User, image: '/images/landing/terrain-consultation.jpg' },
-  { key: 'medecin', icon: Stethoscope, image: '/images/landing/soins-laboratoire.jpg' },
-  { key: 'personnel', icon: ClipboardCheck, image: '/images/landing/soins-infirmiere.jpg' },
-  { key: 'etablissement', icon: Building2, image: '/images/landing/terrain-yaounde.jpg' },
-] as const
-
-const COVERAGE_IMAGES = [
-  { src: '/images/landing/terrain-yaounde.jpg', captionKey: 'photoYaounde', position: '50% 60%' },
-  { src: '/images/landing/terrain-centre.jpg', captionKey: 'photoRural', position: '50% 50%' },
-  { src: '/images/landing/hero-consultation.jpg', captionKey: 'photoSalle', position: '50% 40%' },
+  { key: 'patient', icon: User, href: '/register' },
+  { key: 'medecin', icon: Stethoscope, href: '/register' },
+  { key: 'personnel', icon: ClipboardCheck, href: '/personnel' },
+  { key: 'etablissement', icon: Building2, href: '/espace-etablissement' },
 ] as const
 
 const TRUST_ITEMS = [
@@ -80,364 +64,250 @@ const TRUST_ITEMS = [
   { key: 'reference', icon: BookOpen },
 ] as const
 
-const ROLE_CTA_HREF: Record<string, string> = {
-  patient: '/register',
-  medecin: '/register',
-  personnel: '/personnel',
-  etablissement: '/espace-etablissement',
-}
+const PARCOURS = [
+  { key: 'accueil', icon: User },
+  { key: 'dossier', icon: ClipboardCheck },
+  { key: 'consultation', icon: Stethoscope },
+  { key: 'soins', icon: BadgeCheck },
+  { key: 'pharmacie', icon: FileCheck },
+] as const
 
-function subscribeReducedMotion(callback: () => void) {
-  const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-  mq.addEventListener('change', callback)
-  return () => mq.removeEventListener('change', callback)
-}
-
-function usePrefersReducedMotion() {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    () => false,
-  )
-}
-
-/* ── Hero carousel ─────────────────────────────────────────────────────── */
-
-function HeroCarousel() {
-  const { t } = useTranslation()
-  const [index, setIndex] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const reducedMotion = usePrefersReducedMotion()
-  const regionRef = useRef<HTMLElement | null>(null)
-  const total = SLIDE_IMAGES.length
-
-  const goTo = useCallback(
-    (next: number) => setIndex(((next % total) + total) % total),
-    [total],
-  )
+/**
+ * Logo d'établissement déturé : le fond blanc du logo disparaît (traitement
+ * d'image côté client). Sans cela, un logo sur fond blanc dessine un
+ * rectangle visible au survol — l'effet « noir sur blanc » que le logo
+ * officiel d'un établissement ne doit jamais montrer.
+ */
+function useLogoTransparent(logoUrl: string | null | undefined) {
+  // La source détourée est mémorisée par URL : quand le logo change, la
+  // nouvelle source est simply ignorée tant que son détourage n'est pas
+  // terminé (pas de setState synchrone dans un effet).
+  const [detournes, setDetournes] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    if (paused || reducedMotion) return
-    const id = setInterval(() => setIndex((i) => (i + 1) % total), 7000)
-    return () => clearInterval(id)
-  }, [paused, reducedMotion, total])
+    let annule = false
+    if (!logoUrl) return
 
-  useEffect(() => {
-    const region = regionRef.current
-    if (!region) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') goTo(index - 1)
-      if (e.key === 'ArrowRight') goTo(index + 1)
+    // Seules les images same-origin peuvent être pixelisées (pas de CORS).
+    if (!logoUrl.startsWith('/')) return
+    if (detournes[logoUrl]) return
+
+    removeImageBackground(logoUrl, { tolerance: 42, maxDimension: 512 })
+      .then((dataUri) => {
+        if (!annule) setDetournes((actuels) => ({ ...actuels, [logoUrl]: dataUri }))
+      })
+      .catch(() => undefined)
+
+    return () => {
+      annule = true
     }
-    region.addEventListener('keydown', onKey)
-    return () => region.removeEventListener('keydown', onKey)
-  }, [index, goTo])
+  }, [logoUrl, detournes])
 
-  const links = SLIDE_HREFS[index] ?? SLIDE_HREFS[0]
+  return logoUrl ? detournes[logoUrl] ?? null : null
+}
+
+function LogoEtablissement({ centre }: { centre: CarteCentre }) {
+  const brut = centre.logoUrl ?? null
+  const transparent = useLogoTransparent(brut)
+  const source = transparent ?? imgUrl(brut) ?? ''
 
   return (
-    <section
-      ref={regionRef}
-      aria-roledescription="carousel"
-      aria-label={t('visitor.landing.ariaLabel')}
-      className="relative isolate flex min-h-[86svh] w-full items-end overflow-hidden bg-primary-900"
+    <Link
+      href={`/carte?centre=${centre.id}`}
+      className="ms-logo"
+      title={centre.nom}
+      aria-label={centre.nom}
     >
-      {/* Real Cameroonian photographs (decorative — the copy carries the meaning) */}
-      {SLIDE_IMAGES.map(({ src, position }, i) => (
-        <Image
-          key={src}
-          src={src}
-          alt=""
-          fill
-          priority={i === 0}
-          sizes="100vw"
-          style={{ objectPosition: position }}
-          className={`object-cover transition-opacity duration-700 ease-out ${
-            i === index ? 'opacity-100' : 'opacity-0'
-          }`}
+      {source ? (
+        <img
+          src={source}
+          alt={centre.nom}
+          loading="lazy"
+          className={transparent ? 'ms-logo--transparent' : undefined}
         />
-      ))}
-      {/* Flat readability scrim (no gradient wash) */}
-      <div className="absolute inset-0 bg-primary-900/70" aria-hidden="true" />
-
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-14 pt-28 sm:px-6 sm:pb-20 lg:pb-24 lg:pt-36">
-        <div aria-live="polite" aria-atomic="true">
-          <h2
-            key={index}
-            className="max-w-3xl font-display text-3xl font-extrabold leading-[1.06] tracking-tight text-white sm:text-5xl lg:text-6xl"
-          >
-            {t(`visitor.landing.hero.slides.${index}.title`)}
-          </h2>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-white/85 sm:text-lg">
-            {t(`visitor.landing.hero.slides.${index}.subtitle`)}
-          </p>
-        </div>
-
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          {links.secondaryCall ? (
-            <a
-              href={emergencyCallHref()}
-              className="inline-flex min-h-12 items-center justify-center gap-2 bg-white px-6 text-sm font-bold text-urgence-600 transition hover:bg-sable"
-            >
-              <Phone className="h-5 w-5" aria-hidden="true" />
-              {t('visitor.landing.hero.slides.1.ctaSecondary')}
-            </a>
-          ) : (
-            <Link
-              href={links.secondary}
-              className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-white/70 px-6 text-sm font-bold text-white transition hover:bg-white/10"
-            >
-              {t(`visitor.landing.hero.slides.${index}.ctaSecondary`)}
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          )}
-          <Link
-            href={links.primary}
-            className="inline-flex min-h-12 items-center justify-center gap-2 bg-mint-500 px-6 text-sm font-bold text-primary-900 transition hover:bg-mint-400"
-          >
-            {t(`visitor.landing.hero.slides.${index}.ctaPrimary`)}
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        </div>
-
-        {/* Controls: flat protocol-style bars + square arrows */}
-        <div className="mt-10 flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => goTo(index - 1)}
-            aria-label={t('visitor.landing.hero.previous')}
-            className="inline-flex h-10 w-10 items-center justify-center border border-white/40 text-white transition hover:bg-white/10"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <div className="flex items-center gap-2" role="tablist" aria-label={t('visitor.landing.ariaLabel')}>
-            {Array.from({ length: total }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                role="tab"
-                aria-selected={i === index}
-                aria-label={t('visitor.landing.hero.goTo', { number: i + 1 })}
-                onClick={() => goTo(i)}
-                className={`h-1.5 transition-all ${
-                  i === index ? 'w-12 bg-white' : 'w-7 bg-white/35 hover:bg-white/60'
-                }`}
-              />
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => goTo(index + 1)}
-            aria-label={t('visitor.landing.hero.next')}
-            className="inline-flex h-10 w-10 items-center justify-center border border-white/40 text-white transition hover:bg-white/10"
-          >
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaused((p) => !p)}
-            aria-label={paused ? t('visitor.landing.hero.play') : t('visitor.landing.hero.pause')}
-            className="ml-auto inline-flex h-10 w-10 items-center justify-center border border-white/40 text-white transition hover:bg-white/10"
-          >
-            {paused ? <Play className="h-4 w-4" aria-hidden="true" /> : <Pause className="h-4 w-4" aria-hidden="true" />}
-          </button>
-        </div>
-      </div>
-    </section>
+      ) : (
+        <span className="px-2 text-center font-display text-sm font-bold text-[var(--color-ms-600)]">
+          {centre.nom.slice(0, 22)}
+        </span>
+      )}
+    </Link>
   )
 }
 
-/* ── Page ──────────────────────────────────────────────────────────────── */
-
-export default function HomePage() {
+export default function LandingPage() {
   const { t } = useTranslation()
+  const [centres, setCentres] = useState<CarteCentre[]>([])
+  const [chargement, setChargement] = useState(true)
+
+  useEffect(() => {
+    let annule = false
+    api
+      .get('/api/carte/etablissements', { params: { limit: 12 } })
+      .then((response) => {
+        if (annule) return
+        const items = extractArray(response.data) as CarteCentre[]
+        setCentres(items.filter((centre) => centre.logoUrl || centre.nom))
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!annule) setChargement(false)
+      })
+    return () => {
+      annule = true
+    }
+  }, [])
+
+  const partenaires = useMemo(() => centres.slice(0, 12), [centres])
 
   return (
-    <main className="bg-white text-primary-600 dark:bg-primary-800 dark:text-primary-100">
+    <div className="ms-page">
       <h1 className="sr-only">{t('visitor.landing.ariaLabel')}</h1>
 
-      <HeroCarousel />
+      {/* ═══ Hero ═══════════════════════════════════════════════════════ */}
+      <section className="ms-mesh relative overflow-hidden">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+          <div className="min-w-0">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[var(--color-ms-600)] shadow-[var(--shadow-ms-sm)] backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-mint-500)]" />
+              {t('visitor.landing.hero.badge')}
+            </p>
 
-      {/* ── Emergency band: red is reserved for vital danger ── */}
-      <section
-        id="emergency"
-        aria-labelledby="emergency-title"
-        className="bg-urgence-500 text-white"
-      >
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex items-start gap-3">
-            <Siren className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
-            <div>
-              <p id="emergency-title" className="font-display text-lg font-extrabold leading-tight sm:text-xl">
-                {t('visitor.landing.emergency.title')}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-white/90">{t('visitor.landing.emergency.desc')}</p>
+            <h2 className="ms-display text-[2.6rem] leading-[1.03] sm:text-[3.4rem] lg:text-[3.9rem]">
+              {t('visitor.landing.hero.title')}
+            </h2>
+
+            <p className="ms-lede mt-6 max-w-xl">
+              {t('visitor.landing.hero.subtitle')}
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href="/register" className="ms-btn ms-btn--primary">
+                {t('visitor.landing.hero.primaryCta')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link href="/carte" className="ms-btn ms-btn--ghost">
+                {t('visitor.landing.hero.secondaryCta')}
+              </Link>
+            </div>
+
+            <p className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-ms-500)]">
+              <span className="inline-flex items-center gap-1.5">
+                <BadgeCheck className="h-4 w-4 text-[var(--color-mint-600)]" aria-hidden="true" />
+                {t('visitor.landing.hero.point1')}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Lock className="h-4 w-4 text-[var(--color-mint-600)]" aria-hidden="true" />
+                {t('visitor.landing.hero.point2')}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Users className="h-4 w-4 text-[var(--color-mint-600)]" aria-hidden="true" />
+                {t('visitor.landing.hero.point3')}
+              </span>
+            </p>
+          </div>
+
+          {/* Maquette produit : la plateforme en action. */}
+          <div className="min-w-0">
+            <div className="ms-code">
+              <div className="ms-code__bar">
+                <span className="ms-code__dot bg-[#ff5f57]" />
+                <span className="ms-code__dot bg-[#febc2e]" />
+                <span className="ms-code__dot bg-[#28c840]" />
+                <span className="ml-2 text-[11px] text-white/40">medisecours.app/dossier</span>
+              </div>
+              <div className="p-5 sm:p-6">
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-white/40">
+                  {t('visitor.landing.hero.mock.label')}
+                </p>
+                <p className="mt-2 text-lg font-bold text-white">
+                  {t('visitor.landing.hero.mock.title')}
+                </p>
+                <div className="mt-4 space-y-2.5">
+                  {[
+                    { k: 'accueil', tone: 'bg-[#10B981]' },
+                    { k: 'consultation', tone: 'bg-[#4C5FD5]' },
+                    { k: 'soins', tone: 'bg-[#1E3A5F]' },
+                    { k: 'pharmacie', tone: 'bg-[#0EA274]' },
+                  ].map((ligne) => (
+                    <div key={ligne.k} className="flex items-center gap-3">
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${ligne.tone}`} />
+                      <span className="text-white/75">{t(`visitor.landing.hero.mock.steps.${ligne.k}`)}</span>
+                      <span className="ml-auto h-1.5 w-16 overflow-hidden rounded-full bg-white/10">
+                        <span className="block h-full w-3/4 rounded-full bg-white/35" />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-[11px] text-white/50">
+                  <span>{t('visitor.landing.hero.mock.signed')}</span>
+                  <span className="rounded bg-white/10 px-2 py-1">{t('visitor.landing.hero.mock.sealed')}</span>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ═══ Urgence ════════════════════════════════════════════════════ */}
+      <section className="bg-[var(--color-urgence-500)] text-white">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <p className="flex items-center gap-2.5 text-sm font-bold">
+            <Siren className="h-5 w-5" aria-hidden="true" />
+            {t('visitor.landing.emergency.title')}
+          </p>
           <a
             href={emergencyCallHref()}
-            className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 bg-white px-6 text-sm font-bold text-urgence-600 transition hover:bg-sable"
+            className="inline-flex min-h-10 items-center gap-2 rounded-md bg-white px-4 text-sm font-bold text-[var(--color-urgence-600)] transition hover:bg-white/90"
           >
-            <Phone className="h-5 w-5" aria-hidden="true" />
-            {t('visitor.landing.emergency.call', { number: EMERGENCY_NUMBER })}
+            {EMERGENCY_NUMBER}
           </a>
         </div>
       </section>
 
-      {/* ── SOS : soumission d'alerte + régulation ── */}
-      <section
-        aria-labelledby="sos-home-title"
-        className="border-b border-primary-500/20 bg-white py-14 dark:border-white/10 dark:bg-primary-800 sm:py-20"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <h2
-              id="sos-home-title"
-              className="font-display text-2xl font-bold tracking-tight text-primary-500 sm:text-3xl lg:text-4xl dark:text-white"
-            >
-              {t('visitor.landing.sosHome.title')}
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-primary-400 sm:text-base dark:text-primary-200">
-              {t('visitor.landing.sosHome.subtitle')}
-            </p>
-          </div>
+      {/* ═══ Les 4 postes ═══════════════════════════════════════════════ */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6" id="postes">
+        <p className="text-sm font-bold text-[var(--color-ms-500)]">{t('visitor.landing.roles.eyebrow')}</p>
+        <h2 className="ms-display mt-3 max-w-2xl text-3xl sm:text-4xl">{t('visitor.landing.roles.title')}</h2>
+        <p className="ms-lede mt-4 max-w-2xl">{t('visitor.landing.roles.subtitle')}</p>
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-5">
-            <div className="border border-primary-500/20 bg-white p-6 dark:border-white/10 dark:bg-primary-900/60 lg:col-span-3">
-              <h3 className="font-display text-lg font-bold text-primary-500 dark:text-white">
-                {t('visitor.landing.sosHome.stepsTitle')}
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {ROLE_ITEMS.map((role) => (
+            <Link key={role.key} href={role.href} className="ms-card ms-card--hover group p-6">
+              <span className="grid h-11 w-11 place-items-center rounded-[var(--radius-ms-md)] bg-[var(--color-ms-100)] text-[var(--color-ms-600)] transition group-hover:bg-[var(--color-ms-500)] group-hover:text-white">
+                <role.icon className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 font-display text-lg font-bold text-[var(--color-ms-800)]">
+                {t(`visitor.landing.roles.items.${role.key}.title`)}
               </h3>
-              <ol className="mt-5 space-y-4">
-                {[
-                  { n: '1', titleKey: 'visitor.landing.sosHome.s1t', descKey: 'visitor.landing.sosHome.s1d' },
-                  { n: '2', titleKey: 'visitor.landing.sosHome.s2t', descKey: 'visitor.landing.sosHome.s2d' },
-                  { n: '3', titleKey: 'visitor.landing.sosHome.s3t', descKey: 'visitor.landing.sosHome.s3d' },
-                  { n: '4', titleKey: 'visitor.landing.sosHome.s4t', descKey: 'visitor.landing.sosHome.s4d' },
-                ].map((etape) => (
-                  <li key={etape.n} className="flex gap-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-urgence-500 text-sm font-black text-white">
-                      {etape.n}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-primary-500 dark:text-white">{t(etape.titleKey)}</p>
-                      <p className="mt-0.5 text-sm leading-6 text-primary-400 dark:text-primary-200">{t(etape.descKey)}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <div className="mt-6 flex flex-wrap items-center gap-4">
-                <Link
-                  href="/carte"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 bg-urgence-500 px-6 text-sm font-bold text-white transition hover:bg-urgence-600"
-                >
-                  {t('visitor.landing.sosHome.ctaMap')}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-                <Link
-                  href="/sos"
-                  className="inline-flex items-center gap-2 text-sm font-bold text-primary-500 underline-offset-4 hover:underline dark:text-mint-400"
-                >
-                  {t('visitor.landing.sosHome.ctaGuide')}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-urgence-500 p-6 text-white lg:col-span-2">
-              <h3 className="font-display text-lg font-bold">
-                {t('visitor.landing.sosHome.regulationTitle')}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-white/90">
-                {t('visitor.landing.sosHome.regulationDesc')}
+              <p className="mt-2 text-sm leading-6 text-[var(--color-ms-500)]">
+                {t(`visitor.landing.roles.items.${role.key}.description`)}
               </p>
-              <div className="mt-5 border border-white/40 bg-white/10 p-4">
-                <p className="flex items-center gap-2 text-sm font-black uppercase tracking-wide">
-                  <Siren className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  {t('visitor.landing.sosHome.warningTitle')}
-                </p>
-                <p className="mt-1.5 text-sm leading-6 text-white/90">
-                  {t('visitor.landing.sosHome.warningDesc')}
-                </p>
-              </div>
-            </div>
-          </div>
+              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-ms-600)]">
+                {t('visitor.landing.roles.discover')}
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden="true" />
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* ── Complete solution: every feature of the platform ── */}
-      <section
-        aria-labelledby="solution-title"
-        className="border-b border-primary-500/20 bg-white py-14 dark:border-white/10 dark:bg-primary-800 sm:py-20"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <h2
-              id="solution-title"
-              className="font-display text-2xl font-bold tracking-tight text-primary-500 sm:text-3xl lg:text-4xl dark:text-white"
-            >
-              {t('visitor.landing.solution.title')}
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-primary-400 sm:text-base dark:text-primary-200">
-              {t('visitor.landing.solution.subtitle')}
-            </p>
-          </div>
+      {/* ═══ Une chaîne, pas des silos ═════════════════════════════════ */}
+      <section className="bg-[var(--color-sable)] py-20" id="parcours">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+          <h2 className="ms-display max-w-2xl text-3xl sm:text-4xl">{t('visitor.landing.journey.title')}</h2>
+          <p className="ms-lede mt-4 max-w-2xl">{t('visitor.landing.journey.subtitle')}</p>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {SOLUTION_ITEMS.map(({ key, icon: Icon }) => (
-              <Link
-                key={key}
-                href={t(`visitor.landing.solution.items.${key}.href`)}
-                className="group flex flex-col border border-primary-500/20 bg-white p-5 transition hover:border-primary-500 dark:border-white/10 dark:bg-primary-900/60 dark:hover:border-primary-300"
-              >
-                <Icon className="h-6 w-6 text-primary-500 dark:text-mint-400" aria-hidden="true" />
-                <h3 className="mt-4 font-display text-lg font-bold text-primary-500 dark:text-white">
-                  {t(`visitor.landing.solution.items.${key}.title`)}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-primary-400 dark:text-primary-200">
-                  {t(`visitor.landing.solution.items.${key}.desc`)}
-                </p>
-                <span className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-bold text-primary-500 dark:text-mint-400">
-                  {t(`visitor.landing.solution.items.${key}.link`)}
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden="true" />
+          <ol className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            {PARCOURS.map((etape, index) => (
+              <li key={etape.key} className="relative">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--color-ms-500)] text-xs font-black text-white">
+                  {index + 1}
                 </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── The care circuit, end to end ── */}
-      <section
-        aria-labelledby="journey-title"
-        className="border-b border-primary-500/20 bg-sable py-14 dark:border-white/10 dark:bg-primary-900 sm:py-20"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <h2
-              id="journey-title"
-              className="font-display text-2xl font-bold tracking-tight text-primary-500 sm:text-3xl lg:text-4xl dark:text-white"
-            >
-              {t('visitor.landing.journey.title')}
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-primary-400 sm:text-base dark:text-primary-200">
-              {t('visitor.landing.journey.subtitle')}
-            </p>
-          </div>
-
-          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2, 3, 4, 5].map((n) => (
-              <li
-                key={n}
-                className="flex flex-col border border-primary-500/20 bg-white p-5 dark:border-white/10 dark:bg-primary-800"
-              >
-                <span className="inline-flex h-8 w-8 items-center justify-center bg-primary-500 text-sm font-bold text-white dark:bg-mint-500 dark:text-primary-900">
-                  {String(n + 1).padStart(2, '0')}
-                </span>
-                <h3 className="mt-4 font-display text-lg font-bold text-primary-500 dark:text-white">
-                  {t(`visitor.landing.journey.steps.${n}.title`)}
+                <h3 className="mt-4 font-display text-base font-bold text-[var(--color-ms-800)]">
+                  {t(`visitor.landing.journey.steps.${etape.key}.title`)}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-primary-400 dark:text-primary-200">
-                  {t(`visitor.landing.journey.steps.${n}.desc`)}
+                <p className="mt-1.5 text-sm leading-6 text-[var(--color-ms-500)]">
+                  {t(`visitor.landing.journey.steps.${etape.key}.description`)}
                 </p>
               </li>
             ))}
@@ -445,251 +315,118 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── How it works: one circuit, four workstations ── */}
-      <section
-        aria-labelledby="roles-title"
-        className="border-b border-primary-500/20 bg-white py-14 dark:border-white/10 dark:bg-primary-800 sm:py-20"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <h2
-              id="roles-title"
-              className="font-display text-2xl font-bold tracking-tight text-primary-500 sm:text-3xl lg:text-4xl dark:text-white"
-            >
-              {t('visitor.landing.roles.title')}
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-primary-400 sm:text-base dark:text-primary-200">
-              {t('visitor.landing.roles.subtitle')}
-            </p>
-          </div>
+      {/* ═══ Établissements qui nous font confiance ═════════════════════ */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6" id="confiance">
+        <h2 className="ms-display max-w-2xl text-3xl sm:text-4xl">{t('visitor.landing.partners.title')}</h2>
+        <p className="ms-lede mt-4 max-w-2xl">{t('visitor.landing.partners.subtitle')}</p>
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-2">
-            {ROLE_ITEMS.map(({ key, icon: Icon, image }) => (
-              <div
-                key={key}
-                className="flex flex-col border border-primary-500/20 bg-white dark:border-white/10 dark:bg-primary-800"
-              >
-                <div className="relative aspect-[16/7] w-full overflow-hidden bg-primary-500">
-                  <Image
-                    src={image}
-                    alt=""
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex flex-1 flex-col p-6">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-11 w-11 items-center justify-center bg-primary-500 text-white dark:bg-mint-500 dark:text-primary-900">
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <h3 className="font-display text-xl font-bold text-primary-500 dark:text-white">
-                      {t(`visitor.landing.roles.${key}.title`)}
-                    </h3>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-primary-400 dark:text-primary-200">
-                    {t(`visitor.landing.roles.${key}.desc`)}
-                  </p>
-                  <ol className="mt-4 space-y-2">
-                    {[1, 2, 3].map((n) => (
-                      <li key={n} className="flex items-start gap-3 text-sm text-primary-600 dark:text-primary-100">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600 dark:text-mint-400" aria-hidden="true" />
-                        {t(`visitor.landing.roles.${key}.step${n}`)}
-                      </li>
-                    ))}
-                  </ol>
-                  <Link
-                    href={ROLE_CTA_HREF[key] ?? '/register'}
-                    className="mt-5 inline-flex min-h-11 w-fit items-center justify-center gap-2 bg-primary-500 px-5 text-sm font-bold text-white transition hover:bg-primary-600 dark:bg-mint-500 dark:text-primary-900 dark:hover:bg-mint-400"
-                  >
-                    {t(`visitor.landing.roles.${key}.cta`)}
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </div>
+        {chargement ? (
+          <div className="ms-logo-wall mt-10">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="ms-logo animate-pulse bg-[var(--color-ms-100)]" />
+            ))}
+          </div>
+        ) : partenaires.length === 0 ? (
+          <p className="mt-10 rounded-xl border border-dashed border-[var(--color-ms-200)] p-8 text-center text-sm text-[var(--color-ms-500)]">
+            {t('visitor.landing.partners.empty')}
+          </p>
+        ) : (
+          <div className="ms-logo-wall mt-10">
+            {partenaires.map((centre) => (
+              <LogoEtablissement key={centre.id} centre={centre} />
+            ))}
+          </div>
+        )}
+
+        <Link
+          href="/centres"
+          className="ms-btn ms-btn--ghost mt-8"
+        >
+          {t('visitor.landing.partners.seeAll')}
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </section>
+
+      {/* ═══ La solution en détail ═════════════════════════════════════ */}
+      <section className="bg-[var(--color-ms-900)] py-20 text-white">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+          <h2 className="ms-display max-w-2xl text-3xl sm:text-4xl !text-white">
+            {t('visitor.landing.solution.title')}
+          </h2>
+          <p className="ms-lede mt-4 max-w-2xl !text-white/60">{t('visitor.landing.solution.subtitle')}</p>
+
+          <div className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+            {SOLUTION_ITEMS.map((item) => (
+              <div key={item.key}>
+                <item.icon className="h-6 w-6 text-[var(--color-mint-400)]" aria-hidden="true" />
+                <h3 className="mt-3 font-display text-base font-bold">
+                  {t(`visitor.landing.solution.items.${item.key}.title`)}
+                </h3>
+                <p className="mt-1.5 text-sm leading-6 text-white/60">
+                  {t(`visitor.landing.solution.items.${item.key}.description`)}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── On the ground: real Cameroonian coverage ── */}
-      <section
-        aria-labelledby="coverage-title"
-        className="border-b border-primary-500/20 bg-sable py-14 dark:border-white/10 dark:bg-primary-900 sm:py-20"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
-            <div>
-              <h2
-                id="coverage-title"
-                className="font-display text-2xl font-bold tracking-tight text-primary-500 sm:text-3xl lg:text-4xl dark:text-white"
-              >
-                {t('visitor.landing.coverage.title')}
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-primary-400 sm:text-base dark:text-primary-200">
-                {t('visitor.landing.coverage.desc')}
-              </p>
-              <Link
-                href="/carte"
-                className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-bold text-white transition hover:bg-primary-600 dark:bg-mint-500 dark:text-primary-900 dark:hover:bg-mint-400"
-              >
-                <MapPin className="h-4 w-4" aria-hidden="true" />
-                {t('visitor.landing.coverage.cta')}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              {COVERAGE_IMAGES.map(({ src, captionKey, position }) => (
-                <figure key={src}>
-                  <div className="relative aspect-3/4 w-full overflow-hidden border border-primary-500/15 bg-primary-500">
-                    <Image
-                      src={src}
-                      alt=""
-                      fill
-                      sizes="(max-width: 640px) 100vw, 33vw"
-                      style={{ objectPosition: position }}
-                      className="object-cover"
-                    />
-                  </div>
-                  <figcaption className="mt-2 text-xs leading-5 text-primary-400 dark:text-primary-300">
-                    {t(`visitor.landing.coverage.${captionKey}`)}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Trust: proofs, not promises ── */}
-      <section
-        aria-labelledby="trust-title"
-        className="bg-primary-500 py-14 text-white dark:bg-primary-700 sm:py-20"
-      >
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
+      {/* ═══ Confiance / preuves ════════════════════════════════════════ */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
           <div>
-            <h2
-              id="trust-title"
-              className="font-display text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
-            >
-              {t('visitor.landing.trust.title')}
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/85 sm:text-base">
-              {t('visitor.landing.trust.subtitle')}
-            </p>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {TRUST_ITEMS.map(({ key, icon: Icon }) => (
-                <div key={key} className="border border-white/20 p-4">
-                  <Icon className="h-5 w-5 text-mint-400" aria-hidden="true" />
-                  <h3 className="mt-3 font-display text-base font-bold">{t(`visitor.landing.trust.items.${key}.title`)}</h3>
-                  <p className="mt-1.5 text-sm leading-6 text-white/85">{t(`visitor.landing.trust.items.${key}.desc`)}</p>
+            <h2 className="ms-display text-3xl sm:text-4xl">{t('visitor.landing.trust.title')}</h2>
+            <p className="ms-lede mt-4">{t('visitor.landing.trust.subtitle')}</p>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2">
+              {TRUST_ITEMS.map((item) => (
+                <div key={item.key} className="flex gap-3">
+                  <item.icon className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-mint-600)]" aria-hidden="true" />
+                  <div>
+                    <h3 className="font-display text-sm font-bold text-[var(--color-ms-800)]">
+                      {t(`visitor.landing.trust.items.${item.key}.title`)}
+                    </h3>
+                    <p className="mt-1 text-sm leading-6 text-[var(--color-ms-500)]">
+                      {t(`visitor.landing.trust.items.${item.key}.description`)}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="relative aspect-4/3 w-full overflow-hidden border border-white/20 bg-primary-700 lg:mt-14">
+
+          <div className="ms-card overflow-hidden">
             <Image
-              src={TRUST_IMAGE}
-              alt=""
-              fill
-              sizes="(max-width: 1024px) 100vw, 40vw"
-              style={{ objectPosition: '50% 45%' }}
-              className="object-cover"
+              src="/images/landing/soins-kangourou.jpg"
+              alt={t('visitor.landing.trust.imageAlt')}
+              width={1200}
+              height={800}
+              className="h-full w-full object-cover"
             />
           </div>
         </div>
       </section>
 
-      {/* ── Learn to act: first aid & disease catalogue ── */}
-      <section
-        aria-labelledby="care-title"
-        className="border-b border-primary-500/20 bg-white py-14 dark:border-white/10 dark:bg-primary-800 sm:py-20"
-      >
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center">
-          <div className="relative aspect-4/3 w-full overflow-hidden border border-primary-500/15 bg-primary-500 dark:border-white/10">
-            <Image
-              src={CARE_IMAGE}
-              alt={t('visitor.landing.care.imageAlt')}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              style={{ objectPosition: '50% 40%' }}
-              className="object-cover"
-            />
-          </div>
-          <div>
-            <h2
-              id="care-title"
-              className="font-display text-2xl font-bold tracking-tight text-primary-500 sm:text-3xl lg:text-4xl dark:text-white"
-            >
-              {t('visitor.landing.care.title')}
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-primary-400 sm:text-base dark:text-primary-200">
-              {t('visitor.landing.care.desc')}
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link
-                href="/premiers-soins"
-                className="inline-flex min-h-12 items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-bold text-white transition hover:bg-primary-600 dark:bg-mint-500 dark:text-primary-900 dark:hover:bg-mint-400"
-              >
-                <ShieldAlert className="h-4 w-4" aria-hidden="true" />
-                {t('visitor.landing.care.ctaFirstAid')}
-              </Link>
-              <Link
-                href="/maladies"
-                className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-primary-500/30 px-6 text-sm font-bold text-primary-500 transition hover:border-primary-500 dark:border-white/25 dark:text-white dark:hover:border-white"
-              >
-                <BookOpen className="h-4 w-4" aria-hidden="true" />
-                {t('visitor.landing.care.ctaDiseases')}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Closing band ── */}
-      <section
-        aria-labelledby="closing-title"
-        className="bg-primary-500 py-14 text-white dark:bg-primary-700 sm:py-16"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <h2
-              id="closing-title"
-              className="font-display text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
-            >
-              {t('visitor.landing.closing.title')}
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/85 sm:text-base">
-              {t('visitor.landing.closing.desc')}
-            </p>
-          </div>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link
-              href="/register"
-              className="inline-flex min-h-12 items-center justify-center gap-2 bg-white px-6 text-sm font-bold text-primary-600 transition hover:bg-sable"
-            >
-              <User className="h-4 w-4" aria-hidden="true" />
-              {t('visitor.landing.closing.ctaPatient')}
+      {/* ═══ Clôture ════════════════════════════════════════════════════ */}
+      <section className="ms-mesh ms-mesh--dark bg-[var(--color-ms-900)] py-20 text-white">
+        <div className="mx-auto w-full max-w-3xl px-4 text-center sm:px-6">
+          <h2 className="ms-display text-3xl sm:text-4xl !text-white">{t('visitor.landing.closing.title')}</h2>
+          <p className="ms-lede mx-auto mt-4 max-w-2xl !text-white/65">
+            {t('visitor.landing.closing.subtitle')}
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/register" className="ms-btn ms-btn--primary">
+              {t('visitor.landing.closing.primaryCta')}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
-              href="/login"
-              className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-white/70 px-6 text-sm font-bold text-white transition hover:bg-white/10"
+              href="/espace-etablissement"
+              className="ms-btn border border-white/20 bg-white/5 text-white hover:bg-white/10"
             >
-              <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-              {t('visitor.landing.closing.ctaPro')}
+              {t('visitor.landing.closing.secondaryCta')}
             </Link>
           </div>
         </div>
       </section>
-
-      {/* ── Photo credits (CC BY-SA attribution) ── */}
-      <aside className="border-t border-primary-500/15 bg-white py-6 dark:border-white/10 dark:bg-primary-800">
-        <p className="mx-auto max-w-6xl px-4 text-xs leading-5 text-primary-400 sm:px-6 dark:text-primary-300">
-          {t('visitor.landing.credits.line')}
-        </p>
-      </aside>
-    </main>
+    </div>
   )
 }

@@ -554,7 +554,27 @@
             "ctaPrimary": "Apprendre les premiers soins",
             "ctaSecondary": "Consulter les maladies"
           }
-        ]
+        ],
+        "badge": "Cameroun · 10 régions couvertes",
+        "title": "Le dossier médical qui suit le patient, de l’accueil à la pharmacie",
+        "subtitle": "MediSecours relie patients, médecins, personnels de santé et établissements sur un même circuit : admission, consultation, soins, délivrance — chaque acte signé, tracé et non répudiable.",
+        "primaryCta": "Créer mon compte",
+        "secondaryCta": "Explorer la carte",
+        "point1": "Dossier médical signé et traçable",
+        "point2": "Données hébergées au Cameroun",
+        "point3": "Personnel de santé et établissements",
+        "mock": {
+          "label": "Dossier patient en cours",
+          "title": "Centre de santé Mère et Enfants",
+          "steps": {
+            "accueil": "Accueil et constantes",
+            "consultation": "Consultation signée",
+            "soins": "Soins administrés",
+            "pharmacie": "Ordonnance délivrée"
+          },
+          "signed": "Émarges numériques + cachet",
+          "sealed": "Acte scellé"
+        }
       },
       "emergency": {
         "title": "Danger immédiat ?",
@@ -581,56 +601,40 @@
         "ctaGuide": "Centre SOS : guide complet"
       },
       "solution": {
-        "title": "Une solution complète, du premier appel au dossier médical",
-        "subtitle": "MediSecours relie les quatre métiers de la santé camerounaise dans un seul circuit numérique, sécurisé et traçable.",
+        "title": "Tout le système de santé, dans une seule interface",
+        "subtitle": "Huit briques qui partagent les mêmes données, les mêmes signatures et la même traçabilité.",
         "items": {
           "sos": {
-            "title": "SOS urgence",
-            "desc": "Le patient déclenche une alerte depuis son téléphone ; les structures proches reçoivent la demande avec position et motif, et l'historique conserve chaque étape.",
-            "link": "Découvrir les urgences",
-            "href": "/premiers-soins"
+            "title": "Urgences SOS",
+            "description": "Alerte, régulation, ambulance, chronologie de l’intervention."
           },
           "carte": {
-            "title": "Carte santé interactive",
-            "desc": "Hôpitaux, cliniques, pharmacies et laboratoires géolocalisés, avec recherche par ville, quartier ou langue parlée — Google, Mapbox ou Leaflet selon la disponibilité.",
-            "link": "Ouvrir la carte",
-            "href": "/carte"
+            "title": "Carte de santé",
+            "description": "Structures, gardes, urgences 24h, distances réelles."
           },
           "premiersSoins": {
-            "title": "Premiers soins & protocoles",
-            "desc": "Des gestes qui sauvent expliqués pas à pas, classés par niveau de danger, accessibles même hors connexion pour agir dans l'instant.",
-            "link": "Lire les protocoles",
-            "href": "/premiers-soins"
+            "title": "Premiers soins",
+            "description": "Protocoles d’urgence, gestes pas à pas, sans connexion."
           },
           "maladies": {
-            "title": "Maladies & symptômes",
-            "desc": "Un catalogue médical référencé pour reconnaître les symptômes, comprendre les pathologies et orienter vers le bon niveau de soin.",
-            "link": "Explorer le catalogue",
-            "href": "/maladies"
+            "title": "Orientation maladies",
+            "description": "Symptômes, causes, quand consulter, que faire."
           },
           "medecins": {
-            "title": "Médecins & téléconsultation",
-            "desc": "Annuaire vérifié, profils complets, disponibilités en direct : prenez rendez-vous en cabinet ou en téléconsultation, ordonnances numériques incluses.",
-            "link": "Trouver un médecin",
-            "href": "/medecins"
+            "title": "Annuaire médecins",
+            "description": "Spécialités, disponibilités, avis des patients."
           },
           "messagerie": {
-            "title": "Messagerie sécurisée",
-            "desc": "Patient et médecin échangent dans un fil privé, pièce jointe et ordonnance à l'appui, avec notifications en temps réel.",
-            "link": "Accéder à la messagerie",
-            "href": "/login"
+            "title": "Messagerie",
+            "description": "Échanges patients et soignants, pièces jointes."
           },
           "etablissement": {
             "title": "Espace établissement",
-            "desc": "Fiche publique vérifiée, galerie, avis clients, synchronisation cartographique et tableau de bord analytique : votre vitrine numérique complète.",
-            "link": "Gérer mon établissement",
-            "href": "/espace-etablissement"
+            "description": "Équipe, personnel, galerie, cachet, indicateurs."
           },
           "personnel": {
-            "title": "Personnel soignant",
-            "desc": "Accueil et constantes vitales, ouverture automatique du dossier médical, soins signés non répudiables et circuit pharmacie complet.",
-            "link": "Espace personnel soignant",
-            "href": "/personnel"
+            "title": "Espace personnel",
+            "description": "Postes de travail, dossiers, signatures, notation."
           }
         }
       },
@@ -668,59 +672,76 @@
           "step2": "Validez les comptes de votre équipe",
           "step3": "Suivez avis, médias et analytiques",
           "cta": "Ouvrir l'espace établissement"
+        },
+        "eyebrow": "Quatre postes de travail",
+        "discover": "Découvrir",
+        "items": {
+          "patient": {
+            "title": "Patient",
+            "description": "Consultations, ordonnances, dossier médical et avis : votre parcours de soins visible en permanence."
+          },
+          "medecin": {
+            "title": "Médecin",
+            "description": "Prescriptions numériques, dossiers, disponibilité et suivi des patients, où que vous soyez."
+          },
+          "personnel": {
+            "title": "Personnel de santé",
+            "description": "Accueil, soins, pharmacie, ambulance : chaque poste a son tableau de bord, ses signatures et ses dossiers."
+          },
+          "etablissement": {
+            "title": "Établissement",
+            "description": "Équipe, planning, galerie, cachet officiel et indicateurs d’activité du centre en direct."
+          }
         }
       },
       "trust": {
-        "title": "Conçu pour la confiance, la traçabilité et l'urgence",
-        "subtitle": "La santé exige plus qu'une belle interface : chaque compte, chaque acte et chaque document laisse une preuve.",
+        "title": "La confiance se construit trace par trace",
+        "subtitle": "Chaque acte du circuit est signé, horodaté et rattaché à son auteur et à son établissement.",
         "items": {
           "signatures": {
-            "title": "Signatures non répudiables",
-            "desc": "Chaque soin réalisé est signé par l'agent, horodaté et conservé dans l'historique du dossier médical."
+            "title": "Signatures numériques",
+            "description": "Signature du soignant, empreinte horodatée, acte non répudiable."
           },
           "validation": {
-            "title": "Comptes validés par un humain",
-            "desc": "Médecins et personnel soignant sont vérifiés pièce par pièce avant tout accès aux outils de travail."
+            "title": "Personnel validé",
+            "description": "Pièces justificatives vérifiées, validation par l’établissement."
           },
           "confidentialite": {
-            "title": "Données protégées",
-            "desc": "Échanges chiffrés et accès par rôle strict : vos informations ne sont visibles que par les professionnels qui vous suivent."
+            "title": "Confidentialité",
+            "description": "Accès au dossier limité au patient et à son équipe soignante."
           },
           "reference": {
-            "title": "Contenu médical référencé",
-            "desc": "Protocoles de premiers soins et catalogue de maladies relus par des professionnels de santé."
+            "title": "Référentiels fiable",
+            "description": "Protocoles et catalogues de maladies versionnés et traduits."
           }
-        }
+        },
+        "imageAlt": "Soins dispensés dans un centre de santé au Cameroun"
       },
       "journey": {
-        "title": "Du premier symptôme au dossier signé",
-        "subtitle": "Un seul circuit, six postes de travail : rien ne se perd entre l'alerte, le soin et la pharmacie.",
-        "steps": [
-          {
-            "title": "Repérer",
-            "desc": "Symptômes, doute ou urgence : la plateforme vous dit d'abord ce qui ne peut pas attendre."
+        "title": "Une chaîne complète, pas des silos",
+        "subtitle": "Chaque passage du patient laisse une trace signée dans le dossier : l’équipe suivante sait exactement ce qui a été fait.",
+        "steps": {
+          "accueil": {
+            "title": "Accueil",
+            "description": "Admission, dossier ouvert, constantes vitales relevées."
           },
-          {
-            "title": "Alerter",
-            "desc": "SOS en quelques secondes : position, photo de situation, structures autour de vous prévenues."
+          "dossier": {
+            "title": "Dossier",
+            "description": "Un dossier unique par patient et par établissement."
           },
-          {
-            "title": "Orienter",
-            "desc": "La carte affiche les hôpitaux, cliniques, pharmacies et laboratoires réels autour de vous."
+          "consultation": {
+            "title": "Consultation",
+            "description": "Compte rendu, prescription, signature du médecin."
           },
-          {
-            "title": "Consulter",
-            "desc": "Médecin en cabinet ou en téléconsultation : demande, échanges et rendez-vous au même endroit."
+          "soins": {
+            "title": "Soins",
+            "description": "Actes infirmiers signés, observations, constantes."
           },
-          {
-            "title": "Soigner",
-            "desc": "Accueil, constantes, soins réalisés et signés de façon non répudiable par le personnel soignant."
-          },
-          {
-            "title": "Conserver",
-            "desc": "Ordonnances, dossier et historique restent chez le patient, traçables de bout en bout."
+          "pharmacie": {
+            "title": "Pharmacie",
+            "description": "Délivrance, facturation, traçabilité du lot."
           }
-        ]
+        }
       },
       "coverage": {
         "title": "Sur le terrain, partout au Cameroun",
@@ -738,13 +759,22 @@
         "imageAlt": "Examen ophtalmologique dans un hôpital camerounais"
       },
       "closing": {
-        "title": "Prêt à rejoindre MediSecours ?",
+        "title": "Prêt à prendre soin, vraiment",
         "desc": "Patient, soignant ou gestionnaire d'établissement : votre espace vous attend, gratuitement.",
         "ctaPatient": "Créer mon compte patient",
-        "ctaPro": "Espace professionnel"
+        "ctaPro": "Espace professionnel",
+        "subtitle": "Patients, médecins, personnels de santé et établissements : rejoignez le circuit qui relie enfin les interventions au dossier du patient.",
+        "primaryCta": "Créer un compte",
+        "secondaryCta": "Présenter mon établissement"
       },
       "credits": {
         "line": "Photographies de structures et de soins au Cameroun : Happi Raphael, Destiny Deffo, Kondah, Serieminou, Fotang (CC BY-SA 4.0, Wikimedia Commons) ; CDC Global (CC BY 2.0)."
+      },
+      "partners": {
+        "title": "Les établissements qui nous font confiance",
+        "subtitle": "Structures de santé référencées sur la carte, avec leurs informations et leurs avis publics.",
+        "empty": "Les premiers établissements sont en cours de référencement.",
+        "seeAll": "Voir tous les établissements"
       }
     },
     "home": {
@@ -2501,6 +2531,164 @@
       "mediaImportPartiel": "{{ok}} média(s) importé(s), {{ko}} refusé(s).",
       "mediaImportOk_one": "{{count}} média importé.",
       "mediaImportOk_other": "{{count}} médias importés."
+    },
+    "legal": {
+      "back": "Retour à l’accueil",
+      "summary": "Sommaire",
+      "updatedAt": "Dernière révision : {{date}}",
+      "updatedDate": "octobre 2026",
+      "editor": "Éditeur du site",
+      "hosting": "Hébergement",
+      "contact": "Contact",
+      "property": "Propriété intellectuelle",
+      "liability": "Responsabilité",
+      "report": "Signalement de contenu",
+      "dataController": "Responsable du traitement",
+      "dataCollected": "Données collectées",
+      "purposes": "Finalités et bases légales",
+      "recipients": "Destinataires",
+      "retention": "Durées de conservation",
+      "rights": "Vos droits",
+      "security": "Sécurité des données",
+      "cookies": "Cookies et traceurs",
+      "purpose": "Objet et champ d’application",
+      "accounts": "Types de comptes",
+      "obligations": "Obligations des utilisateurs",
+      "medical": "Actes de soins et responsabilité médicale",
+      "suspension": "Suspension et exclusion",
+      "userData": "Vos données sur la plateforme",
+      "disputes": "Réclamations et droit applicable",
+      "mentions": {
+        "title": "Mentions légales",
+        "intro": "Les présentes mentions identifient l’éditeur, l’hébergeur et les modalités d’utilisation de la plateforme MediSecours, service numérique de santé destiné au Cameroun.",
+        "sections": {
+          "editeur": [
+            "MediSecours est une plateforme numérique de santé editée et exploitée par MediSecours, société de droit camerounais dont le siège est situé à Douala, Cameroun.",
+            "La plateforme permet aux patients, aux médecins, aux personnels de santé et aux établissements de santé de gérer le parcours de soins : recherche de structures, demandes de soins, urgences SOS, dossiers médicaux, ordonnances et messagerie sécurisée.",
+            "La direction de la publication est assurée par la personne morale éditrice du service. Les coordonnées complètes et le numéro d’immatriculation figurent sur les factures et dans les échanges officiels."
+          ],
+          "hosting": [
+            "Les données de la plateforme sont hébergées sur des serveurs situés au Cameroun, dans le respect des obligations locales de protection des données de santé.",
+            "L’infrastructure est Dimensionnée pour la haute disponibilité : réplicas, sauvegardes quotidiennes chiffrées et supervision continue des services.",
+            "Les noms de domaine et certificats de sécurité sont directement vérifiables par l’utilisateur depuis son navigateur."
+          ],
+          "contact": [
+            "Toute demande relative à la plateforme, aux données personnelles ou à la propriété intellectuelle peut être adressée via le formulaire de contact de la plateforme ou à l’adresse e-mail publiée dans le pied de page.",
+            "Les demandes relatives au dossier médical d’un patient sont traitées par l’équipe soignante de l’établissement concerné, seule habilitée à accéder à ces informations."
+          ],
+          "property": [
+            "Les éléments de la plateforme — structure, textes, composants graphiques, marque et code — sont la propriété de l’éditeur ou font l’objet d’une licence d’utilisation.",
+            "Les photographies illustrant les structures de santé et les Illustrations médicales sont diffusées sous licence compatible avec une attribution à la plateforme.",
+            "Toute reproduction, représentation ou adaptation, totale ou partielle, sans autorisation écrite préalable, est interdite."
+          ],
+          "liability": [
+            "La plateforme est un outil d’aide à la décision et à la coordination des soins. Elle ne remplace ni la consultation médicale, ni le jugement clinique du professionnel.",
+            "Les informations publiées (référentiels, protocoles, annuaires) sont fournies à titre documentaire. L’éditeur met en œuvre les moyens raisonnables pour en assurer l’exactitude et la mise à jour.",
+            "L’indemnisation eventual due par l’éditeur est limitée au montant payé par l’utilisateur au titre du service concerné."
+          ],
+          "report": [
+            "Tout contenu inexact, toute inexactitude de fiche d’établissement ou toute violation constatée peut être signalée depuis la fiche concernée.",
+            "Les signalements sont examinés par l’équipe de modération, qui peut corriger, suspendre ou retirer le contenu après information de son auteur."
+          ]
+        }
+      },
+      "privacy": {
+        "title": "Protection des données personnelles",
+        "intro": "La santé est une donnée sensible. Cette politique explique quelles informations MediSecours collecte, pourquoi, combien de temps elle les conserve et comment exercer vos droits.",
+        "sections": {
+          "responsable": [
+            "Le responsable du traitement est l’éditeur de la plateforme MediSecours, joignable via le contact indiqué dans les mentions légales.",
+            "Chaque établissement de santé reste responsable des traitements qu’il réalise sur les dossiers de ses patients, la plateforme n’assurant que le stockage technique et la traçabilité des actes qu’il lui transmet."
+          ],
+          "dataCollected": [
+            "Données d’identité et de contact : nom, prénom, adresse e-mail, numéro de téléphone, lieu de rattachement (quartier, ville, région).",
+            "Données professionnelles : spécialité, numéro d’ordre, fonction, établissement d’exercice, signature numérique, cachet officiel et photo de couverture.",
+            "Données de santé : dossier médical, constantes vitales, consultations, soins administrés, ordonnances, allergies, groupe sanguin, pièces justificatives d’exercice et preuve d’identité.",
+            "Données d’usage : pages consultées, recherches effectuées, messages échangés et journal technique nécessaire à la sécurité et à la traçabilité."
+          ],
+          "purposes": [
+            "Fournir les services de la plateforme : dossier médical, consultations, urgences SOS, ordonnances, messagerie et annuaires.",
+            "Sécuriser la plateforme, prévenir la fraude et tracer les accès aux dossiers médicaux, conformément aux obligations de traçabilité des données de santé.",
+            "Établir des indicateurs d’activité anonymisés et non nominatifs, dans l’intérêt de l’amélioration du service et de la planification sanitaire.",
+            "La base légale est votre consentement pour les services optionnels, l’exécution du contrat pour les services demandés, et l’intérêt légitime de la plateforme pour la sécurité et l’amélioration du service."
+          ],
+          "recipients": [
+            "Les professionnels de santé qui prennent en charge le patient, dans le cadre strict de leur relation de soins, et les établissements d’exercice du patient.",
+            "Les équipes de régulation des urgences SOS, lorsqu’une intervention est déclenchée par le patient.",
+            "Les autorités administratives et judiciaires, uniquement sur réquisition légale ou obligation légale applicable.",
+            "Nos sous-traitants techniques (hébergement, sauvegarde, envoi de notifications) agissent sur instruction, avec des engagements de confidentialité et de localisation.",
+            "Aucune donnée de santé n’est vendue, louée ou cédée à des tiers à des fins commerciales."
+          ],
+          "retention": [
+            "Dossier médical : conservé pendant la durée légale de conservation des dossiers de santé, puis archivé ou supprimé selon les obligations applicables.",
+            "Compte et données d’identification : conservés pendant la durée du compte, puis supprimés sous réserve des obligations de preuve et de facturation.",
+            "Pièces justificatives d’exercice : conservées pendant la durée de l’exercice, puis purgées sauf obligation de contrôle.",
+            "Journaux de connexion et de traçabilité : conservés pendant la durée recommandée par les référentiels de sécurité des données de santé."
+          ],
+          "rights": [
+            "Vous pouvez à tout moment consulter et rectifier vos données depuis votre profil, demander leur effacement, demander la limitation du traitement ou la portabilité de vos données.",
+            "Vous pouvez retirer votre consentement aux services optionnels et oppositionner à la prospection.",
+            "Pour toute demande, écrivez à l’adresse de contact : une réponse est apportée dans les délais prévus par la réglementation applicable.",
+            "En cas de désaccord, vous pouvez introduire une réclamation auprès de l’autorité de protection des données compétente au Cameroun."
+          ],
+          "security": [
+            "Les échanges sont chiffrés (TLS) entre votre navigateur et nos serveurs, et entre nos serveurs et la base de données.",
+            "Les mots de passe sont hachés avec un algorithme lent et salé ; ils ne sont jamais stockés en clair ni récupérables.",
+            "Les documents médicaux et les pièces justificatives sont chiffrés au repos, et les accès sont journalisés, nominatifs et horodatés.",
+            "Les sauvegarde sont chiffrées, testées régulièrement et conservées hors du site de production."
+          ],
+          "cookies": [
+            "Les cookies techniques strictement nécessaires au fonctionnement (session authentifiée, préférence de langue et de thème) ne nécessitent aucun consentement.",
+            "Les mesure d’audience sont agrégées et anonymisées : elles ne permettent pas de vous réidentifier.",
+            "Aucun cookie publicitaire tiers n’est déposé sur l’accueil, et aucun traceur ne transmet vos données de santé à un tiers.",
+            "Vous pouvez à tout moment supprimer les cookies depuis les réglages de votre navigateur, au prix d’un déconnexion sur les sessions en cours."
+          ]
+        }
+      },
+      "terms": {
+        "title": "Conditions générales d’utilisation",
+        "intro": "Les présentes conditions encadrent l’accès et l’usage de la plateforme MediSecours. En créant un compte ou en utilisant un service, vous les acceptez sans réserve.",
+        "sections": {
+          "purpose": [
+            "MediSecours est une plateforme numérique de santé. Elle permet la coordination des soins entre patients, médecins, personnels de santé et établissements, et l’accès à des référentiels et à des annuaires.",
+            "Les présentes conditions s’appliquent à l’ensemble des services accessibles depuis la plateforme. Les conditions propres à un service particulier peuvent y être ajoutées et vous sont notifiées."
+          ],
+          "accounts": [
+            "Patient : accès à votre dossier médical, à vos consultations, ordonnances et avis.",
+            "Médecin : gestion des consultations, prescriptions, disponibilités et dossiers des patients vous appartenant.",
+            "Personnel de santé : exercice de votre poste (accueil, soins, pharmacie, ambulance) sur les dossiers de votre établissement.",
+            "Établissement : gestion de l’équipe, du personnel, de la galerie, du cachet officiel et des indicateurs de votre structure.",
+            "L’accès à un espace est subordonné à la validation des pièces justificatives et à l’approbation de l’établissement concerné."
+          ],
+          "obligations": [
+            "Vous garantissez l’exactitude des informations transmises et vous les mettez à jour dès qu’elles changent.",
+            "Les identifiants de connexion sont personnels et confidentiels. Toute connexion à votre compte vaut de votre part : vous êtes seul responsable des actes réalisés.",
+            "Il est interdit de porter atteinte à la plateforme, de tenter d’en contourner les contrôles d’accès ou d’utiliser un compte pour usurper l’identité d’un tiers.",
+            "Les avis, signalements et contenus publiés doivent rester factuels et respectueux. Toute publication diffamatoire ou constitutive de nuisance peut être retirée.",
+            "Vous ne pouvez pas exploiter les données de la plateforme, y compris de manière agrégée, pour entraîner un modèle ou produire une base de données concurrente."
+          ],
+          "medical": [
+            "Les actes de soins sont réalisés par des professionnels habilités, dans le cadre de leurs fonctions et selon les règles de l’art.",
+            "La plateforme ne constitue ni un avis médical, ni une prescription, ni un diagnostic. En cas d’urgence vitale, appelez immédiatement le numéro d’urgence.",
+            "Les informations de santé publiées sur la plateforme (avis, notes, signalements) sont des retours d’expérience et n’ont pas de valeur médicale.",
+            "La responsabilité de l’acte de soin demeure celle du professionnel qui l’a réalisé ; la plateforme en assure la traçabilité et la non-répudiation."
+          ],
+          "suspension": [
+            "Un compte peut être suspendu en cas de manquement grave, de fraude, de faux avis ou de comportement portant atteinte à la sécurité d’autrui.",
+            "Sauf urgence médico-légale, la suspension est notifiée avec son motif et reste susceptible de recours.",
+            "Les personnels de santé dont la note moyenne des avis publiés descend sous le seuil défini par la plateforme sont suspendus : le motif et la date sont conservés et la réactivation est possible après examen du dossier."
+          ],
+          "userData": [
+            "Vous restez propriétaire des contenus que vous publiez et des données que vous saisissez dans votre dossier.",
+            "En publiant un avis, vous nous concédez une licence non exclusive et gratuite pour l’afficher sur la plateforme et le partager sur les réseaux de la plateforme.",
+            "Vous pouvez demander le retrait d’un avis ; les obligations de sécurité et de traçabilité alors échues sont alors respectées."
+          ],
+          "disputes": [
+            "Toute réclamation relative à l’utilisation de la plateforme est adressée à notre service client, qui s’efforce d’y répondre dans les meilleurs délais.",
+            "Les présentes conditions sont soumises au droit applicable au Cameroun. À défaut de résolution amiable, les tribunaux compétents de Douala sont seuls habilités."
+          ]
+        }
+      }
     }
   }
 }
